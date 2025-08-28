@@ -11,6 +11,7 @@ add_library(app STATIC ${APP_SOURCES})
 # 设置头文件包含目录
 target_include_directories(app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/camera
     ${CMAKE_CURRENT_SOURCE_DIR}/chatbot
 )
 
@@ -19,7 +20,7 @@ target_include_directories(app PUBLIC
 #     # 在这里添加需要链接的库
 # )
 
-# 编译选项 (可选)
+# 编译选项 
 target_compile_options(app PRIVATE
     -Wall
     -Wextra
