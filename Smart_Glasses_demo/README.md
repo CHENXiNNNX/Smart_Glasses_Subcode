@@ -5,6 +5,7 @@
 
     注意更改conf/dev_conf, 将`LV_USE_SIMULATOR`置`1`
     
+    
     ```sh
     cd ./DeskBot_demo
     mkdir ./build

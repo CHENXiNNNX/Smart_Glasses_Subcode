@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(SDK_PATH $ENV{LUCKFOX_SDK_PATH})
+set(SDK_PATH "/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk")
 if(NOT SDK_PATH)
     message(WARNING "Please Set Luckfox-pico SDK Path. Such as:export LUCKFOX_SDK_PATH=/home/user/luckfox-pico")
     return()

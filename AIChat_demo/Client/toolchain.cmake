@@ -2,7 +2,7 @@
 set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR arm)
 
-set(SDK_PATH "/home/kingham/Projects/git_projects/Echo-Mate/SDK/rv1106-sdk")
+set(SDK_PATH "/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk")
 
 # Specify the compiler paths
 set(CMAKE_C_COMPILER ${SDK_PATH}/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc)

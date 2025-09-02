@@ -1,19 +1,13 @@
 # Minimum CMake version requirement
 cmake_minimum_required(VERSION 3.10)
 
-# Option to choose target architecture
-option(TARGET_ARM "Build for ARM architecture" OFF)
-
 # If building for ARM, set the toolchain file before anything else
-if(TARGET_ARM)
-    if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-        set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/toolchain.cmake" CACHE FILEPATH "Default toolchain file for ARM builds")
-        message(STATUS "No toolchain file specified; using default: ${CMAKE_TOOLCHAIN_FILE}")
-    endif()
-    message(STATUS "Building for ARM using toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
-else()
-    message(STATUS "Building for x86 native architecture.")
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/toolchain.cmake" CACHE FILEPATH "Default toolchain file for ARM builds")
+    message(STATUS "No toolchain file specified; using default: ${CMAKE_TOOLCHAIN_FILE}")
 endif()
+message(STATUS "Building for ARM using toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
+
 
 # Project name and language
 project(AIChatClient)
@@ -25,10 +19,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Ensure pkg-config is available
 find_package(PkgConfig REQUIRED)
 
-if(TARGET_ARM)
-    # 设置交叉编译环境下 pkg-config 使用的路径
-    set(ENV{PKG_CONFIG_PATH} "${CMAKE_SYSROOT}/usr/lib/pkgconfig")
-endif()
+# 设置交叉编译环境下 pkg-config 使用的路径
+set(ENV{PKG_CONFIG_PATH} "${CMAKE_SYSROOT}/usr/lib/pkgconfig")
 
 # Find required packages
 pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)

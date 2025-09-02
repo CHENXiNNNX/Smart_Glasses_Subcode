@@ -12,9 +12,8 @@ target_include_directories(common PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/gpio_manager
 )
 
-if(TARGET_ARM)
-    # 查找 ALSA 库
-    find_package(ALSA REQUIRED)
-    # 添加 ALSA 库到 common 静态库
-    target_link_libraries(common PRIVATE ALSA::ALSA)
-endif()
+
+# 查找 ALSA 库
+find_package(ALSA REQUIRED)
+# 添加 ALSA 库到 common 静态库
+target_link_libraries(common PRIVATE ALSA::ALSA)

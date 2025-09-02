@@ -1,21 +1,14 @@
 cmake_minimum_required(VERSION 3.10)
 
-# Option to choose target architecture
-option(TARGET_ARM "Build for ARM architecture" OFF)
-
 # Find the architecture
-if(TARGET_ARM)
-    set(SNOWBOY_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/lib/rpi/libsnowboy-detect.a")
-    message(STATUS "Building for Arm native architecture.")
-    if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-        set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/toolchain.cmake" CACHE FILEPATH "Default toolchain file for ARM builds")
-        message(STATUS "No toolchain file specified; using default: ${CMAKE_TOOLCHAIN_FILE}")
-    endif()
-    message(STATUS "Building for ARM using toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
-else()
-    set(SNOWBOY_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/lib/ubuntu64/libsnowboy-detect.a")
-    message(STATUS "Building for x86 native architecture.")
+set(SNOWBOY_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/lib/rpi/libsnowboy-detect.a")
+message(STATUS "Building for Arm native architecture.")
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/toolchain.cmake" CACHE FILEPATH "Default toolchain file for ARM builds")
+    message(STATUS "No toolchain file specified; using default: ${CMAKE_TOOLCHAIN_FILE}")
 endif()
+    message(STATUS "Building for ARM using toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
+
 
 # Set the project name and define the library
 project(SnowboyLib)
@@ -45,18 +38,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(PkgConfig REQUIRED)
 
 # 确保链接必要的数学库
-if(TARGET_ARM)
-    find_package(OpenBLAS REQUIRED)
-
-    if(OpenBLAS_FOUND)
-        set(BLAS_LIBRARIES ${OpenBLAS_LIBRARIES})
-        set(LAPACK_LIBRARIES ${OpenBLAS_LIBRARIES})  # OpenBLAS 包含 LAPACK 实现
-        set(BLAS_INCLUDE_DIRS ${OpenBLAS_INCLUDE_DIR})
-    endif()
-else()
-    find_package(BLAS REQUIRED)
-    find_package(LAPACK REQUIRED)
+find_package(OpenBLAS REQUIRED)
+if(OpenBLAS_FOUND)
+    set(BLAS_LIBRARIES ${OpenBLAS_LIBRARIES})
+    set(LAPACK_LIBRARIES ${OpenBLAS_LIBRARIES})  # OpenBLAS 包含 LAPACK 实现
+    set(BLAS_INCLUDE_DIRS ${OpenBLAS_INCLUDE_DIR})
 endif()
+
 
 # 将找到的库添加到目标
 target_include_directories(snowboy PUBLIC ${BLAS_INCLUDE_DIRS})
