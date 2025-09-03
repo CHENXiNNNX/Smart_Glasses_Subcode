@@ -24,6 +24,8 @@ set(OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 add_subdirectory(utils)         # 公共工具模块
 add_subdirectory(common)        # 通用组件模块
 add_subdirectory(app)           # 应用核心模块
+add_subdirectory(3rdparty)      # 第三方库模块
+# add_subdirectory(rkmpi)         # 视频处理模块
 
 # 定义主程序源文件
 set(MAIN_SOURCES main.cpp)
@@ -87,10 +89,104 @@ add_custom_command(
     COMMENT "Copying AI Chat necessary resource files to executable output directory"
 )
 
+# opencv配置
 set(OpenCV_DIR "${CMAKE_CURRENT_SOURCE_DIR}/opencv_rv1106_410/lib/cmake/opencv4")
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 target_link_libraries(main ${OpenCV_LIBS})
+
+# jpeg_turbo配置
+target_include_directories(main PRIVATE ${JPEG_TURBO_INCLUDES})
+target_link_libraries(main ${LIBTURBOJPEG})
+
+# rknn runtime配置
+target_include_directories(main PRIVATE ${LIBRKNNRT_INCLUDES})
+target_link_libraries(main ${LIBRKNNRT})
+
+# rga配置
+target_include_directories(main PRIVATE ${LIBRGA_INCLUDES})
+target_link_libraries(main ${LIBRGA})
+
+# 设置rkmpi路径
+set(RKMPI_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/rkmpi)
+set(RKMPI_INC  ${RKMPI_ROOT}/include)
+set(RKMPI_LIB  ${RKMPI_ROOT}/lib)
+
+target_link_directories(main PRIVATE ${RKMPI_LIB})
+
+set(CMAKE_EXE_LINKER_FLAGS
+    "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath-link,${RKMPI_LIB}:${CMAKE_SYSROOT}/usr/lib"
+)
+
+target_include_directories(main PRIVATE
+    ${RKMPI_INC}
+    ${RKMPI_INC}/rknn
+    ${RKMPI_INC}/rkaiq
+    ${RKMPI_INC}/rkaiq/uAPI2
+    ${RKMPI_INC}/rkaiq/common
+    ${RKMPI_INC}/rkaiq/xcore
+    ${RKMPI_INC}/rkaiq/algos
+    ${RKMPI_INC}/rkaiq/iq_parser
+    ${RKMPI_INC}/rkaiq/iq_parser_v2
+    ${RKMPI_INC}/rkaiq/smartIr
+)
+
+target_link_libraries(main
+    rockiva
+    sample_comm
+    rockit_full
+    rockchip_mpp
+    rkaiq
+    rtsp
+    pthread
+    dl
+    m
+)
+
+# # 运行时库目录与 rpath
+# add_custom_command(
+#     TARGET main POST_BUILD
+#     COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_PATH}/lib
+#     COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#             ${LIBRKNNRT}
+#             ${OUTPUT_PATH}/lib/
+#     COMMENT "Copying RKNN runtime (.so) to bin/lib"
+# )
+
+# # 让可执行在 $ORIGIN/lib 下查找 .so
+# set_target_properties(main PROPERTIES
+#     BUILD_RPATH "\$ORIGIN/lib"
+#     INSTALL_RPATH "\$ORIGIN/lib"
+# )
+
+# # 配置rkmpi头文件
+# target_include_directories(main PRIVATE ${RKMPI_INC})
+
+# # 配置rkmpi链接库
+# target_link_libraries(main
+#     ${RKMPI_LIB}/librockit_full.a
+#     ${RKMPI_LIB}/librockchip_mpp.a
+#     ${RKMPI_LIB}/librkaiq.a
+#     # ${RKMPI_LIB}/librga.so     # 若未用 ${LIBRGA}，再开启这一行
+#     ${RKMPI_LIB}/librockiva.a
+#     ${RKMPI_LIB}/librtsp.a
+#     ${RKMPI_LIB}/libsample_comm.a
+#     pthread dl m
+# )
+
+# 复制运行时 .so 至 bin/lib
+# add_custom_command(
+#     TARGET main POST_BUILD
+#     COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_PATH}/lib
+#     COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#             ${RKMPI_LIB}/librockit_full.so
+#             ${RKMPI_LIB}/librockchip_mpp.so
+#             ${RKMPI_LIB}/librkaiq.so
+#             # ${RKMPI_LIB}/librga.so         # 若链接 .so 再拷贝
+#             ${RKMPI_LIB}/librockiva.so
+#             ${OUTPUT_PATH}/lib/
+#     COMMENT "Copying RKMPI shared libs to bin/lib"
+# )
 
 # ARM平台特定配置 - AI相机和YOLO模型
 # if(TARGET_ARM)
