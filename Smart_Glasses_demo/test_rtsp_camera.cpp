@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "rtsp_demo.h"
-#include "luckfox_mpi.h"
+#include "camera.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>

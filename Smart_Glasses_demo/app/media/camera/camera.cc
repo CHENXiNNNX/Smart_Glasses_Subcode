@@ -1,16 +1,4 @@
-/*****************************************************************************
-* | Author      :   Luckfox team
-* | Function    :   
-* | Info        :
-*
-*----------------
-* | This version:   V1.1
-* | Date        :   2024-08-26
-* | Info        :   Basic version
-*
-******************************************************************************/
-
-#include "luckfox_mpi.h"
+#include "camera.h"
 
 RK_U64 TEST_COMM_GetNowUs() {
 	struct timespec time = {0, 0};
