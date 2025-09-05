@@ -6,5 +6,5 @@ C_DEFINES = -DHAVE_CONFIG_H
 
 C_INCLUDES = -I/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/deps/libsrtp -I/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/deps/libsrtp/crypto/include -I/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/deps/libsrtp/include
 
-C_FLAGS = -O3 -DNDEBUG -fPIE -std=gnu99
+C_FLAGS = -g -fPIE -std=gnu99
 

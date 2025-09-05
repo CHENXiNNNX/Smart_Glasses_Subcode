@@ -6,5 +6,5 @@ CXX_DEFINES = -DJUICE_STATIC -DRTC_ENABLE_MEDIA=1 -DRTC_ENABLE_WEBSOCKET=1 -DRTC
 
 CXX_INCLUDES = -I/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/include -I/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/include/rtc -I/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/src -I/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/deps/usrsctp/usrsctplib -I/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/deps/plog/include -I/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/deps/libsrtp/crypto/include -I/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/deps/libsrtp/include -I/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/deps/libjuice/include
 
-CXX_FLAGS = -O3 -DNDEBUG -fPIC -Wall -Wextra -std=gnu++17
+CXX_FLAGS = -fPIC -Wall -Wextra -std=gnu++17
 

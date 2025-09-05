@@ -92,7 +92,13 @@ datachannel__copy__paste__answerer_EXTERNAL_OBJECTS =
 
 examples/copy-paste/answerer: examples/copy-paste/CMakeFiles/datachannel-copy-paste-answerer.dir/answerer.cpp.o
 examples/copy-paste/answerer: examples/copy-paste/CMakeFiles/datachannel-copy-paste-answerer.dir/build.make
-examples/copy-paste/answerer: libdatachannel.so.0.23.1
+examples/copy-paste/answerer: libdatachannel.a
+examples/copy-paste/answerer: deps/usrsctp/usrsctplib/libusrsctp.a
+examples/copy-paste/answerer: deps/libsrtp/libsrtp2.a
+examples/copy-paste/answerer: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
+examples/copy-paste/answerer: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libssl.so
+examples/copy-paste/answerer: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
+examples/copy-paste/answerer: deps/libjuice/libjuice.a
 examples/copy-paste/answerer: examples/copy-paste/CMakeFiles/datachannel-copy-paste-answerer.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable answerer"
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/examples/copy-paste && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/datachannel-copy-paste-answerer.dir/link.txt --verbose=$(VERBOSE)

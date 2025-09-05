@@ -1,5 +1,5 @@
 #include "chatbot.h"
-#include "../../gui_app/pages/ui_ChatBotPage/app_ChatBotPage.h"
+// #include "../../gui_app/pages/ui_ChatBotPage/app_ChatBotPage.h"   //modify
 #include "../../../AIChat_demo/Client/c_interface/AIchat_c_interface.h"
 
 #include <stdio.h>

@@ -16,7 +16,7 @@ set(CMAKE_IMPORT_FILE_VERSION 1)
 set(_targetsDefined)
 set(_targetsNotDefined)
 set(_expectedTargets)
-foreach(_expectedTarget LibDataChannel::LibDataChannel)
+foreach(_expectedTarget LibDataChannel::usrsctp LibDataChannel::srtp2 LibDataChannel::LibJuice LibDataChannel::LibDataChannel)
   list(APPEND _expectedTargets ${_expectedTarget})
   if(NOT TARGET ${_expectedTarget})
     list(APPEND _targetsNotDefined ${_expectedTarget})
@@ -50,13 +50,38 @@ if(_IMPORT_PREFIX STREQUAL "/")
   set(_IMPORT_PREFIX "")
 endif()
 
+# Create imported target LibDataChannel::usrsctp
+add_library(LibDataChannel::usrsctp STATIC IMPORTED)
+
+# Create imported target LibDataChannel::srtp2
+add_library(LibDataChannel::srtp2 STATIC IMPORTED)
+
+set_target_properties(LibDataChannel::srtp2 PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+  INTERFACE_LINK_LIBRARIES "OpenSSL::Crypto"
+)
+
+# Create imported target LibDataChannel::LibJuice
+add_library(LibDataChannel::LibJuice STATIC IMPORTED)
+
+set_target_properties(LibDataChannel::LibJuice PROPERTIES
+  INTERFACE_COMPILE_DEFINITIONS "JUICE_STATIC"
+  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+  INTERFACE_LINK_LIBRARIES "\$<LINK_ONLY:Threads::Threads>"
+)
+
 # Create imported target LibDataChannel::LibDataChannel
-add_library(LibDataChannel::LibDataChannel SHARED IMPORTED)
+add_library(LibDataChannel::LibDataChannel STATIC IMPORTED)
 
 set_target_properties(LibDataChannel::LibDataChannel PROPERTIES
-  INTERFACE_COMPILE_DEFINITIONS "RTC_ENABLE_WEBSOCKET=1;RTC_ENABLE_MEDIA=1"
+  INTERFACE_COMPILE_DEFINITIONS "RTC_STATIC;RTC_ENABLE_WEBSOCKET=1;RTC_ENABLE_MEDIA=1"
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+  INTERFACE_LINK_LIBRARIES "\$<LINK_ONLY:Threads::Threads>;\$<LINK_ONLY:LibDataChannel::usrsctp>;\$<LINK_ONLY:>;\$<LINK_ONLY:LibDataChannel::srtp2>;\$<LINK_ONLY:OpenSSL::SSL>;\$<LINK_ONLY:LibDataChannel::LibJuice>"
 )
+
+if(CMAKE_VERSION VERSION_LESS 2.8.12)
+  message(FATAL_ERROR "This file relies on consumers using CMake 2.8.12 or greater.")
+endif()
 
 # Load information for each installed configuration.
 get_filename_component(_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)

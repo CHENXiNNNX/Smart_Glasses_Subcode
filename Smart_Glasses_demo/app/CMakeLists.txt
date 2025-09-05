@@ -27,6 +27,7 @@ target_include_directories(app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/media/camera/test
     ${CMAKE_CURRENT_SOURCE_DIR}/protocol
     ${CMAKE_CURRENT_SOURCE_DIR}/protocol/rtsp
+    ${CMAKE_CURRENT_SOURCE_DIR}/protocol/websocket
     # rkmpi headers
     ${PROJECT_SOURCE_DIR}/rkmpi/include
     ${PROJECT_SOURCE_DIR}/rkmpi/include/rknn

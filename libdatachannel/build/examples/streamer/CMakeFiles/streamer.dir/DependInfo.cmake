@@ -21,6 +21,9 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
 # Targets to which this target links.
 set(CMAKE_TARGET_LINKED_INFO_FILES
   "/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles/datachannel.dir/DependInfo.cmake"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/DependInfo.cmake"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/deps/libsrtp/CMakeFiles/srtp2.dir/DependInfo.cmake"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/deps/libjuice/CMakeFiles/juice.dir/DependInfo.cmake"
   )
 
 # Fortran module output directory.

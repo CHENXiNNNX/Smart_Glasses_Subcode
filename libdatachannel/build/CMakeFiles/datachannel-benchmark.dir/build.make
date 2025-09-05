@@ -92,7 +92,13 @@ datachannel__benchmark_EXTERNAL_OBJECTS =
 
 benchmark-0.23.1: CMakeFiles/datachannel-benchmark.dir/test/benchmark.cpp.o
 benchmark-0.23.1: CMakeFiles/datachannel-benchmark.dir/build.make
-benchmark-0.23.1: libdatachannel.so.0.23.1
+benchmark-0.23.1: libdatachannel.a
+benchmark-0.23.1: deps/usrsctp/usrsctplib/libusrsctp.a
+benchmark-0.23.1: deps/libsrtp/libsrtp2.a
+benchmark-0.23.1: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
+benchmark-0.23.1: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libssl.so
+benchmark-0.23.1: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
+benchmark-0.23.1: deps/libjuice/libjuice.a
 benchmark-0.23.1: CMakeFiles/datachannel-benchmark.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable benchmark"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/datachannel-benchmark.dir/link.txt --verbose=$(VERBOSE)

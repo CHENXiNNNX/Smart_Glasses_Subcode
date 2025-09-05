@@ -2,9 +2,8 @@ cmake_minimum_required(VERSION 3.13)
 
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/toolchain.cmake" CACHE FILEPATH "Default toolchain file for ARM builds")
-    message(STATUS "No toolchain file specified; using default: ${CMAKE_TOOLCHAIN_FILE}")
+    message(STATUS "Using ARM toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
 endif()
-message(STATUS "Building for ARM using toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
 
 project(libdatachannel
 	VERSION 0.23.1
@@ -14,7 +13,7 @@ set(PROJECT_DESCRIPTION "C/C++ WebRTC network library featuring Data Channels, M
 include(GNUInstallDirs)
 
 # Options
-option(BUILD_SHARED_LIBS "Build shared library" ON)
+option(BUILD_SHARED_LIBS "Build shared library" OFF)  # ON
 option(BUILD_SHARED_DEPS_LIBS "Build submodules as shared libraries" OFF)
 option(USE_GNUTLS "Use GnuTLS instead of OpenSSL" OFF)
 option(USE_MBEDTLS "Use Mbed TLS instead of OpenSSL" OFF)

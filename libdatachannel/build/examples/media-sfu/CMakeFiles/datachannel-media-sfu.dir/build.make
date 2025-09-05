@@ -92,7 +92,13 @@ datachannel__media__sfu_EXTERNAL_OBJECTS =
 
 examples/media-sfu/media-sfu: examples/media-sfu/CMakeFiles/datachannel-media-sfu.dir/main.cpp.o
 examples/media-sfu/media-sfu: examples/media-sfu/CMakeFiles/datachannel-media-sfu.dir/build.make
-examples/media-sfu/media-sfu: libdatachannel.so.0.23.1
+examples/media-sfu/media-sfu: libdatachannel.a
+examples/media-sfu/media-sfu: deps/usrsctp/usrsctplib/libusrsctp.a
+examples/media-sfu/media-sfu: deps/libsrtp/libsrtp2.a
+examples/media-sfu/media-sfu: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
+examples/media-sfu/media-sfu: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libssl.so
+examples/media-sfu/media-sfu: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
+examples/media-sfu/media-sfu: deps/libjuice/libjuice.a
 examples/media-sfu/media-sfu: examples/media-sfu/CMakeFiles/datachannel-media-sfu.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable media-sfu"
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/examples/media-sfu && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/datachannel-media-sfu.dir/link.txt --verbose=$(VERBOSE)

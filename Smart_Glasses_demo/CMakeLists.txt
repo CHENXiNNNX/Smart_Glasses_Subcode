@@ -9,8 +9,29 @@ endif()
 set(ENV{PKG_CONFIG_PATH} "${CMAKE_SYSROOT}/usr/lib/pkgconfig")
 message(STATUS "Building for ARM architecture - Smart Glasses")
 
-
+# 工程名称
 project(SmartGlasses)
+
+# Options
+option(BUILD_SHARED_LIBS "Build shared library" OFF) # 默认构建静态库
+option(BUILD_SHARED_DEPS_LIBS "Build submodules as shared libraries" OFF)
+option(USE_GNUTLS "Use GnuTLS instead of OpenSSL" OFF)
+option(USE_MBEDTLS "Use Mbed TLS instead of OpenSSL" OFF)
+option(USE_NICE "Use libnice instead of libjuice" OFF)
+option(PREFER_SYSTEM_LIB "Prefer system libraries over submodules" OFF)
+option(USE_SYSTEM_SRTP "Use system libSRTP" ${PREFER_SYSTEM_LIB})
+option(USE_SYSTEM_JUICE "Use system libjuice" ${PREFER_SYSTEM_LIB})
+option(USE_SYSTEM_USRSCTP "Use system libusrsctp" ${PREFER_SYSTEM_LIB})
+option(USE_SYSTEM_PLOG "Use system Plog" ${PREFER_SYSTEM_LIB})
+option(USE_SYSTEM_JSON "Use system Nlohmann JSON" ${PREFER_SYSTEM_LIB})
+option(NO_WEBSOCKET "Disable WebSocket support" OFF)
+option(NO_MEDIA "Disable media transport support" OFF)
+option(NO_EXAMPLES "Disable examples" OFF)
+option(NO_TESTS "Disable tests build" OFF)
+option(WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
+option(CAPI_STDCALL "Set calling convention of C API callbacks stdcall" OFF)
+option(SCTP_DEBUG "Enable SCTP debugging output to verbose log" OFF)
+option(RTC_UPDATE_VERSION_HEADER "Enable updating the version header" OFF)
 
 # 设置C/C++标准
 set(CMAKE_C_STANDARD 99)
@@ -21,11 +42,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
 # 添加子目录
-add_subdirectory(utils)         # 公共工具模块
-add_subdirectory(common)        # 通用组件模块
-add_subdirectory(app)           # 应用核心模块
-add_subdirectory(3rdparty)      # 第三方库模块
-# add_subdirectory(rkmpi)         # 视频处理模块
+add_subdirectory(utils)          # 公共工具模块
+add_subdirectory(common)         # 通用组件模块
+add_subdirectory(app)            # 应用核心模块
+add_subdirectory(3rdparty)       # 第三方库模块
+add_subdirectory(libdatachannel) # WebRTC网络通信库
 
 # 定义主程序源文件
 set(MAIN_SOURCES main.cpp)
@@ -39,6 +60,7 @@ target_link_libraries(
     utils
     common
     app
+    datachannel-static  # WebRTC网络通信库
 )
 
 # 复制配置文件到输出目录
@@ -142,6 +164,42 @@ target_link_libraries(main
     dl
     m
 )
+
+# ================== libdatachannel WebRTC 配置 ==================
+# libdatachannel 提供了以下功能：
+# - WebRTC Data Channels: 实时数据传输通道
+# - WebRTC Media Transport: 音视频媒体传输
+# - WebSocket: 信令通信支持
+# - 多种加密后端: OpenSSL/GnuTLS/Mbed TLS
+# - ICE 连接建立: libjuice/libnice 支持
+
+# 配置 libdatachannel 编译选项
+set_target_properties(datachannel-static PROPERTIES
+    CXX_STANDARD 17
+    CXX_VISIBILITY_PRESET default
+)
+
+# 为 libdatachannel 设置编译定义
+target_compile_definitions(datachannel-static PRIVATE
+    RTC_STATIC=1
+    RTC_ENABLE_WEBSOCKET=1
+    RTC_ENABLE_MEDIA=1
+    USE_GNUTLS=0
+    USE_MBEDTLS=0
+    USE_NICE=0
+    RTC_SYSTEM_JUICE=0
+    RTC_SYSTEM_SRTP=0
+    RTC_SYSTEM_USRSCTP=0
+    RTC_SYSTEM_PLOG=0
+    RTC_SYSTEM_JSON=0
+)
+
+# 确保 libdatachannel 使用与主项目相同的工具链
+if(DEFINED CMAKE_TOOLCHAIN_FILE)
+    set_target_properties(datachannel-static PROPERTIES
+        CMAKE_TOOLCHAIN_FILE ${CMAKE_TOOLCHAIN_FILE}
+    )
+endif()
 
 # # 运行时库目录与 rpath
 # add_custom_command(

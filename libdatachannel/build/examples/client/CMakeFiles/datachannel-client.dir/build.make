@@ -108,7 +108,13 @@ datachannel__client_EXTERNAL_OBJECTS =
 examples/client/client: examples/client/CMakeFiles/datachannel-client.dir/main.cpp.o
 examples/client/client: examples/client/CMakeFiles/datachannel-client.dir/parse_cl.cpp.o
 examples/client/client: examples/client/CMakeFiles/datachannel-client.dir/build.make
-examples/client/client: libdatachannel.so.0.23.1
+examples/client/client: libdatachannel.a
+examples/client/client: deps/usrsctp/usrsctplib/libusrsctp.a
+examples/client/client: deps/libsrtp/libsrtp2.a
+examples/client/client: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
+examples/client/client: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libssl.so
+examples/client/client: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
+examples/client/client: deps/libjuice/libjuice.a
 examples/client/client: examples/client/CMakeFiles/datachannel-client.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable client"
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/examples/client && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/datachannel-client.dir/link.txt --verbose=$(VERBOSE)

@@ -405,6 +405,9 @@ CMakeFiles/datachannel-static.dir/clean:
 
 # All Build rule for target.
 CMakeFiles/datachannel-tests.dir/all: CMakeFiles/datachannel.dir/all
+CMakeFiles/datachannel-tests.dir/all: deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
+CMakeFiles/datachannel-tests.dir/all: deps/libsrtp/CMakeFiles/srtp2.dir/all
+CMakeFiles/datachannel-tests.dir/all: deps/libjuice/CMakeFiles/juice.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/datachannel-tests.dir/build.make CMakeFiles/datachannel-tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/datachannel-tests.dir/build.make CMakeFiles/datachannel-tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num=50,51,52,53 "Built target datachannel-tests"
@@ -431,6 +434,9 @@ CMakeFiles/datachannel-tests.dir/clean:
 
 # All Build rule for target.
 CMakeFiles/datachannel-benchmark.dir/all: CMakeFiles/datachannel.dir/all
+CMakeFiles/datachannel-benchmark.dir/all: deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
+CMakeFiles/datachannel-benchmark.dir/all: deps/libsrtp/CMakeFiles/srtp2.dir/all
+CMakeFiles/datachannel-benchmark.dir/all: deps/libjuice/CMakeFiles/juice.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/datachannel-benchmark.dir/build.make CMakeFiles/datachannel-benchmark.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/datachannel-benchmark.dir/build.make CMakeFiles/datachannel-benchmark.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num=22 "Built target datachannel-benchmark"
@@ -847,6 +853,9 @@ deps/libjuice/CMakeFiles/juice-tests.dir/clean:
 
 # All Build rule for target.
 examples/client/CMakeFiles/datachannel-client.dir/all: CMakeFiles/datachannel.dir/all
+examples/client/CMakeFiles/datachannel-client.dir/all: deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
+examples/client/CMakeFiles/datachannel-client.dir/all: deps/libsrtp/CMakeFiles/srtp2.dir/all
+examples/client/CMakeFiles/datachannel-client.dir/all: deps/libjuice/CMakeFiles/juice.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/client/CMakeFiles/datachannel-client.dir/build.make examples/client/CMakeFiles/datachannel-client.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/client/CMakeFiles/datachannel-client.dir/build.make examples/client/CMakeFiles/datachannel-client.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num=23 "Built target datachannel-client"
@@ -873,6 +882,9 @@ examples/client/CMakeFiles/datachannel-client.dir/clean:
 
 # All Build rule for target.
 examples/client-benchmark/CMakeFiles/datachannel-client-benchmark.dir/all: CMakeFiles/datachannel.dir/all
+examples/client-benchmark/CMakeFiles/datachannel-client-benchmark.dir/all: deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
+examples/client-benchmark/CMakeFiles/datachannel-client-benchmark.dir/all: deps/libsrtp/CMakeFiles/srtp2.dir/all
+examples/client-benchmark/CMakeFiles/datachannel-client-benchmark.dir/all: deps/libjuice/CMakeFiles/juice.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/client-benchmark/CMakeFiles/datachannel-client-benchmark.dir/build.make examples/client-benchmark/CMakeFiles/datachannel-client-benchmark.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/client-benchmark/CMakeFiles/datachannel-client-benchmark.dir/build.make examples/client-benchmark/CMakeFiles/datachannel-client-benchmark.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num=24 "Built target datachannel-client-benchmark"
@@ -899,6 +911,9 @@ examples/client-benchmark/CMakeFiles/datachannel-client-benchmark.dir/clean:
 
 # All Build rule for target.
 examples/media-receiver/CMakeFiles/datachannel-media-receiver.dir/all: CMakeFiles/datachannel.dir/all
+examples/media-receiver/CMakeFiles/datachannel-media-receiver.dir/all: deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
+examples/media-receiver/CMakeFiles/datachannel-media-receiver.dir/all: deps/libsrtp/CMakeFiles/srtp2.dir/all
+examples/media-receiver/CMakeFiles/datachannel-media-receiver.dir/all: deps/libjuice/CMakeFiles/juice.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/media-receiver/CMakeFiles/datachannel-media-receiver.dir/build.make examples/media-receiver/CMakeFiles/datachannel-media-receiver.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/media-receiver/CMakeFiles/datachannel-media-receiver.dir/build.make examples/media-receiver/CMakeFiles/datachannel-media-receiver.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num=27 "Built target datachannel-media-receiver"
@@ -925,6 +940,9 @@ examples/media-receiver/CMakeFiles/datachannel-media-receiver.dir/clean:
 
 # All Build rule for target.
 examples/media-sender/CMakeFiles/datachannel-media-sender.dir/all: CMakeFiles/datachannel.dir/all
+examples/media-sender/CMakeFiles/datachannel-media-sender.dir/all: deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
+examples/media-sender/CMakeFiles/datachannel-media-sender.dir/all: deps/libsrtp/CMakeFiles/srtp2.dir/all
+examples/media-sender/CMakeFiles/datachannel-media-sender.dir/all: deps/libjuice/CMakeFiles/juice.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/media-sender/CMakeFiles/datachannel-media-sender.dir/build.make examples/media-sender/CMakeFiles/datachannel-media-sender.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/media-sender/CMakeFiles/datachannel-media-sender.dir/build.make examples/media-sender/CMakeFiles/datachannel-media-sender.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num=28 "Built target datachannel-media-sender"
@@ -951,6 +969,9 @@ examples/media-sender/CMakeFiles/datachannel-media-sender.dir/clean:
 
 # All Build rule for target.
 examples/media-sfu/CMakeFiles/datachannel-media-sfu.dir/all: CMakeFiles/datachannel.dir/all
+examples/media-sfu/CMakeFiles/datachannel-media-sfu.dir/all: deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
+examples/media-sfu/CMakeFiles/datachannel-media-sfu.dir/all: deps/libsrtp/CMakeFiles/srtp2.dir/all
+examples/media-sfu/CMakeFiles/datachannel-media-sfu.dir/all: deps/libjuice/CMakeFiles/juice.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/media-sfu/CMakeFiles/datachannel-media-sfu.dir/build.make examples/media-sfu/CMakeFiles/datachannel-media-sfu.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/media-sfu/CMakeFiles/datachannel-media-sfu.dir/build.make examples/media-sfu/CMakeFiles/datachannel-media-sfu.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num= "Built target datachannel-media-sfu"
@@ -977,6 +998,9 @@ examples/media-sfu/CMakeFiles/datachannel-media-sfu.dir/clean:
 
 # All Build rule for target.
 examples/streamer/CMakeFiles/streamer.dir/all: CMakeFiles/datachannel.dir/all
+examples/streamer/CMakeFiles/streamer.dir/all: deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
+examples/streamer/CMakeFiles/streamer.dir/all: deps/libsrtp/CMakeFiles/srtp2.dir/all
+examples/streamer/CMakeFiles/streamer.dir/all: deps/libjuice/CMakeFiles/juice.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/streamer/CMakeFiles/streamer.dir/build.make examples/streamer/CMakeFiles/streamer.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/streamer/CMakeFiles/streamer.dir/build.make examples/streamer/CMakeFiles/streamer.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num=89,90,91 "Built target streamer"
@@ -1003,6 +1027,9 @@ examples/streamer/CMakeFiles/streamer.dir/clean:
 
 # All Build rule for target.
 examples/copy-paste/CMakeFiles/datachannel-copy-paste-offerer.dir/all: CMakeFiles/datachannel.dir/all
+examples/copy-paste/CMakeFiles/datachannel-copy-paste-offerer.dir/all: deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
+examples/copy-paste/CMakeFiles/datachannel-copy-paste-offerer.dir/all: deps/libsrtp/CMakeFiles/srtp2.dir/all
+examples/copy-paste/CMakeFiles/datachannel-copy-paste-offerer.dir/all: deps/libjuice/CMakeFiles/juice.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/copy-paste/CMakeFiles/datachannel-copy-paste-offerer.dir/build.make examples/copy-paste/CMakeFiles/datachannel-copy-paste-offerer.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/copy-paste/CMakeFiles/datachannel-copy-paste-offerer.dir/build.make examples/copy-paste/CMakeFiles/datachannel-copy-paste-offerer.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num= "Built target datachannel-copy-paste-offerer"
@@ -1029,6 +1056,9 @@ examples/copy-paste/CMakeFiles/datachannel-copy-paste-offerer.dir/clean:
 
 # All Build rule for target.
 examples/copy-paste/CMakeFiles/datachannel-copy-paste-answerer.dir/all: CMakeFiles/datachannel.dir/all
+examples/copy-paste/CMakeFiles/datachannel-copy-paste-answerer.dir/all: deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
+examples/copy-paste/CMakeFiles/datachannel-copy-paste-answerer.dir/all: deps/libsrtp/CMakeFiles/srtp2.dir/all
+examples/copy-paste/CMakeFiles/datachannel-copy-paste-answerer.dir/all: deps/libjuice/CMakeFiles/juice.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/copy-paste/CMakeFiles/datachannel-copy-paste-answerer.dir/build.make examples/copy-paste/CMakeFiles/datachannel-copy-paste-answerer.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/copy-paste/CMakeFiles/datachannel-copy-paste-answerer.dir/build.make examples/copy-paste/CMakeFiles/datachannel-copy-paste-answerer.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num= "Built target datachannel-copy-paste-answerer"
@@ -1055,6 +1085,9 @@ examples/copy-paste/CMakeFiles/datachannel-copy-paste-answerer.dir/clean:
 
 # All Build rule for target.
 examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-offerer.dir/all: CMakeFiles/datachannel.dir/all
+examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-offerer.dir/all: deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
+examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-offerer.dir/all: deps/libsrtp/CMakeFiles/srtp2.dir/all
+examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-offerer.dir/all: deps/libjuice/CMakeFiles/juice.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-offerer.dir/build.make examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-offerer.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-offerer.dir/build.make examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-offerer.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num=26 "Built target datachannel-copy-paste-capi-offerer"
@@ -1081,6 +1114,9 @@ examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-offerer.dir/clea
 
 # All Build rule for target.
 examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-answerer.dir/all: CMakeFiles/datachannel.dir/all
+examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-answerer.dir/all: deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
+examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-answerer.dir/all: deps/libsrtp/CMakeFiles/srtp2.dir/all
+examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-answerer.dir/all: deps/libjuice/CMakeFiles/juice.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-answerer.dir/build.make examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-answerer.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-answerer.dir/build.make examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-answerer.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num=25 "Built target datachannel-copy-paste-capi-answerer"

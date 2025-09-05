@@ -268,7 +268,13 @@ tests-0.23.1: CMakeFiles/datachannel-tests.dir/test/websocketserver.cpp.o
 tests-0.23.1: CMakeFiles/datachannel-tests.dir/test/capi_websocketserver.cpp.o
 tests-0.23.1: CMakeFiles/datachannel-tests.dir/test/benchmark.cpp.o
 tests-0.23.1: CMakeFiles/datachannel-tests.dir/build.make
-tests-0.23.1: libdatachannel.so.0.23.1
+tests-0.23.1: libdatachannel.a
+tests-0.23.1: deps/usrsctp/usrsctplib/libusrsctp.a
+tests-0.23.1: deps/libsrtp/libsrtp2.a
+tests-0.23.1: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
+tests-0.23.1: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libssl.so
+tests-0.23.1: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
+tests-0.23.1: deps/libjuice/libjuice.a
 tests-0.23.1: CMakeFiles/datachannel-tests.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Linking CXX executable tests"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/datachannel-tests.dir/link.txt --verbose=$(VERBOSE)

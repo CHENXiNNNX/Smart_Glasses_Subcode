@@ -123,10 +123,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/datachannel.dir/src/websocket.cpp.o.d"
   "CMakeFiles/datachannel.dir/src/websocketserver.cpp.o"
   "CMakeFiles/datachannel.dir/src/websocketserver.cpp.o.d"
+  "libdatachannel.a"
   "libdatachannel.pdb"
-  "libdatachannel.so"
-  "libdatachannel.so.0.23"
-  "libdatachannel.so.0.23.1"
 )
 
 # Per-language clean rules from dependency scanning.

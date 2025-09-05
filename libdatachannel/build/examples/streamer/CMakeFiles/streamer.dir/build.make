@@ -204,9 +204,14 @@ examples/streamer/streamer: examples/streamer/CMakeFiles/streamer.dir/fileparser
 examples/streamer/streamer: examples/streamer/CMakeFiles/streamer.dir/stream.cpp.o
 examples/streamer/streamer: examples/streamer/CMakeFiles/streamer.dir/ArgParser.cpp.o
 examples/streamer/streamer: examples/streamer/CMakeFiles/streamer.dir/build.make
-examples/streamer/streamer: libdatachannel.so.0.23.1
+examples/streamer/streamer: libdatachannel.a
+examples/streamer/streamer: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libssl.so
 examples/streamer/streamer: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libssl.so
 examples/streamer/streamer: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
+examples/streamer/streamer: deps/usrsctp/usrsctplib/libusrsctp.a
+examples/streamer/streamer: deps/libsrtp/libsrtp2.a
+examples/streamer/streamer: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
+examples/streamer/streamer: deps/libjuice/libjuice.a
 examples/streamer/streamer: examples/streamer/CMakeFiles/streamer.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX executable streamer"
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/examples/streamer && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/streamer.dir/link.txt --verbose=$(VERBOSE)

@@ -92,7 +92,13 @@ datachannel__media__receiver_EXTERNAL_OBJECTS =
 
 examples/media-receiver/media-receiver: examples/media-receiver/CMakeFiles/datachannel-media-receiver.dir/main.cpp.o
 examples/media-receiver/media-receiver: examples/media-receiver/CMakeFiles/datachannel-media-receiver.dir/build.make
-examples/media-receiver/media-receiver: libdatachannel.so.0.23.1
+examples/media-receiver/media-receiver: libdatachannel.a
+examples/media-receiver/media-receiver: deps/usrsctp/usrsctplib/libusrsctp.a
+examples/media-receiver/media-receiver: deps/libsrtp/libsrtp2.a
+examples/media-receiver/media-receiver: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
+examples/media-receiver/media-receiver: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libssl.so
+examples/media-receiver/media-receiver: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
+examples/media-receiver/media-receiver: deps/libjuice/libjuice.a
 examples/media-receiver/media-receiver: examples/media-receiver/CMakeFiles/datachannel-media-receiver.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable media-receiver"
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/build/examples/media-receiver && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/datachannel-media-receiver.dir/link.txt --verbose=$(VERBOSE)

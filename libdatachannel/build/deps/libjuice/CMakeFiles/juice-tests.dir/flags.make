@@ -6,5 +6,5 @@ C_DEFINES = -DJUICE_STATIC
 
 C_INCLUDES = -I/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/deps/libjuice/src -I/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/deps/libjuice/include/juice -I/home/irex/WorkSpace/Smart_Glasses/Demo/libdatachannel/deps/libjuice/include
 
-C_FLAGS = -O3 -DNDEBUG -fPIE -std=gnu11
+C_FLAGS = -fPIE -std=gnu11
 

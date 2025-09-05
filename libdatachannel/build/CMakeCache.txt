@@ -20,8 +20,8 @@ BASH_PROGRAM:FILEPATH=/usr/bin/bash
 //Build submodules as shared libraries
 BUILD_SHARED_DEPS_LIBS:BOOL=OFF
 
-//Build shared library
-BUILD_SHARED_LIBS:BOOL=ON
+//Build shared libraries
+BUILD_SHARED_LIBS:BOOL=OFF
 
 //Add warning as error flags for libSRTP
 BUILD_WITH_WARNINGS:BOOL=OFF
@@ -40,7 +40,7 @@ CMAKE_AR:FILEPATH=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/
 
 //Choose the type of build, options are: None Debug Release RelWithDebInfo
 // MinSizeRel ...
-CMAKE_BUILD_TYPE:STRING=Release
+CMAKE_BUILD_TYPE:STRING=
 
 //Enable/Disable color output during build.
 CMAKE_COLOR_MAKEFILE:BOOL=ON
@@ -435,7 +435,7 @@ SCTP_DEBUG:BOOL=OFF
 SCTP_USE_MBEDTLS_SHA1:BOOL=OFF
 
 //Use GnuTLS instead of OpenSSL
-USE_GNUTLS:BOOL=0
+USE_GNUTLS:BOOL=OFF
 
 //Use Mbed TLS instead of OpenSSL
 USE_MBEDTLS:BOOL=OFF
@@ -444,7 +444,7 @@ USE_MBEDTLS:BOOL=OFF
 USE_NETTLE:BOOL=OFF
 
 //Use libnice instead of libjuice
-USE_NICE:BOOL=0
+USE_NICE:BOOL=OFF
 
 //Use system Nlohmann JSON
 USE_SYSTEM_JSON:BOOL=OFF
