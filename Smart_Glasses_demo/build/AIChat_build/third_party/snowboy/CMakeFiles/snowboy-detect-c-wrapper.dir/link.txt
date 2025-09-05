@@ -1,0 +1,2 @@
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-ar qc libsnowboy-detect-c-wrapper.a CMakeFiles/snowboy-detect-c-wrapper.dir/snowboy-detect-c-wrapper.cc.o
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-ranlib libsnowboy-detect-c-wrapper.a

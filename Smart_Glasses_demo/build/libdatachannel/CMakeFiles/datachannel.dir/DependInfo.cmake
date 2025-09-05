@@ -1,0 +1,83 @@
+
+# Consider dependencies only in project.
+set(CMAKE_DEPENDS_IN_PROJECT_ONLY OFF)
+
+# The set of languages for which implicit dependencies are needed:
+set(CMAKE_DEPENDS_LANGUAGES
+  )
+
+# The set of dependency files which are needed:
+set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/av1rtppacketizer.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/av1rtppacketizer.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/av1rtppacketizer.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/candidate.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/candidate.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/candidate.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/capi.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/capi.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/capi.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/channel.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/channel.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/channel.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/configuration.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/configuration.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/configuration.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/datachannel.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/datachannel.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/datachannel.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/dependencydescriptor.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/dependencydescriptor.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/dependencydescriptor.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/description.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/description.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/description.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/global.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/global.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/global.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/h264rtpdepacketizer.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/h264rtpdepacketizer.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/h264rtpdepacketizer.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/h264rtppacketizer.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/h264rtppacketizer.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/h264rtppacketizer.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/h265nalunit.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/h265nalunit.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/h265nalunit.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/h265rtpdepacketizer.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/h265rtpdepacketizer.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/h265rtpdepacketizer.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/h265rtppacketizer.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/h265rtppacketizer.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/h265rtppacketizer.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/iceudpmuxlistener.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/iceudpmuxlistener.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/iceudpmuxlistener.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/certificate.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/certificate.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/certificate.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/channel.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/channel.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/channel.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/datachannel.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/datachannel.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/datachannel.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/dtlssrtptransport.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/dtlssrtptransport.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/dtlssrtptransport.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/dtlstransport.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/dtlstransport.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/dtlstransport.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/http.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/http.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/http.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/httpproxytransport.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/httpproxytransport.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/httpproxytransport.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/icetransport.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/icetransport.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/icetransport.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/iceudpmuxlistener.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/iceudpmuxlistener.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/iceudpmuxlistener.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/init.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/init.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/init.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/logcounter.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/logcounter.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/logcounter.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/peerconnection.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/peerconnection.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/peerconnection.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/pollinterrupter.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/pollinterrupter.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/pollinterrupter.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/pollservice.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/pollservice.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/pollservice.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/processor.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/processor.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/processor.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/sctptransport.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/sctptransport.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/sctptransport.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/sha.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/sha.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/sha.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/tcpserver.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/tcpserver.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/tcpserver.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/tcptransport.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/tcptransport.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/tcptransport.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/threadpool.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/threadpool.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/threadpool.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/tls.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/tls.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/tls.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/tlstransport.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/tlstransport.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/tlstransport.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/track.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/track.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/track.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/transport.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/transport.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/transport.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/utils.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/utils.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/utils.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/verifiedtlstransport.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/verifiedtlstransport.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/verifiedtlstransport.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/websocket.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/websocket.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/websocket.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/websocketserver.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/websocketserver.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/websocketserver.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/wshandshake.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/wshandshake.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/wshandshake.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/impl/wstransport.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/wstransport.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/impl/wstransport.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/mediahandler.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/mediahandler.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/mediahandler.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/message.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/message.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/message.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/nalunit.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/nalunit.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/nalunit.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/pacinghandler.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/pacinghandler.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/pacinghandler.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/peerconnection.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/peerconnection.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/peerconnection.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/plihandler.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/plihandler.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/plihandler.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/rembhandler.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/rembhandler.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/rembhandler.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/rtcpnackresponder.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/rtcpnackresponder.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/rtcpnackresponder.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/rtcpreceivingsession.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/rtcpreceivingsession.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/rtcpreceivingsession.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/rtcpsrreporter.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/rtcpsrreporter.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/rtcpsrreporter.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/rtp.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/rtp.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/rtp.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/rtpdepacketizer.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/rtpdepacketizer.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/rtpdepacketizer.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/rtppacketizationconfig.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/rtppacketizationconfig.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/rtppacketizationconfig.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/rtppacketizer.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/rtppacketizer.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/rtppacketizer.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/track.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/track.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/track.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/websocket.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/websocket.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/websocket.cpp.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/src/websocketserver.cpp" "libdatachannel/CMakeFiles/datachannel.dir/src/websocketserver.cpp.o" "gcc" "libdatachannel/CMakeFiles/datachannel.dir/src/websocketserver.cpp.o.d"
+  )
+
+# Targets to which this target links.
+set(CMAKE_TARGET_LINKED_INFO_FILES
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/DependInfo.cmake"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/DependInfo.cmake"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/DependInfo.cmake"
+  )
+
+# Fortran module output directory.
+set(CMAKE_Fortran_TARGET_MODULE_DIR "")

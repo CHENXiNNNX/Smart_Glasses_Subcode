@@ -1,0 +1,2 @@
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-ar qc libcommon.a CMakeFiles/common.dir/event_manager/event_manager.c.o CMakeFiles/common.dir/gpio_manager/gpio_manager.c.o CMakeFiles/common.dir/sys_manager/sys_manager.c.o
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-ranlib libcommon.a
