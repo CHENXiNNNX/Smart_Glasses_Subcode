@@ -1,6 +1,9 @@
 #ifndef __CAMERA_H
 #define __CAMERA_H
 
+// 媒体配置文件
+#include "../../media_config.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -15,9 +18,13 @@
 #include <time.h>
 #include <unistd.h>
 #include <vector>
-
 #include "sample_comm.h"
+
+#if USE_RTSP
 #include "rtsp.h"
+#elif USE_WEBRTC
+#include "webrtc.h"
+#endif
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -41,8 +48,12 @@ typedef struct {
     unsigned char *frame_data;
     
     // RTSP资源
+#if USE_RTSP
     rtsp_demo_handle rtsp_handle = NULL;
     rtsp_session_handle rtsp_session;
+#elif USE_WEBRTC
+    
+#endif
     
     // 状态管理
     bool is_initialized;
@@ -67,7 +78,13 @@ int release_video_system(video_system_t **sys);
 int capture_frame(video_system_t *sys);
 int process_frame(video_system_t *sys);
 int encode_video(video_system_t *sys);
+
+#if USE_RTSP
 int rtsp_stream(video_system_t *sys);
+#elif USE_WEBRTC
+int webrtc_stream(video_system_t *sys);
+#endif
+
 int release_frame(video_system_t *sys);
 
 // 工具接口

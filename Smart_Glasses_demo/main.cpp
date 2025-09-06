@@ -8,7 +8,7 @@
 #include <thread>
 #include <unordered_map>
 #include "rtc/rtc.hpp"
-#include "app/protocol/websocket/websocket.h"
+#include "app/protocol/webrtc/signaling.h"
 #include <nlohmann/json.hpp>
 
 using namespace glasses::protocol;
@@ -19,7 +19,7 @@ constexpr const char* DEVICE_ID = "glasses_123456";
 constexpr const char* SERVER_URL = "ws://192.168.2.17:8000";
 
 // 全局变量
-std::shared_ptr<WebSocketClient> wsClient;
+std::shared_ptr<Signaling> wsClient;
 std::shared_ptr<rtc::PeerConnection> peerConnection;
 std::shared_ptr<rtc::DataChannel> dataChannel;
 
@@ -211,7 +211,7 @@ int main(void) {
     rtc::InitLogger(rtc::LogLevel::Info);
 
     // 创建WebSocket客户端
-    wsClient = std::make_shared<WebSocketClient>(DEVICE_ID, SERVER_URL);
+    wsClient = std::make_shared<Signaling>(DEVICE_ID, SERVER_URL);
     setupWebSocketCallbacks();
 
     // 连接到服务器

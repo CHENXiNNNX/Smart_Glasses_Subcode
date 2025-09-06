@@ -1,6 +1,7 @@
 app/CMakeFiles/app.dir/media/camera/test/test_camera.cc.o: \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/media/camera/test/test_camera.cc \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/media/camera/test/test_camera.h \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/media/camera/test/../../media_config.h \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/assert.h \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/features.h \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/uClibc_config.h \
@@ -527,7 +528,6 @@ app/CMakeFiles/app.dir/media/camera/test/test_camera.cc.o: \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/rkmpi/include/rkaiq/algos/acgc/rk_aiq_types_acgc_algo.h \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_sysctl.h \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/rkmpi/include/sample_comm.h \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/rtsp/rtsp.h \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/opencv_rv1106_410/include/opencv4/opencv2/core/core.hpp \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/opencv_rv1106_410/include/opencv4/opencv2/core.hpp \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/opencv_rv1106_410/include/opencv4/opencv2/core/cvdef.h \
@@ -667,6 +667,4 @@ app/CMakeFiles/app.dir/media/camera/test/test_camera.cc.o: \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/opencv_rv1106_410/include/opencv4/opencv2/highgui/highgui.hpp \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/opencv_rv1106_410/include/opencv4/opencv2/imgproc/imgproc.hpp \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/opencv_rv1106_410/include/opencv4/opencv2/imgproc.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/opencv_rv1106_410/include/opencv4/opencv2/imgproc/segmentation.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/media/media_config.h \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/media/camera/test/test_camera.h
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/opencv_rv1106_410/include/opencv4/opencv2/imgproc/segmentation.hpp

@@ -1,5 +1,4 @@
 #include "test_camera.h"
-#include "media_config.h"
 
 RK_U64 TEST_COMM_GetNowUs() {
 	struct timespec time = {0, 0};
@@ -173,11 +172,18 @@ int init_video_system(video_system_t **sys, int width, int height) {
 		return -1;
 	}
 
-    // rtsp init
-    (*sys)->rtsp_handle = create_rtsp_demo(554);    // RTSP port
-    (*sys)->rtsp_session = rtsp_new_session((*sys)->rtsp_handle, "/live/0");    // RTSP stream path
-    rtsp_set_video((*sys)->rtsp_session, RTSP_CODEC_ID_VIDEO_H264, NULL, 0);    // Set RTSP video codec 
-    rtsp_sync_video_ts((*sys)->rtsp_session, rtsp_get_reltime(), rtsp_get_ntptime());   // Sync RTSP time
+    
+    #if USE_RTSP
+        // rtsp init
+        printf("rtsp init\n");
+        (*sys)->rtsp_handle = create_rtsp_demo(554);    // RTSP port
+        (*sys)->rtsp_session = rtsp_new_session((*sys)->rtsp_handle, "/live/0");    // RTSP stream path
+        rtsp_set_video((*sys)->rtsp_session, RTSP_CODEC_ID_VIDEO_H264, NULL, 0);    // Set RTSP video codec 
+        rtsp_sync_video_ts((*sys)->rtsp_session, rtsp_get_reltime(), rtsp_get_ntptime());   // Sync RTSP time
+    #elif USE_WEBRTC
+        // webrtc init
+        printf("webrtc init\n");
+    #endif
     
     // vi init
     vi_dev_init();
@@ -229,8 +235,12 @@ int release_video_system(video_system_t **sys) {
         free((*sys)->stFrame.pstPack);
 
         // Delete rtsp
+        #if USE_RTSP
         if ((*sys)->rtsp_handle)
             rtsp_del_demo((*sys)->rtsp_handle);
+        #elif USE_WEBRTC
+
+        #endif
         
         // Exit rkmpi
         RK_MPI_SYS_Exit();
@@ -302,6 +312,7 @@ int encode_video(video_system_t *sys) {
     return RK_MPI_VENC_SendFrame(0, &sys->h264_frame, -1);
 }
 
+#if USE_RTSP
 int rtsp_stream(video_system_t *sys) {
     if (!sys || !sys->is_initialized) {
         printf("Video system not initialized or not valid!\n");
@@ -326,6 +337,20 @@ int rtsp_stream(video_system_t *sys) {
         return -1;
     }
 }
+#endif
+
+#if USE_WEBRTC
+int webrtc_stream(video_system_t *sys) {
+    if (!sys || !sys->is_initialized) {
+        printf("Video system not initialized or not valid!\n");
+        return -1;
+    }
+    else {
+        
+        return 0;
+    }
+}
+#endif
 
 int release_frame(video_system_t *sys) {
     if (!sys || !sys->is_initialized) return -1;

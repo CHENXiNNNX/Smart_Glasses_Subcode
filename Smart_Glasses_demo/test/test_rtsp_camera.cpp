@@ -35,11 +35,16 @@ int main(int argc, char *argv[]) {
             continue;
         }
         
+        #if USE_RTSP
         // RTSP推流
         if (rtsp_stream(video_sys) != 0) {
             release_frame(video_sys);
             continue;
         }
+        #elif USE_WEBRTC
+        // WebRTC推流
+        
+        #endif
         
         // 释放帧资源
         release_frame(video_sys);
