@@ -277,7 +277,7 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   ../libdatachannel/include/rtc/rtcpnackresponder.hpp \
   ../libdatachannel/include/rtc/rtcpreceivingsession.hpp \
   ../libdatachannel/include/rtc/rtcpsrreporter.hpp \
-  ../app/protocol/websocket/websocket.h \
+  ../app/protocol/webrtc/signaling.h \
   ../libdatachannel/deps/json/single_include/nlohmann/json.hpp \
   /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/iterator \
   /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stream_iterator.h \
@@ -313,7 +313,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/fs_dir.h \
   /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/fs_ops.h \
   /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/iomanip \
-  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/any
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/any \
+  ../app/protocol/webrtc/webrtc.h
 
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/any:
@@ -356,7 +357,7 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 ../libdatachannel/deps/json/single_include/nlohmann/json.hpp:
 
-../app/protocol/websocket/websocket.h:
+../app/protocol/webrtc/signaling.h:
 
 ../libdatachannel/include/rtc/rtcpsrreporter.hpp:
 
@@ -583,6 +584,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 ../libdatachannel/include/rtc/rtcpreceivingsession.hpp:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/map:
+
+../app/protocol/webrtc/webrtc.h:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/cpu_defines.h:
 
