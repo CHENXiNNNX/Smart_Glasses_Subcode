@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能眼镜 - Web接收端</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .status-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #007bff;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px 0;
+        }
+
+        .status-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .status-value {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .status-disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-connecting {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: #212529;
+        }
+
+        .message-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .message-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .message-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .message-input input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .log-container {
+            background: #1a1a1a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            border-radius: 10px;
+            height: 300px;
+            overflow-y: auto;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .log-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .log-container::-webkit-scrollbar-track {
+            background: #2a2a2a;
+            border-radius: 4px;
+        }
+
+        .log-container::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+
+        .log-container::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            word-wrap: break-word;
+        }
+
+        .log-timestamp {
+            color: #888;
+        }
+
+        .log-info {
+            color: #00ff00;
+        }
+
+        .log-warn {
+            color: #ffff00;
+        }
+
+        .log-error {
+            color: #ff4444;
+        }
+
+        .log-webrtc {
+            color: #00bfff;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+
+            .message-input {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🕶️ 智能眼镜接收端</h1>
+            <p>WebRTC视频通话和数据传输测试</p>
+        </div>
+
+        <div class="status-panel">
+            <div class="status-item">
+                <span class="status-label">WebSocket状态:</span>
+                <span class="status-value status-disconnected" id="wsStatus">未连接</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">WebRTC状态:</span>
+                <span class="status-value status-disconnected" id="rtcStatus">未连接</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">设备ID:</span>
+                <span class="status-value" id="deviceId">app_123456</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">对端设备:</span>
+                <span class="status-value" id="peerDevice">未连接</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">角色:</span>
+                <span class="status-value" id="role">未分配</span>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <button class="btn btn-primary" id="connectBtn" onclick="connectToServer()">连接服务器</button>
+            <button class="btn btn-success" id="joinBtn" onclick="joinRoom()" disabled>加入房间</button>
+            <button class="btn btn-warning" id="leaveBtn" onclick="leaveRoom()" disabled>离开房间</button>
+            <button class="btn btn-danger" id="disconnectBtn" onclick="disconnectFromServer()" disabled>断开连接</button>
+        </div>
+
+        <div class="message-panel">
+            <h3>💬 数据通道消息</h3>
+            <div class="message-input">
+                <input type="text" id="messageInput" placeholder="输入要发送的消息..." disabled>
+                <button class="btn btn-primary" onclick="sendMessage()" disabled id="sendBtn">发送</button>
+            </div>
+        </div>
+
+        <div class="log-container" id="logContainer">
+            <div class="log-entry log-info">
+                <span class="log-timestamp">[系统]</span> 页面加载完成，等待连接...
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Smart Glasses WebRTC Client v1.0</p>
+    </div>
+
+    <script>
+        // 全局变量
+        const DEVICE_ID = 'app_123456';
+        const SERVER_URL = 'ws://localhost:8000';
+        
+        let ws = null;
+        let pc = null;
+        let dataChannel = null;
+        let connectionStatus = 'disconnected';
+        let peerDeviceId = '';
+        let role = '';
+
+        // WebRTC配置
+        const rtcConfig = {
+            iceServers: [
+                // { urls: 'stun:stun.l.google.com:19302' }
+            ]
+        };
+
+        // 日志函数
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // 更新状态显示
+        function updateStatus() {
+            document.getElementById('wsStatus').textContent = getWSStatusText();
+            document.getElementById('wsStatus').className = `status-value ${getWSStatusClass()}`;
+            
+            document.getElementById('rtcStatus').textContent = getRTCStatusText();
+            document.getElementById('rtcStatus').className = `status-value ${getRTCStatusClass()}`;
+            
+            document.getElementById('peerDevice').textContent = peerDeviceId || '未连接';
+            document.getElementById('role').textContent = role || '未分配';
+
+            // 更新按钮状态
+            updateButtonStates();
+        }
+
+        function getWSStatusText() {
+            if (!ws) return '未连接';
+            switch (ws.readyState) {
+                case WebSocket.CONNECTING: return '连接中';
+                case WebSocket.OPEN: return connectionStatus === 'paired' ? '已配对' : 
+                                           connectionStatus === 'joined' ? '已加入房间' : '已连接';
+                case WebSocket.CLOSING: return '断开中';
+                case WebSocket.CLOSED: return '已断开';
+                default: return '未知';
+            }
+        }
+
+        function getWSStatusClass() {
+            if (!ws) return 'status-disconnected';
+            switch (ws.readyState) {
+                case WebSocket.CONNECTING: return 'status-connecting';
+                case WebSocket.OPEN: return 'status-connected';
+                default: return 'status-disconnected';
+            }
+        }
+
+        function getRTCStatusText() {
+            if (!pc) return '未创建';
+            switch (pc.connectionState) {
+                case 'new': return '新建';
+                case 'connecting': return '连接中';
+                case 'connected': return '已连接';
+                case 'disconnected': return '已断开';
+                case 'failed': return '连接失败';
+                case 'closed': return '已关闭';
+                default: return '未知';
+            }
+        }
+
+        function getRTCStatusClass() {
+            if (!pc) return 'status-disconnected';
+            switch (pc.connectionState) {
+                case 'connecting': return 'status-connecting';
+                case 'connected': return 'status-connected';
+                default: return 'status-disconnected';
+            }
+        }
+
+        function updateButtonStates() {
+            const isConnected = ws && ws.readyState === WebSocket.OPEN;
+            const isJoined = connectionStatus === 'joined' || connectionStatus === 'paired';
+            const isPaired = connectionStatus === 'paired';
+            const isDataChannelOpen = dataChannel && dataChannel.readyState === 'open';
+
+            document.getElementById('connectBtn').disabled = isConnected;
+            document.getElementById('joinBtn').disabled = !isConnected || isJoined;
+            document.getElementById('leaveBtn').disabled = !isJoined;
+            document.getElementById('disconnectBtn').disabled = !isConnected;
+            document.getElementById('messageInput').disabled = !isDataChannelOpen;
+            document.getElementById('sendBtn').disabled = !isDataChannelOpen;
+        }
+
+        // WebSocket连接
+        function connectToServer() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                log('已经连接到服务器', 'warn');
+                return;
+            }
+
+            log(`正在连接到服务器: ${SERVER_URL}`, 'info');
+            ws = new WebSocket(SERVER_URL);
+
+            ws.onopen = function() {
+                log('WebSocket连接成功', 'info');
+                connectionStatus = 'connected';
+                updateStatus();
+            };
+
+            ws.onmessage = function(event) {
+                try {
+                    const message = JSON.parse(event.data);
+                    handleWebSocketMessage(message);
+                } catch (error) {
+                    log(`解析消息失败: ${error.message}`, 'error');
+                }
+            };
+
+            ws.onclose = function() {
+                log('WebSocket连接已关闭', 'warn');
+                connectionStatus = 'disconnected';
+                peerDeviceId = '';
+                role = '';
+                updateStatus();
+            };
+
+            ws.onerror = function(error) {
+                log(`WebSocket错误: ${error}`, 'error');
+            };
+        }
+
+        // 处理WebSocket消息
+        function handleWebSocketMessage(message) {
+            log(`收到消息: ${message.type} from ${message.from}`, 'info');
+
+            switch (message.type) {
+                case 'role':
+                    handleRoleMessage(message);
+                    break;
+                case 'offer':
+                    handleOfferMessage(message);
+                    break;
+                case 'answer':
+                    handleAnswerMessage(message);
+                    break;
+                case 'ice':
+                    handleIceMessage(message);
+                    break;
+                case 'error':
+                    handleErrorMessage(message);
+                    break;
+                default:
+                    log(`未知消息类型: ${message.type}`, 'warn');
+            }
+        }
+
+        // 处理角色分配消息
+        function handleRoleMessage(message) {
+            if (message.data && message.data.peer_device_id) {
+                peerDeviceId = message.data.peer_device_id;
+            }
+            if (message.data && message.data.role) {
+                role = message.data.role;
+            }
+            
+            connectionStatus = 'paired';
+            log(`配对成功 - 对端设备: ${peerDeviceId}, 角色: ${role}`, 'info');
+            updateStatus();
+
+            // 创建WebRTC连接
+            createPeerConnection();
+        }
+
+        // 创建WebRTC连接
+        function createPeerConnection() {
+            try {
+                pc = new RTCPeerConnection(rtcConfig);
+                log('创建WebRTC PeerConnection', 'webrtc');
+
+                // ICE候选事件
+                pc.onicecandidate = function(event) {
+                    if (event.candidate) {
+                        log(`生成本地ICE候选: ${event.candidate.candidate}`, 'webrtc');
+                        sendIceCandidate(event.candidate);
+                    }
+                };
+
+                // 连接状态变化
+                pc.onconnectionstatechange = function() {
+                    log(`WebRTC连接状态: ${pc.connectionState}`, 'webrtc');
+                    updateStatus();
+                };
+
+                // 数据通道事件（应答方接收）
+                pc.ondatachannel = function(event) {
+                    const channel = event.channel;
+                    log(`收到远程DataChannel: ${channel.label}`, 'webrtc');
+                    setupDataChannel(channel);
+                };
+
+                // 如果是发起方，创建数据通道
+                if (role === 'offerer') {
+                    log('作为发起方创建DataChannel', 'webrtc');
+                    dataChannel = pc.createDataChannel('test');
+                    setupDataChannel(dataChannel);
+                    
+                    // 创建并发送offer
+                    pc.createOffer().then(function(offer) {
+                        return pc.setLocalDescription(offer);
+                    }).then(function() {
+                        log('发送SDP Offer', 'webrtc');
+                        sendOffer(pc.localDescription.sdp);
+                    }).catch(function(error) {
+                        log(`创建Offer失败: ${error}`, 'error');
+                    });
+                }
+
+            } catch (error) {
+                log(`创建WebRTC连接失败: ${error}`, 'error');
+            }
+        }
+
+        // 设置数据通道
+        function setupDataChannel(channel) {
+            dataChannel = channel;
+
+            dataChannel.onopen = function() {
+                log('DataChannel连接已打开', 'webrtc');
+                updateStatus();
+                
+                // 发送测试消息
+                if (role === 'offerer') {
+                    const testMessage = 'Hello from web client!';
+                    dataChannel.send(testMessage);
+                    log(`发送消息: ${testMessage}`, 'info');
+                }
+            };
+
+            dataChannel.onmessage = function(event) {
+                log(`收到DataChannel消息: ${event.data}`, 'info');
+                
+                // 如果是应答方，回复消息
+                if (role === 'answerer') {
+                    const reply = `Reply from web: ${event.data}`;
+                    dataChannel.send(reply);
+                    log(`回复消息: ${reply}`, 'info');
+                }
+            };
+
+            dataChannel.onclose = function() {
+                log('DataChannel已关闭', 'warn');
+                updateStatus();
+            };
+
+            dataChannel.onerror = function(error) {
+                log(`DataChannel错误: ${error}`, 'error');
+            };
+        }
+
+        // 处理SDP Offer
+        function handleOfferMessage(message) {
+            if (!pc || !message.data || !message.data.sdp) return;
+
+            log('收到SDP Offer', 'webrtc');
+            
+            const offer = new RTCSessionDescription({
+                type: 'offer',
+                sdp: message.data.sdp
+            });
+
+            pc.setRemoteDescription(offer).then(function() {
+                log('设置远程SDP Offer成功', 'webrtc');
+                return pc.createAnswer();
+            }).then(function(answer) {
+                return pc.setLocalDescription(answer);
+            }).then(function() {
+                log('发送SDP Answer', 'webrtc');
+                sendAnswer(pc.localDescription.sdp);
+            }).catch(function(error) {
+                log(`处理Offer失败: ${error}`, 'error');
+            });
+        }
+
+        // 处理SDP Answer
+        function handleAnswerMessage(message) {
+            if (!pc || !message.data || !message.data.sdp) return;
+
+            log('收到SDP Answer', 'webrtc');
+            
+            const answer = new RTCSessionDescription({
+                type: 'answer',
+                sdp: message.data.sdp
+            });
+
+            pc.setRemoteDescription(answer).then(function() {
+                log('设置远程SDP Answer成功', 'webrtc');
+            }).catch(function(error) {
+                log(`设置远程SDP失败: ${error}`, 'error');
+            });
+        }
+
+        // 处理ICE候选
+        function handleIceMessage(message) {
+            if (!pc || !message.data || !message.data.candidate) return;
+
+            log('收到ICE候选', 'webrtc');
+            
+            try {
+                const candidate = new RTCIceCandidate({
+                    candidate: message.data.candidate,
+                    sdpMLineIndex: 0,
+                    sdpMid: '0'
+                });
+                
+                pc.addIceCandidate(candidate).then(function() {
+                    log('添加远程ICE候选成功', 'webrtc');
+                }).catch(function(error) {
+                    log(`添加ICE候选失败: ${error}`, 'error');
+                });
+            } catch (error) {
+                log(`解析ICE候选失败: ${error}`, 'error');
+            }
+        }
+
+        // 处理错误消息
+        function handleErrorMessage(message) {
+            if (message.data) {
+                const errorCode = message.data.error_code || 'unknown';
+                const errorMessage = message.data.error_message || '未知错误';
+                log(`服务器错误 [${errorCode}]: ${errorMessage}`, 'error');
+            }
+        }
+
+        // 发送消息到服务器
+        function sendToServer(message) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(message));
+                return true;
+            }
+            log('WebSocket未连接，无法发送消息', 'error');
+            return false;
+        }
+
+        // 加入房间
+        function joinRoom() {
+            const message = {
+                type: 'join',
+                device_id: DEVICE_ID,
+                from: DEVICE_ID,
+                to: 'server',
+                time: Date.now() * 1000
+            };
+            
+            if (sendToServer(message)) {
+                log('发送加入房间消息', 'info');
+                connectionStatus = 'joined';
+                updateStatus();
+            }
+        }
+
+        // 离开房间
+        function leaveRoom() {
+            const message = {
+                type: 'leave',
+                device_id: DEVICE_ID,
+                from: DEVICE_ID,
+                to: 'server',
+                time: Date.now() * 1000
+            };
+            
+            if (sendToServer(message)) {
+                log('发送离开房间消息', 'info');
+                connectionStatus = 'connected';
+                peerDeviceId = '';
+                role = '';
+                
+                // 关闭WebRTC连接
+                if (pc) {
+                    pc.close();
+                    pc = null;
+                }
+                if (dataChannel) {
+                    dataChannel.close();
+                    dataChannel = null;
+                }
+                
+                updateStatus();
+            }
+        }
+
+        // 断开连接
+        function disconnectFromServer() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+            
+            if (pc) {
+                pc.close();
+                pc = null;
+            }
+            
+            if (dataChannel) {
+                dataChannel.close();
+                dataChannel = null;
+            }
+            
+            connectionStatus = 'disconnected';
+            peerDeviceId = '';
+            role = '';
+            updateStatus();
+            
+            log('已断开连接', 'info');
+        }
+
+        // 发送SDP Offer
+        function sendOffer(sdp) {
+            const message = {
+                type: 'offer',
+                device_id: DEVICE_ID,
+                from: DEVICE_ID,
+                to: peerDeviceId,
+                data: { sdp: sdp },
+                time: Date.now() * 1000
+            };
+            sendToServer(message);
+        }
+
+        // 发送SDP Answer
+        function sendAnswer(sdp) {
+            const message = {
+                type: 'answer',
+                device_id: DEVICE_ID,
+                from: DEVICE_ID,
+                to: peerDeviceId,
+                data: { sdp: sdp },
+                time: Date.now() * 1000
+            };
+            sendToServer(message);
+        }
+
+        // 发送ICE候选
+        function sendIceCandidate(candidate) {
+            const message = {
+                type: 'ice',
+                device_id: DEVICE_ID,
+                from: DEVICE_ID,
+                to: peerDeviceId,
+                data: { candidate: candidate.candidate },
+                time: Date.now() * 1000
+            };
+            sendToServer(message);
+        }
+
+        // 发送DataChannel消息
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) {
+                log('请输入消息内容', 'warn');
+                return;
+            }
+            
+            if (dataChannel && dataChannel.readyState === 'open') {
+                dataChannel.send(message);
+                log(`发送消息: ${message}`, 'info');
+                input.value = '';
+            } else {
+                log('DataChannel未连接，无法发送消息', 'error');
+            }
+        }
+
+        // 回车发送消息
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus();
+            log('Web客户端初始化完成', 'info');
+            log(`设备ID: ${DEVICE_ID}`, 'info');
+            log(`服务器地址: ${SERVER_URL}`, 'info');
+        });
+    </script>
+</body>
+</html>

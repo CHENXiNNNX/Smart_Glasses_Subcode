@@ -24,7 +24,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/datachannel-tests.dir/test/websocketserver.cpp.o"
   "CMakeFiles/datachannel-tests.dir/test/websocketserver.cpp.o.d"
   "tests"
-  "tests-0.23.1"
+  "tests-0.23.2"
   "tests.pdb"
 )
 

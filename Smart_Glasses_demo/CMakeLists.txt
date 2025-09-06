@@ -165,14 +165,13 @@ target_link_libraries(main
     m
 )
 
-# ================== libdatachannel WebRTC 配置 ==================
-# libdatachannel 提供了以下功能：
-# - WebRTC Data Channels: 实时数据传输通道
-# - WebRTC Media Transport: 音视频媒体传输
-# - WebSocket: 信令通信支持
-# - 多种加密后端: OpenSSL/GnuTLS/Mbed TLS
-# - ICE 连接建立: libjuice/libnice 支持
+# ================== JSON 库配置 ==================
+# 使用 libdatachannel 自带的 json 库
+target_include_directories(main PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/libdatachannel/deps/json/single_include
+)
 
+# ================== libdatachannel WebRTC 配置 ==================
 # 配置 libdatachannel 编译选项
 set_target_properties(datachannel-static PROPERTIES
     CXX_STANDARD 17

@@ -255,32 +255,32 @@ datachannel__tests_OBJECTS = \
 # External object files for target datachannel-tests
 datachannel__tests_EXTERNAL_OBJECTS =
 
-libdatachannel/tests-0.23.1: libdatachannel/CMakeFiles/datachannel-tests.dir/test/main.cpp.o
-libdatachannel/tests-0.23.1: libdatachannel/CMakeFiles/datachannel-tests.dir/test/connectivity.cpp.o
-libdatachannel/tests-0.23.1: libdatachannel/CMakeFiles/datachannel-tests.dir/test/negotiated.cpp.o
-libdatachannel/tests-0.23.1: libdatachannel/CMakeFiles/datachannel-tests.dir/test/reliability.cpp.o
-libdatachannel/tests-0.23.1: libdatachannel/CMakeFiles/datachannel-tests.dir/test/turn_connectivity.cpp.o
-libdatachannel/tests-0.23.1: libdatachannel/CMakeFiles/datachannel-tests.dir/test/track.cpp.o
-libdatachannel/tests-0.23.1: libdatachannel/CMakeFiles/datachannel-tests.dir/test/capi_connectivity.cpp.o
-libdatachannel/tests-0.23.1: libdatachannel/CMakeFiles/datachannel-tests.dir/test/capi_track.cpp.o
-libdatachannel/tests-0.23.1: libdatachannel/CMakeFiles/datachannel-tests.dir/test/websocket.cpp.o
-libdatachannel/tests-0.23.1: libdatachannel/CMakeFiles/datachannel-tests.dir/test/websocketserver.cpp.o
-libdatachannel/tests-0.23.1: libdatachannel/CMakeFiles/datachannel-tests.dir/test/capi_websocketserver.cpp.o
-libdatachannel/tests-0.23.1: libdatachannel/CMakeFiles/datachannel-tests.dir/test/benchmark.cpp.o
-libdatachannel/tests-0.23.1: libdatachannel/CMakeFiles/datachannel-tests.dir/build.make
-libdatachannel/tests-0.23.1: libdatachannel/libdatachannel.a
-libdatachannel/tests-0.23.1: libdatachannel/deps/usrsctp/usrsctplib/libusrsctp.a
-libdatachannel/tests-0.23.1: libdatachannel/deps/libsrtp/libsrtp2.a
-libdatachannel/tests-0.23.1: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
-libdatachannel/tests-0.23.1: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libssl.so
-libdatachannel/tests-0.23.1: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
-libdatachannel/tests-0.23.1: libdatachannel/deps/libjuice/libjuice.a
-libdatachannel/tests-0.23.1: libdatachannel/CMakeFiles/datachannel-tests.dir/link.txt
+libdatachannel/tests-0.23.2: libdatachannel/CMakeFiles/datachannel-tests.dir/test/main.cpp.o
+libdatachannel/tests-0.23.2: libdatachannel/CMakeFiles/datachannel-tests.dir/test/connectivity.cpp.o
+libdatachannel/tests-0.23.2: libdatachannel/CMakeFiles/datachannel-tests.dir/test/negotiated.cpp.o
+libdatachannel/tests-0.23.2: libdatachannel/CMakeFiles/datachannel-tests.dir/test/reliability.cpp.o
+libdatachannel/tests-0.23.2: libdatachannel/CMakeFiles/datachannel-tests.dir/test/turn_connectivity.cpp.o
+libdatachannel/tests-0.23.2: libdatachannel/CMakeFiles/datachannel-tests.dir/test/track.cpp.o
+libdatachannel/tests-0.23.2: libdatachannel/CMakeFiles/datachannel-tests.dir/test/capi_connectivity.cpp.o
+libdatachannel/tests-0.23.2: libdatachannel/CMakeFiles/datachannel-tests.dir/test/capi_track.cpp.o
+libdatachannel/tests-0.23.2: libdatachannel/CMakeFiles/datachannel-tests.dir/test/websocket.cpp.o
+libdatachannel/tests-0.23.2: libdatachannel/CMakeFiles/datachannel-tests.dir/test/websocketserver.cpp.o
+libdatachannel/tests-0.23.2: libdatachannel/CMakeFiles/datachannel-tests.dir/test/capi_websocketserver.cpp.o
+libdatachannel/tests-0.23.2: libdatachannel/CMakeFiles/datachannel-tests.dir/test/benchmark.cpp.o
+libdatachannel/tests-0.23.2: libdatachannel/CMakeFiles/datachannel-tests.dir/build.make
+libdatachannel/tests-0.23.2: libdatachannel/libdatachannel.a
+libdatachannel/tests-0.23.2: libdatachannel/deps/usrsctp/usrsctplib/libusrsctp.a
+libdatachannel/tests-0.23.2: libdatachannel/deps/libsrtp/libsrtp2.a
+libdatachannel/tests-0.23.2: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
+libdatachannel/tests-0.23.2: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libssl.so
+libdatachannel/tests-0.23.2: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
+libdatachannel/tests-0.23.2: libdatachannel/deps/libjuice/libjuice.a
+libdatachannel/tests-0.23.2: libdatachannel/CMakeFiles/datachannel-tests.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Linking CXX executable tests"
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/datachannel-tests.dir/link.txt --verbose=$(VERBOSE)
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel && $(CMAKE_COMMAND) -E cmake_symlink_executable tests-0.23.1 tests
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel && $(CMAKE_COMMAND) -E cmake_symlink_executable tests-0.23.2 tests
 
-libdatachannel/tests: libdatachannel/tests-0.23.1
+libdatachannel/tests: libdatachannel/tests-0.23.2
 
 # Rule to build all files generated by this target.
 libdatachannel/CMakeFiles/datachannel-tests.dir/build: libdatachannel/tests

@@ -28,6 +28,9 @@ target_include_directories(app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/protocol
     ${CMAKE_CURRENT_SOURCE_DIR}/protocol/rtsp
     ${CMAKE_CURRENT_SOURCE_DIR}/protocol/websocket
+    # libdatachannel headers
+    ${PROJECT_SOURCE_DIR}/libdatachannel/include
+    ${PROJECT_SOURCE_DIR}/libdatachannel/deps/json/single_include
     # rkmpi headers
     ${PROJECT_SOURCE_DIR}/rkmpi/include
     ${PROJECT_SOURCE_DIR}/rkmpi/include/rknn
@@ -39,8 +42,6 @@ target_include_directories(app PUBLIC
     ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq/iq_parser
     ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq/iq_parser_v2
     ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq/smartIr
-    # opencv headers
-    # ${PROJECT_SOURCE_DIR}/opencv_rv1106_410/include/opencv4/opencv2
 
 )
 

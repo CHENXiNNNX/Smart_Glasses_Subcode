@@ -2,7 +2,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/datachannel-benchmark.dir/test/benchmark.cpp.o"
   "CMakeFiles/datachannel-benchmark.dir/test/benchmark.cpp.o.d"
   "benchmark"
-  "benchmark-0.23.1"
+  "benchmark-0.23.2"
   "benchmark.pdb"
 )
 
