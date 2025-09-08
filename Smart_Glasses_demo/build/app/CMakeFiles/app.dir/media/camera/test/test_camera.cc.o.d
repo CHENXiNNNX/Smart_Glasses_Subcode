@@ -528,6 +528,7 @@ app/CMakeFiles/app.dir/media/camera/test/test_camera.cc.o: \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/rkmpi/include/rkaiq/algos/acgc/rk_aiq_types_acgc_algo.h \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_sysctl.h \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/rkmpi/include/sample_comm.h \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/rtsp/rtsp.h \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/opencv_rv1106_410/include/opencv4/opencv2/core/core.hpp \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/opencv_rv1106_410/include/opencv4/opencv2/core.hpp \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/opencv_rv1106_410/include/opencv4/opencv2/core/cvdef.h \

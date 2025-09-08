@@ -319,6 +319,54 @@ protocol/webrtc/signaling.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/protocol/webrtc/signaling.cc.s
 .PHONY : protocol/webrtc/signaling.cc.s
 
+protocol/webrtc/test/signaling.o: protocol/webrtc/test/signaling.cc.o
+.PHONY : protocol/webrtc/test/signaling.o
+
+# target to build an object file
+protocol/webrtc/test/signaling.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/protocol/webrtc/test/signaling.cc.o
+.PHONY : protocol/webrtc/test/signaling.cc.o
+
+protocol/webrtc/test/signaling.i: protocol/webrtc/test/signaling.cc.i
+.PHONY : protocol/webrtc/test/signaling.i
+
+# target to preprocess a source file
+protocol/webrtc/test/signaling.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/protocol/webrtc/test/signaling.cc.i
+.PHONY : protocol/webrtc/test/signaling.cc.i
+
+protocol/webrtc/test/signaling.s: protocol/webrtc/test/signaling.cc.s
+.PHONY : protocol/webrtc/test/signaling.s
+
+# target to generate assembly for a file
+protocol/webrtc/test/signaling.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/protocol/webrtc/test/signaling.cc.s
+.PHONY : protocol/webrtc/test/signaling.cc.s
+
+protocol/webrtc/test/webrtc.o: protocol/webrtc/test/webrtc.cc.o
+.PHONY : protocol/webrtc/test/webrtc.o
+
+# target to build an object file
+protocol/webrtc/test/webrtc.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/protocol/webrtc/test/webrtc.cc.o
+.PHONY : protocol/webrtc/test/webrtc.cc.o
+
+protocol/webrtc/test/webrtc.i: protocol/webrtc/test/webrtc.cc.i
+.PHONY : protocol/webrtc/test/webrtc.i
+
+# target to preprocess a source file
+protocol/webrtc/test/webrtc.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/protocol/webrtc/test/webrtc.cc.i
+.PHONY : protocol/webrtc/test/webrtc.cc.i
+
+protocol/webrtc/test/webrtc.s: protocol/webrtc/test/webrtc.cc.s
+.PHONY : protocol/webrtc/test/webrtc.s
+
+# target to generate assembly for a file
+protocol/webrtc/test/webrtc.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/protocol/webrtc/test/webrtc.cc.s
+.PHONY : protocol/webrtc/test/webrtc.cc.s
+
 protocol/webrtc/webrtc.o: protocol/webrtc/webrtc.cc.o
 .PHONY : protocol/webrtc/webrtc.o
 
@@ -398,6 +446,12 @@ help:
 	@echo "... protocol/webrtc/signaling.o"
 	@echo "... protocol/webrtc/signaling.i"
 	@echo "... protocol/webrtc/signaling.s"
+	@echo "... protocol/webrtc/test/signaling.o"
+	@echo "... protocol/webrtc/test/signaling.i"
+	@echo "... protocol/webrtc/test/signaling.s"
+	@echo "... protocol/webrtc/test/webrtc.o"
+	@echo "... protocol/webrtc/test/webrtc.i"
+	@echo "... protocol/webrtc/test/webrtc.s"
 	@echo "... protocol/webrtc/webrtc.o"
 	@echo "... protocol/webrtc/webrtc.i"
 	@echo "... protocol/webrtc/webrtc.s"

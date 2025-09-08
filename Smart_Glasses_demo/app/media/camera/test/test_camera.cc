@@ -303,7 +303,7 @@ int process_frame(video_system_t *sys) {
     }
 }
 
-int encode_video(video_system_t *sys) {
+int encode_to_h264(video_system_t *sys) {
     if (!sys || !sys->is_initialized) {
         printf("Video system not initialized or not valid!\n");
         return -1;

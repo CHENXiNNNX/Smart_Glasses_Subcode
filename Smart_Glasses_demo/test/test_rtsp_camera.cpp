@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
         }
         
         // 编码视频
-        if (encode_video(video_sys) != 0) {
+        if (encode_to_h264(video_sys) != 0) {
             release_frame(video_sys);
             continue;
         }

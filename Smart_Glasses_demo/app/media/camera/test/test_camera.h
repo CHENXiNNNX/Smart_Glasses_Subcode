@@ -77,7 +77,7 @@ int release_video_system(video_system_t **sys);
 // 帧处理接口
 int capture_frame(video_system_t *sys);
 int process_frame(video_system_t *sys);
-int encode_video(video_system_t *sys);
+int encode_to_h264(video_system_t *sys);
 
 #if USE_RTSP
 int rtsp_stream(video_system_t *sys);
