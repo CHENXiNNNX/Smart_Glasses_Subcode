@@ -1,21 +1,22 @@
 #include "test_camera.h"
 
-RK_U64 TEST_COMM_GetNowUs() {
-	struct timespec time = {0, 0};
-	clock_gettime(CLOCK_MONOTONIC, &time);
+RK_U64 get_nowus(void) {
+	struct timespec time = {0, 0};      // define a timespec structure to store time
+	clock_gettime(CLOCK_MONOTONIC, &time);  // Start timing from the moment the system boots up
 	return (RK_U64)time.tv_sec * 1000000 + (RK_U64)time.tv_nsec / 1000; /* microseconds */
 }
 
-int vi_dev_init() {
+int vi_dev_init(void) {
 	printf("%s\n", __func__);
-	int ret = 0;
-	int devId = 0;
-	int pipeId = devId;
+	int ret = 0;        // use for error checking 
+	int devId = 0;      // device id 
+	int pipeId = devId; // same as the device ID and one-to-one bound
 
 	VI_DEV_ATTR_S stDevAttr;
 	VI_DEV_BIND_PIPE_S stBindPipe;
 	memset(&stDevAttr, 0, sizeof(stDevAttr));
 	memset(&stBindPipe, 0, sizeof(stBindPipe));
+
 	// 0. get dev config status
 	ret = RK_MPI_VI_GetDevAttr(devId, &stDevAttr);
 	if (ret == RK_ERR_VI_NOT_CONFIG) {
@@ -28,6 +29,7 @@ int vi_dev_init() {
 	} else {
 		printf("RK_MPI_VI_SetDevAttr already\n");
 	}
+    
 	// 1.get dev enable status
 	ret = RK_MPI_VI_GetDevIsEnable(devId);
 	if (ret != RK_SUCCESS) {
@@ -59,8 +61,7 @@ int vi_chn_init(int channelId, int width, int height) {
 	VI_CHN_ATTR_S vi_chn_attr;
 	memset(&vi_chn_attr, 0, sizeof(vi_chn_attr));
 	vi_chn_attr.stIspOpt.u32BufCount = buf_cnt;
-	vi_chn_attr.stIspOpt.enMemoryType =
-	    VI_V4L2_MEMORY_TYPE_DMABUF; // VI_V4L2_MEMORY_TYPE_MMAP;
+	vi_chn_attr.stIspOpt.enMemoryType = VI_V4L2_MEMORY_TYPE_DMABUF; // VI_V4L2_MEMORY_TYPE_MMAP;
 	vi_chn_attr.stSize.u32Width = width;
 	vi_chn_attr.stSize.u32Height = height;
 	vi_chn_attr.enPixelFormat = RK_FMT_YUV420SP;
@@ -96,7 +97,7 @@ int venc_init(int chnId, int width, int height, RK_CODEC_ID_E enType) {
 	}
 
 	stAttr.stVencAttr.enType = enType;
-	stAttr.stVencAttr.enPixelFormat = RK_FMT_RGB888;
+	stAttr.stVencAttr.enPixelFormat = RK_FMT_YUV420SP;
 	if (enType == RK_VIDEO_ID_AVC)
 		stAttr.stVencAttr.u32Profile = H264E_PROFILE_HIGH;
 	stAttr.stVencAttr.u32PicWidth = width;
@@ -116,6 +117,52 @@ int venc_init(int chnId, int width, int height, RK_CODEC_ID_E enType) {
 	return 0;
 }
 
+// 视频流处理线程函数
+static void *stream_process_thread(void *arg)
+{
+    video_system_t *sys = (video_system_t *)arg;
+    RK_U64 last_stat_time = get_nowus();
+    int frame_count = 0;
+    
+    printf("[CAMERA] stream_process_thread started\n");
+    
+    while (!sys->quit_flag) {
+        // 获取编码后的H264流
+        RK_S32 ret = RK_MPI_VENC_GetStream(0, &sys->stFrame, 100);
+        if (ret == RK_SUCCESS && sys->stFrame.pstPack != NULL && sys->stFrame.u32PackCount > 0) {
+            frame_count++;
+            
+            // 通过RTSP传输视频流
+#if USE_RTSP
+            if (sys->rtsp_handle && sys->rtsp_session) {
+                void *pData = RK_MPI_MB_Handle2VirAddr(sys->stFrame.pstPack->pMbBlk);
+                rtsp_tx_video(sys->rtsp_session, (uint8_t*)pData,
+                             sys->stFrame.pstPack->u32Len, sys->stFrame.pstPack->u64PTS);
+                rtsp_do_event(sys->rtsp_handle);
+            }
+#endif
+            
+            // 释放编码流
+            RK_MPI_VENC_ReleaseStream(0, &sys->stFrame);
+        }
+        
+        // 计算FPS
+        RK_U64 current_time = get_nowus();
+        if (current_time - last_stat_time >= 1000000) {
+            sys->current_fps = (float)frame_count * 1000000.0f / (float)(current_time - last_stat_time);
+            last_stat_time = current_time;
+            frame_count = 0;
+            
+#if DISPLAY_FPS
+            printf("[CAMERA] Current FPS: %.2f\n", sys->current_fps);
+#endif
+        }
+    }
+    
+    printf("[CAMERA] stream_process_thread stopped\n");
+    return NULL;
+}
+
 int init_video_system(video_system_t **sys, int width, int height) {
     // Stop RkLunch service
     system("RkLunch-stop.sh");
@@ -127,32 +174,14 @@ int init_video_system(video_system_t **sys, int width, int height) {
     // Set the resolution
     (*sys)->width = width;
     (*sys)->height = height;
+    (*sys)->is_initialized = false;
+    (*sys)->is_streaming = false;
+    (*sys)->current_fps = 0;
+    (*sys)->quit_flag = false;
 
+    // Allocate memory for stream packet
     (*sys)->stFrame.pstPack = (VENC_PACK_S*)malloc(sizeof(VENC_PACK_S));
 
-    // Create pool for the video system
-    MB_POOL_CONFIG_S pool_cfg;
-    memset(&pool_cfg, 0, sizeof(MB_POOL_CONFIG_S));
-    pool_cfg.u64MBSize = width * height * 3;
-    pool_cfg.u32MBCnt = 1;
-    pool_cfg.enAllocType = MB_ALLOC_TYPE_DMA;
-    (*sys)->mem_pool = RK_MPI_MB_CreatePool(&pool_cfg);
-    printf("Create Pool success !\n");	
-
-    // Get MB from Pool 
-    (*sys)->mem_block = RK_MPI_MB_GetMB((*sys)->mem_pool, width * height * 3, RK_TRUE);
-
-    // Build h264_frame
-    (*sys)->h264_frame.stVFrame.u32Width = width;
-    (*sys)->h264_frame.stVFrame.u32Height = height;
-    (*sys)->h264_frame.stVFrame.u32VirWidth = width;
-    (*sys)->h264_frame.stVFrame.u32VirHeight = height;
-    (*sys)->h264_frame.stVFrame.enPixelFormat = RK_FMT_RGB888;
-    (*sys)->h264_frame.stVFrame.u32FrameFlag = 160;
-    (*sys)->h264_frame.stVFrame.pMbBlk = (*sys)->mem_block;
-    (*sys)->frame_data = (unsigned char*)RK_MPI_MB_Handle2VirAddr((*sys)->mem_block);
-    (*sys)->opencv_frame = new cv::Mat(cv::Size(width, height), CV_8UC3, (*sys)->frame_data);
-    
     // Whether to use multiple sensors
     RK_BOOL multi_sensor = RK_FALSE;        
 
@@ -169,6 +198,8 @@ int init_video_system(video_system_t **sys, int width, int height) {
     // rkmpi init
 	if (RK_MPI_SYS_Init() != RK_SUCCESS) {
 		RK_LOGE("rk mpi sys init fail!");
+		free(*sys);
+		*sys = NULL;
 		return -1;
 	}
 
@@ -177,7 +208,26 @@ int init_video_system(video_system_t **sys, int width, int height) {
         // rtsp init
         printf("rtsp init\n");
         (*sys)->rtsp_handle = create_rtsp_demo(554);    // RTSP port
+        if ((*sys)->rtsp_handle == NULL) {
+            printf("rtsp_create_demo failed\n");
+            RK_MPI_SYS_Exit();
+            free((*sys)->stFrame.pstPack);
+            free(*sys);
+            *sys = NULL;
+            return -1;
+        }
+        
         (*sys)->rtsp_session = rtsp_new_session((*sys)->rtsp_handle, "/live/0");    // RTSP stream path
+        if ((*sys)->rtsp_session == NULL) {
+            printf("rtsp_new_session failed\n");
+            rtsp_del_demo((*sys)->rtsp_handle);
+            RK_MPI_SYS_Exit();
+            free((*sys)->stFrame.pstPack);
+            free(*sys);
+            *sys = NULL;
+            return -1;
+        }
+        
         rtsp_set_video((*sys)->rtsp_session, RTSP_CODEC_ID_VIDEO_H264, NULL, 0);    // Set RTSP video codec 
         rtsp_sync_video_ts((*sys)->rtsp_session, rtsp_get_reltime(), rtsp_get_ntptime());   // Sync RTSP time
     #elif USE_WEBRTC
@@ -186,12 +236,73 @@ int init_video_system(video_system_t **sys, int width, int height) {
     #endif
     
     // vi init
-    vi_dev_init();
-    vi_chn_init(0, width, height);
+    if (vi_dev_init() != 0) {
+        printf("vi_dev_init failed\n");
+#if USE_RTSP
+        rtsp_del_demo((*sys)->rtsp_handle);
+#endif
+        RK_MPI_SYS_Exit();
+        free((*sys)->stFrame.pstPack);
+        free(*sys);
+        *sys = NULL;
+        return -1;
+    }
+    
+    if (vi_chn_init(0, width, height) != 0) {
+        printf("vi_chn_init failed\n");
+#if USE_RTSP
+        rtsp_del_demo((*sys)->rtsp_handle);
+#endif
+        RK_MPI_VI_DisableDev(0);
+        RK_MPI_SYS_Exit();
+        free((*sys)->stFrame.pstPack);
+        free(*sys);
+        *sys = NULL;
+        return -1;
+    }
 
     // venc init
     RK_CODEC_ID_E enCodecType = RK_VIDEO_ID_AVC; // RK_VIDEO_ID_AVC: H264, RK_VIDEO_ID_HEVC: H265
-    venc_init(0, width, height, enCodecType); 
+    if (venc_init(0, width, height, enCodecType) != 0) {
+        printf("venc_init failed\n");
+#if USE_RTSP
+        rtsp_del_demo((*sys)->rtsp_handle);
+#endif
+        RK_MPI_VI_DisableChn(0, 0);
+        RK_MPI_VI_DisableDev(0);
+        RK_MPI_SYS_Exit();
+        free((*sys)->stFrame.pstPack);
+        free(*sys);
+        *sys = NULL;
+        return -1;
+    }
+
+    // 绑定VI通道到VENC通道
+    MPP_CHN_S stSrcChn;
+    MPP_CHN_S stDestChn;
+    
+    stSrcChn.enModId = RK_ID_VI;
+    stSrcChn.s32DevId = 0;
+    stSrcChn.s32ChnId = 0;
+    
+    stDestChn.enModId = RK_ID_VENC;
+    stDestChn.s32DevId = 0;
+    stDestChn.s32ChnId = 0;
+    
+    if (RK_MPI_SYS_Bind(&stSrcChn, &stDestChn) != RK_SUCCESS) {
+        printf("RK_MPI_SYS_Bind failed\n");
+#if USE_RTSP
+        rtsp_del_demo((*sys)->rtsp_handle);
+#endif
+        RK_MPI_VENC_DestroyChn(0);
+        RK_MPI_VI_DisableChn(0, 0);
+        RK_MPI_VI_DisableDev(0);
+        RK_MPI_SYS_Exit();
+        free((*sys)->stFrame.pstPack);
+        free(*sys);
+        *sys = NULL;
+        return -1;
+    }
 
     // Initialization successful
     (*sys)->is_initialized = true;
@@ -201,10 +312,50 @@ int init_video_system(video_system_t **sys, int width, int height) {
 }
 
 int start_video_stream(video_system_t *sys) {
+    if (!sys || !sys->is_initialized) {
+        printf("Video system not initialized or not valid!\n");
+        return -1;
+    }
+    
+    if (sys->is_streaming) {
+        printf("Video stream already started\n");
+        return 0;
+    }
+    
+    printf("start_video_stream\n");
+    
+    // 创建流处理线程
+    if (pthread_create(&sys->stream_thread, NULL, stream_process_thread, sys) != 0) {
+        printf("Failed to create stream_process_thread\n");
+        return -1;
+    }
+    
+    sys->is_streaming = true;
+    
     return 0;
 }
 
 int stop_video_stream(video_system_t *sys) {
+    if (!sys || !sys->is_initialized) {
+        printf("Video system not initialized or not valid!\n");
+        return -1;
+    }
+    
+    if (!sys->is_streaming) {
+        printf("Video stream already stopped\n");
+        return 0;
+    }
+    
+    printf("stop_video_stream\n");
+    
+    sys->quit_flag = true;
+    
+    // 等待线程结束
+    pthread_join(sys->stream_thread, NULL);
+    
+    sys->is_streaming = false;
+    sys->quit_flag = false;
+    
     return 0;
 }
 
@@ -214,11 +365,26 @@ int release_video_system(video_system_t **sys) {
         return -1;
     }
     else {
-        // Destory MB
-        RK_MPI_MB_ReleaseMB((*sys)->mem_block);
+        // 停止视频流
+        stop_video_stream(*sys);
 
-        // Destory Pool
-        RK_MPI_MB_DestroyPool((*sys)->mem_pool);
+        // 释放绑定关系
+        MPP_CHN_S stSrcChn;
+        MPP_CHN_S stDestChn;
+        
+        stSrcChn.enModId = RK_ID_VI;
+        stSrcChn.s32DevId = 0;
+        stSrcChn.s32ChnId = 0;
+        
+        stDestChn.enModId = RK_ID_VENC;
+        stDestChn.s32DevId = 0;
+        stDestChn.s32ChnId = 0;
+        
+        RK_MPI_SYS_UnBind(&stSrcChn, &stDestChn);
+
+        // Disable venc channel
+        RK_MPI_VENC_StopRecvFrame(0);
+        RK_MPI_VENC_DestroyChn(0);
 
         // Disable vi channel
         RK_MPI_VI_DisableChn(0, 0);
@@ -226,10 +392,6 @@ int release_video_system(video_system_t **sys) {
 
         // Stop ISP
         SAMPLE_COMM_ISP_Stop(0);
-
-        // Disable venc channel
-        RK_MPI_VENC_StopRecvFrame(0);
-        RK_MPI_VENC_DestroyChn(0);
 
         // Free dynamic memory
         free((*sys)->stFrame.pstPack);
@@ -244,126 +406,66 @@ int release_video_system(video_system_t **sys) {
         
         // Exit rkmpi
         RK_MPI_SYS_Exit();
-
-        return 0;
-    }
-}
-
-int capture_frame(video_system_t *sys) {
-    if (!sys || !sys->is_initialized) {
-        printf("Video system not initialized or not valid!\n");
-        return -1;
-    }
-    else {
-        sys->h264_frame.stVFrame.u32TimeRef = sys->time_ref++; // Frame sequence identifier
-        sys->h264_frame.stVFrame.u64PTS = TEST_COMM_GetNowUs(); // Frame timestamp
         
-        // Get vi frame success return 0, else return -1
-        RK_S32 ret = RK_MPI_VI_GetChnFrame(0, 0, &sys->vi_frame, -1);
-        return (ret == RK_SUCCESS) ? 0 : -1; 
-    }
-}
+        // 释放系统结构体
+        free(*sys);
+        *sys = NULL;
 
-int process_frame(video_system_t *sys) {
-    if (!sys || !sys->is_initialized) {
-        printf("Video system not initialized or not valid!\n");
-        return -1;
-    }
-    else {
-        // Get vi original frame YUV420P data and convert it to BGR
-        void *vi_data = RK_MPI_MB_Handle2VirAddr(sys->vi_frame.stVFrame.pMbBlk); 
-
-        // Create a Mat object in YUV420P format
-        cv::Mat yuv420sp(sys->height + sys->height/2, sys->width, CV_8UC1, vi_data);
-
-        // Create a Mat object in BGR format
-        cv::Mat bgr(sys->height, sys->width, CV_8UC3, sys->frame_data);
-
-        // Convert YUV420P to BGR
-        cv::cvtColor(yuv420sp, bgr, cv::COLOR_YUV420sp2BGR);
-
-        // Resize the frame to the same size as the input frame
-        cv::resize(bgr, *sys->opencv_frame, cv::Size(sys->width, sys->height), 0, 0, cv::INTER_LINEAR);
-
-        // FPS display on the frame
-        if (DISPLAY_FPS) {
-            sprintf(sys->fps_text, "fps = %.2f", sys->current_fps);
-            cv::putText(*sys->opencv_frame, 
-                        sys->fps_text, 
-                        cv::Point(40, 40),        // display position
-                        cv::FONT_HERSHEY_SIMPLEX, // display font
-                        1,                        // display font scale
-                        cv::Scalar(0,255,0),      // display color
-                        2);                       // display thickness
-        }
-        // Copy the frame data to the input frame_data
-        memcpy(sys->frame_data, sys->opencv_frame->data, sys->width * sys->height * 3);
-
-        return 0;
-    }
-}
-
-int encode_to_h264(video_system_t *sys) {
-    if (!sys || !sys->is_initialized) {
-        printf("Video system not initialized or not valid!\n");
-        return -1;
-    }
-    
-    return RK_MPI_VENC_SendFrame(0, &sys->h264_frame, -1);
-}
-
-#if USE_RTSP
-int rtsp_stream(video_system_t *sys) {
-    if (!sys || !sys->is_initialized) {
-        printf("Video system not initialized or not valid!\n");
-        return -1;
-    }
-    else {
-        RK_S32 ret = RK_MPI_VENC_GetStream(0, &sys->stFrame, -1);
-        if (ret == RK_SUCCESS) {
-            if (sys->rtsp_handle && sys->rtsp_session) {
-                void *pData = RK_MPI_MB_Handle2VirAddr(sys->stFrame.pstPack->pMbBlk);
-                rtsp_tx_video(sys->rtsp_session, (uint8_t*)pData,
-                             sys->stFrame.pstPack->u32Len, sys->stFrame.pstPack->u64PTS);
-                rtsp_do_event(sys->rtsp_handle);
-            }
-            // 计算FPS
-            RK_U64 nowUs = TEST_COMM_GetNowUs();
-            sys->current_fps = (float)1000000 / (float)(nowUs - sys->h264_frame.stVFrame.u64PTS);
-            printf("Current FPS: %.2f\n", sys->current_fps);
-            
-            return 0;
-        }
-        return -1;
-    }
-}
-#endif
-
-#if USE_WEBRTC
-int webrtc_stream(video_system_t *sys) {
-    if (!sys || !sys->is_initialized) {
-        printf("Video system not initialized or not valid!\n");
-        return -1;
-    }
-    else {
+        printf("Video system released successfully\n");
         
         return 0;
     }
 }
-#endif
 
-int release_frame(video_system_t *sys) {
-    if (!sys || !sys->is_initialized) return -1;
-    
-    RK_S32 ret1 = RK_MPI_VI_ReleaseChnFrame(0, 0, &sys->vi_frame);
-    if (ret1 != RK_SUCCESS) {
-        printf("RK_MPI_VI_ReleaseChnFrame failed! ret = %d\n", ret1);
-    }
-    RK_S32 ret2 = RK_MPI_VENC_ReleaseStream(0, &sys->stFrame);
-    if (ret2 != RK_SUCCESS) {
-        printf("RK_MPI_VENC_ReleaseStream failed! ret = %d\n", ret2);
+// 获取当前FPS
+float get_current_fps(video_system_t *sys)
+{
+    if (sys == NULL || !sys->is_initialized) {
+        return 0.0;
     }
     
-    return (ret1 == RK_SUCCESS && ret2 == RK_SUCCESS) ? 0 : -1;
+    return sys->current_fps;
+}
+
+// 检查系统是否就绪
+bool is_system_ready(video_system_t *sys)
+{
+    if (sys == NULL || !sys->is_initialized) {
+        return false;
+    }
+    
+    return true;
+}
+
+// 设置视频质量
+int set_video_quality(video_system_t *sys, int bitrate, int gop)
+{
+    if (sys == NULL || !sys->is_initialized) {
+        printf("[CAMERA] video_system not initialized\n");
+        return -1;
+    }
+    
+    VENC_CHN_ATTR_S stVencChnAttr;
+    int ret = RK_MPI_VENC_GetChnAttr(0, &stVencChnAttr);
+    if (ret != RK_SUCCESS) {
+        printf("[CAMERA] RK_MPI_VENC_GetChnAttr failed ret %d\n", ret);
+        return -1;
+    }
+    
+    if (stVencChnAttr.stVencAttr.enType == RK_VIDEO_ID_AVC) {
+        stVencChnAttr.stRcAttr.stH264Cbr.u32BitRate = bitrate;
+        stVencChnAttr.stRcAttr.stH264Cbr.u32Gop = gop;
+    } else if (stVencChnAttr.stVencAttr.enType == RK_VIDEO_ID_HEVC) {
+        stVencChnAttr.stRcAttr.stH265Cbr.u32BitRate = bitrate;
+        stVencChnAttr.stRcAttr.stH265Cbr.u32Gop = gop;
+    }
+    
+    ret = RK_MPI_VENC_SetChnAttr(0, &stVencChnAttr);
+    if (ret != RK_SUCCESS) {
+        printf("[CAMERA] RK_MPI_VENC_SetChnAttr failed ret %d\n", ret);
+        return -1;
+    }
+    
+    return 0;
 }
 

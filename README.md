@@ -1,16 +1,14 @@
 <h1 align="center">Demos for Echo</h2>
 
-这个仓库存放着Echo开发板的各种例程, 包括LVGL, AI对话机器人, 机器视觉等独立的demo。
-
-[`AI桌面助手机器人Echo`](./DeskBot_demo/README.md)就是把他们融合起来做成的, LVGL作为UI界面, 这些高级demo作为子APP～
+这个仓库存放着开发板的各种例程, 包括实时通信, AI对话机器人, 机器视觉等独立的demo。
 
 <h2 align="center">0. AI桌面机器人 Echo-Mate</h2>
 
 ### 📒 Overview
 
-详见DeskBot_demo文件夹，这个文件夹包含了LVGL和其他demo的内容, 相当于是多个分离demo的融合，组成了Echo-Mate桌面AI助手, 详细如何编译和使用见[DsekBot_demo](./DeskBot_demo/README.md).
+详见Smart_Glasses_demo文件夹，这个文件夹里面的app为工程的主要代码内容，组成了Smart_Glasses项目, 详细如何编译和使用见[Smart_Glasses_demo](./Smart_Glasses_demo/README.md).
 
-### 📑 AI桌面机器人整体框架：
+### 📑 智能眼镜整体框架：
 
 实现的功能如下：
 

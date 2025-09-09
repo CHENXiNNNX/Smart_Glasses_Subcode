@@ -1,17 +1,17 @@
 Performing C SOURCE FILE Test have_sa_len failed with the following output:
 Change Dir: /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_9b98b/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_9b98b.dir/build.make CMakeFiles/cmTC_9b98b.dir/build
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_7ee5c/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_7ee5c.dir/build.make CMakeFiles/cmTC_7ee5c.dir/build
 gmake[1]: 进入目录“/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp”
-Building C object CMakeFiles/cmTC_9b98b.dir/src.c.o
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot -Dhave_sa_len -I/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/deps/usrsctp/usrsctplib -fPIE -std=gnu99 -o CMakeFiles/cmTC_9b98b.dir/src.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/src.c
+Building C object CMakeFiles/cmTC_7ee5c.dir/src.c.o
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot -Dhave_sa_len -I/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/deps/usrsctp/usrsctplib -fPIE -std=gnu99 -o CMakeFiles/cmTC_7ee5c.dir/src.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/src.c
 /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/src.c: In function 'main':
 /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/src.c:7:38: error: 'struct sockaddr' has no member named 'sa_len'
    (void)sizeof(((struct sockaddr *)0)->sa_len);
                                       ^~
-gmake[1]: *** [CMakeFiles/cmTC_9b98b.dir/build.make:78：CMakeFiles/cmTC_9b98b.dir/src.c.o] 错误 1
+gmake[1]: *** [CMakeFiles/cmTC_7ee5c.dir/build.make:78：CMakeFiles/cmTC_7ee5c.dir/src.c.o] 错误 1
 gmake[1]: 离开目录“/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp”
-gmake: *** [Makefile:127：cmTC_9b98b/fast] 错误 2
+gmake: *** [Makefile:127：cmTC_7ee5c/fast] 错误 2
 
 
 Source file was:
@@ -28,18 +28,18 @@ int main()
 Performing C SOURCE FILE Test have_sin_len failed with the following output:
 Change Dir: /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_56a35/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_56a35.dir/build.make CMakeFiles/cmTC_56a35.dir/build
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_80f48/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_80f48.dir/build.make CMakeFiles/cmTC_80f48.dir/build
 gmake[1]: 进入目录“/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp”
-Building C object CMakeFiles/cmTC_56a35.dir/src.c.o
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot -Dhave_sin_len -I/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/deps/usrsctp/usrsctplib -fPIE -std=gnu99 -o CMakeFiles/cmTC_56a35.dir/src.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/src.c
+Building C object CMakeFiles/cmTC_80f48.dir/src.c.o
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot -Dhave_sin_len -I/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/deps/usrsctp/usrsctplib -fPIE -std=gnu99 -o CMakeFiles/cmTC_80f48.dir/src.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/src.c
 /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/src.c: In function 'main':
 /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/src.c:7:43: error: 'struct sockaddr_in' has no member named 'sin_len'; did you mean 'sin_zero'?
    (void)sizeof(((struct sockaddr_in *)0)->sin_len);
                                            ^~~~~~~
                                            sin_zero
-gmake[1]: *** [CMakeFiles/cmTC_56a35.dir/build.make:78：CMakeFiles/cmTC_56a35.dir/src.c.o] 错误 1
+gmake[1]: *** [CMakeFiles/cmTC_80f48.dir/build.make:78：CMakeFiles/cmTC_80f48.dir/src.c.o] 错误 1
 gmake[1]: 离开目录“/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp”
-gmake: *** [Makefile:127：cmTC_56a35/fast] 错误 2
+gmake: *** [Makefile:127：cmTC_80f48/fast] 错误 2
 
 
 Source file was:
@@ -56,18 +56,18 @@ int main()
 Performing C SOURCE FILE Test have_sin6_len failed with the following output:
 Change Dir: /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_c636b/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_c636b.dir/build.make CMakeFiles/cmTC_c636b.dir/build
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_4ddb5/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_4ddb5.dir/build.make CMakeFiles/cmTC_4ddb5.dir/build
 gmake[1]: 进入目录“/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp”
-Building C object CMakeFiles/cmTC_c636b.dir/src.c.o
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot -Dhave_sin6_len -I/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/deps/usrsctp/usrsctplib -fPIE -std=gnu99 -o CMakeFiles/cmTC_c636b.dir/src.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/src.c
+Building C object CMakeFiles/cmTC_4ddb5.dir/src.c.o
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot -Dhave_sin6_len -I/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/deps/usrsctp/usrsctplib -fPIE -std=gnu99 -o CMakeFiles/cmTC_4ddb5.dir/src.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/src.c
 /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/src.c: In function 'main':
 /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/src.c:7:44: error: 'struct sockaddr_in6' has no member named 'sin6_len'; did you mean 'sin6_port'?
    (void)sizeof(((struct sockaddr_in6 *)0)->sin6_len);
                                             ^~~~~~~~
                                             sin6_port
-gmake[1]: *** [CMakeFiles/cmTC_c636b.dir/build.make:78：CMakeFiles/cmTC_c636b.dir/src.c.o] 错误 1
+gmake[1]: *** [CMakeFiles/cmTC_4ddb5.dir/build.make:78：CMakeFiles/cmTC_4ddb5.dir/src.c.o] 错误 1
 gmake[1]: 离开目录“/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp”
-gmake: *** [Makefile:127：cmTC_c636b/fast] 错误 2
+gmake: *** [Makefile:127：cmTC_4ddb5/fast] 错误 2
 
 
 Source file was:
@@ -84,18 +84,18 @@ int main()
 Performing C SOURCE FILE Test have_sconn_len failed with the following output:
 Change Dir: /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_4b1f1/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_4b1f1.dir/build.make CMakeFiles/cmTC_4b1f1.dir/build
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_c0c3a/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_c0c3a.dir/build.make CMakeFiles/cmTC_c0c3a.dir/build
 gmake[1]: 进入目录“/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp”
-Building C object CMakeFiles/cmTC_4b1f1.dir/src.c.o
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot -Dhave_sconn_len -I/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/deps/usrsctp/usrsctplib -fPIE -std=gnu99 -o CMakeFiles/cmTC_4b1f1.dir/src.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/src.c
+Building C object CMakeFiles/cmTC_c0c3a.dir/src.c.o
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot -Dhave_sconn_len -I/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/deps/usrsctp/usrsctplib -fPIE -std=gnu99 -o CMakeFiles/cmTC_c0c3a.dir/src.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/src.c
 /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/src.c: In function 'main':
 /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/src.c:6:45: error: 'struct sockaddr_conn' has no member named 'sconn_len'; did you mean 'sconn_port'?
    (void)sizeof(((struct sockaddr_conn *)0)->sconn_len);
                                              ^~~~~~~~~
                                              sconn_port
-gmake[1]: *** [CMakeFiles/cmTC_4b1f1.dir/build.make:78：CMakeFiles/cmTC_4b1f1.dir/src.c.o] 错误 1
+gmake[1]: *** [CMakeFiles/cmTC_c0c3a.dir/build.make:78：CMakeFiles/cmTC_c0c3a.dir/src.c.o] 错误 1
 gmake[1]: 离开目录“/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp”
-gmake: *** [Makefile:127：cmTC_4b1f1/fast] 错误 2
+gmake: *** [Makefile:127：cmTC_c0c3a/fast] 错误 2
 
 
 Source file was:
@@ -111,68 +111,68 @@ int main()
 Determining if the include file machine/types.h exists failed with the following output:
 Change Dir: /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_a4929/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_a4929.dir/build.make CMakeFiles/cmTC_a4929.dir/build
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_5f9f0/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_5f9f0.dir/build.make CMakeFiles/cmTC_5f9f0.dir/build
 gmake[1]: 进入目录“/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp”
-Building C object CMakeFiles/cmTC_a4929.dir/CheckIncludeFile.c.o
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot   -fPIE -std=gnu99 -o CMakeFiles/cmTC_a4929.dir/CheckIncludeFile.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Building C object CMakeFiles/cmTC_5f9f0.dir/CheckIncludeFile.c.o
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot   -fPIE -std=gnu99 -o CMakeFiles/cmTC_5f9f0.dir/CheckIncludeFile.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
 /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:10: fatal error: machine/types.h: No such file or directory
  #include <machine/types.h>
           ^~~~~~~~~~~~~~~~~
 compilation terminated.
-gmake[1]: *** [CMakeFiles/cmTC_a4929.dir/build.make:78：CMakeFiles/cmTC_a4929.dir/CheckIncludeFile.c.o] 错误 1
+gmake[1]: *** [CMakeFiles/cmTC_5f9f0.dir/build.make:78：CMakeFiles/cmTC_5f9f0.dir/CheckIncludeFile.c.o] 错误 1
 gmake[1]: 离开目录“/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp”
-gmake: *** [Makefile:127：cmTC_a4929/fast] 错误 2
+gmake: *** [Makefile:127：cmTC_5f9f0/fast] 错误 2
 
 
 
 Determining if the include file sys/int_types.h exists failed with the following output:
 Change Dir: /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_a8a1d/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_a8a1d.dir/build.make CMakeFiles/cmTC_a8a1d.dir/build
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_2dab1/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_2dab1.dir/build.make CMakeFiles/cmTC_2dab1.dir/build
 gmake[1]: 进入目录“/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp”
-Building C object CMakeFiles/cmTC_a8a1d.dir/CheckIncludeFile.c.o
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot   -fPIE -std=gnu99 -o CMakeFiles/cmTC_a8a1d.dir/CheckIncludeFile.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Building C object CMakeFiles/cmTC_2dab1.dir/CheckIncludeFile.c.o
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot   -fPIE -std=gnu99 -o CMakeFiles/cmTC_2dab1.dir/CheckIncludeFile.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
 /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:10: fatal error: sys/int_types.h: No such file or directory
  #include <sys/int_types.h>
           ^~~~~~~~~~~~~~~~~
 compilation terminated.
-gmake[1]: *** [CMakeFiles/cmTC_a8a1d.dir/build.make:78：CMakeFiles/cmTC_a8a1d.dir/CheckIncludeFile.c.o] 错误 1
+gmake[1]: *** [CMakeFiles/cmTC_2dab1.dir/build.make:78：CMakeFiles/cmTC_2dab1.dir/CheckIncludeFile.c.o] 错误 1
 gmake[1]: 离开目录“/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp”
-gmake: *** [Makefile:127：cmTC_a8a1d/fast] 错误 2
+gmake: *** [Makefile:127：cmTC_2dab1/fast] 错误 2
 
 
 
 Determining if the include file windows.h exists failed with the following output:
 Change Dir: /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_3b88e/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_3b88e.dir/build.make CMakeFiles/cmTC_3b88e.dir/build
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_6d1af/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_6d1af.dir/build.make CMakeFiles/cmTC_6d1af.dir/build
 gmake[1]: 进入目录“/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp”
-Building C object CMakeFiles/cmTC_3b88e.dir/CheckIncludeFile.c.o
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot   -fPIE -std=gnu99 -o CMakeFiles/cmTC_3b88e.dir/CheckIncludeFile.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Building C object CMakeFiles/cmTC_6d1af.dir/CheckIncludeFile.c.o
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot   -fPIE -std=gnu99 -o CMakeFiles/cmTC_6d1af.dir/CheckIncludeFile.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
 /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:10: fatal error: windows.h: No such file or directory
  #include <windows.h>
           ^~~~~~~~~~~
 compilation terminated.
-gmake[1]: *** [CMakeFiles/cmTC_3b88e.dir/build.make:78：CMakeFiles/cmTC_3b88e.dir/CheckIncludeFile.c.o] 错误 1
+gmake[1]: *** [CMakeFiles/cmTC_6d1af.dir/build.make:78：CMakeFiles/cmTC_6d1af.dir/CheckIncludeFile.c.o] 错误 1
 gmake[1]: 离开目录“/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp”
-gmake: *** [Makefile:127：cmTC_3b88e/fast] 错误 2
+gmake: *** [Makefile:127：cmTC_6d1af/fast] 错误 2
 
 
 
 Determining if the include file winsock2.h exists failed with the following output:
 Change Dir: /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_d759f/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_d759f.dir/build.make CMakeFiles/cmTC_d759f.dir/build
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_a37fb/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_a37fb.dir/build.make CMakeFiles/cmTC_a37fb.dir/build
 gmake[1]: 进入目录“/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp”
-Building C object CMakeFiles/cmTC_d759f.dir/CheckIncludeFile.c.o
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot   -fPIE -std=gnu99 -o CMakeFiles/cmTC_d759f.dir/CheckIncludeFile.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Building C object CMakeFiles/cmTC_a37fb.dir/CheckIncludeFile.c.o
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot   -fPIE -std=gnu99 -o CMakeFiles/cmTC_a37fb.dir/CheckIncludeFile.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
 /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:10: fatal error: winsock2.h: No such file or directory
  #include <winsock2.h>
           ^~~~~~~~~~~~
 compilation terminated.
-gmake[1]: *** [CMakeFiles/cmTC_d759f.dir/build.make:78：CMakeFiles/cmTC_d759f.dir/CheckIncludeFile.c.o] 错误 1
+gmake[1]: *** [CMakeFiles/cmTC_a37fb.dir/build.make:78：CMakeFiles/cmTC_a37fb.dir/CheckIncludeFile.c.o] 错误 1
 gmake[1]: 离开目录“/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles/CMakeTmp”
-gmake: *** [Makefile:127：cmTC_d759f/fast] 错误 2
+gmake: *** [Makefile:127：cmTC_a37fb/fast] 错误 2
 
 
 

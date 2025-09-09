@@ -1,5 +1,19 @@
-## DeskBot demo
-
+## Smart_Glasses demo
+app/
+├── app.c             # 应用程序主逻辑实现
+├── app.h             # 应用程序接口定义
+├── chatbot/          # 聊天机器人核心模块
+│   ├── chatbot.c     # 聊天机器人实现
+│   └── chatbot.h     # 聊天机器人接口定义
+├── media/            # 媒体处理模块
+│   ├── audio/        # 音频处理子模块
+│   ├── camera/       # 相机处理子模块
+│   └── media_config.h # 媒体配置文件
+└── protocol/         # 通信协议模块
+    ├── protocol_config.h # 协议配置
+    ├── rtsp/         # RTSP协议实现
+    ├── webrtc/       # WebRTC协议实现
+    └── websocket/    # WebSocket协议实现
 ### 1.编译
 1. **在电脑上运行SDL仿真**
 
