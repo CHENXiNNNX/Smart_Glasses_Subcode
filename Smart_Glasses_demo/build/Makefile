@@ -175,6 +175,19 @@ main/fast:
 .PHONY : main/fast
 
 #=============================================================================
+# Target rules for targets named clean-all
+
+# Build rule for target.
+clean-all: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 clean-all
+.PHONY : clean-all
+
+# fast build rule for target.
+clean-all/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/clean-all.dir/build.make CMakeFiles/clean-all.dir/build
+.PHONY : clean-all/fast
+
+#=============================================================================
 # Target rules for targets named utils
 
 # Build rule for target.
@@ -214,6 +227,32 @@ app/fast:
 .PHONY : app/fast
 
 #=============================================================================
+# Target rules for targets named snowboy
+
+# Build rule for target.
+snowboy: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 snowboy
+.PHONY : snowboy
+
+# fast build rule for target.
+snowboy/fast:
+	$(MAKE) $(MAKESILENT) -f 3rdparty/snowboy/CMakeFiles/snowboy.dir/build.make 3rdparty/snowboy/CMakeFiles/snowboy.dir/build
+.PHONY : snowboy/fast
+
+#=============================================================================
+# Target rules for targets named snowboy-detect-c-wrapper
+
+# Build rule for target.
+snowboy-detect-c-wrapper: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 snowboy-detect-c-wrapper
+.PHONY : snowboy-detect-c-wrapper
+
+# fast build rule for target.
+snowboy-detect-c-wrapper/fast:
+	$(MAKE) $(MAKESILENT) -f 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/build.make 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/build
+.PHONY : snowboy-detect-c-wrapper/fast
+
+#=============================================================================
 # Target rules for targets named datachannel
 
 # Build rule for target.
@@ -238,32 +277,6 @@ datachannel-static: cmake_check_build_system
 datachannel-static/fast:
 	$(MAKE) $(MAKESILENT) -f libdatachannel/CMakeFiles/datachannel-static.dir/build.make libdatachannel/CMakeFiles/datachannel-static.dir/build
 .PHONY : datachannel-static/fast
-
-#=============================================================================
-# Target rules for targets named datachannel-tests
-
-# Build rule for target.
-datachannel-tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 datachannel-tests
-.PHONY : datachannel-tests
-
-# fast build rule for target.
-datachannel-tests/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/CMakeFiles/datachannel-tests.dir/build.make libdatachannel/CMakeFiles/datachannel-tests.dir/build
-.PHONY : datachannel-tests/fast
-
-#=============================================================================
-# Target rules for targets named datachannel-benchmark
-
-# Build rule for target.
-datachannel-benchmark: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 datachannel-benchmark
-.PHONY : datachannel-benchmark
-
-# fast build rule for target.
-datachannel-benchmark/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/CMakeFiles/datachannel-benchmark.dir/build.make libdatachannel/CMakeFiles/datachannel-benchmark.dir/build
-.PHONY : datachannel-benchmark/fast
 
 #=============================================================================
 # Target rules for targets named usrsctp
@@ -447,227 +460,6 @@ juice-static/fast:
 	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/build.make libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/build
 .PHONY : juice-static/fast
 
-#=============================================================================
-# Target rules for targets named juice-tests
-
-# Build rule for target.
-juice-tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 juice-tests
-.PHONY : juice-tests
-
-# fast build rule for target.
-juice-tests/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libjuice/CMakeFiles/juice-tests.dir/build.make libdatachannel/deps/libjuice/CMakeFiles/juice-tests.dir/build
-.PHONY : juice-tests/fast
-
-#=============================================================================
-# Target rules for targets named datachannel-client
-
-# Build rule for target.
-datachannel-client: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 datachannel-client
-.PHONY : datachannel-client
-
-# fast build rule for target.
-datachannel-client/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/examples/client/CMakeFiles/datachannel-client.dir/build.make libdatachannel/examples/client/CMakeFiles/datachannel-client.dir/build
-.PHONY : datachannel-client/fast
-
-#=============================================================================
-# Target rules for targets named datachannel-client-benchmark
-
-# Build rule for target.
-datachannel-client-benchmark: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 datachannel-client-benchmark
-.PHONY : datachannel-client-benchmark
-
-# fast build rule for target.
-datachannel-client-benchmark/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/examples/client-benchmark/CMakeFiles/datachannel-client-benchmark.dir/build.make libdatachannel/examples/client-benchmark/CMakeFiles/datachannel-client-benchmark.dir/build
-.PHONY : datachannel-client-benchmark/fast
-
-#=============================================================================
-# Target rules for targets named datachannel-media-receiver
-
-# Build rule for target.
-datachannel-media-receiver: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 datachannel-media-receiver
-.PHONY : datachannel-media-receiver
-
-# fast build rule for target.
-datachannel-media-receiver/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/examples/media-receiver/CMakeFiles/datachannel-media-receiver.dir/build.make libdatachannel/examples/media-receiver/CMakeFiles/datachannel-media-receiver.dir/build
-.PHONY : datachannel-media-receiver/fast
-
-#=============================================================================
-# Target rules for targets named datachannel-media-sender
-
-# Build rule for target.
-datachannel-media-sender: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 datachannel-media-sender
-.PHONY : datachannel-media-sender
-
-# fast build rule for target.
-datachannel-media-sender/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/examples/media-sender/CMakeFiles/datachannel-media-sender.dir/build.make libdatachannel/examples/media-sender/CMakeFiles/datachannel-media-sender.dir/build
-.PHONY : datachannel-media-sender/fast
-
-#=============================================================================
-# Target rules for targets named datachannel-media-sfu
-
-# Build rule for target.
-datachannel-media-sfu: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 datachannel-media-sfu
-.PHONY : datachannel-media-sfu
-
-# fast build rule for target.
-datachannel-media-sfu/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/examples/media-sfu/CMakeFiles/datachannel-media-sfu.dir/build.make libdatachannel/examples/media-sfu/CMakeFiles/datachannel-media-sfu.dir/build
-.PHONY : datachannel-media-sfu/fast
-
-#=============================================================================
-# Target rules for targets named streamer
-
-# Build rule for target.
-streamer: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 streamer
-.PHONY : streamer
-
-# fast build rule for target.
-streamer/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/examples/streamer/CMakeFiles/streamer.dir/build.make libdatachannel/examples/streamer/CMakeFiles/streamer.dir/build
-.PHONY : streamer/fast
-
-#=============================================================================
-# Target rules for targets named datachannel-copy-paste-offerer
-
-# Build rule for target.
-datachannel-copy-paste-offerer: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 datachannel-copy-paste-offerer
-.PHONY : datachannel-copy-paste-offerer
-
-# fast build rule for target.
-datachannel-copy-paste-offerer/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/examples/copy-paste/CMakeFiles/datachannel-copy-paste-offerer.dir/build.make libdatachannel/examples/copy-paste/CMakeFiles/datachannel-copy-paste-offerer.dir/build
-.PHONY : datachannel-copy-paste-offerer/fast
-
-#=============================================================================
-# Target rules for targets named datachannel-copy-paste-answerer
-
-# Build rule for target.
-datachannel-copy-paste-answerer: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 datachannel-copy-paste-answerer
-.PHONY : datachannel-copy-paste-answerer
-
-# fast build rule for target.
-datachannel-copy-paste-answerer/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/examples/copy-paste/CMakeFiles/datachannel-copy-paste-answerer.dir/build.make libdatachannel/examples/copy-paste/CMakeFiles/datachannel-copy-paste-answerer.dir/build
-.PHONY : datachannel-copy-paste-answerer/fast
-
-#=============================================================================
-# Target rules for targets named datachannel-copy-paste-capi-offerer
-
-# Build rule for target.
-datachannel-copy-paste-capi-offerer: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 datachannel-copy-paste-capi-offerer
-.PHONY : datachannel-copy-paste-capi-offerer
-
-# fast build rule for target.
-datachannel-copy-paste-capi-offerer/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-offerer.dir/build.make libdatachannel/examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-offerer.dir/build
-.PHONY : datachannel-copy-paste-capi-offerer/fast
-
-#=============================================================================
-# Target rules for targets named datachannel-copy-paste-capi-answerer
-
-# Build rule for target.
-datachannel-copy-paste-capi-answerer: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 datachannel-copy-paste-capi-answerer
-.PHONY : datachannel-copy-paste-capi-answerer
-
-# fast build rule for target.
-datachannel-copy-paste-capi-answerer/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-answerer.dir/build.make libdatachannel/examples/copy-paste-capi/CMakeFiles/datachannel-copy-paste-capi-answerer.dir/build
-.PHONY : datachannel-copy-paste-capi-answerer/fast
-
-#=============================================================================
-# Target rules for targets named AIChatCore
-
-# Build rule for target.
-AIChatCore: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 AIChatCore
-.PHONY : AIChatCore
-
-# fast build rule for target.
-AIChatCore/fast:
-	$(MAKE) $(MAKESILENT) -f AIChat_build/CMakeFiles/AIChatCore.dir/build.make AIChat_build/CMakeFiles/AIChatCore.dir/build
-.PHONY : AIChatCore/fast
-
-#=============================================================================
-# Target rules for targets named AIChatClient
-
-# Build rule for target.
-AIChatClient: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 AIChatClient
-.PHONY : AIChatClient
-
-# fast build rule for target.
-AIChatClient/fast:
-	$(MAKE) $(MAKESILENT) -f AIChat_build/CMakeFiles/AIChatClient.dir/build.make AIChat_build/CMakeFiles/AIChatClient.dir/build
-.PHONY : AIChatClient/fast
-
-#=============================================================================
-# Target rules for targets named clean-all
-
-# Build rule for target.
-clean-all: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 clean-all
-.PHONY : clean-all
-
-# fast build rule for target.
-clean-all/fast:
-	$(MAKE) $(MAKESILENT) -f AIChat_build/CMakeFiles/clean-all.dir/build.make AIChat_build/CMakeFiles/clean-all.dir/build
-.PHONY : clean-all/fast
-
-#=============================================================================
-# Target rules for targets named snowboy
-
-# Build rule for target.
-snowboy: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 snowboy
-.PHONY : snowboy
-
-# fast build rule for target.
-snowboy/fast:
-	$(MAKE) $(MAKESILENT) -f AIChat_build/third_party/snowboy/CMakeFiles/snowboy.dir/build.make AIChat_build/third_party/snowboy/CMakeFiles/snowboy.dir/build
-.PHONY : snowboy/fast
-
-#=============================================================================
-# Target rules for targets named snowboy-detect-c-wrapper
-
-# Build rule for target.
-snowboy-detect-c-wrapper: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 snowboy-detect-c-wrapper
-.PHONY : snowboy-detect-c-wrapper
-
-# fast build rule for target.
-snowboy-detect-c-wrapper/fast:
-	$(MAKE) $(MAKESILENT) -f AIChat_build/third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/build.make AIChat_build/third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/build
-.PHONY : snowboy-detect-c-wrapper/fast
-
-#=============================================================================
-# Target rules for targets named AIchat-c-interface
-
-# Build rule for target.
-AIchat-c-interface: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 AIchat-c-interface
-.PHONY : AIchat-c-interface
-
-# fast build rule for target.
-AIchat-c-interface/fast:
-	$(MAKE) $(MAKESILENT) -f AIChat_build/c_interface/CMakeFiles/AIchat-c-interface.dir/build.make AIChat_build/c_interface/CMakeFiles/AIchat-c-interface.dir/build
-.PHONY : AIchat-c-interface/fast
-
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -705,29 +497,14 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... clean-all"
-	@echo "... AIChatClient"
-	@echo "... AIChatCore"
-	@echo "... AIchat-c-interface"
 	@echo "... app"
 	@echo "... cipher_driver"
 	@echo "... common"
 	@echo "... datachannel"
-	@echo "... datachannel-benchmark"
-	@echo "... datachannel-client"
-	@echo "... datachannel-client-benchmark"
-	@echo "... datachannel-copy-paste-answerer"
-	@echo "... datachannel-copy-paste-capi-answerer"
-	@echo "... datachannel-copy-paste-capi-offerer"
-	@echo "... datachannel-copy-paste-offerer"
-	@echo "... datachannel-media-receiver"
-	@echo "... datachannel-media-sender"
-	@echo "... datachannel-media-sfu"
 	@echo "... datachannel-static"
-	@echo "... datachannel-tests"
 	@echo "... datatypes_driver"
 	@echo "... juice"
 	@echo "... juice-static"
-	@echo "... juice-tests"
 	@echo "... kernel_driver"
 	@echo "... main"
 	@echo "... rdbx_driver"
@@ -739,7 +516,6 @@ help:
 	@echo "... snowboy-detect-c-wrapper"
 	@echo "... srtp2"
 	@echo "... srtp_driver"
-	@echo "... streamer"
 	@echo "... test_srtp"
 	@echo "... usrsctp"
 	@echo "... utils"

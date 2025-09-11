@@ -199,29 +199,77 @@ app.c.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/app.c.s
 .PHONY : app.c.s
 
-chatbot/chatbot.o: chatbot/chatbot.c.o
+chatbot/chatbot.o: chatbot/chatbot.cc.o
 .PHONY : chatbot/chatbot.o
 
 # target to build an object file
-chatbot/chatbot.c.o:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/chatbot.c.o
-.PHONY : chatbot/chatbot.c.o
+chatbot/chatbot.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/chatbot.cc.o
+.PHONY : chatbot/chatbot.cc.o
 
-chatbot/chatbot.i: chatbot/chatbot.c.i
+chatbot/chatbot.i: chatbot/chatbot.cc.i
 .PHONY : chatbot/chatbot.i
 
 # target to preprocess a source file
-chatbot/chatbot.c.i:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/chatbot.c.i
-.PHONY : chatbot/chatbot.c.i
+chatbot/chatbot.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/chatbot.cc.i
+.PHONY : chatbot/chatbot.cc.i
 
-chatbot/chatbot.s: chatbot/chatbot.c.s
+chatbot/chatbot.s: chatbot/chatbot.cc.s
 .PHONY : chatbot/chatbot.s
 
 # target to generate assembly for a file
-chatbot/chatbot.c.s:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/chatbot.c.s
-.PHONY : chatbot/chatbot.c.s
+chatbot/chatbot.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/chatbot.cc.s
+.PHONY : chatbot/chatbot.cc.s
+
+chatbot/intent/intent_handler.o: chatbot/intent/intent_handler.cc.o
+.PHONY : chatbot/intent/intent_handler.o
+
+# target to build an object file
+chatbot/intent/intent_handler.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/intent/intent_handler.cc.o
+.PHONY : chatbot/intent/intent_handler.cc.o
+
+chatbot/intent/intent_handler.i: chatbot/intent/intent_handler.cc.i
+.PHONY : chatbot/intent/intent_handler.i
+
+# target to preprocess a source file
+chatbot/intent/intent_handler.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/intent/intent_handler.cc.i
+.PHONY : chatbot/intent/intent_handler.cc.i
+
+chatbot/intent/intent_handler.s: chatbot/intent/intent_handler.cc.s
+.PHONY : chatbot/intent/intent_handler.s
+
+# target to generate assembly for a file
+chatbot/intent/intent_handler.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/intent/intent_handler.cc.s
+.PHONY : chatbot/intent/intent_handler.cc.s
+
+chatbot/statemachine/state_machine.o: chatbot/statemachine/state_machine.cc.o
+.PHONY : chatbot/statemachine/state_machine.o
+
+# target to build an object file
+chatbot/statemachine/state_machine.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/statemachine/state_machine.cc.o
+.PHONY : chatbot/statemachine/state_machine.cc.o
+
+chatbot/statemachine/state_machine.i: chatbot/statemachine/state_machine.cc.i
+.PHONY : chatbot/statemachine/state_machine.i
+
+# target to preprocess a source file
+chatbot/statemachine/state_machine.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/statemachine/state_machine.cc.i
+.PHONY : chatbot/statemachine/state_machine.cc.i
+
+chatbot/statemachine/state_machine.s: chatbot/statemachine/state_machine.cc.s
+.PHONY : chatbot/statemachine/state_machine.s
+
+# target to generate assembly for a file
+chatbot/statemachine/state_machine.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/statemachine/state_machine.cc.s
+.PHONY : chatbot/statemachine/state_machine.cc.s
 
 media/audio/audio.o: media/audio/audio.cc.o
 .PHONY : media/audio/audio.o
@@ -434,6 +482,12 @@ help:
 	@echo "... chatbot/chatbot.o"
 	@echo "... chatbot/chatbot.i"
 	@echo "... chatbot/chatbot.s"
+	@echo "... chatbot/intent/intent_handler.o"
+	@echo "... chatbot/intent/intent_handler.i"
+	@echo "... chatbot/intent/intent_handler.s"
+	@echo "... chatbot/statemachine/state_machine.o"
+	@echo "... chatbot/statemachine/state_machine.i"
+	@echo "... chatbot/statemachine/state_machine.s"
 	@echo "... media/audio/audio.o"
 	@echo "... media/audio/audio.i"
 	@echo "... media/audio/audio.s"

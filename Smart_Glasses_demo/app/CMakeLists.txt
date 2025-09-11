@@ -1,4 +1,4 @@
-# App module CMakeLists.txt
+ # App module CMakeLists.txt
 
 # 收集当前目录及子目录中的所有 .c 文件
 file(GLOB_RECURSE APP_SOURCES
@@ -21,10 +21,19 @@ target_link_libraries(app ${OpenCV_LIBS})
 # 设置头文件包含目录
 target_include_directories(app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
+    # chatbot headers
     ${CMAKE_CURRENT_SOURCE_DIR}/chatbot
+    ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/event
+    ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/intent
+    ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/statemachine
+    ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/utils
+    # media headers
     ${CMAKE_CURRENT_SOURCE_DIR}/media
+    ${CMAKE_CURRENT_SOURCE_DIR}/media/audio
+    ${CMAKE_CURRENT_SOURCE_DIR}/media/audio/test
     ${CMAKE_CURRENT_SOURCE_DIR}/media/camera
     ${CMAKE_CURRENT_SOURCE_DIR}/media/camera/test
+    # protocol headers
     ${CMAKE_CURRENT_SOURCE_DIR}/protocol
     ${CMAKE_CURRENT_SOURCE_DIR}/protocol/rtsp
     ${CMAKE_CURRENT_SOURCE_DIR}/protocol/websocket
@@ -50,4 +59,3 @@ target_compile_options(app PRIVATE
     -Wall
     -Wextra
 )
-

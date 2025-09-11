@@ -50,3 +50,8 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE FILE FILES "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/3rdparty/rknpu2/Linux/armhf-uclibc/librknnmrt.a")
 endif()
 
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/3rdparty/snowboy/cmake_install.cmake")
+endif()
+

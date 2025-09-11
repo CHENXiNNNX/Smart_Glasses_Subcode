@@ -129,14 +129,6 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/examples/client/cmake_install.cmake")
-  include("/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/examples/client-benchmark/cmake_install.cmake")
-  include("/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/examples/media-receiver/cmake_install.cmake")
-  include("/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/examples/media-sender/cmake_install.cmake")
-  include("/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/examples/media-sfu/cmake_install.cmake")
-  include("/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/examples/streamer/cmake_install.cmake")
-  include("/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/examples/copy-paste/cmake_install.cmake")
-  include("/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/examples/copy-paste-capi/cmake_install.cmake")
 
 endif()
 
