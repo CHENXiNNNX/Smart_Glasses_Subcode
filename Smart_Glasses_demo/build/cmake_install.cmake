@@ -49,7 +49,6 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app/cmake_install.cmake")
   include("/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/3rdparty/cmake_install.cmake")
   include("/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/cmake_install.cmake")
-  include("/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/AIChat_build/cmake_install.cmake")
 
 endif()
 

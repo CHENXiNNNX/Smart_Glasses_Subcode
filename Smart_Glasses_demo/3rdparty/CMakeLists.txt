@@ -13,10 +13,9 @@ install(FILES ${JPEG_TURBO_PATH}/lib_uclibc/libturbojpeg.a DESTINATION lib)
 
 # rknn runtime
 set(RKNN_PATH ${CMAKE_CURRENT_SOURCE_DIR}/rknpu2)
-set(LIBRKNNRT ${RKNN_PATH}/${CMAKE_SYSTEM_NAME}/armhf-uclibc/librknnmrt.a)
+set(LIBRKNNRT ${RKNN_PATH}/${CMAKE_SYSTEM_NAME}/armhf-uclibc/librknnmrt.a PARENT_SCOPE) 
 set(LIBRKNNRT_INCLUDES ${RKNN_PATH}/include PARENT_SCOPE)
 install(FILES ${LIBRKNNRT} DESTINATION lib)
-set(LIBRKNNRT ${LIBRKNNRT} PARENT_SCOPE)
 
 # rga
 set(RGA_PATH ${CMAKE_CURRENT_SOURCE_DIR}/librga)
@@ -24,4 +23,18 @@ set(LIBRGA ${RGA_PATH}/${CMAKE_SYSTEM_NAME}/${TARGET_LIB_ARCH}/librga.a PARENT_S
 set(LIBRGA_INCLUDES ${RGA_PATH}/include PARENT_SCOPE)
 install(FILES ${LIBRGA} DESTINATION lib)
 
+# snowboy语音唤醒库
+set(SNOWBOY_PATH ${CMAKE_CURRENT_SOURCE_DIR}/snowboy)
+set(SNOWBOY_INCLUDE_DIRS ${SNOWBOY_PATH}/include PARENT_SCOPE)
+set(SNOWBOY_LIBRARY "snowboy" PARENT_SCOPE) 
+
+# 添加snowboy子目录进行构建
+add_subdirectory(snowboy)
+
+# 安装snowboy库文件
+install(FILES ${SNOWBOY_PATH}/lib/rpi/libsnowboy-detect.a DESTINATION lib)
+
+# 音频资源文件
+set(AUDIO_RESOURCES_PATH ${CMAKE_CURRENT_SOURCE_DIR}/audio)
+set(AUDIO_RESOURCES_PATH ${AUDIO_RESOURCES_PATH} PARENT_SCOPE)
 
