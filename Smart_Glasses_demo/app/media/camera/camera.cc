@@ -234,7 +234,27 @@ static void *stream_process_thread(void *arg) {
                 
                 case VIDEO_MODE_WEBRTC:
                 {
-                    // WebRTC推流模式，暂留空实现
+                    #if USE_WEBRTC
+                    if (sys->is_webrtc_streaming && sys->webrtc_frame_callback) {
+                        void *pData = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
+                        if (pData) {
+                            // 打印H.264数据前16字节用于调试
+                            printf("[CAMERA] H.264数据前16字节: ");
+                            for (int i = 0; i < std::min(16, (int)stFrame.pstPack->u32Len); i++) {
+                                printf("%02x ", ((uint8_t*)pData)[i]);
+                            }
+                            printf("\n");
+                            
+                            // 调用WebRTC回调函数发送H264数据
+                            sys->webrtc_frame_callback(pData, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
+                            printf("[CAMERA] WebRTC frame sent: %d bytes, PTS: %llu\n", 
+                                   stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
+                        }
+                    } else {
+                        printf("[CAMERA] WebRTC not ready: streaming=%d, callback=%s\n", 
+                               sys->is_webrtc_streaming, sys->webrtc_frame_callback ? "set" : "null");
+                    }
+                    #endif
                 }
                 break;
                 default:
@@ -290,7 +310,16 @@ int init_video_system(video_system_t **sys, int width, int height, video_mode_t 
     (*sys)->quit_flag = false;
 
     // rtsp config
+    #if USE_RTSP
     (*sys)->is_rtsp_streaming = false;
+    #endif
+    
+    // webrtc config
+    #if USE_WEBRTC
+    (*sys)->webrtc_manager = NULL;
+    (*sys)->is_webrtc_streaming = false;
+    (*sys)->webrtc_frame_callback = NULL;
+    #endif
 
     // photo config
     (*sys)->current_picture_id = 0;
@@ -486,7 +515,9 @@ int release_video_system(video_system_t **sys) {
     stop_video_stream(*sys);
     
     // 停止RTSP推流
-    stop_rtsp_stream(*sys);
+    #if USE_RTSP
+    stop_rtsp_video_stream(*sys);
+    #endif
 
     // 解绑模块
     MPP_CHN_S stSrcChn, stDestChn;
@@ -702,8 +733,9 @@ int stop_record(video_system_t *sys) {
     return 0;
 }
 
+#if USE_RTSP
 // 开始RTSP推流
-int start_rtsp_stream(video_system_t *sys) {
+int start_rtsp_video_stream(video_system_t *sys) {
     if (!sys || !sys->is_initialized) {
         return -1;
     }
@@ -735,7 +767,7 @@ int start_rtsp_stream(video_system_t *sys) {
 }
 
 // 停止RTSP推流
-int stop_rtsp_stream(video_system_t *sys) {
+int stop_rtsp_video_stream(video_system_t *sys) {
     if (!sys || !sys->is_initialized) {
         return -1;
     }
@@ -755,10 +787,13 @@ int stop_rtsp_stream(video_system_t *sys) {
     
     return 0;
 }
+#endif
 
-// WebRTC推流
-int webrtc_stream(video_system_t *sys) {
+#if USE_WEBRTC
+// 开始WebRTC推流
+int start_webrtc_video_stream(video_system_t *sys) {
     if (!sys || !sys->is_initialized) {
+        printf("[CAMERA] Video system not initialized\n");
         return -1;
     }
     
@@ -767,9 +802,64 @@ int webrtc_stream(video_system_t *sys) {
         return -1;
     }
     
-    printf("[CAMERA] WebRTC stream not implemented yet\n");
+    if (sys->is_webrtc_streaming) {
+        printf("[CAMERA] WebRTC stream already started\n");
+        return 0;
+    }
+    
+    if (!sys->webrtc_frame_callback) {
+        printf("[CAMERA] WebRTC callback not set\n");
+        return -1;
+    }
+    
+    printf("[CAMERA] Start WebRTC stream\n");
+    sys->is_webrtc_streaming = true;
+    
     return 0;
 }
+
+// 停止WebRTC推流
+int stop_webrtc_video_stream(video_system_t *sys) {
+    if (!sys || !sys->is_initialized) {
+        printf("[CAMERA] Video system not initialized\n");
+        return -1;
+    }
+    
+    if (sys->current_mode != VIDEO_MODE_WEBRTC) {
+        printf("[CAMERA] Not in WebRTC mode\n");
+        return -1;
+    }
+    
+    if (!sys->is_webrtc_streaming) {
+        printf("[CAMERA] WebRTC stream already stopped\n");
+        return 0;
+    }
+    
+    printf("[CAMERA] Stop WebRTC stream\n");
+    sys->is_webrtc_streaming = false;
+    
+    return 0;
+}
+
+// 设置WebRTC回调函数
+int set_webrtc_callback(video_system_t *sys, void *webrtc_manager, void (*frame_callback)(void *data, int len, uint64_t timestamp)) {
+    if (!sys || !sys->is_initialized) {
+        printf("[CAMERA] Video system not initialized\n");
+        return -1;
+    }
+    
+    if (!frame_callback) {
+        printf("[CAMERA] Invalid frame callback\n");
+        return -1;
+    }
+    
+    sys->webrtc_manager = webrtc_manager;
+    sys->webrtc_frame_callback = frame_callback;
+    
+    printf("[CAMERA] WebRTC callback set successfully\n");
+    return 0;
+}
+#endif
 
 // 获取当前视频模式
 video_mode_t get_video_mode(video_system_t *sys) {

@@ -94,6 +94,48 @@
             color: #155724;
         }
 
+        .server-config-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .server-config-panel h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .config-input {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .config-input label {
+            font-weight: 600;
+            color: #495057;
+            min-width: 100px;
+        }
+
+        .config-input input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .config-input input:focus {
+            outline: none;
+            border-color: #17a2b8;
+        }
+
         .control-panel {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -251,6 +293,20 @@
             .message-input {
                 flex-direction: column;
             }
+
+            .config-input {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .config-input label {
+                min-width: auto;
+                margin-bottom: 5px;
+            }
+
+            .config-input input {
+                min-width: auto;
+            }
         }
     </style>
 </head>
@@ -284,6 +340,15 @@
             </div>
         </div>
 
+        <div class="server-config-panel">
+            <h3>🔧 服务器配置</h3>
+            <div class="config-input">
+                <label for="serverUrlInput">服务器地址:</label>
+                <input type="text" id="serverUrlInput" value="ws://localhost:8000" placeholder="ws://localhost:8000">
+                <button class="btn btn-primary" onclick="updateServerUrl()">更新地址</button>
+            </div>
+        </div>
+
         <div class="control-panel">
             <button class="btn btn-primary" id="connectBtn" onclick="connectToServer()">连接服务器</button>
             <button class="btn btn-success" id="joinBtn" onclick="joinRoom()" disabled>加入房间</button>
@@ -296,6 +361,13 @@
             <div class="message-input">
                 <input type="text" id="messageInput" placeholder="输入要发送的消息..." disabled>
                 <button class="btn btn-primary" onclick="sendMessage()" disabled id="sendBtn">发送</button>
+            </div>
+        </div>
+
+        <div class="video-panel" id="videoPanel" style="display: none;">
+            <h3>📹 视频流</h3>
+            <div id="videoContainer" style="text-align: center; background: #f8f9fa; border-radius: 10px; padding: 20px;">
+                <p style="color: #666; margin: 0;">等待视频流...</p>
             </div>
         </div>
 
@@ -313,7 +385,7 @@
     <script>
         // 全局变量
         const DEVICE_ID = 'app_123456';
-        const SERVER_URL = 'ws://localhost:8000';
+        let SERVER_URL = 'ws://localhost:8000';
         
         let ws = null;
         let pc = null;
@@ -321,13 +393,40 @@
         let connectionStatus = 'disconnected';
         let peerDeviceId = '';
         let role = '';
+        let videoElement = null;
 
         // WebRTC配置
         const rtcConfig = {
             iceServers: [
-                // { urls: 'stun:stun.l.google.com:19302' }
+                { urls: 'stun:stun.l.google.com:19302' }
             ]
         };
+
+        // 更新服务器地址
+        function updateServerUrl() {
+            const input = document.getElementById('serverUrlInput');
+            const newUrl = input.value.trim();
+            
+            if (!newUrl) {
+                log('请输入服务器地址', 'warn');
+                return;
+            }
+            
+            // 验证URL格式
+            if (!newUrl.startsWith('ws://') && !newUrl.startsWith('wss://')) {
+                log('服务器地址必须以 ws:// 或 wss:// 开头', 'warn');
+                return;
+            }
+            
+            // 如果当前已连接，先断开
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                log('当前已连接，请先断开连接再更改服务器地址', 'warn');
+                return;
+            }
+            
+            SERVER_URL = newUrl;
+            log(`服务器地址已更新为: ${SERVER_URL}`, 'info');
+        }
 
         // 日志函数
         function log(message, type = 'info') {
@@ -519,10 +618,40 @@
                     setupDataChannel(channel);
                 };
 
+                // 视频轨道接收事件
+                pc.ontrack = function(event) {
+                    log(`收到远程视频轨道: ${event.track.kind}`, 'webrtc');
+                    
+                    if (event.track.kind === 'video') {
+                        // 显示视频面板
+                        const videoPanel = document.getElementById('videoPanel');
+                        const videoContainer = document.getElementById('videoContainer');
+                        videoPanel.style.display = 'block';
+                        
+                        // 清空视频容器
+                        videoContainer.innerHTML = '';
+                        
+                        // 创建视频元素显示视频流
+                        videoElement = document.createElement('video');
+                        videoElement.srcObject = event.streams[0];
+                        videoElement.autoplay = true;
+                        videoElement.controls = true;
+                        videoElement.style.width = '100%';
+                        videoElement.style.maxWidth = '800px';
+                        videoElement.style.borderRadius = '8px';
+                        videoElement.style.border = '2px solid #007bff';
+                        
+                        // 添加到视频容器
+                        videoContainer.appendChild(videoElement);
+                        
+                        log('视频流已添加到页面', 'webrtc');
+                    }
+                };
+
                 // 如果是发起方，创建数据通道
                 if (role === 'offerer') {
                     log('作为发起方创建DataChannel', 'webrtc');
-                    dataChannel = pc.createDataChannel('test');
+                    dataChannel = pc.createDataChannel('glasses_data_channel');
                     setupDataChannel(dataChannel);
                     
                     // 创建并发送offer
@@ -534,6 +663,8 @@
                     }).catch(function(error) {
                         log(`创建Offer失败: ${error}`, 'error');
                     });
+                } else if (role === 'answerer') {
+                    log('作为应答方等待接收DataChannel和视频轨道', 'webrtc');
                 }
 
             } catch (error) {
@@ -726,6 +857,15 @@
                 dataChannel = null;
             }
             
+            if (videoElement) {
+                videoElement.remove();
+                videoElement = null;
+            }
+            
+            // 隐藏视频面板
+            const videoPanel = document.getElementById('videoPanel');
+            videoPanel.style.display = 'none';
+            
             connectionStatus = 'disconnected';
             peerDeviceId = '';
             role = '';
@@ -796,6 +936,13 @@
         document.getElementById('messageInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 sendMessage();
+            }
+        });
+
+        // 回车更新服务器地址
+        document.getElementById('serverUrlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                updateServerUrl();
             }
         });
 

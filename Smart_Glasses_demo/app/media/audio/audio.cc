@@ -88,7 +88,7 @@ audio_error_t audio_system_init(audio_system_t *audio_system) {
     // 初始化默认参数
     audio_system->sample_rate = 16000;
     audio_system->channels = 1;
-    audio_system->frame_duration_ms = 40;
+    audio_system->frame_duration_ms = 20;
     audio_system->encoder = nullptr;
     audio_system->decoder = nullptr;
     audio_system->recordStream = nullptr;
@@ -683,3 +683,7 @@ bool unpack_bin_frame(audio_system_t *audio_system, const uint8_t* packed_data, 
 
     return true;
 }
+
+audio_error_t start_webrtc_audio_stream(audio_system_t *audio_system);
+
+audio_error_t stop_webrtc_audio_stream(audio_system_t *audio_system);

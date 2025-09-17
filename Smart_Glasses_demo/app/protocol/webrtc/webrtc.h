@@ -4,7 +4,12 @@
 #include <memory>
 #include <functional>
 #include <string>
+#include <iostream>
 #include <rtc/rtc.hpp>
+#include <rtc/track.hpp>
+#include <rtc/rtp.hpp>
+#include <rtc/rtcpnackresponder.hpp>
+#include "signaling.h"
 
 namespace glasses {
 namespace protocol {
@@ -18,7 +23,7 @@ struct WebRTCConfig {
     bool enableDataChannel = true;      // 数据通道开关
     bool enableAudioSend = false;       // 音频发送开关（预留）
     bool enableAudioReceive = false;    // 音频接收开关（预留）
-    bool enableVideoSend = false;       // 视频发送开关（预留）
+    bool enableVideoSend = true;       // 视频发送开关（预留）
     
     // 数据通道配置
     std::string dataChannelLabel = "glasses_data_channel";
@@ -146,66 +151,45 @@ public:
      * 开始音频发送
      * @return true 成功，false 失败
      */
-    bool startAudioSend() { 
-        // TODO: 实现音频发送功能
-        return false; 
-    }
+    bool startAudioSend();
 
     /**
      * 停止音频发送
      * @return true 成功，false 失败
      */
-    bool stopAudioSend() { 
-        // TODO: 实现音频停止功能
-        return false; 
-    }
+    bool stopAudioSend();
 
     /**
      * 开始音频接收
      * @return true 成功，false 失败
      */
-    bool startAudioReceive() { 
-        // TODO: 实现音频接收功能
-        return false; 
-    }
+    bool startAudioReceive();
 
     /**
      * 停止音频接收
      * @return true 成功，false 失败
      */
-    bool stopAudioReceive() { 
-        // TODO: 实现音频停止功能
-        return false; 
-    }
+    bool stopAudioReceive();
 
     /**
      * 发送音频数据
      * @param data 音频数据
      * @param size 数据大小
      */
-    void sendAudioData(const uint8_t* data, size_t size) {
-        // TODO: 实现音频数据发送
-        (void)data; (void)size; // 避免编译警告
-    }
+    void sendAudioData(const uint8_t* data, size_t size);
 
     // ========== 视频接口（预留空实现） ==========
     /**
      * 开始视频发送
      * @return true 成功，false 失败
      */
-    bool startVideoSend() { 
-        // TODO: 实现视频发送功能
-        return false; 
-    }
+    bool startVideoSend();
 
     /**
      * 停止视频发送
      * @return true 成功，false 失败
      */
-    bool stopVideoSend() { 
-        // TODO: 实现视频停止功能
-        return false; 
-    }
+    bool stopVideoSend();
 
     /**
      * 发送视频帧
@@ -213,10 +197,7 @@ public:
      * @param size 数据大小
      * @param timestamp 时间戳
      */
-    void sendVideoFrame(const uint8_t* data, size_t size, uint64_t timestamp) {
-        // TODO: 实现视频帧发送
-        (void)data; (void)size; (void)timestamp; // 避免编译警告
-    }
+    void sendVideoFrame(const uint8_t* data, size_t size, uint64_t timestamp);
 
     // ========== 状态查询接口 ==========
     WebRTCStatus getStatus() const { return status_; }
@@ -232,6 +213,7 @@ private:
     // ========== 内部方法 ==========
     void setupPeerConnectionCallbacks();
     void setupDataChannel();
+    void setupVideoTrack();
     void handleDataChannelOpen();
     void handleDataChannelMessage(const std::string& message);
     void setStatus(WebRTCStatus newStatus);
@@ -243,6 +225,12 @@ private:
     std::shared_ptr<Signaling> signaling_;          // 信令模块引用
     std::shared_ptr<rtc::PeerConnection> peerConnection_; // WebRTC连接
     std::shared_ptr<rtc::DataChannel> dataChannel_;       // 数据通道
+    
+    // 视频轨道相关成员
+    std::shared_ptr<rtc::Track> videoTrack_;               // H264视频轨道
+    std::shared_ptr<rtc::RtpPacketizationConfig> videoRtpConfig_; // 视频RTP配置
+    std::shared_ptr<rtc::H264RtpPacketizer> videoPacketizer_;    // H264 RTP封装器
+    std::shared_ptr<rtc::RtcpSrReporter> videoSrReporter_;       // RTCP SR报告器
     
     std::string role_;                  // 角色信息
     std::string peerDeviceId_;          // 对端设备ID

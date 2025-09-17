@@ -120,4 +120,12 @@ BinProtocol* pack_bin_frame(audio_system_t *audio_system, const uint8_t* payload
 // 解包二进制协议帧
 bool unpack_bin_frame(audio_system_t *audio_system, const uint8_t* packed_data, size_t packed_data_size, BinProtocolInfo& protocol_info, std::vector<uint8_t>& opus_data);
 
+#if USE_RTSP
+// 暂留空实现
+#endif
+#if USE_WEBRTC
+audio_error_t start_webrtc_audio_stream(audio_system_t *audio_system);
+audio_error_t stop_webrtc_audio_stream(audio_system_t *audio_system);
+#endif
+
 #endif // AUDIO_H

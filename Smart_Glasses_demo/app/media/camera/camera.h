@@ -56,7 +56,10 @@ typedef struct {
     rtsp_session_handle rtsp_session; // RTSP会话句柄
     bool is_rtsp_streaming;         // 是否正在RTSP推流
     #elif USE_WEBRTC
-    // WebRTC相关资源，暂留空实现
+    // WebRTC相关资源
+    void *webrtc_manager;           // WebRTC管理器指针
+    bool is_webrtc_streaming;       // WebRTC推流状态
+    void (*webrtc_frame_callback)(void *data, int len, uint64_t timestamp); // WebRTC帧回调函数
     #endif
     
     // 状态管理
@@ -115,11 +118,16 @@ int take_picture(video_system_t *sys);
 int start_record(video_system_t *sys);
 int stop_record(video_system_t *sys);
 
-
 // 推流管理
-int start_rtsp_stream(video_system_t *sys);
-int stop_rtsp_stream(video_system_t *sys);
-int webrtc_stream(video_system_t *sys);
+#if USE_RTSP
+int start_rtsp_video_stream(video_system_t *sys);
+int stop_rtsp_video_stream(video_system_t *sys);
+#endif
+#if USE_WEBRTC
+int start_webrtc_video_stream(video_system_t *sys);
+int stop_webrtc_video_stream(video_system_t *sys);
+int set_webrtc_callback(video_system_t *sys, void *webrtc_manager, void (*frame_callback)(void *data, int len, uint64_t timestamp));
+#endif
 
 // 工具函数管理
 video_mode_t get_video_mode(video_system_t *sys);

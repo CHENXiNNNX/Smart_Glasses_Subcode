@@ -11,6 +11,7 @@
 #include "rtc/rtc.hpp"
 #include "app/protocol/webrtc/signaling.h"
 #include "app/protocol/webrtc/webrtc.h"
+#include "app/media/camera/camera.h"
 #include <nlohmann/json.hpp>
 
 using namespace glasses::protocol;
@@ -23,6 +24,7 @@ constexpr const char* SERVER_URL = "ws://192.168.10.75:8000";
 // 全局变量
 std::shared_ptr<Signaling> signaling;
 std::shared_ptr<WebRTCManager> webrtcManager;
+video_system_t* video_system = nullptr;
 
 // 创建WebRTC配置
 WebRTCConfig createWebRTCConfig() {
@@ -32,7 +34,7 @@ WebRTCConfig createWebRTCConfig() {
     config.enableDataChannel = true;    // 启用数据通道
     config.enableAudioSend = false;     // 音频发送暂时关闭
     config.enableAudioReceive = false;  // 音频接收暂时关闭
-    config.enableVideoSend = false;     // 视频发送暂时关闭
+    config.enableVideoSend = true;      // 启用视频发送
     
     // 数据通道配置
     config.dataChannelLabel = "glasses_data_channel";
@@ -43,6 +45,23 @@ WebRTCConfig createWebRTCConfig() {
     };
     
     return config;
+}
+
+// Camera WebRTC帧回调函数
+void onVideoFrameCallback(void *data, int len, uint64_t timestamp) {
+    static int frame_count = 0;
+    frame_count++;
+    
+    // 每10帧打印一次信息，避免日志过多
+    if (frame_count % 10 == 0) {
+        std::cout << "[Camera] 发送第 " << frame_count << " 帧: " 
+                  << len << " 字节, 时间戳: " << timestamp << std::endl;
+    }
+    
+    // 转发给WebRTC管理器
+    if (webrtcManager) {
+        webrtcManager->sendVideoFrame(static_cast<const uint8_t*>(data), len, timestamp);
+    }
 }
 
 // 设置信令回调
@@ -89,6 +108,14 @@ int main(void) {
     // 初始化libdatachannel日志
     rtc::InitLogger(rtc::LogLevel::Info);
 
+    // 初始化视频系统
+    std::cout << "[Main] 初始化视频系统..." << std::endl;
+    if (init_video_system(&video_system, 1920, 1080, VIDEO_MODE_NONE) != 0) {
+        std::cout << "[Main] 视频系统初始化失败" << std::endl;
+        return -1;
+    }
+    std::cout << "[Main] 视频系统初始化成功" << std::endl;
+
     // 创建WebRTC配置
     WebRTCConfig config = createWebRTCConfig();
     
@@ -105,6 +132,14 @@ int main(void) {
     // 设置回调函数
     setupSignalingCallbacks();
     setupWebRTCCallbacks();
+    
+    // 设置Camera WebRTC回调
+    std::cout << "[Main] 设置Camera WebRTC回调..." << std::endl;
+    if (set_webrtc_callback(video_system, webrtcManager.get(), onVideoFrameCallback) != 0) {
+        std::cout << "[Main] 设置WebRTC回调失败" << std::endl;
+        return -1;
+    }
+    std::cout << "[Main] WebRTC回调设置成功" << std::endl;
 
     // 连接到服务器
     if (!signaling->connect()) {
@@ -117,16 +152,17 @@ int main(void) {
     // 主循环 - 用户交互
     std::cout << "[Main] 客户端运行中，输入命令:" << std::endl;
     std::cout << "  q - 退出程序" << std::endl;
-    std::cout << "  s - 发送数据通道测试消息" << std::endl;
+    std::cout << "  d - 发送数据通道测试消息" << std::endl;
     std::cout << "  i - 显示连接信息" << std::endl;
     std::cout << "  a - 测试音频功能（空实现）" << std::endl;
-    std::cout << "  v - 测试视频功能（空实现）" << std::endl;
+    std::cout << "  v - 启动WebRTC视频流" << std::endl;
+    std::cout << "  s - 停止WebRTC视频流" << std::endl;
     
     char input;
     while (std::cin >> input) {
         if (input == 'q' || input == 'Q') {
             break;
-        } else if (input == 's') {
+        } else if (input == 'd') {
             // 发送数据通道测试消息
             if (webrtcManager->isDataChannelOpen()) {
                 std::string testMessage = "Test message from main loop";
@@ -153,21 +189,37 @@ int main(void) {
             result = webrtcManager->startAudioReceive();
             std::cout << "[Main] 音频接收结果: " << (result ? "成功" : "失败（空实现）") << std::endl;
         } else if (input == 'v') {
-            // 测试视频功能（空实现）
-            std::cout << "[Main] 测试视频发送..." << std::endl;
-            bool result = webrtcManager->startVideoSend();
-            std::cout << "[Main] 视频发送结果: " << (result ? "成功" : "失败（空实现）") << std::endl;
-            
-            // 模拟发送视频帧
-            uint8_t dummyData[] = {0x00, 0x01, 0x02, 0x03};
-            webrtcManager->sendVideoFrame(dummyData, sizeof(dummyData), 123456789);
-            std::cout << "[Main] 发送视频帧（空实现）" << std::endl;
+            // 测试视频功能
+            std::cout << "[Main] 启动WebRTC视频流..." << std::endl;
+            if (set_video_mode(video_system, VIDEO_MODE_WEBRTC) != 0) {
+                std::cout << "[Main] 设置视频模式失败" << std::endl;
+            } else {
+                std::cout << "[Main] 视频模式设置为WebRTC" << std::endl;
+                
+                if (start_webrtc_video_stream(video_system) != 0) {
+                    std::cout << "[Main] 启动WebRTC视频流失败" << std::endl;
+                } else {
+                    std::cout << "[Main] WebRTC视频流启动成功，开始发送视频帧" << std::endl;
+                    std::cout << "[Main] 输入 's' 停止视频流" << std::endl;
+                }
+            }
+        } else if (input == 's') {
+            // 停止视频流
+            std::cout << "[Main] 停止WebRTC视频流..." << std::endl;
+            stop_webrtc_video_stream(video_system);
+            set_video_mode(video_system, VIDEO_MODE_NONE);
+            std::cout << "[Main] WebRTC视频流已停止" << std::endl;
         } else {
             std::cout << "[Main] 未知命令: " << input << std::endl;
         }
     }
 
     std::cout << "[Main] 正在关闭客户端..." << std::endl;
+    
+    // 停止视频流
+    if (video_system) {
+        stop_webrtc_video_stream(video_system);
+    }
     
     // 按依赖关系清理资源
     if (webrtcManager) {
@@ -178,6 +230,11 @@ int main(void) {
     if (signaling) {
         signaling->disconnect();
         signaling.reset();
+    }
+    
+    if (video_system) {
+        release_video_system(&video_system);
+        std::cout << "[Main] 视频系统已释放" << std::endl;
     }
 
     std::cout << "[Main] 客户端已退出" << std::endl;

@@ -196,7 +196,7 @@ int start_rtsp() {
         }
     }
     
-    if (start_rtsp_stream(g_sys) != 0) {
+    if (start_rtsp_video_stream(g_sys) != 0) {
         printf("[CAMERA] Failed to start RTSP stream\n");
         return -1;
     }
@@ -212,7 +212,7 @@ int stop_rtsp() {
         return -1;
     }
     
-    if (stop_rtsp_stream(g_sys) != 0) {
+    if (stop_rtsp_video_stream(g_sys) != 0) {
         printf("[CAMERA] Failed to stop RTSP stream\n");
         return -1;
     }

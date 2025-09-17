@@ -1,11 +1,11 @@
 #ifndef MEDIA__CONFIG_H
 #define MEDIA__CONFIG_H
 
-#define USE_RTSP 1
+#define USE_RTSP 0
 #define RTSP_PORT 554
 #define RTSP_PATH "/live/0"
 
-#define USE_WEBRTC 0
+#define USE_WEBRTC 1
 
 #define DISPLAY_FPS 0 // 1: display FPS, 0: not display FPS
 
