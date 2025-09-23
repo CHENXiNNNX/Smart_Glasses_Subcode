@@ -3,6 +3,7 @@
 #include <thread>
 #include <chrono>
 #include <memory>
+#include <fstream>
 
 // 音频系统测试函数
 void run_audio_test() {
@@ -122,18 +123,18 @@ void run_audio_test() {
         std::cout << "开始编解码测试..." << std::endl;
         
         // 创建测试音频数据（正弦波）
-        const int num_samples = 16000; // 1秒，16kHz采样率
+        const int num_samples = AUDIO_SAMPLE_RATE; // 48kHz采样率
         std::vector<int16_t> test_audio(num_samples);
         const float frequency = 440.0f; // A4音符
         const float amplitude = 0.5f * 32767.0f; // 50%音量
         
         for (int i = 0; i < num_samples; i++) {
-            float t = static_cast<float>(i) / 16000.0f;
+            float t = static_cast<float>(i) / AUDIO_SAMPLE_RATE;
             test_audio[i] = static_cast<int16_t>(amplitude * sinf(2.0f * static_cast<float>(M_PI) * frequency * t));
         }
         
-        // 分帧处理 - 按照官方实现，使用960样本/帧
-        const int FRAME_SIZE = 960; // 40ms帧，16kHz采样率
+        // 分帧处理 
+        const int FRAME_SIZE = AUDIO_FRAME_SIZE; // 20ms帧
         std::vector<std::vector<uint8_t>> encoded_frames;
         
         // 编码测试 - 逐帧编码
@@ -169,7 +170,7 @@ void run_audio_test() {
             bool decode_success = true;
             
             for (size_t i = 0; i < encoded_frames.size(); i++) {
-                uint8_t decoded_frame[FRAME_SIZE * sizeof(int16_t)];
+                uint8_t decoded_frame[FRAME_SIZE * AUDIO_CHANNELS * sizeof(int16_t)];
                 size_t decoded_frame_size = sizeof(decoded_frame);
                 
                 error = decode_opus(&audio_system, 
@@ -237,6 +238,184 @@ void run_audio_test() {
             // 释放二进制帧内存
             free(bin_frame);
         }
+        }
+        
+        // 测试语音重采样功能
+        std::cout << "开始语音重采样测试..." << std::endl;
+        
+        // 初始化重采样：从48kHz降到16kHz
+        error = init_audio_resample(&audio_system, 48000, 16000, 1, SRC_SINC_BEST_QUALITY);
+        if (error != AUDIO_ERROR_NONE) {
+            std::cerr << "重采样初始化失败: 错误代码 " << error << std::endl;
+        } else {
+            std::cout << "重采样初始化成功 (48kHz -> 16kHz)" << std::endl;
+            
+            // 开始录音（录制您的语音）
+            std::cout << "请开始说话，将录制5秒您的语音..." << std::endl;
+            error = start_recording(&audio_system);
+            if (error != AUDIO_ERROR_NONE) {
+                std::cerr << "开始录音失败: 错误代码 " << error << std::endl;
+            } else {
+                // 录音5秒钟
+                std::cout << "录音中...请说话 (5秒)" << std::endl;
+                std::this_thread::sleep_for(std::chrono::seconds(5));
+                
+                // 停止录音
+                error = stop_recording(&audio_system);
+                if (error != AUDIO_ERROR_NONE) {
+                    std::cerr << "停止录音失败: 错误代码 " << error << std::endl;
+                } else {
+                    std::cout << "录音已停止，开始处理语音数据..." << std::endl;
+                    
+                    // 收集所有录音数据
+                    std::vector<int16_t> all_recorded_audio;
+                    std::vector<int16_t> recorded_frame;
+                    
+                    // 获取所有录音数据
+                    while (get_recorded_audio(&audio_system, recorded_frame)) {
+                        all_recorded_audio.insert(all_recorded_audio.end(), 
+                                                recorded_frame.begin(), 
+                                                recorded_frame.end());
+                    }
+                    
+                    if (all_recorded_audio.empty()) {
+                        std::cout << "没有录制到音频数据" << std::endl;
+                    } else {
+                        std::cout << "录制到 " << all_recorded_audio.size() << " 个样本 (48kHz)" << std::endl;
+                        
+                        // 执行重采样：48kHz -> 16kHz
+                        std::vector<int16_t> resampled_audio;
+                        error = process_audio_resample(&audio_system, all_recorded_audio, resampled_audio);
+                        if (error != AUDIO_ERROR_NONE) {
+                            std::cerr << "语音重采样处理失败: 错误代码 " << error << std::endl;
+                        } else {
+                            std::cout << "语音重采样成功: " << all_recorded_audio.size() << " 样本 -> " 
+                                      << resampled_audio.size() << " 样本" << std::endl;
+                            
+                            // 计算实际采样率
+                            double actual_ratio = static_cast<double>(resampled_audio.size()) / all_recorded_audio.size();
+                            double actual_output_rate = AUDIO_SAMPLE_RATE * actual_ratio;
+                            std::cout << "实际输出采样率: " << actual_output_rate << "Hz" << std::endl;
+                            
+                            // 保存重采样后的语音到文件
+                            std::ofstream resampled_file("resampled_voice_16k.raw", std::ios::binary);
+                            if (resampled_file) {
+                                resampled_file.write(reinterpret_cast<const char*>(resampled_audio.data()), 
+                                                   resampled_audio.size() * sizeof(int16_t));
+                                resampled_file.close();
+                                std::cout << "重采样后的语音已保存到 resampled_voice_16k.raw" << std::endl;
+                            }
+                            
+                            // 保存原始录音到文件进行对比
+                            std::ofstream original_file("original_voice_48k.raw", std::ios::binary);
+                            if (original_file) {
+                                original_file.write(reinterpret_cast<const char*>(all_recorded_audio.data()), 
+                                                  all_recorded_audio.size() * sizeof(int16_t));
+                                original_file.close();
+                                std::cout << "原始录音已保存到 original_voice_48k.raw" << std::endl;
+                            }
+                            
+                            // 播放对比测试
+                            std::cout << "开始播放对比测试..." << std::endl;
+                            
+                            // 先播放原始录音（48kHz）
+                            std::cout << "播放原始录音（48kHz）..." << std::endl;
+                            error = start_playback(&audio_system);
+                            if (error == AUDIO_ERROR_NONE) {
+                                // 将原始录音分帧添加到播放队列
+                                const int frame_size = AUDIO_FRAME_SIZE; // 48kHz, 20ms帧
+                                for (size_t i = 0; i < all_recorded_audio.size(); i += frame_size) {
+                                    size_t remaining = all_recorded_audio.size() - i;
+                                    size_t current_frame_size = std::min(static_cast<size_t>(frame_size), remaining);
+                                    
+                                    std::vector<int16_t> playback_frame(
+                                        all_recorded_audio.begin() + i, 
+                                        all_recorded_audio.begin() + i + current_frame_size
+                                    );
+                                    
+                                    add_frame_to_playback_queue(&audio_system, playback_frame);
+                                    
+                                    // 控制播放速度，模拟实时播放
+                                    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+                                }
+                                
+                                // 等待播放完成
+                                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                                stop_playback(&audio_system);
+                                std::cout << "原始录音播放完成" << std::endl;
+                            }
+                            
+                            // 等待一下再播放重采样后的录音
+                            std::this_thread::sleep_for(std::chrono::seconds(1));
+                            
+                            // 播放重采样后的语音（通过上采样到48kHz）
+                            std::cout << "播放重采样后的语音（16kHz->48kHz）..." << std::endl;
+                            
+                            // 将16kHz音频重新上采样到48kHz进行播放
+                            std::cout << "将16kHz音频上采样到48kHz进行播放..." << std::endl;
+                            
+                            // 初始化上采样器：16kHz -> 48kHz
+                            audio_error_t upsample_error = init_audio_resample(&audio_system, 16000, 48000, 1, SRC_SINC_BEST_QUALITY);
+                            if (upsample_error != AUDIO_ERROR_NONE) {
+                                std::cerr << "上采样初始化失败: 错误代码 " << upsample_error << std::endl;
+                            } else {
+                                // 执行上采样：16kHz -> 48kHz
+                                std::vector<int16_t> upsampled_audio;
+                                upsample_error = process_audio_resample(&audio_system, resampled_audio, upsampled_audio);
+                                if (upsample_error != AUDIO_ERROR_NONE) {
+                                    std::cerr << "上采样处理失败: 错误代码 " << upsample_error << std::endl;
+                                } else {
+                                    std::cout << "上采样成功: " << resampled_audio.size() << " 样本 -> " 
+                                              << upsampled_audio.size() << " 样本" << std::endl;
+                                    
+                                    // 保存上采样后的音频
+                                    std::ofstream upsampled_file("upsampled_voice_48k.raw", std::ios::binary);
+                                    if (upsampled_file) {
+                                        upsampled_file.write(reinterpret_cast<const char*>(upsampled_audio.data()), 
+                                                           upsampled_audio.size() * sizeof(int16_t));
+                                        upsampled_file.close();
+                                        std::cout << "上采样后的语音已保存到 upsampled_voice_48k.raw" << std::endl;
+                                    }
+                                    
+                                    // 播放上采样后的音频（48kHz）
+                                    error = start_playback(&audio_system);
+                                    if (error == AUDIO_ERROR_NONE) {
+                                        // 将上采样后的语音分帧添加到播放队列
+                                        const int frame_size = AUDIO_FRAME_SIZE; // 48kHz, 20ms帧
+                                        for (size_t i = 0; i < upsampled_audio.size(); i += frame_size) {
+                                            size_t remaining = upsampled_audio.size() - i;
+                                            size_t current_frame_size = std::min(static_cast<size_t>(frame_size), remaining);
+                                            
+                                            std::vector<int16_t> playback_frame(
+                                                upsampled_audio.begin() + i, 
+                                                upsampled_audio.begin() + i + current_frame_size
+                                            );
+                                            
+                                            add_frame_to_playback_queue(&audio_system, playback_frame);
+                                            
+                                            // 控制播放速度，模拟实时播放
+                                            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+                                        }
+                                        
+                                        // 等待播放完成
+                                        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                                        stop_playback(&audio_system);
+                                        std::cout << "语音播放完成" << std::endl;
+                                    } else {
+                                        std::cerr << "开始播放失败: 错误代码 " << error << std::endl;
+                                    }
+                                }
+                                
+                                // 释放上采样资源
+                                release_audio_resample(&audio_system);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // 释放重采样资源
+            release_audio_resample(&audio_system);
         }
         
         // 测试切换音频模式

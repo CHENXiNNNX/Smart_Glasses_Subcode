@@ -1,4 +1,6 @@
 #include "webrtc.h"
+#include <chrono>
+#include "../../../common/common.h"
 
 
 using namespace glasses::protocol;
@@ -6,13 +8,20 @@ using namespace glasses::protocol;
 WebRTCManager::WebRTCManager(const WebRTCConfig& config)
     : config_(config)
     , status_(WebRTCStatus::DISCONNECTED)
+    , iceState_(rtc::PeerConnection::IceState::New)
+    , isIceConnected_(false)
     , signaling_(nullptr)
     , peerConnection_(nullptr)
     , dataChannel_(nullptr)
     , videoTrack_(nullptr)
     , videoRtpConfig_(nullptr)
     , videoPacketizer_(nullptr)
-    , videoSrReporter_(nullptr) {
+    , videoSrReporter_(nullptr)
+    , audioTrack_(nullptr)
+    , audioRtpConfig_(nullptr)
+    , audioPacketizer_(nullptr)
+    , audioSrReporter_(nullptr)
+    , lastVideoSendTime_{} {
     
     std::cout << "[WebRTC] 初始化WebRTC管理器" << std::endl;
     std::cout << "[WebRTC] 数据通道: " << (config_.enableDataChannel ? "启用" : "禁用") << std::endl;
@@ -94,6 +103,20 @@ bool WebRTCManager::createPeerConnection() {
 }
 
 void WebRTCManager::closePeerConnection() {
+    // 清理音频轨道相关资源
+    if (audioSrReporter_) {
+        audioSrReporter_.reset();
+    }
+    if (audioPacketizer_) {
+        audioPacketizer_.reset();
+    }
+    if (audioRtpConfig_) {
+        audioRtpConfig_.reset();
+    }
+    if (audioTrack_) {
+        audioTrack_.reset();
+    }
+
     // 清理视频轨道相关资源
     if (videoSrReporter_) {
         videoSrReporter_.reset();
@@ -108,16 +131,20 @@ void WebRTCManager::closePeerConnection() {
         videoTrack_.reset();
     }
     
+    // 清理数据通道相关资源
     if (dataChannel_) {
         dataChannel_.reset();
     }
     
+    // 清理对等连接相关资源
     if (peerConnection_) {
         peerConnection_.reset();
     }
     
     role_.clear();
     peerDeviceId_.clear();
+    isIceConnected_ = false;
+    iceState_ = rtc::PeerConnection::IceState::New;
     setStatus(WebRTCStatus::DISCONNECTED);
 }
 
@@ -146,6 +173,11 @@ void WebRTCManager::handleRole(const std::string& role, const std::string& peerD
         if (config_.enableVideoSend) {
             setupVideoTrack();
         }
+        
+        // 如果启用音频发送，创建音频轨道
+        if (config_.enableAudioSend) {
+            setupAudioTrack();
+        }
 
         peerConnection_->setLocalDescription();
         
@@ -153,8 +185,15 @@ void WebRTCManager::handleRole(const std::string& role, const std::string& peerD
         // 作为应答方，等待接收DataChannel
         std::cout << "[WebRTC] 作为应答方等待接收DataChannel" << std::endl;
         
-        // TODO: 如果启用音频接收，准备接收音频轨道
-        // TODO: 如果启用视频接收，准备接收视频轨道
+        // 如果启用音频接收，准备接收音频轨道
+        if (config_.enableAudioReceive) {
+            std::cout << "[WebRTC] 作为应答方准备接收音频轨道" << std::endl;
+        }
+        
+        // 如果启用视频接收，准备接收视频轨道
+        if (config_.enableVideoSend) {
+            std::cout << "[WebRTC] 作为应答方准备接收视频轨道" << std::endl;
+        }
     }
 }
 
@@ -216,6 +255,12 @@ void WebRTCManager::handleRemoteIceCandidate(const std::string& candidate) {
 }
 
 bool WebRTCManager::sendDataChannelMessage(const std::string& message) {
+    // 检查ICE连接状态
+    if (!isIceConnected_) {
+        std::cout << "[WebRTC] ICE连接未建立，无法发送数据通道消息" << std::endl;
+        return false;
+    }
+    
     if (!dataChannel_ || !dataChannel_->isOpen()) {
         std::cout << "[WebRTC] 数据通道未打开，无法发送消息" << std::endl;
         return false;
@@ -273,13 +318,46 @@ void WebRTCManager::setupPeerConnectionCallbacks() {
         std::cout << "[WebRTC] 连接状态变化: " << static_cast<int>(state) << std::endl;
         
         if (state == rtc::PeerConnection::State::Connected) {
-            setStatus(WebRTCStatus::CONNECTED);
-            // // 如果启用视频发送，创建视频轨道
-            // if (config_.enableVideoSend) {
-            //     setupVideoTrack();
-            // }
+            // 只有在ICE连接建立后才设置为CONNECTED状态
+            if (isIceConnected_) {
+                setStatus(WebRTCStatus::CONNECTED);
+            }
         } else if (state == rtc::PeerConnection::State::Failed) {
             setStatus(WebRTCStatus::FAILED);
+        }
+    });
+    
+    // ICE状态变化回调
+    peerConnection_->onIceStateChange([this](rtc::PeerConnection::IceState state) {
+        iceState_ = state;
+        std::cout << "[WebRTC] ICE状态变化: " << static_cast<int>(state) << std::endl;
+        
+        switch (state) {
+            case rtc::PeerConnection::IceState::New:
+                isIceConnected_ = false;
+                setStatus(WebRTCStatus::CONNECTING);
+                break;
+                
+            case rtc::PeerConnection::IceState::Checking:
+                isIceConnected_ = false;
+                setStatus(WebRTCStatus::ICE_CONNECTING);
+                break;
+                
+            case rtc::PeerConnection::IceState::Connected:
+            case rtc::PeerConnection::IceState::Completed:
+                isIceConnected_ = true;
+                if (status_ == WebRTCStatus::ICE_CONNECTING) {
+                    setStatus(WebRTCStatus::CONNECTED);
+                    std::cout << "[WebRTC] ICE连接建立完成，可以开始发送数据" << std::endl;
+                }
+                break;
+                
+            case rtc::PeerConnection::IceState::Failed:
+            case rtc::PeerConnection::IceState::Disconnected:
+            case rtc::PeerConnection::IceState::Closed:
+                isIceConnected_ = false;
+                setStatus(WebRTCStatus::FAILED);
+                break;
         }
     });
     
@@ -299,6 +377,24 @@ void WebRTCManager::setupPeerConnectionCallbacks() {
                     handleDataChannelMessage(message);
                 }
             });
+        });
+    }
+    
+    // 音频轨道接收回调（应答方）
+    if (role_ == "answerer" && config_.enableAudioReceive) {
+        peerConnection_->onTrack([this](std::shared_ptr<rtc::Track> track) {
+            std::cout << "[WebRTC] 接收到远程音频轨道: " << track->mid() << std::endl;
+            
+            if (track->description().type() == "audio") {
+                audioTrack_ = track;
+                
+                // 设置音频数据接收回调
+                track->onFrame([this](rtc::binary data, rtc::FrameInfo info) {
+                    handleAudioData(reinterpret_cast<const uint8_t*>(data.data()), data.size(), info.timestamp);
+                });
+                
+                std::cout << "[WebRTC] 音频轨道接收回调已设置" << std::endl;
+            }
         });
     }
 }
@@ -354,6 +450,55 @@ void WebRTCManager::handleDataChannelMessage(const std::string& message) {
     }
 }
 
+void WebRTCManager::setupAudioTrack() {
+    if (!peerConnection_) {
+        std::cout << "[WebRTC] PeerConnection未创建，无法创建音频轨道" << std::endl;
+        return;
+    }
+    
+    try {
+        // 创建音频描述
+        auto audio = rtc::Description::Audio("audio");  // MID
+        audio.addOpusCodec(111);  // Opus payload type
+        audio.addSSRC(2, "audio", "stream1", "audio");
+        
+        // 添加轨道到PeerConnection
+        audioTrack_ = peerConnection_->addTrack(audio);
+        
+        // 创建RTP配置
+        audioRtpConfig_ = std::make_shared<rtc::RtpPacketizationConfig>(
+            2,  // SSRC
+            "audio",  // CNAME 
+            111,  // payload type
+            16000
+        );
+        
+        // 创建Opus RTP封装器
+        audioPacketizer_ = std::make_shared<rtc::OpusRtpPacketizer>(audioRtpConfig_);
+        
+        // 创建RTCP SR报告器
+        audioSrReporter_ = std::make_shared<rtc::RtcpSrReporter>(audioRtpConfig_);
+        audioPacketizer_->addToChain(audioSrReporter_);
+        
+        // 添加RTCP NACK处理器
+        auto nackResponder = std::make_shared<rtc::RtcpNackResponder>();
+        audioPacketizer_->addToChain(nackResponder);
+        
+        // 设置媒体处理器
+        audioTrack_->setMediaHandler(audioPacketizer_);
+        
+        // 设置轨道打开回调
+        audioTrack_->onOpen([this]() {
+            std::cout << "[WebRTC] Opus音频轨道已打开，可以开始发送音频数据" << std::endl;
+        });
+        
+        std::cout << "[WebRTC] Opus音频轨道创建成功" << std::endl;
+        
+    } catch (const std::exception& e) {
+        std::cout << "[WebRTC] 创建Opus音频轨道失败: " << e.what() << std::endl;
+    }
+}
+
 void WebRTCManager::setupVideoTrack() {
     if (!peerConnection_) {
         std::cout << "[WebRTC] PeerConnection未创建，无法创建视频轨道" << std::endl;
@@ -361,40 +506,41 @@ void WebRTCManager::setupVideoTrack() {
     }
     
     try {
-        // 1. 创建视频描述
-        auto video = rtc::Description::Video("video");  // 使用简短的MID
+        // 创建视频描述
+        auto video = rtc::Description::Video("video");  // MID
         video.addH264Codec(102);  // H264 payload type
         video.addSSRC(1, "video", "stream1", "video");
         
-        // 2. 添加轨道到PeerConnection
+        // 添加轨道到PeerConnection
         videoTrack_ = peerConnection_->addTrack(video);
         
-        // 3. 创建RTP配置
+        // 创建RTP配置
         videoRtpConfig_ = std::make_shared<rtc::RtpPacketizationConfig>(
             1,  // SSRC
-            "video",  // CNAME (简短)
+            "video",  // CNAME 
             102,  // payload type
             rtc::H264RtpPacketizer::ClockRate  // clock rate (90kHz)
         );
         
-        // 4. 创建H264 RTP封装器
+        // 创建H264 RTP封装器
         videoPacketizer_ = std::make_shared<rtc::H264RtpPacketizer>(
-            rtc::NalUnit::Separator::StartSequence,  // 使用起始序列分隔符
-            videoRtpConfig_
+            rtc::NalUnit::Separator::StartSequence,  
+            videoRtpConfig_,
+            1000
         );
         
-        // 5. 创建RTCP SR报告器
+        // 创建RTCP SR报告器
         videoSrReporter_ = std::make_shared<rtc::RtcpSrReporter>(videoRtpConfig_);
         videoPacketizer_->addToChain(videoSrReporter_);
         
-        // 6. 添加RTCP NACK处理器（官方例程要求）
+        // 添加RTCP NACK处理器
         auto nackResponder = std::make_shared<rtc::RtcpNackResponder>();
         videoPacketizer_->addToChain(nackResponder);
         
-        // 7. 设置媒体处理器
+        // 设置媒体处理器
         videoTrack_->setMediaHandler(videoPacketizer_);
         
-        // 8. 设置轨道打开回调
+        // 设置轨道打开回调
         videoTrack_->onOpen([this]() {
             std::cout << "[WebRTC] H264视频轨道已打开，可以开始发送视频数据" << std::endl;
         });
@@ -412,7 +558,9 @@ void WebRTCManager::setStatus(WebRTCStatus newStatus) {
         status_ = newStatus;
         
         std::cout << "[WebRTC] 状态变更: " << static_cast<int>(oldStatus) 
-                  << " -> " << static_cast<int>(newStatus) << std::endl;
+                  << " -> " << static_cast<int>(newStatus) 
+                  << ", ICE状态: " << static_cast<int>(iceState_)
+                  << ", ICE连接: " << (isIceConnected_ ? "是" : "否") << std::endl;
         
         if (statusCallback_) {
             statusCallback_(newStatus);
@@ -423,27 +571,107 @@ void WebRTCManager::setStatus(WebRTCStatus newStatus) {
 // ========== 音频接口实现 ==========
 
 bool WebRTCManager::startAudioSend() {
-    std::cout << "[WebRTC] 音频发送功能暂未实现" << std::endl;
-    return false;
+    if (!config_.enableAudioSend) {
+        std::cout << "[WebRTC] 音频发送功能未启用" << std::endl;
+        return false;
+    }
+    
+    if (!audioTrack_ || !audioTrack_->isOpen()) {
+        std::cout << "[WebRTC] 音频轨道未打开，无法开始音频发送" << std::endl;
+        return false;
+    }
+    
+    std::cout << "[WebRTC] 音频发送已准备就绪" << std::endl;
+    return true;
 }
 
 bool WebRTCManager::stopAudioSend() {
-    std::cout << "[WebRTC] 音频发送功能暂未实现" << std::endl;
-    return false;
+    if (!config_.enableAudioSend) {
+        std::cout << "[WebRTC] 音频发送功能未启用" << std::endl;
+        return false;
+    }
+    
+    std::cout << "[WebRTC] 音频发送已停止" << std::endl;
+    return true;
 }
 
 bool WebRTCManager::startAudioReceive() {
-    std::cout << "[WebRTC] 音频接收功能暂未实现" << std::endl;
-    return false;
+    if (!config_.enableAudioReceive) {
+        std::cout << "[WebRTC] 音频接收功能未启用" << std::endl;
+        return false;
+    }
+    
+    if (!audioTrack_) {
+        std::cout << "[WebRTC] 音频轨道未创建，无法开始音频接收" << std::endl;
+        return false;
+    }
+    
+    std::cout << "[WebRTC] 音频接收已准备就绪" << std::endl;
+    return true;
 }
 
 bool WebRTCManager::stopAudioReceive() {
-    std::cout << "[WebRTC] 音频接收功能暂未实现" << std::endl;
-    return false;
+    if (!config_.enableAudioReceive) {
+        std::cout << "[WebRTC] 音频接收功能未启用" << std::endl;
+        return false;
+    }
+    
+    std::cout << "[WebRTC] 音频接收已停止" << std::endl;
+    return true;
 }
 
-void WebRTCManager::sendAudioData(const uint8_t* data, size_t size) {
-    std::cout << "[WebRTC] 音频数据发送功能暂未实现" << std::endl;
+void WebRTCManager::sendAudioData(const uint8_t* data, size_t size, uint64_t timestamp) {
+    // 检查基本条件
+    if (!audioTrack_ || !audioTrack_->isOpen()) {
+        std::cout << "[WebRTC] 音频轨道未打开，无法发送音频数据" << std::endl;
+        return;
+    }
+    
+    // 检查ICE连接状态
+    if (!isIceConnected_) {
+        std::cout << "[WebRTC] ICE连接未建立，跳过音频数据发送" << std::endl;
+        return;
+    }
+    
+    // 检查PeerConnection状态
+    if (status_ != WebRTCStatus::CONNECTED) {
+        std::cout << "[WebRTC] WebRTC连接未就绪，跳过音频数据发送" << std::endl;
+        return;
+    }
+    
+    // 检查数据有效性
+    if (!data || size == 0) {
+        std::cout << "[WebRTC] 音频数据无效，跳过发送" << std::endl;
+        return;
+    }
+    
+    try {
+        // 使用统一的时间戳（微秒转换为duration）
+        auto sampleTime = std::chrono::duration<double, std::micro>(timestamp);
+        
+        // 发送Opus音频数据
+        audioTrack_->sendFrame(reinterpret_cast<const std::byte*>(data), size, sampleTime);
+        
+        std::cout << "[Debug] 音频数据发送成功: " << size << " 字节, 时间戳: " << timestamp << "μs" << std::endl;
+        
+    } catch (const std::exception& e) {
+        std::cout << "[WebRTC] 发送音频数据失败: " << e.what() << std::endl;
+    }
+}
+
+void WebRTCManager::handleAudioData(const uint8_t* data, size_t size, uint64_t timestamp) {
+    // 检查数据有效性
+    if (!data || size == 0) {
+        std::cout << "[WebRTC] 接收到的音频数据无效" << std::endl;
+        return;
+    }
+    
+    // 触发音频数据回调
+    if (audioCallback_) {
+        audioCallback_(data, size);
+    }
+    
+    std::cout << "[Debug] 音频数据接收成功: " << size << " 字节, 时间戳: " << timestamp << "μs" << std::endl;
 }
 
 // ========== 视频接口实现 ==========
@@ -459,59 +687,79 @@ bool WebRTCManager::stopVideoSend() {
 }
 
 void WebRTCManager::sendVideoFrame(const uint8_t* data, size_t size, uint64_t timestamp) {
+    // 检查基本条件
     if (!videoTrack_ || !videoTrack_->isOpen()) {
         std::cout << "[WebRTC] 视频轨道未打开，无法发送视频数据" << std::endl;
         return;
     }
     
-    if (!data || size == 0) {
-        std::cout << "[WebRTC] 视频数据无效，跳过发送" << std::endl;
+    // 检查ICE连接状态
+    if (!isIceConnected_) {
+        std::cout << "[WebRTC] ICE连接未建立，跳过视频帧发送" << std::endl;
         return;
     }
     
-    // 验证H.264数据格式
-    if (size < 4) {
-        std::cout << "[WebRTC] H.264数据太小，跳过发送: " << size << " 字节" << std::endl;
+    // 检查PeerConnection状态
+    if (status_ != WebRTCStatus::CONNECTED) {
+        std::cout << "[WebRTC] WebRTC连接未就绪，跳过视频帧发送" << std::endl;
         return;
     }
     
-    // 检查H.264起始码
-    bool hasValidStartCode = false;
-    if (size >= 4) {
-        // 检查0x00000001起始码
-        if (data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x01) {
-            hasValidStartCode = true;
-        }
-        // 检查0x000001起始码
-        else if (data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x01) {
-            hasValidStartCode = true;
-        }
-    }
+    // // 检查数据有效性
+    // if (!data || size == 0) {
+    //     std::cout << "[WebRTC] 视频数据无效，跳过发送" << std::endl;
+    //     return;
+    // }
     
-    if (!hasValidStartCode) {
-        std::cout << "[WebRTC] H.264数据格式无效，缺少起始码，跳过发送" << std::endl;
-        // 打印前16字节用于调试
-        std::cout << "[WebRTC] 数据前16字节: ";
-        for (int i = 0; i < std::min(16, (int)size); i++) {
-            printf("%02x ", data[i]);
+    // // 验证H.264数据格式
+    // if (size < 4) {
+    //     std::cout << "[WebRTC] H.264数据太小，跳过发送: " << size << " 字节" << std::endl;
+    //     return;
+    // }
+    
+    // // 检查H.264起始码
+    // bool hasValidStartCode = false;
+    // if (size >= 4) {
+    //     // 检查0x00000001起始码
+    //     if (data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x01) {
+    //         hasValidStartCode = true;
+    //     }
+    //     // 检查0x000001起始码
+    //     else if (data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x01) {
+    //         hasValidStartCode = true;
+    //     }
+    // }
+    
+    // if (!hasValidStartCode) {
+    //     std::cout << "[WebRTC] H.264数据格式无效，缺少起始码，跳过发送" << std::endl;
+    //     // 打印前16字节用于调试
+    //     std::cout << "[WebRTC] 数据前16字节: ";
+    //     for (int i = 0; i < std::min(16, (int)size); i++) {
+    //         printf("%02x ", data[i]);
+    //     }
+    //     std::cout << std::endl;
+    //     return;
+    // }
+    
+    // 发送频率控制
+    auto now = std::chrono::steady_clock::now();
+    if (lastVideoSendTime_ != std::chrono::steady_clock::time_point{}) {
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastVideoSendTime_);
+        if (elapsed.count() < VIDEO_SEND_INTERVAL_MS) {
+            // 跳过此帧，控制发送频率为30fps
+            return;
         }
-        std::cout << std::endl;
-        return;
     }
+    lastVideoSendTime_ = now;
     
     try {
-        // 转换时间戳 (PTS -> RTP timestamp, 90kHz)
-        // 假设timestamp是微秒单位，需要转换为RTP时间戳
-        uint32_t rtpTimestamp = static_cast<uint32_t>((timestamp * 90) / 1000);
+        // 微秒转换为duration
+        auto sampleTime = std::chrono::duration<double, std::micro>(timestamp);
         
-        // 创建FrameInfo对象
-        rtc::FrameInfo frameInfo(rtpTimestamp);
+        // 发送H264数据
+        videoTrack_->sendFrame(reinterpret_cast<const std::byte*>(data), size, sampleTime);
         
-        // 发送H264数据，RTP封装自动完成
-        // 需要将uint8_t*转换为std::byte*
-        videoTrack_->sendFrame(reinterpret_cast<const std::byte*>(data), size, frameInfo);
-        
-        std::cout << "[WebRTC] 视频帧发送成功: " << size << " 字节, RTP时间戳: " << rtpTimestamp << std::endl;
+        std::cout << "[Debug] 视频帧发送成功: " << size << " 字节, 时间戳: " << timestamp << "μs" << std::endl;
         
     } catch (const std::exception& e) {
         std::cout << "[WebRTC] 发送视频帧失败: " << e.what() << std::endl;

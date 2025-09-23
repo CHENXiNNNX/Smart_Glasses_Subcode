@@ -1,6 +1,6 @@
 #include "test_camera.h"
 
-RK_U64 get_nowus(void) {
+RK_U64 TEST_COMM_GetNowUs(void) {
 	struct timespec time = {0, 0};      // define a timespec structure to store time
 	clock_gettime(CLOCK_MONOTONIC, &time);  // Start timing from the moment the system boots up
 	return (RK_U64)time.tv_sec * 1000000 + (RK_U64)time.tv_nsec / 1000; /* microseconds */
@@ -121,7 +121,7 @@ int venc_init(int chnId, int width, int height, RK_CODEC_ID_E enType) {
 static void *stream_process_thread(void *arg)
 {
     video_system_t *sys = (video_system_t *)arg;
-    RK_U64 last_stat_time = get_nowus();
+    RK_U64 last_stat_time = TEST_COMM_GetNowUs();
     int frame_count = 0;
     
     printf("[CAMERA] stream_process_thread started\n");
@@ -147,7 +147,7 @@ static void *stream_process_thread(void *arg)
         }
         
         // 计算FPS
-        RK_U64 current_time = get_nowus();
+        RK_U64 current_time = TEST_COMM_GetNowUs();
         if (current_time - last_stat_time >= 1000000) {
             sys->current_fps = (float)frame_count * 1000000.0f / (float)(current_time - last_stat_time);
             last_stat_time = current_time;

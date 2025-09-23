@@ -6,13 +6,6 @@
 #include <sys/stat.h>
 #include <time.h>
 
-// 统一时间管理
-RK_U64 get_nowus(void) {
-    struct timespec time = {0, 0};
-    clock_gettime(CLOCK_MONOTONIC, &time);
-    return (RK_U64)time.tv_sec * 1000000 + (RK_U64)time.tv_nsec / 1000;
-}
-
 // ISP初始化
 int isp_init(void) {
     printf("[CAMERA] ISP init\n");
@@ -21,7 +14,7 @@ int isp_init(void) {
     RK_BOOL multi_sensor = RK_FALSE;
     
     // ISP参数路径
-    const char *iq_dir = "/etc/iqfiles";
+    const char *iq_dir = ISP_PATH;
     
     // HDR模式
     rk_aiq_working_mode_t hdr_mode = RK_AIQ_WORKING_MODE_NORMAL;
@@ -119,8 +112,8 @@ int venc_init(int chnId, int width, int height, RK_CODEC_ID_E enType) {
     // 根据编码类型设置参数
     if (enType == RK_VIDEO_ID_AVC) {
         stAttr.stRcAttr.enRcMode = VENC_RC_MODE_H264CBR;
-        stAttr.stRcAttr.stH264Cbr.u32BitRate = 10 * 1024;
-        stAttr.stRcAttr.stH264Cbr.u32Gop = 60;
+        stAttr.stRcAttr.stH264Cbr.u32BitRate = H264_Default_Bitrate;
+        stAttr.stRcAttr.stH264Cbr.u32Gop = H264_Default_Gop;
     } else if (enType == RK_VIDEO_ID_HEVC) {
         stAttr.stRcAttr.enRcMode = VENC_RC_MODE_H265CBR;
         stAttr.stRcAttr.stH265Cbr.u32BitRate = 10 * 1024;
@@ -134,14 +127,18 @@ int venc_init(int chnId, int width, int height, RK_CODEC_ID_E enType) {
     stAttr.stVencAttr.enType = enType;
     stAttr.stVencAttr.enPixelFormat = RK_FMT_YUV420SP;
     if (enType == RK_VIDEO_ID_AVC) {
-        stAttr.stVencAttr.u32Profile = H264E_PROFILE_HIGH;
+        stAttr.stVencAttr.u32Profile = H264E_PROFILE_BASELINE;
     }
     stAttr.stVencAttr.u32PicWidth = width;
     stAttr.stVencAttr.u32PicHeight = height;
     stAttr.stVencAttr.u32VirWidth = width;
     stAttr.stVencAttr.u32VirHeight = height;
-    stAttr.stVencAttr.u32StreamBufCnt = 2;
-    stAttr.stVencAttr.u32BufSize = width * height * 3 / 2;
+    stAttr.stVencAttr.u32StreamBufCnt = 3;
+    if (enType == RK_VIDEO_ID_AVC) {
+        stAttr.stVencAttr.u32BufSize = H264_Default_Bitrate * 2 * 1024;
+    } else {
+        stAttr.stVencAttr.u32BufSize = width * height * 3 / 2;
+    }
     stAttr.stVencAttr.enMirror = MIRROR_NONE;
     
     // JPEG特殊配置
@@ -235,25 +232,46 @@ static void *stream_process_thread(void *arg) {
                 case VIDEO_MODE_WEBRTC:
                 {
                     #if USE_WEBRTC
-                    if (sys->is_webrtc_streaming && sys->webrtc_frame_callback) {
-                        void *pData = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
-                        if (pData) {
-                            // 打印H.264数据前16字节用于调试
-                            printf("[CAMERA] H.264数据前16字节: ");
-                            for (int i = 0; i < std::min(16, (int)stFrame.pstPack->u32Len); i++) {
-                                printf("%02x ", ((uint8_t*)pData)[i]);
-                            }
-                            printf("\n");
+                    // if (sys->is_webrtc_streaming && sys->webrtc_frame_callback) {
+                    //     void *pData = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
+                    //     if (pData) {
+                    //         // 打印H.264数据前16字节用于调试
+                    //         // printf("[CAMERA] H.264数据前16字节: ");
+                    //         // for (int i = 0; i < std::min(16, (int)stFrame.pstPack->u32Len); i++) {
+                    //         //     printf("%02x ", ((uint8_t*)pData)[i]);
+                    //         // }
+                    //         // printf("\n");
                             
-                            // 调用WebRTC回调函数发送H264数据
-                            sys->webrtc_frame_callback(pData, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
-                            printf("[CAMERA] WebRTC frame sent: %d bytes, PTS: %llu\n", 
-                                   stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
+                    //         // 调用WebRTC回调函数发送H264数据
+                    //         sys->webrtc_frame_callback(pData, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
+                    //         // printf("[CAMERA] WebRTC frame sent: %d bytes, PTS: %llu\n", stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
+                    //     }
+                    // } else {
+                    //     printf("[CAMERA] WebRTC not ready: streaming=%d, callback=%s\n", 
+                    //            sys->is_webrtc_streaming, sys->webrtc_frame_callback ? "set" : "null");
+                    // }
+                        if (sys->is_webrtc_streaming && sys->webrtc_frame_callback) {
+                            size_t totalLen = 0;
+                            // 先计算总长度
+                            for (uint32_t i = 0; i < stFrame.u32PackCount; i++) {
+                                totalLen += stFrame.pstPack[i].u32Len;
+                            }
+                    
+                            // 分配连续缓冲区
+                            uint8_t *frameBuf = (uint8_t*)malloc(totalLen);
+                            size_t offset = 0;
+                    
+                            for (uint32_t i = 0; i < stFrame.u32PackCount; i++) {
+                                void *pData = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack[i].pMbBlk);
+                                memcpy(frameBuf + offset, pData, stFrame.pstPack[i].u32Len);
+                                offset += stFrame.pstPack[i].u32Len;
+                            }
+                    
+                            // 调用 WebRTC 回调，保证完整一帧
+                            sys->webrtc_frame_callback(frameBuf, totalLen, stFrame.pstPack[0].u64PTS);
+                    
+                            free(frameBuf);
                         }
-                    } else {
-                        printf("[CAMERA] WebRTC not ready: streaming=%d, callback=%s\n", 
-                               sys->is_webrtc_streaming, sys->webrtc_frame_callback ? "set" : "null");
-                    }
                     #endif
                 }
                 break;
@@ -397,8 +415,8 @@ int init_video_system(video_system_t **sys, int width, int height, video_mode_t 
     }
     #elif USE_WEBRTC
     if (mode == VIDEO_MODE_WEBRTC) {
-        // WebRTC初始化，暂留空实现
-        printf("[CAMERA] WebRTC mode not implemented yet\n");
+        // WebRTC初始化
+        printf("[CAMERA] WebRTC init\n");
     }
     #endif
     

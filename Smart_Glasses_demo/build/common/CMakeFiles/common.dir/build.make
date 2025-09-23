@@ -69,63 +69,15 @@ include common/CMakeFiles/common.dir/progress.make
 # Include the compile flags for this target's objects.
 include common/CMakeFiles/common.dir/flags.make
 
-common/CMakeFiles/common.dir/event_manager/event_manager.c.o: common/CMakeFiles/common.dir/flags.make
-common/CMakeFiles/common.dir/event_manager/event_manager.c.o: ../common/event_manager/event_manager.c
-common/CMakeFiles/common.dir/event_manager/event_manager.c.o: common/CMakeFiles/common.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object common/CMakeFiles/common.dir/event_manager/event_manager.c.o"
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/common && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT common/CMakeFiles/common.dir/event_manager/event_manager.c.o -MF CMakeFiles/common.dir/event_manager/event_manager.c.o.d -o CMakeFiles/common.dir/event_manager/event_manager.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/common/event_manager/event_manager.c
-
-common/CMakeFiles/common.dir/event_manager/event_manager.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/common.dir/event_manager/event_manager.c.i"
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/common && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/common/event_manager/event_manager.c > CMakeFiles/common.dir/event_manager/event_manager.c.i
-
-common/CMakeFiles/common.dir/event_manager/event_manager.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/common.dir/event_manager/event_manager.c.s"
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/common && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/common/event_manager/event_manager.c -o CMakeFiles/common.dir/event_manager/event_manager.c.s
-
-common/CMakeFiles/common.dir/gpio_manager/gpio_manager.c.o: common/CMakeFiles/common.dir/flags.make
-common/CMakeFiles/common.dir/gpio_manager/gpio_manager.c.o: ../common/gpio_manager/gpio_manager.c
-common/CMakeFiles/common.dir/gpio_manager/gpio_manager.c.o: common/CMakeFiles/common.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object common/CMakeFiles/common.dir/gpio_manager/gpio_manager.c.o"
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/common && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT common/CMakeFiles/common.dir/gpio_manager/gpio_manager.c.o -MF CMakeFiles/common.dir/gpio_manager/gpio_manager.c.o.d -o CMakeFiles/common.dir/gpio_manager/gpio_manager.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/common/gpio_manager/gpio_manager.c
-
-common/CMakeFiles/common.dir/gpio_manager/gpio_manager.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/common.dir/gpio_manager/gpio_manager.c.i"
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/common && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/common/gpio_manager/gpio_manager.c > CMakeFiles/common.dir/gpio_manager/gpio_manager.c.i
-
-common/CMakeFiles/common.dir/gpio_manager/gpio_manager.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/common.dir/gpio_manager/gpio_manager.c.s"
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/common && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/common/gpio_manager/gpio_manager.c -o CMakeFiles/common.dir/gpio_manager/gpio_manager.c.s
-
-common/CMakeFiles/common.dir/sys_manager/sys_manager.c.o: common/CMakeFiles/common.dir/flags.make
-common/CMakeFiles/common.dir/sys_manager/sys_manager.c.o: ../common/sys_manager/sys_manager.c
-common/CMakeFiles/common.dir/sys_manager/sys_manager.c.o: common/CMakeFiles/common.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object common/CMakeFiles/common.dir/sys_manager/sys_manager.c.o"
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/common && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT common/CMakeFiles/common.dir/sys_manager/sys_manager.c.o -MF CMakeFiles/common.dir/sys_manager/sys_manager.c.o.d -o CMakeFiles/common.dir/sys_manager/sys_manager.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/common/sys_manager/sys_manager.c
-
-common/CMakeFiles/common.dir/sys_manager/sys_manager.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/common.dir/sys_manager/sys_manager.c.i"
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/common && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/common/sys_manager/sys_manager.c > CMakeFiles/common.dir/sys_manager/sys_manager.c.i
-
-common/CMakeFiles/common.dir/sys_manager/sys_manager.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/common.dir/sys_manager/sys_manager.c.s"
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/common && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/common/sys_manager/sys_manager.c -o CMakeFiles/common.dir/sys_manager/sys_manager.c.s
-
 # Object files for target common
-common_OBJECTS = \
-"CMakeFiles/common.dir/event_manager/event_manager.c.o" \
-"CMakeFiles/common.dir/gpio_manager/gpio_manager.c.o" \
-"CMakeFiles/common.dir/sys_manager/sys_manager.c.o"
+common_OBJECTS =
 
 # External object files for target common
 common_EXTERNAL_OBJECTS =
 
-common/libcommon.a: common/CMakeFiles/common.dir/event_manager/event_manager.c.o
-common/libcommon.a: common/CMakeFiles/common.dir/gpio_manager/gpio_manager.c.o
-common/libcommon.a: common/CMakeFiles/common.dir/sys_manager/sys_manager.c.o
 common/libcommon.a: common/CMakeFiles/common.dir/build.make
 common/libcommon.a: common/CMakeFiles/common.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking C static library libcommon.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Linking CXX static library libcommon.a"
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/common && $(CMAKE_COMMAND) -P CMakeFiles/common.dir/cmake_clean_target.cmake
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/common && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/common.dir/link.txt --verbose=$(VERBOSE)
 

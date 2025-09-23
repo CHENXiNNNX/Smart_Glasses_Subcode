@@ -28,11 +28,27 @@ static int recordCallback(const void *inputBuffer, void *outputBuffer,
             audio_system->recordedAudioQueue.pop(); // 移除最旧的帧
         }
 
-        // 添加新的帧
-        audio_system->recordedAudioQueue.push(frame);
+    // 添加新的帧
+    audio_system->recordedAudioQueue.push(frame);
     }
     audio_system->recordedAudioCV.notify_one();
 
+#if USE_WEBRTC
+    // WebRTC音频数据发送
+    if (audio_system->is_webrtc_streaming && audio_system->webrtc_audio_callback) {
+        // 编码为Opus
+        uint8_t opus_buffer[2048];
+        size_t opus_size = 2048;
+        
+        if (encode_opus(audio_system, 
+                    reinterpret_cast<uint8_t*>(frame.data()),
+                    frame.size() * sizeof(int16_t),
+                    opus_buffer, &opus_size) == AUDIO_ERROR_NONE) {
+            // 调用WebRTC回调发送Opus数据
+            audio_system->webrtc_audio_callback(opus_buffer, opus_size, get_nowus());
+        }
+    }
+#endif
     return paContinue;
 }
 
@@ -86,9 +102,9 @@ audio_error_t audio_system_init(audio_system_t *audio_system) {
     }
 
     // 初始化默认参数
-    audio_system->sample_rate = 16000;
-    audio_system->channels = 1;
-    audio_system->frame_duration_ms = 20;
+    audio_system->sample_rate = AUDIO_SAMPLE_RATE;
+    audio_system->channels = AUDIO_CHANNELS;
+    audio_system->frame_duration_ms = AUDIO_FRAME_DURATION_MS;
     audio_system->encoder = nullptr;
     audio_system->decoder = nullptr;
     audio_system->recordStream = nullptr;
@@ -96,6 +112,21 @@ audio_error_t audio_system_init(audio_system_t *audio_system) {
     audio_system->isRecording = false;
     audio_system->isPlaying = false;
     audio_system->current_mode = AUDIO_MODE_NONE;
+    
+    // 初始化重采样配置
+    audio_system->resample_config.input_sample_rate = 0;
+    audio_system->resample_config.output_sample_rate = 0;
+    audio_system->resample_config.channels = 0;
+    audio_system->resample_config.converter_type = 0;
+    audio_system->resample_config.src_state = nullptr;
+    audio_system->resample_config.is_initialized = false;
+    
+    #if USE_WEBRTC
+    // WebRTC相关初始化
+    audio_system->webrtc_manager = nullptr;
+    audio_system->is_webrtc_streaming = false;
+    audio_system->webrtc_audio_callback = nullptr;
+    #endif
 
     // 初始化PortAudio
     PaError err = Pa_Initialize();
@@ -129,6 +160,9 @@ audio_error_t audio_system_deinit(audio_system_t *audio_system) {
     // 清空队列
     clear_recording_queue(audio_system);
     clear_playback_queue(audio_system);
+
+    // 释放重采样资源
+    release_audio_resample(audio_system);
 
     // 释放Opus编解码器
     release_opus_codec(audio_system);
@@ -416,14 +450,14 @@ audio_error_t encode_opus(audio_system_t *audio_system, uint8_t *input, size_t i
     }
 
     // 计算样本数量
-    size_t frame_size = input_size / sizeof(int16_t);
+    size_t frame_size = input_size / sizeof(int16_t) / audio_system->channels;
 
     if (frame_size <= 0) {
         std::cerr << "Invalid PCM frame size: " << frame_size << std::endl;
         return AUDIO_ERROR_ENCODE_FAILED;
     }
 
-    // 使用固定的2048字节作为最大编码缓冲区大小，与官方实现保持一致
+    // 使用固定的2048字节作为最大编码缓冲区大小
     const int MAX_ENCODE_BUFFER_SIZE = 2048;
     if (*output_size < MAX_ENCODE_BUFFER_SIZE) {
         std::cerr << "Output buffer too small for encoding. Need at least " << MAX_ENCODE_BUFFER_SIZE << " bytes" << std::endl;
@@ -457,9 +491,9 @@ audio_error_t decode_opus(audio_system_t *audio_system, uint8_t *input, size_t i
         return AUDIO_ERROR_DECODE_FAILED;
     }
 
-    // 对于16kHz采样率，使用固定的960样本帧大小，与官方实现保持一致
-    const int FRAME_SIZE = 960;
-    size_t max_output_size = FRAME_SIZE * audio_system->channels * sizeof(int16_t);
+    // 根据配置计算样本数
+    const int frame_size = audio_system->sample_rate / 1000 * audio_system->frame_duration_ms;
+    size_t max_output_size = frame_size * audio_system->channels * sizeof(int16_t);
 
     if (max_output_size > *output_size) {
         std::cerr << "Output buffer too small for decoding. Need at least " << max_output_size << " bytes" << std::endl;
@@ -471,7 +505,7 @@ audio_error_t decode_opus(audio_system_t *audio_system, uint8_t *input, size_t i
                                      input, 
                                      static_cast<int>(input_size), 
                                      reinterpret_cast<int16_t*>(output), 
-                                     FRAME_SIZE, 
+                                     frame_size, 
                                      0);
 
     if (decoded_samples < 0) {
@@ -567,7 +601,7 @@ void add_frame_to_playback_queue(audio_system_t *audio_system, const std::vector
     std::lock_guard<std::mutex> lock(audio_system->playbackMutex);
     
     // 计算每帧的样本数量
-    int frame_size = audio_system->sample_rate / 1000 * audio_system->frame_duration_ms;
+    int frame_size = (audio_system->sample_rate / 1000 * audio_system->frame_duration_ms) * audio_system->channels;
 
     // 如果当前帧大小小于预期的帧大小，则填充静音
     if (pcm_frame.size() < static_cast<size_t>(frame_size)) {
@@ -684,6 +718,221 @@ bool unpack_bin_frame(audio_system_t *audio_system, const uint8_t* packed_data, 
     return true;
 }
 
-audio_error_t start_webrtc_audio_stream(audio_system_t *audio_system);
+// ================== 重采样功能实现 ==================
 
-audio_error_t stop_webrtc_audio_stream(audio_system_t *audio_system);
+audio_error_t init_audio_resample(audio_system_t *audio_system, int input_rate, int output_rate, int channels, int converter_type) {
+    if (!audio_system) {
+        std::cerr << "Audio system is null" << std::endl;
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+
+    // 如果已经初始化，先释放
+    if (audio_system->resample_config.is_initialized) {
+        release_audio_resample(audio_system);
+    }
+
+    // 验证参数
+    if (input_rate <= 0 || output_rate <= 0 || channels <= 0) {
+        std::cerr << "Invalid resample parameters: input_rate=" << input_rate 
+                  << ", output_rate=" << output_rate << ", channels=" << channels << std::endl;
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+
+    // 验证转换器类型
+    if (converter_type < SRC_SINC_BEST_QUALITY || converter_type > SRC_LINEAR) {
+        std::cerr << "Invalid converter type: " << converter_type << std::endl;
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+
+    // 设置重采样参数
+    audio_system->resample_config.input_sample_rate = input_rate;
+    audio_system->resample_config.output_sample_rate = output_rate;
+    audio_system->resample_config.channels = channels;
+    audio_system->resample_config.converter_type = converter_type;
+    audio_system->resample_config.src_state = nullptr;
+    audio_system->resample_config.is_initialized = false;
+
+    // 初始化libsamplerate状态
+    int error;
+    audio_system->resample_config.src_state = src_new(converter_type, channels, &error);
+    if (!audio_system->resample_config.src_state) {
+        std::cerr << "Failed to initialize libsamplerate: " << src_strerror(error) << std::endl;
+        return AUDIO_ERROR_INITIALIZE_FAILED;
+    }
+
+    audio_system->resample_config.is_initialized = true;
+    std::cout << "Audio resample initialized: " << input_rate << "Hz -> " << output_rate 
+              << "Hz, channels=" << channels << ", converter=" << converter_type << std::endl;
+    
+    return AUDIO_ERROR_NONE;
+}
+
+audio_error_t process_audio_resample(audio_system_t *audio_system, const std::vector<int16_t>& input_data, std::vector<int16_t>& output_data) {
+    if (!audio_system) {
+        std::cerr << "Audio system is null" << std::endl;
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+
+    if (!audio_system->resample_config.is_initialized) {
+        std::cerr << "Resample not initialized" << std::endl;
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+
+    if (input_data.empty()) {
+        output_data.clear();
+        return AUDIO_ERROR_NONE;
+    }
+
+    // 计算输入样本数（按通道）
+    int input_frames = input_data.size() / audio_system->resample_config.channels;
+    if (input_frames <= 0) {
+        std::cerr << "Invalid input data size: " << input_data.size() 
+                  << ", channels: " << audio_system->resample_config.channels << std::endl;
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+
+    // 计算输出缓冲区大小（按比例估算，通常需要1.5-2倍大小）
+    double ratio = static_cast<double>(audio_system->resample_config.output_sample_rate) / 
+                   static_cast<double>(audio_system->resample_config.input_sample_rate);
+    int estimated_output_frames = static_cast<int>(input_frames * ratio * 1.5) + 100; // 额外100帧缓冲
+    
+    // 准备输入数据（转换为float）
+    std::vector<float> input_float(input_data.size());
+    for (size_t i = 0; i < input_data.size(); i++) {
+        input_float[i] = static_cast<float>(input_data[i]) / 32768.0f; // 转换为-1.0到1.0范围
+    }
+
+    // 准备输出缓冲区
+    std::vector<float> output_float(estimated_output_frames * audio_system->resample_config.channels);
+    
+    // 设置重采样数据
+    SRC_DATA src_data;
+    src_data.data_in = input_float.data();
+    src_data.data_out = output_float.data();
+    src_data.input_frames = input_frames;
+    src_data.output_frames = estimated_output_frames;
+    src_data.src_ratio = ratio;
+    src_data.end_of_input = 0; // 0表示还有更多数据，1表示这是最后的数据
+
+    // 执行重采样
+    int error = src_process(audio_system->resample_config.src_state, &src_data);
+    if (error != 0) {
+        std::cerr << "Resample process failed: " << src_strerror(error) << std::endl;
+        return AUDIO_ERROR_ENCODE_FAILED; // 使用编码错误作为通用处理错误
+    }
+
+    // 转换回int16_t并填充输出
+    int actual_output_samples = src_data.output_frames_gen * audio_system->resample_config.channels;
+    output_data.resize(actual_output_samples);
+    
+    for (int i = 0; i < actual_output_samples; i++) {
+        // 限制范围并转换回int16_t
+        float sample = output_float[i];
+        sample = std::max(-1.0f, std::min(1.0f, sample)); // 限制在-1.0到1.0范围
+        output_data[i] = static_cast<int16_t>(sample * 32767.0f);
+    }
+
+    return AUDIO_ERROR_NONE;
+}
+
+audio_error_t release_audio_resample(audio_system_t *audio_system) {
+    if (!audio_system) {
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+
+    if (audio_system->resample_config.src_state) {
+        src_delete(audio_system->resample_config.src_state);
+        audio_system->resample_config.src_state = nullptr;
+    }
+
+    audio_system->resample_config.is_initialized = false;
+    audio_system->resample_config.input_sample_rate = 0;
+    audio_system->resample_config.output_sample_rate = 0;
+    audio_system->resample_config.channels = 0;
+    audio_system->resample_config.converter_type = 0;
+
+    std::cout << "Audio resample released" << std::endl;
+    return AUDIO_ERROR_NONE;
+}
+
+bool is_resample_initialized(audio_system_t *audio_system) {
+    if (!audio_system) {
+        return false;
+    }
+    return audio_system->resample_config.is_initialized;
+}
+
+#if USE_WEBRTC
+audio_error_t start_webrtc_audio_stream(audio_system_t *audio_system) {
+    if (!audio_system) {
+        std::cerr << "[AUDIO] Audio system is null" << std::endl;
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+    
+    if (!audio_system->webrtc_audio_callback) {
+        std::cerr << "[AUDIO] WebRTC audio callback not set" << std::endl;
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+    
+    if (audio_system->is_webrtc_streaming) {
+        std::cout << "[AUDIO] WebRTC audio stream already started" << std::endl;
+        return AUDIO_ERROR_NONE;
+    }
+    
+    // 设置音频模式为WebRTC
+    if (set_audio_mode(audio_system, AUDIO_MODE_WEBRTC) != AUDIO_ERROR_NONE) {
+        std::cerr << "[AUDIO] Failed to set audio mode to WebRTC" << std::endl;
+        return AUDIO_ERROR_MODE_CONFLICT;
+    }
+    
+    // 开始录音
+    if (start_recording(audio_system) != AUDIO_ERROR_NONE) {
+        std::cerr << "[AUDIO] Failed to start recording for WebRTC" << std::endl;
+        return AUDIO_ERROR_STREAM_START_FAILED;
+    }
+    
+    audio_system->is_webrtc_streaming = true;
+    std::cout << "[AUDIO] WebRTC audio stream started" << std::endl;
+    return AUDIO_ERROR_NONE;
+}
+
+audio_error_t stop_webrtc_audio_stream(audio_system_t *audio_system) {
+    if (!audio_system) {
+        std::cerr << "[AUDIO] Audio system is null" << std::endl;
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+    
+    if (!audio_system->is_webrtc_streaming) {
+        std::cout << "[AUDIO] WebRTC audio stream already stopped" << std::endl;
+        return AUDIO_ERROR_NONE;
+    }
+    
+    // 停止录音
+    if (stop_recording(audio_system) != AUDIO_ERROR_NONE) {
+        std::cerr << "[AUDIO] Failed to stop recording for WebRTC" << std::endl;
+        return AUDIO_ERROR_STREAM_START_FAILED;
+    }
+    
+    audio_system->is_webrtc_streaming = false;
+    std::cout << "[AUDIO] WebRTC audio stream stopped" << std::endl;
+    return AUDIO_ERROR_NONE;
+}
+
+audio_error_t set_webrtc_audio_callback(audio_system_t *audio_system, void *webrtc_manager, void (*audio_callback)(void *data, int len, uint64_t timestamp)) {
+    if (!audio_system) {
+        std::cerr << "[AUDIO] Audio system is null" << std::endl;
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+    
+    if (!audio_callback) {
+        std::cerr << "[AUDIO] Invalid audio callback" << std::endl;
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+    
+    audio_system->webrtc_manager = webrtc_manager;
+    audio_system->webrtc_audio_callback = audio_callback;
+    
+    std::cout << "[AUDIO] WebRTC audio callback set successfully" << std::endl;
+    return AUDIO_ERROR_NONE;
+}
+#endif

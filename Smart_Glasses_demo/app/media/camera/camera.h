@@ -5,12 +5,14 @@
 #include <stdint.h>
 #include <pthread.h>
 #include "../media_config.h"
+#include "../../../common/common.h"
 #include "../../../rkmpi/include/sample_comm.h"
 
 #if USE_RTSP
 #include "../../protocol/rtsp/rtsp.h"
-#elif USE_WEBRTC
-// WebRTC相关头文件，暂留空实现
+#endif
+#if USE_WEBRTC
+#include "../../protocol/webrtc/webrtc.h"
 #endif
 
 // 视频模式枚举
@@ -19,7 +21,7 @@ typedef enum {
     VIDEO_MODE_PHOTO,         // 拍照模式
     VIDEO_MODE_RECORD,        // 录像模式
     VIDEO_MODE_RTSP,          // RTSP推流模式
-    VIDEO_MODE_WEBRTC         // WebRTC推流模式(预留空实现)
+    VIDEO_MODE_WEBRTC         // WebRTC推流模式
 } video_mode_t;
 
 // 错误类型枚举
@@ -90,9 +92,6 @@ typedef struct {
     int gop;                      // GOP大小
     int quality;                  // 质量参数
 } video_system_t;
-
-// 统一时间管理
-RK_U64 get_nowus(void);
 
 // 视频系统管理
 int isp_init(void);

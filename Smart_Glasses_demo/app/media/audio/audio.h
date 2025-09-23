@@ -8,6 +8,9 @@
 #include <opus/opus.h>
 #include <cstdint>
 #include <portaudio.h>
+#include <samplerate.h>
+#include "../media_config.h"
+#include "../../../common/common.h"
 #include "../../protocol/websocket/websocket.h"
 
 // 音频模式枚举
@@ -30,6 +33,16 @@ typedef enum {
     AUDIO_ERROR_INVALID_PARAM,
     AUDIO_ERROR_MEMORY_ALLOC_FAILED
 } audio_error_t;
+
+// 重采样参数结构体
+typedef struct {
+    int input_sample_rate;      // 输入采样率
+    int output_sample_rate;     // 输出采样率
+    int channels;               // 通道数
+    int converter_type;         // 重采样算法类型 (SRC_SINC_*)
+    SRC_STATE* src_state;       // libsamplerate状态
+    bool is_initialized;        // 初始化状态
+} audio_resample_t;
 
 // 统一结构体管理audio_system_t
 typedef struct {
@@ -57,7 +70,16 @@ typedef struct {
 
     // 当前音频模式
     audio_mode_t current_mode;
-
+    
+    // 重采样配置
+    audio_resample_t resample_config;
+    
+    #if USE_WEBRTC
+    // WebRTC相关资源
+    void *webrtc_manager;           // WebRTC管理器指针
+    bool is_webrtc_streaming;       // WebRTC音频推流状态
+    void (*webrtc_audio_callback)(void *data, int len, uint64_t timestamp); // WebRTC音频回调函数
+    #endif
 } audio_system_t;
 
 // 初始化音频系统
@@ -120,12 +142,19 @@ BinProtocol* pack_bin_frame(audio_system_t *audio_system, const uint8_t* payload
 // 解包二进制协议帧
 bool unpack_bin_frame(audio_system_t *audio_system, const uint8_t* packed_data, size_t packed_data_size, BinProtocolInfo& protocol_info, std::vector<uint8_t>& opus_data);
 
+// 重采样相关函数
+audio_error_t init_audio_resample(audio_system_t *audio_system, int input_rate, int output_rate, int channels, int converter_type);
+audio_error_t process_audio_resample(audio_system_t *audio_system, const std::vector<int16_t>& input_data, std::vector<int16_t>& output_data);
+audio_error_t release_audio_resample(audio_system_t *audio_system);
+bool is_resample_initialized(audio_system_t *audio_system);
+
 #if USE_RTSP
 // 暂留空实现
 #endif
 #if USE_WEBRTC
 audio_error_t start_webrtc_audio_stream(audio_system_t *audio_system);
 audio_error_t stop_webrtc_audio_stream(audio_system_t *audio_system);
+audio_error_t set_webrtc_audio_callback(audio_system_t *audio_system, void *webrtc_manager, void (*audio_callback)(void *data, int len, uint64_t timestamp));
 #endif
 
 #endif // AUDIO_H

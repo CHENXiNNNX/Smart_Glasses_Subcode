@@ -106,7 +106,12 @@ main_EXTERNAL_OBJECTS =
 ../bin/main: ../3rdparty/jpeg_turbo/lib_uclibc/libturbojpeg.a
 ../bin/main: ../3rdparty/rknpu2/Linux/armhf-uclibc/librknnmrt.a
 ../bin/main: ../3rdparty/librga/Linux/armhf_uclibc/librga.a
-../bin/main: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libasound.so
+../bin/main: ../opencv_rv1106_410/lib/libopencv_features2d.a
+../bin/main: ../opencv_rv1106_410/lib/libopencv_highgui.a
+../bin/main: ../opencv_rv1106_410/lib/libopencv_photo.a
+../bin/main: ../opencv_rv1106_410/lib/libopencv_video.a
+../bin/main: ../opencv_rv1106_410/lib/libopencv_imgproc.a
+../bin/main: ../opencv_rv1106_410/lib/libopencv_core.a
 ../bin/main: ../opencv_rv1106_410/lib/libopencv_features2d.a
 ../bin/main: ../opencv_rv1106_410/lib/libopencv_highgui.a
 ../bin/main: ../opencv_rv1106_410/lib/libopencv_photo.a

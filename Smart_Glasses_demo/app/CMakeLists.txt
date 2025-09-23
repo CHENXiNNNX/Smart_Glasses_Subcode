@@ -1,6 +1,6 @@
  # App module CMakeLists.txt
 
-# 收集当前目录及子目录中的所有 .c 文件
+# 收集当前目录及子目录中的所有代码文件
 file(GLOB_RECURSE APP_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cc"
@@ -17,6 +17,10 @@ set(OpenCV_DIR "${PROJECT_SOURCE_DIR}/opencv_rv1106_410/lib/cmake/opencv4")
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 target_link_libraries(app ${OpenCV_LIBS})
+
+# samplerate 依赖
+include_directories(${SAMPLERATE_INCLUDE_DIRS})
+target_link_libraries(app ${SAMPLERATE_LIBRARIES})
 
 # 设置头文件包含目录
 target_include_directories(app PUBLIC

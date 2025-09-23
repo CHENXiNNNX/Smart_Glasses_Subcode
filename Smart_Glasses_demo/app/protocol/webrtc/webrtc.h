@@ -9,7 +9,10 @@
 #include <rtc/track.hpp>
 #include <rtc/rtp.hpp>
 #include <rtc/rtcpnackresponder.hpp>
+#include <rtc/rtppacketizer.hpp>
 #include "signaling.h"
+
+#include "../../media/media_config.h"
 
 namespace glasses {
 namespace protocol {
@@ -20,10 +23,10 @@ class Signaling;
 // WebRTC功能配置结构体
 struct WebRTCConfig {
     // 功能开关
-    bool enableDataChannel = true;      // 数据通道开关
-    bool enableAudioSend = false;       // 音频发送开关（预留）
-    bool enableAudioReceive = false;    // 音频接收开关（预留）
-    bool enableVideoSend = true;       // 视频发送开关（预留）
+    bool enableDataChannel = false;      // 数据通道开关
+    bool enableAudioSend = false;        // 音频发送开关
+    bool enableAudioReceive = false;     // 音频接收开关
+    bool enableVideoSend = false;        // 视频发送开关
     
     // 数据通道配置
     std::string dataChannelLabel = "glasses_data_channel";
@@ -36,13 +39,13 @@ struct WebRTCConfig {
         int bitrate = 32000;
     } audioConfig;
     
-    // 视频配置（预留）
+    // 视频配置
     struct VideoConfig {
         std::string codec = "h264";
-        int width = 1920;
-        int height = 1080;
-        int fps = 30;
-        int bitrate = 2000000;
+        int width = CAMERA_WIDTH;
+        int height = CAMERA_HEIGHT;
+        int fps = CAMERA_FPS;
+        int bitrate = H264_Default_Bitrate;
     } videoConfig;
     
     // STUN服务器配置
@@ -55,6 +58,7 @@ struct WebRTCConfig {
 enum class WebRTCStatus {
     DISCONNECTED,   // 未连接
     CONNECTING,     // 连接中
+    ICE_CONNECTING, // ICE连接中
     CONNECTED,      // 已连接
     FAILED          // 连接失败
 };
@@ -146,7 +150,7 @@ public:
      */
     bool isDataChannelOpen() const;
 
-    // ========== 音频接口（预留空实现） ==========
+    // ========== 音频接口 ==========
     /**
      * 开始音频发送
      * @return true 成功，false 失败
@@ -175,8 +179,9 @@ public:
      * 发送音频数据
      * @param data 音频数据
      * @param size 数据大小
+     * @param timestamp 时间戳（微秒）
      */
-    void sendAudioData(const uint8_t* data, size_t size);
+    void sendAudioData(const uint8_t* data, size_t size, uint64_t timestamp);
 
     // ========== 视频接口（预留空实现） ==========
     /**
@@ -202,6 +207,18 @@ public:
     // ========== 状态查询接口 ==========
     WebRTCStatus getStatus() const { return status_; }
     const WebRTCConfig& getConfig() const { return config_; }
+    
+    // ICE状态查询接口
+    bool isIceConnected() const { return isIceConnected_; }
+    rtc::PeerConnection::IceState getIceState() const { return iceState_; }
+    
+    // 连接就绪检查
+    bool isReadyForDataSending() const {
+        return status_ == WebRTCStatus::CONNECTED && 
+               isIceConnected_ && 
+               videoTrack_ && 
+               videoTrack_->isOpen();
+    }
 
     // ========== 回调函数设置接口 ==========
     void onStatusChanged(WebRTCStatusCallback callback) { statusCallback_ = callback; }
@@ -214,13 +231,17 @@ private:
     void setupPeerConnectionCallbacks();
     void setupDataChannel();
     void setupVideoTrack();
+    void setupAudioTrack();
     void handleDataChannelOpen();
     void handleDataChannelMessage(const std::string& message);
+    void handleAudioData(const uint8_t* data, size_t size, uint64_t timestamp);
     void setStatus(WebRTCStatus newStatus);
     
     // ========== 成员变量 ==========
     WebRTCConfig config_;               // 配置信息
     WebRTCStatus status_;               // 连接状态
+    rtc::PeerConnection::IceState iceState_;  // ICE连接状态
+    bool isIceConnected_;                     // ICE是否已连接
     
     std::shared_ptr<Signaling> signaling_;          // 信令模块引用
     std::shared_ptr<rtc::PeerConnection> peerConnection_; // WebRTC连接
@@ -232,8 +253,18 @@ private:
     std::shared_ptr<rtc::H264RtpPacketizer> videoPacketizer_;    // H264 RTP封装器
     std::shared_ptr<rtc::RtcpSrReporter> videoSrReporter_;       // RTCP SR报告器
     
+    // 音频轨道相关成员
+    std::shared_ptr<rtc::Track> audioTrack_;               // Opus音频轨道
+    std::shared_ptr<rtc::RtpPacketizationConfig> audioRtpConfig_; // 音频RTP配置
+    std::shared_ptr<rtc::OpusRtpPacketizer> audioPacketizer_;    // Opus RTP封装器
+    std::shared_ptr<rtc::RtcpSrReporter> audioSrReporter_;       // 音频RTCP SR报告器
+    
     std::string role_;                  // 角色信息
     std::string peerDeviceId_;          // 对端设备ID
+    
+    // 视频发送频率控制
+    std::chrono::steady_clock::time_point lastVideoSendTime_;  // 上次视频发送时间
+    static constexpr int VIDEO_SEND_INTERVAL_MS = 1000 / CAMERA_FPS;          // 视频发送间隔
     
     // 回调函数存储
     WebRTCStatusCallback statusCallback_;

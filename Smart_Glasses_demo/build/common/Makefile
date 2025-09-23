@@ -175,78 +175,6 @@ common/fast:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f common/CMakeFiles/common.dir/build.make common/CMakeFiles/common.dir/build
 .PHONY : common/fast
 
-event_manager/event_manager.o: event_manager/event_manager.c.o
-.PHONY : event_manager/event_manager.o
-
-# target to build an object file
-event_manager/event_manager.c.o:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f common/CMakeFiles/common.dir/build.make common/CMakeFiles/common.dir/event_manager/event_manager.c.o
-.PHONY : event_manager/event_manager.c.o
-
-event_manager/event_manager.i: event_manager/event_manager.c.i
-.PHONY : event_manager/event_manager.i
-
-# target to preprocess a source file
-event_manager/event_manager.c.i:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f common/CMakeFiles/common.dir/build.make common/CMakeFiles/common.dir/event_manager/event_manager.c.i
-.PHONY : event_manager/event_manager.c.i
-
-event_manager/event_manager.s: event_manager/event_manager.c.s
-.PHONY : event_manager/event_manager.s
-
-# target to generate assembly for a file
-event_manager/event_manager.c.s:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f common/CMakeFiles/common.dir/build.make common/CMakeFiles/common.dir/event_manager/event_manager.c.s
-.PHONY : event_manager/event_manager.c.s
-
-gpio_manager/gpio_manager.o: gpio_manager/gpio_manager.c.o
-.PHONY : gpio_manager/gpio_manager.o
-
-# target to build an object file
-gpio_manager/gpio_manager.c.o:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f common/CMakeFiles/common.dir/build.make common/CMakeFiles/common.dir/gpio_manager/gpio_manager.c.o
-.PHONY : gpio_manager/gpio_manager.c.o
-
-gpio_manager/gpio_manager.i: gpio_manager/gpio_manager.c.i
-.PHONY : gpio_manager/gpio_manager.i
-
-# target to preprocess a source file
-gpio_manager/gpio_manager.c.i:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f common/CMakeFiles/common.dir/build.make common/CMakeFiles/common.dir/gpio_manager/gpio_manager.c.i
-.PHONY : gpio_manager/gpio_manager.c.i
-
-gpio_manager/gpio_manager.s: gpio_manager/gpio_manager.c.s
-.PHONY : gpio_manager/gpio_manager.s
-
-# target to generate assembly for a file
-gpio_manager/gpio_manager.c.s:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f common/CMakeFiles/common.dir/build.make common/CMakeFiles/common.dir/gpio_manager/gpio_manager.c.s
-.PHONY : gpio_manager/gpio_manager.c.s
-
-sys_manager/sys_manager.o: sys_manager/sys_manager.c.o
-.PHONY : sys_manager/sys_manager.o
-
-# target to build an object file
-sys_manager/sys_manager.c.o:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f common/CMakeFiles/common.dir/build.make common/CMakeFiles/common.dir/sys_manager/sys_manager.c.o
-.PHONY : sys_manager/sys_manager.c.o
-
-sys_manager/sys_manager.i: sys_manager/sys_manager.c.i
-.PHONY : sys_manager/sys_manager.i
-
-# target to preprocess a source file
-sys_manager/sys_manager.c.i:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f common/CMakeFiles/common.dir/build.make common/CMakeFiles/common.dir/sys_manager/sys_manager.c.i
-.PHONY : sys_manager/sys_manager.c.i
-
-sys_manager/sys_manager.s: sys_manager/sys_manager.c.s
-.PHONY : sys_manager/sys_manager.s
-
-# target to generate assembly for a file
-sys_manager/sys_manager.c.s:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f common/CMakeFiles/common.dir/build.make common/CMakeFiles/common.dir/sys_manager/sys_manager.c.s
-.PHONY : sys_manager/sys_manager.c.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -260,15 +188,6 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... common"
-	@echo "... event_manager/event_manager.o"
-	@echo "... event_manager/event_manager.i"
-	@echo "... event_manager/event_manager.s"
-	@echo "... gpio_manager/gpio_manager.o"
-	@echo "... gpio_manager/gpio_manager.i"
-	@echo "... gpio_manager/gpio_manager.s"
-	@echo "... sys_manager/sys_manager.o"
-	@echo "... sys_manager/sys_manager.i"
-	@echo "... sys_manager/sys_manager.s"
 .PHONY : help
 
 

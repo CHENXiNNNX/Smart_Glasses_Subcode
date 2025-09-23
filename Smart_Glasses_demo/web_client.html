@@ -269,6 +269,42 @@
             color: #00bfff;
         }
 
+        .video-panel, .audio-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #28a745;
+            display: none;
+        }
+
+        .video-panel h3, .audio-panel h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        #videoContainer, #audioContainer {
+            text-align: center;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+        }
+
+        #videoElement {
+            width: 100%;
+            max-width: 800px;
+            border-radius: 8px;
+            border: 2px solid #007bff;
+        }
+
+        #audioElement {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 10px;
+        }
+
         .footer {
             text-align: center;
             color: white;
@@ -314,7 +350,7 @@
     <div class="container">
         <div class="header">
             <h1>🕶️ 智能眼镜接收端</h1>
-            <p>WebRTC视频通话和数据传输测试</p>
+            <p>WebRTC音视频通话和数据传输测试</p>
         </div>
 
         <div class="status-panel">
@@ -325,6 +361,14 @@
             <div class="status-item">
                 <span class="status-label">WebRTC状态:</span>
                 <span class="status-value status-disconnected" id="rtcStatus">未连接</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">视频流:</span>
+                <span class="status-value status-disconnected" id="videoStatus">未接收</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">音频流:</span>
+                <span class="status-value status-disconnected" id="audioStatus">未接收</span>
             </div>
             <div class="status-item">
                 <span class="status-label">设备ID:</span>
@@ -364,10 +408,18 @@
             </div>
         </div>
 
-        <div class="video-panel" id="videoPanel" style="display: none;">
+        <div class="video-panel" id="videoPanel">
             <h3>📹 视频流</h3>
-            <div id="videoContainer" style="text-align: center; background: #f8f9fa; border-radius: 10px; padding: 20px;">
+            <div id="videoContainer">
                 <p style="color: #666; margin: 0;">等待视频流...</p>
+            </div>
+        </div>
+
+        <div class="audio-panel" id="audioPanel">
+            <h3>🔊 音频流</h3>
+            <div id="audioContainer">
+                <p style="color: #666; margin: 0;">等待音频流...</p>
+                <audio id="audioElement" controls autoplay></audio>
             </div>
         </div>
 
@@ -394,11 +446,22 @@
         let peerDeviceId = '';
         let role = '';
         let videoElement = null;
+        let audioElement = null;
+        let hasVideoStream = false;
+        let hasAudioStream = false;
 
         // WebRTC配置
         const rtcConfig = {
             iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' }
+                { 
+                    urls: [
+                        "stun:stun.l.google.com:19302",
+                        "stun:stun1.l.google.com:19302", 
+                        "stun:stun2.l.google.com:19302",
+                        "stun:stun3.l.google.com:19302",
+                        "stun:stun4.l.google.com:19302"
+                    ]
+                }
             ]
         };
 
@@ -446,6 +509,13 @@
             
             document.getElementById('rtcStatus').textContent = getRTCStatusText();
             document.getElementById('rtcStatus').className = `status-value ${getRTCStatusClass()}`;
+            
+            // 更新音视频流状态
+            document.getElementById('videoStatus').textContent = hasVideoStream ? '已接收' : '未接收';
+            document.getElementById('videoStatus').className = `status-value ${hasVideoStream ? 'status-connected' : 'status-disconnected'}`;
+            
+            document.getElementById('audioStatus').textContent = hasAudioStream ? '已接收' : '未接收';
+            document.getElementById('audioStatus').className = `status-value ${hasAudioStream ? 'status-connected' : 'status-disconnected'}`;
             
             document.getElementById('peerDevice').textContent = peerDeviceId || '未连接';
             document.getElementById('role').textContent = role || '未分配';
@@ -618,11 +688,13 @@
                     setupDataChannel(channel);
                 };
 
-                // 视频轨道接收事件
+                // 音视频轨道接收事件
                 pc.ontrack = function(event) {
-                    log(`收到远程视频轨道: ${event.track.kind}`, 'webrtc');
+                    log(`收到远程轨道: ${event.track.kind}`, 'webrtc');
                     
                     if (event.track.kind === 'video') {
+                        hasVideoStream = true;
+                        
                         // 显示视频面板
                         const videoPanel = document.getElementById('videoPanel');
                         const videoContainer = document.getElementById('videoContainer');
@@ -645,6 +717,34 @@
                         videoContainer.appendChild(videoElement);
                         
                         log('视频流已添加到页面', 'webrtc');
+                        updateStatus();
+                        
+                    } else if (event.track.kind === 'audio') {
+                        hasAudioStream = true;
+                        
+                        // 显示音频面板
+                        const audioPanel = document.getElementById('audioPanel');
+                        const audioContainer = document.getElementById('audioContainer');
+                        audioPanel.style.display = 'block';
+                        
+                        // 获取或创建音频元素
+                        audioElement = document.getElementById('audioElement');
+                        if (!audioElement) {
+                            audioElement = document.createElement('audio');
+                            audioElement.id = 'audioElement';
+                            audioElement.controls = true;
+                            audioElement.autoplay = true;
+                            audioElement.style.width = '100%';
+                            audioElement.style.maxWidth = '400px';
+                            audioElement.style.marginTop = '10px';
+                            audioContainer.appendChild(audioElement);
+                        }
+                        
+                        // 设置音频流
+                        audioElement.srcObject = event.streams[0];
+                        
+                        log('音频流已添加到页面', 'webrtc');
+                        updateStatus();
                     }
                 };
 
@@ -862,10 +962,21 @@
                 videoElement = null;
             }
             
-            // 隐藏视频面板
-            const videoPanel = document.getElementById('videoPanel');
-            videoPanel.style.display = 'none';
+            if (audioElement) {
+                audioElement.pause();
+                audioElement.srcObject = null;
+                audioElement = null;
+            }
             
+            // 隐藏音视频面板
+            const videoPanel = document.getElementById('videoPanel');
+            const audioPanel = document.getElementById('audioPanel');
+            videoPanel.style.display = 'none';
+            audioPanel.style.display = 'none';
+            
+            // 重置状态
+            hasVideoStream = false;
+            hasAudioStream = false;
             connectionStatus = 'disconnected';
             peerDeviceId = '';
             role = '';

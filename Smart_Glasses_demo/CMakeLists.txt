@@ -100,13 +100,15 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
 pkg_check_modules(OPUS REQUIRED opus)
 pkg_check_modules(JSONCPP REQUIRED jsoncpp)
+pkg_check_modules(SAMPLERATE REQUIRED samplerate)
 find_package(WEBSOCKETPP REQUIRED)
 
 # Link libraries for opus and websocketpp
 target_link_libraries(main
     ${OPUS_LIBRARIES}
     ${PORTAUDIO_LIBRARIES}
-    ${JSONCPP_LIBRARIES}
+    ${JSONCPP_LIBRARIES} 
+    ${SAMPLERATE_LIBRARIES}
     ${WEBSOCKETPP_LIBRARIES}
     snowboy-detect-c-wrapper  
 )
@@ -197,21 +199,21 @@ target_include_directories(main PRIVATE
 set_target_properties(datachannel-static PROPERTIES
     CXX_STANDARD 17
     CXX_VISIBILITY_PRESET default
-)
+)   
 
 # 为 libdatachannel 设置编译定义
 target_compile_definitions(datachannel-static PRIVATE
-    RTC_STATIC=1
-    RTC_ENABLE_WEBSOCKET=1
-    RTC_ENABLE_MEDIA=1
-    USE_GNUTLS=0
-    USE_MBEDTLS=0
-    USE_NICE=0
-    RTC_SYSTEM_JUICE=0
-    RTC_SYSTEM_SRTP=0
-    RTC_SYSTEM_USRSCTP=0
-    RTC_SYSTEM_PLOG=0
-    RTC_SYSTEM_JSON=0
+    RTC_STATIC=1          # 静态链接模式
+    RTC_ENABLE_WEBSOCKET=1 # 启用WebSocket支持
+    RTC_ENABLE_MEDIA=1     # 启用媒体功能（音视频）
+    USE_GNUTLS=0          # 禁用GnuTLS加密库
+    USE_MBEDTLS=0         # 禁用mbedTLS加密库
+    USE_NICE=0            # 禁用libnice ICE库
+    RTC_SYSTEM_JUICE=0    # 使用内置的juice ICE实现
+    RTC_SYSTEM_SRTP=0     # 使用内置的SRTP实现
+    RTC_SYSTEM_USRSCTP=0  # 使用内置的SCTP实现
+    RTC_SYSTEM_PLOG=0     # 使用内置的日志库
+    RTC_SYSTEM_JSON=0     # 使用内置的JSON库
 )
 
 # 确保 libdatachannel 使用与主项目相同的工具链
