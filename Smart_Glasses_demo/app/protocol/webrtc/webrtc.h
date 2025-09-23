@@ -31,10 +31,10 @@ struct WebRTCConfig {
     // 数据通道配置
     std::string dataChannelLabel = "glasses_data_channel";
     
-    // 音频配置（预留）
+    // 音频配置
     struct AudioConfig {
         std::string codec = "opus";
-        int sampleRate = 16000;
+        int sampleRate = 48000;  
         int channels = 1;
         int bitrate = 32000;
     } audioConfig;

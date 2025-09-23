@@ -31,11 +31,19 @@ enum class ErrorCode {
     SERVER_ERROR = 1007         // 服务器错误
 };
 
+// 房间信息结构体
+struct RoomInfo {
+    std::string roomId;        // 房间ID
+    int num;                   // 房间人数
+    std::string roomStatus;    // 房间状态 (open/close)
+};
+
 // 回调函数类型定义
 using MessageCallback = std::function<void(const nlohmann::json&)>;
 using ErrorCallback = std::function<void(ErrorCode, const std::string&)>;
 using StatusCallback = std::function<void(ConnectionStatus)>;
 using WebRTCReadyCallback = std::function<void(const std::string& role, const std::string& peerDeviceId)>;
+using RoomInfoCallback = std::function<void(const RoomInfo&)>;
 
 /**
  * 信令类 - 负责WebRTC连接建立前的所有信令通信
@@ -109,6 +117,7 @@ public:
     const std::string& getDeviceId() const { return deviceId_; }
     const std::string& getPeerDeviceId() const { return peerDeviceId_; }
     const std::string& getRole() const { return role_; }
+    const RoomInfo& getRoomInfo() const { return roomInfo_; }
     bool isConnected() const { return status_ != ConnectionStatus::DISCONNECTED; }
     bool isPaired() const { return status_ == ConnectionStatus::PAIRED; }
 
@@ -118,6 +127,7 @@ public:
     void onAnswerReceived(MessageCallback callback) { answerCallback_ = callback; }
     void onIceCandidateReceived(MessageCallback callback) { iceCandidateCallback_ = callback; }
     void onWebRTCReady(WebRTCReadyCallback callback) { webrtcReadyCallback_ = callback; }
+    void onRoomInfoChanged(RoomInfoCallback callback) { roomInfoCallback_ = callback; }
     void onError(ErrorCallback callback) { errorCallback_ = callback; }
 
 private:
@@ -127,6 +137,7 @@ private:
     void handleOfferMessage(const nlohmann::json& msg);
     void handleAnswerMessage(const nlohmann::json& msg);
     void handleIceMessage(const nlohmann::json& msg);
+    void handleInfoMessage(const nlohmann::json& msg);
     void handleErrorMessage(const nlohmann::json& msg);
     
     // ========== 内部工具方法 ==========
@@ -144,12 +155,15 @@ private:
     ConnectionStatus status_;           // 连接状态
     std::shared_ptr<rtc::WebSocket> ws_; // WebSocket连接
     
+    RoomInfo roomInfo_;                 // 房间信息
+    
     // 回调函数存储
     StatusCallback statusCallback_;
     MessageCallback offerCallback_;
     MessageCallback answerCallback_;
     MessageCallback iceCandidateCallback_;
     WebRTCReadyCallback webrtcReadyCallback_;
+    RoomInfoCallback roomInfoCallback_;
     ErrorCallback errorCallback_;
 };
 

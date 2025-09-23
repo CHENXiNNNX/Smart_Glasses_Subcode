@@ -470,7 +470,7 @@ void WebRTCManager::setupAudioTrack() {
             2,  // SSRC
             "audio",  // CNAME 
             111,  // payload type
-            16000
+            rtc::OpusRtpPacketizer::DefaultClockRate  // 48000Hz 
         );
         
         // 创建Opus RTP封装器

@@ -12,7 +12,13 @@ Signaling::Signaling(const std::string& deviceId, const std::string& serverUrl)
     , status_(ConnectionStatus::DISCONNECTED)
     , ws_(nullptr) {
     
+    // 初始化房间信息
+    roomInfo_.roomId = extractRoomId(deviceId);
+    roomInfo_.num = 0;
+    roomInfo_.roomStatus = "close";
+    
     std::cout << "[Signaling] 初始化信令客户端: " << deviceId_ << std::endl;
+    std::cout << "[Signaling] 房间ID: " << roomInfo_.roomId << std::endl;
 }
 
 Signaling::~Signaling() {
@@ -51,6 +57,10 @@ bool Signaling::connect() {
             setStatus(ConnectionStatus::DISCONNECTED);
             peerDeviceId_.clear();
             role_.clear();
+            
+            // 重置房间信息
+            roomInfo_.num = 0;
+            roomInfo_.roomStatus = "close";
         });
 
         // 设置错误回调
@@ -87,6 +97,10 @@ void Signaling::disconnect() {
     setStatus(ConnectionStatus::DISCONNECTED);
     peerDeviceId_.clear();
     role_.clear();
+    
+    // 重置房间信息
+    roomInfo_.num = 0;
+    roomInfo_.roomStatus = "close";
 }
 
 bool Signaling::joinRoom() {
@@ -105,6 +119,7 @@ bool Signaling::joinRoom() {
 
     if (sendMessage(message)) {
         std::cout << "[Signaling] 发送加入房间消息" << std::endl;
+        setStatus(ConnectionStatus::JOINED);
         return true;
     }
     
@@ -226,6 +241,8 @@ void Signaling::handleMessage(const std::string& message) {
             handleAnswerMessage(msg);
         } else if (type == "ice") {
             handleIceMessage(msg);
+        } else if (type == "info") {
+            handleInfoMessage(msg);
         } else if (type == "error") {
             handleErrorMessage(msg);
         } else {
@@ -285,6 +302,53 @@ void Signaling::handleIceMessage(const json& msg) {
     
     if (iceCandidateCallback_) {
         iceCandidateCallback_(msg);
+    }
+}
+
+void Signaling::handleInfoMessage(const json& msg) {
+    if (!msg.contains("data")) {
+        std::cout << "[Signaling] 房间信息消息缺少data字段" << std::endl;
+        return;
+    }
+
+    auto data = msg["data"];
+    
+    // 更新房间信息
+    if (data.contains("room_id")) {
+        roomInfo_.roomId = data["room_id"].get<std::string>();
+    }
+    
+    if (data.contains("num")) {
+        roomInfo_.num = data["num"].get<int>();
+    }
+    
+    if (data.contains("room_status")) {
+        roomInfo_.roomStatus = data["room_status"].get<std::string>();
+    }
+
+    std::cout << "[Signaling] 房间信息更新 - 房间ID: " << roomInfo_.roomId 
+              << ", 人数: " << roomInfo_.num 
+              << ", 状态: " << roomInfo_.roomStatus << std::endl;
+
+    // 根据房间信息更新连接状态
+    if (roomInfo_.roomStatus == "open" && roomInfo_.num == 2) {
+        // 房间已配对，但如果当前状态还不是PAIRED，说明还在等待角色分配
+        if (status_ == ConnectionStatus::JOINED) {
+            std::cout << "[Signaling] 房间已配对，等待角色分配..." << std::endl;
+        }
+    } else if (roomInfo_.roomStatus == "close") {
+        // 房间关闭或只有一个人
+        if (status_ == ConnectionStatus::PAIRED) {
+            std::cout << "[Signaling] 房间状态变为关闭，重置为已加入状态" << std::endl;
+            setStatus(ConnectionStatus::JOINED);
+            peerDeviceId_.clear();
+            role_.clear();
+        }
+    }
+
+    // 触发房间信息变动回调
+    if (roomInfoCallback_) {
+        roomInfoCallback_(roomInfo_);
     }
 }
 

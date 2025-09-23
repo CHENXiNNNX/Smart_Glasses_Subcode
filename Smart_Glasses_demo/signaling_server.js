@@ -80,6 +80,9 @@ class RoomManager {
         
         console.log(`[INFO] 客户端 ${deviceId} 加入房间: ${roomId}`);
 
+        // 发送房间信息变动通知
+        this.sendRoomInfo(room);
+
         // 如果房间满了，进行配对
         if (room.connections.length === 2) {
             this.pairClients(room);
@@ -113,6 +116,9 @@ class RoomManager {
         this.sendRoleMessage(client1, client2.deviceId);
         this.sendRoleMessage(client2, client1.deviceId);
 
+        // 发送配对后的房间信息变动通知
+        this.sendRoomInfo(room);
+
         console.log(`[INFO] 房间 ${room.id} 配对成功: ${client1.deviceId} <-> ${client2.deviceId}`);
     }
 
@@ -128,6 +134,32 @@ class RoomManager {
         };
         
         this.sendMessage(connection, message);
+    }
+
+    // 发送房间信息变动消息
+    sendRoomInfo(room) {
+        if (!room || room.connections.length === 0) return;
+
+        const roomInfo = {
+            room_id: room.id,
+            num: room.connections.length,
+            room_status: room.status === ROOM_STATUS.PAIRED ? 'open' : 'close'
+        };
+
+        // 向房间内所有客户端发送房间信息
+        room.connections.forEach(connection => {
+            const message = {
+                type: 'info',
+                device_id: connection.deviceId,
+                from: 'server',
+                to: connection.deviceId,
+                data: roomInfo,
+                time: this.getCurrentTimestamp()
+            };
+            
+            this.sendMessage(connection, message);
+            console.log(`[INFO] 发送房间信息给 ${connection.deviceId}: 房间${room.id}, 人数${roomInfo.num}, 状态${roomInfo.room_status}`);
+        });
     }
 
     // 离开房间
@@ -159,6 +191,9 @@ class RoomManager {
             remainingClient.status = CONNECTION_STATUS.JOINED;
             delete remainingClient.role;
             
+            // 发送房间信息变动通知（房间状态变为等待）
+            this.sendRoomInfo(room);
+            
             // 重新设置房间超时
             room.timeout = setTimeout(() => {
                 this.handleRoomTimeout(connection.roomId);
@@ -176,6 +211,10 @@ class RoomManager {
         if (!room) return;
 
         console.log(`[INFO] 房间 ${roomId} 超时，踢出所有客户端`);
+
+        // 发送房间关闭信息变动通知
+        room.status = ROOM_STATUS.TIMEOUT;
+        this.sendRoomInfo(room);
 
         // 通知所有客户端房间超时
         room.connections.forEach(connection => {
