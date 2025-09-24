@@ -407,9 +407,6 @@ SCTP_DEBUG:BOOL=OFF
 //Build with mbedtls sha1 support.
 SCTP_USE_MBEDTLS_SHA1:BOOL=OFF
 
-//The directory containing a CMake configuration file for SPEEXDSP.
-SPEEXDSP_DIR:PATH=SPEEXDSP_DIR-NOTFOUND
-
 //Value Computed by CMake
 SmartGlasses_BINARY_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build
 
@@ -462,7 +459,7 @@ WARNINGS_AS_ERRORS:BOOL=OFF
 WEBSOCKETPP_DIR:PATH=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib32/cmake/websocketpp
 
 //Dependencies for the target
-app_LIB_DEPENDS:STATIC=general;opencv_core;general;opencv_features2d;general;opencv_highgui;general;opencv_imgproc;general;opencv_photo;general;opencv_video;general;samplerate;
+app_LIB_DEPENDS:STATIC=general;opencv_core;general;opencv_features2d;general;opencv_highgui;general;opencv_imgproc;general;opencv_photo;general;opencv_video;general;samplerate;general;speexdsp;
 
 //Dependencies for the target
 common_LIB_DEPENDS:STATIC=general;opencv_core;general;opencv_features2d;general;opencv_highgui;general;opencv_imgproc;general;opencv_photo;general;opencv_video;
@@ -982,31 +979,6 @@ SAMPLERATE_samplerate_VERSION:INTERNAL=
 SIZEOF_UNSIGNED_LONG:INTERNAL=4
 //CHECK_TYPE_SIZE: sizeof(unsigned long long)
 SIZEOF_UNSIGNED_LONG_LONG:INTERNAL=8
-SPEEXDSP_CFLAGS:INTERNAL=
-SPEEXDSP_CFLAGS_I:INTERNAL=
-SPEEXDSP_CFLAGS_OTHER:INTERNAL=
-SPEEXDSP_FOUND:INTERNAL=
-SPEEXDSP_INCLUDEDIR:INTERNAL=
-SPEEXDSP_LIBDIR:INTERNAL=
-SPEEXDSP_LIBS:INTERNAL=
-SPEEXDSP_LIBS_L:INTERNAL=
-SPEEXDSP_LIBS_OTHER:INTERNAL=
-SPEEXDSP_LIBS_PATHS:INTERNAL=
-SPEEXDSP_MODULE_NAME:INTERNAL=
-SPEEXDSP_PREFIX:INTERNAL=
-SPEEXDSP_STATIC_CFLAGS:INTERNAL=
-SPEEXDSP_STATIC_CFLAGS_I:INTERNAL=
-SPEEXDSP_STATIC_CFLAGS_OTHER:INTERNAL=
-SPEEXDSP_STATIC_LIBDIR:INTERNAL=
-SPEEXDSP_STATIC_LIBS:INTERNAL=
-SPEEXDSP_STATIC_LIBS_L:INTERNAL=
-SPEEXDSP_STATIC_LIBS_OTHER:INTERNAL=
-SPEEXDSP_STATIC_LIBS_PATHS:INTERNAL=
-SPEEXDSP_VERSION:INTERNAL=
-SPEEXDSP_speexdsp_INCLUDEDIR:INTERNAL=
-SPEEXDSP_speexdsp_LIBDIR:INTERNAL=
-SPEEXDSP_speexdsp_PREFIX:INTERNAL=
-SPEEXDSP_speexdsp_VERSION:INTERNAL=
 //CHECK_TYPE_SIZE: sizeof(uint16_t)
 UINT16_T:INTERNAL=2
 //CHECK_TYPE_SIZE: sizeof(uint32_t)

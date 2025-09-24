@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <portaudio.h>
 #include <samplerate.h>
+#include <speex/speex_preprocess.h>
 #include "../media_config.h"
 #include "../../../common/common.h"
 #include "../../protocol/websocket/websocket.h"
@@ -44,6 +45,20 @@ typedef struct {
     bool is_initialized;        // 初始化状态
 } audio_resample_t;
 
+// 3A算法参数结构体
+typedef struct {
+    bool denoise_enabled;       // 降噪功能开关
+    bool agc_enabled;           // 自动增益控制开关
+    bool vad_enabled;           // 语音活动检测开关
+    bool dereverb_enabled;      // 去混响功能开关
+    float agc_level;            // AGC目标电平 (dB)
+    int noise_suppress_level;   // 噪声抑制级别 (dB)
+    int echo_suppress_level;    // 回声抑制级别 (dB)
+    int agc_increment;          // AGC增益增加速度 (dB/秒)
+    int agc_decrement;          // AGC增益减少速度 (dB/秒)
+    int agc_max_gain;           // AGC最大增益 (dB)
+} audio_3a_config_t;
+
 // 统一结构体管理audio_system_t
 typedef struct {
     // 音频参数
@@ -73,6 +88,10 @@ typedef struct {
     
     // 重采样配置
     audio_resample_t resample_config;
+    
+    // 3A算法配置和状态
+    audio_3a_config_t a3_config;     // 3A算法配置参数
+    SpeexPreprocessState* a3_state;  // Speex预处理状态
     
     #if USE_WEBRTC
     // WebRTC相关资源
@@ -147,6 +166,12 @@ audio_error_t init_audio_resample(audio_system_t *audio_system, int input_rate, 
 audio_error_t process_audio_resample(audio_system_t *audio_system, const std::vector<int16_t>& input_data, std::vector<int16_t>& output_data);
 audio_error_t release_audio_resample(audio_system_t *audio_system);
 bool is_resample_initialized(audio_system_t *audio_system);
+
+// 3A算法相关函数
+audio_error_t init_audio_3a(audio_system_t *audio_system);
+audio_error_t release_audio_3a(audio_system_t *audio_system);
+audio_error_t process_audio_3a(audio_system_t *audio_system, std::vector<int16_t>& audio_frame);
+audio_error_t configure_audio_3a(audio_system_t *audio_system, const audio_3a_config_t* config);
 
 #if USE_RTSP
 // 暂留空实现

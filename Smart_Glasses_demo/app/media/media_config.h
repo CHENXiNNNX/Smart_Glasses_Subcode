@@ -25,5 +25,17 @@
 #define AUDIO_FRAME_DURATION_MS 20
 #define AUDIO_FRAME_SIZE (AUDIO_SAMPLE_RATE / 1000 * AUDIO_FRAME_DURATION_MS) * AUDIO_CHANNELS
 
+// 音频3A算法配置参数
+#define AUDIO_DENOISE_ENABLED true           // 降噪功能开关
+#define AUDIO_AGC_ENABLED true               // 自动增益控制开关
+#define AUDIO_VAD_ENABLED false              // 语音活动检测开关
+#define AUDIO_DEREVERB_ENABLED true          // 去混响功能开关
+#define AUDIO_AGC_LEVEL 8000.0f              // AGC目标电平 (dB): 范围1000.0-32768.0
+#define AUDIO_NOISE_SUPPRESS_LEVEL -45       // 噪声抑制级别 (dB): 范围-30至0, 值越小抑制越强,
+#define AUDIO_ECHO_SUPPRESS_LEVEL -40        // 回声抑制级别 (dB): 范围-90至0, 值越小抑制越强
+#define AUDIO_AGC_INCREMENT 12               // AGC增益增加速度 (dB/秒): 范围0-30
+#define AUDIO_AGC_DECREMENT -40              // AGC增益减少速度 (dB/秒): 范围-90至0
+#define AUDIO_AGC_MAX_GAIN 10                // AGC最大增益 (dB): 范围0-60
+
 
 #endif // MEDIA__CONFIG_H

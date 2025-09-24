@@ -14,6 +14,10 @@ set(CMAKE_SYSROOT ${SDK_PATH}/sysdrv/source/buildroot/buildroot-2023.02.6/output
 # Add paths to find libraries and includes
 set(CMAKE_FIND_ROOT_PATH ${CMAKE_SYSROOT})
 
+# 添加Speex库和头文件路径
+set(SPEEX_INCLUDE_DIRS ${SDK_PATH}/sysdrv/source/buildroot/buildroot-2023.02.6/output/build/speexdsp-1.2.1/include)
+set(SPEEX_LIBRARY_DIRS ${SDK_PATH}/sysdrv/out/rootfs_uclibc_rv1106/usr/lib)
+
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)

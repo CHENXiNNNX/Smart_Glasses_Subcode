@@ -20,6 +20,11 @@ static int recordCallback(const void *inputBuffer, void *outputBuffer,
     std::vector<int16_t> frame(framesPerBuffer * audio_system->channels);
     std::copy(input, input + framesPerBuffer * audio_system->channels, frame.begin());
 
+    // 应用3A算法处理
+    if (audio_system->a3_state) {
+        process_audio_3a(audio_system, frame);
+    }
+
     {
         std::lock_guard<std::mutex> lock(audio_system->recordedAudioMutex);
 
@@ -121,6 +126,19 @@ audio_error_t audio_system_init(audio_system_t *audio_system) {
     audio_system->resample_config.src_state = nullptr;
     audio_system->resample_config.is_initialized = false;
     
+    // 初始化3A算法配置参数
+    audio_system->a3_config.denoise_enabled = AUDIO_DENOISE_ENABLED;
+    audio_system->a3_config.agc_enabled = AUDIO_AGC_ENABLED;
+    audio_system->a3_config.vad_enabled = AUDIO_VAD_ENABLED;
+    audio_system->a3_config.dereverb_enabled = AUDIO_DEREVERB_ENABLED;
+    audio_system->a3_config.agc_level = AUDIO_AGC_LEVEL;  // 目标电平
+    audio_system->a3_config.noise_suppress_level = AUDIO_NOISE_SUPPRESS_LEVEL;  // 噪声抑制级别 (dB)
+    audio_system->a3_config.echo_suppress_level = AUDIO_ECHO_SUPPRESS_LEVEL;   // 回声抑制级别 (dB)
+    audio_system->a3_config.agc_increment = AUDIO_AGC_INCREMENT;   // AGC增益增加速度 (dB/秒)
+    audio_system->a3_config.agc_decrement = AUDIO_AGC_DECREMENT;  // AGC增益减少速度 (dB/秒)
+    audio_system->a3_config.agc_max_gain = AUDIO_AGC_MAX_GAIN;    // AGC最大增益 (dB)
+    audio_system->a3_state = nullptr;
+    
     #if USE_WEBRTC
     // WebRTC相关初始化
     audio_system->webrtc_manager = nullptr;
@@ -166,6 +184,9 @@ audio_error_t audio_system_deinit(audio_system_t *audio_system) {
 
     // 释放Opus编解码器
     release_opus_codec(audio_system);
+
+    // 释放3A算法资源
+    release_audio_3a(audio_system);
 
     // 终止PortAudio
     PaError err = Pa_Terminate();
@@ -227,6 +248,13 @@ audio_error_t start_recording(audio_system_t *audio_system) {
         return AUDIO_ERROR_MODE_CONFLICT;
     }
 
+    // 初始化3A算法
+    audio_error_t a3_err = init_audio_3a(audio_system);
+    if (a3_err != AUDIO_ERROR_NONE) {
+        std::cerr << "Failed to initialize 3A algorithms" << std::endl;
+        return a3_err;
+    }
+
     PaError err;
 
     // 配置音频流参数
@@ -234,6 +262,7 @@ audio_error_t start_recording(audio_system_t *audio_system) {
     inputParameters.device = Pa_GetDefaultInputDevice();
     if (inputParameters.device == paNoDevice) {
         std::cerr << "No default input device found." << std::endl;
+        release_audio_3a(audio_system);
         return AUDIO_ERROR_DEVICE_NOT_FOUND;
     }
     inputParameters.channelCount = audio_system->channels;       // 通道数
@@ -252,6 +281,7 @@ audio_error_t start_recording(audio_system_t *audio_system) {
                         audio_system);
     if (err != paNoError) {
         std::cerr << "Error opening recordStream: " << Pa_GetErrorText(err) << std::endl;
+        release_audio_3a(audio_system);
         return AUDIO_ERROR_STREAM_OPEN_FAILED;
     }
 
@@ -261,6 +291,7 @@ audio_error_t start_recording(audio_system_t *audio_system) {
         std::cerr << "Error starting recordStream: " << Pa_GetErrorText(err) << std::endl;
         Pa_CloseStream(audio_system->recordStream);
         audio_system->recordStream = nullptr;
+        release_audio_3a(audio_system);
         return AUDIO_ERROR_STREAM_START_FAILED;
     }
 
@@ -294,6 +325,9 @@ audio_error_t stop_recording(audio_system_t *audio_system) {
         std::cerr << "Error closing recordStream: " << Pa_GetErrorText(err) << std::endl;
         return AUDIO_ERROR_STREAM_OPEN_FAILED;
     }
+
+    // 释放3A算法资源
+    release_audio_3a(audio_system);
 
     audio_system->recordStream = nullptr;
     audio_system->isRecording = false;
@@ -936,3 +970,107 @@ audio_error_t set_webrtc_audio_callback(audio_system_t *audio_system, void *webr
     return AUDIO_ERROR_NONE;
 }
 #endif
+
+// 3A算法初始化函数
+audio_error_t init_audio_3a(audio_system_t *audio_system) {
+    if (!audio_system) {
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+    
+    // 计算每帧样本数
+    int frame_size = audio_system->sample_rate * audio_system->frame_duration_ms / 1000;
+    
+    // 初始化Speex预处理状态
+    audio_system->a3_state = speex_preprocess_state_init(frame_size, audio_system->sample_rate);
+    if (!audio_system->a3_state) {
+        std::cerr << "Failed to initialize Speex preprocessor" << std::endl;
+        return AUDIO_ERROR_INITIALIZE_FAILED;
+    }
+    
+    // 配置Speex预处理参数
+    configure_audio_3a(audio_system, &audio_system->a3_config);
+    
+    return AUDIO_ERROR_NONE;
+}
+
+// 3A算法释放函数
+audio_error_t release_audio_3a(audio_system_t *audio_system) {
+    if (!audio_system) {
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+    
+    if (audio_system->a3_state) {
+        speex_preprocess_state_destroy(audio_system->a3_state);
+        audio_system->a3_state = nullptr;
+    }
+    
+    return AUDIO_ERROR_NONE;
+}
+
+// 3A算法处理函数
+audio_error_t process_audio_3a(audio_system_t *audio_system, std::vector<int16_t>& audio_frame) {
+    if (!audio_system || !audio_system->a3_state || audio_frame.empty()) {
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+    
+    // 使用Speex预处理算法处理音频帧
+    speex_preprocess_run(audio_system->a3_state, audio_frame.data());
+    
+    return AUDIO_ERROR_NONE;
+}
+
+// 3A算法配置函数
+audio_error_t configure_audio_3a(audio_system_t *audio_system, const audio_3a_config_t* config) {
+    if (!audio_system || !audio_system->a3_state || !config) {
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+    
+    // 配置降噪
+    int denoise_enabled = config->denoise_enabled ? 1 : 0;
+    speex_preprocess_ctl(audio_system->a3_state, SPEEX_PREPROCESS_SET_DENOISE, &denoise_enabled);
+    
+    if (config->denoise_enabled) {
+        int noise_suppress_level = config->noise_suppress_level;
+        speex_preprocess_ctl(audio_system->a3_state, SPEEX_PREPROCESS_SET_NOISE_SUPPRESS, 
+                           &noise_suppress_level);
+    }
+    
+    // 配置AGC
+    int agc_enabled = config->agc_enabled ? 1 : 0;
+    speex_preprocess_ctl(audio_system->a3_state, SPEEX_PREPROCESS_SET_AGC, &agc_enabled);
+    
+    if (config->agc_enabled) {
+        // 设置AGC参数
+        float agc_level = config->agc_level;
+        speex_preprocess_ctl(audio_system->a3_state, SPEEX_PREPROCESS_SET_AGC_LEVEL, 
+                           &agc_level);
+        
+        int agc_increment = config->agc_increment;
+        speex_preprocess_ctl(audio_system->a3_state, SPEEX_PREPROCESS_SET_AGC_INCREMENT, 
+                           &agc_increment);
+        
+        int agc_decrement = config->agc_decrement;
+        speex_preprocess_ctl(audio_system->a3_state, SPEEX_PREPROCESS_SET_AGC_DECREMENT, 
+                           &agc_decrement);
+        
+        int agc_max_gain = config->agc_max_gain;
+        speex_preprocess_ctl(audio_system->a3_state, SPEEX_PREPROCESS_SET_AGC_MAX_GAIN, 
+                           &agc_max_gain);
+    }
+    
+    // 配置VAD
+    int vad_enabled = config->vad_enabled ? 1 : 0;
+    speex_preprocess_ctl(audio_system->a3_state, SPEEX_PREPROCESS_SET_VAD, &vad_enabled);
+    
+    // 配置去混响
+    int dereverb_enabled = config->dereverb_enabled ? 1 : 0;
+    speex_preprocess_ctl(audio_system->a3_state, SPEEX_PREPROCESS_SET_DEREVERB, &dereverb_enabled);
+    
+    if (config->dereverb_enabled) {
+        int echo_suppress_level = config->echo_suppress_level;
+        speex_preprocess_ctl(audio_system->a3_state, SPEEX_PREPROCESS_SET_DEREVERB_LEVEL, 
+                           &echo_suppress_level);
+    }
+    
+    return AUDIO_ERROR_NONE;
+}

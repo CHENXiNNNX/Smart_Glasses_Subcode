@@ -425,6 +425,32 @@
                 <p style="color: #666; margin: 0;">等待音频流...</p>
                 <audio id="audioElement" controls autoplay></audio>
             </div>
+            <div class="audio-controls" id="audioControls" style="margin-top: 15px; padding: 10px; background: #f0f0f0; border-radius: 5px; display: none;">
+                <h4 style="margin-top: 0;">音频处理设置</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label for="lowpassFreq">高频噪声过滤 (Hz):</label>
+                        <input type="range" id="lowpassFreq" min="1000" max="8000" step="100" value="3000" style="width: 100%;">
+                        <span id="lowpassFreqValue">3000</span>
+                    </div>
+                    <div>
+                        <label for="highpassFreq">低频噪声过滤 (Hz):</label>
+                        <input type="range" id="highpassFreq" min="50" max="1000" step="10" value="300" style="width: 100%;">
+                        <span id="highpassFreqValue">300</span>
+                    </div>
+                    <div>
+                        <label for="compressorThreshold">音量压缩阈值 (dB):</label>
+                        <input type="range" id="compressorThreshold" min="-60" max="-10" step="1" value="-24" style="width: 100%;">
+                        <span id="compressorThresholdValue">-24</span>
+                    </div>
+                    <div>
+                        <label for="gainValue">音量增益:</label>
+                        <input type="range" id="gainValue" min="0.5" max="3" step="0.1" value="1.2" style="width: 100%;">
+                        <span id="gainValueValue">1.2</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="resetAudioProcessingConfig()" style="margin-top: 10px;">重置默认设置</button>
+            </div>
         </div>
 
         <div class="log-container" id="logContainer">
@@ -441,6 +467,17 @@
     <script>
         // ========== 全局变量配置 ==========
         const DEVICE_ID = 'app_123456';  // APP端固定标识
+
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', function() {
+            // 初始化音频控制面板
+            initAudioControls();
+            
+            // 设置设备ID显示
+            document.getElementById('deviceId').textContent = DEVICE_ID;
+            
+            log('页面加载完成，等待连接...', 'info');
+        });
         const PEER_DEVICE_ID = 'glasses_123456';  // 设备端标识
         let SERVER_URL = 'ws://localhost:8000';
         
@@ -466,6 +503,77 @@
             channels: 1,        // 单声道
             codec: 'opus'      // Opus编码
         };
+
+        // 音频处理配置 - 用于降噪和音频增强
+        const AUDIO_PROCESSING_CONFIG = {
+            lowpassFrequency: 3000,    // 低通滤波器截止频率 (Hz)
+            highpassFrequency: 300,    // 高通滤波器截止频率 (Hz)
+            compressorThreshold: -24,  // 压缩器阈值 (dB)
+            compressorRatio: 12,       // 压缩比
+            gainValue: 1.2             // 增益值
+        };
+
+        // 初始化音频处理控制面板
+        function initAudioControls() {
+            // 获取所有滑块元素
+            const lowpassFreqSlider = document.getElementById('lowpassFreq');
+            const highpassFreqSlider = document.getElementById('highpassFreq');
+            const compressorThresholdSlider = document.getElementById('compressorThreshold');
+            const gainValueSlider = document.getElementById('gainValue');
+            
+            // 设置初始值显示
+            document.getElementById('lowpassFreqValue').textContent = lowpassFreqSlider.value;
+            document.getElementById('highpassFreqValue').textContent = highpassFreqSlider.value;
+            document.getElementById('compressorThresholdValue').textContent = compressorThresholdSlider.value;
+            document.getElementById('gainValueValue').textContent = gainValueSlider.value;
+            
+            // 添加事件监听器
+            lowpassFreqSlider.addEventListener('input', function() {
+                AUDIO_PROCESSING_CONFIG.lowpassFrequency = parseInt(this.value);
+                document.getElementById('lowpassFreqValue').textContent = this.value;
+                log(`低通滤波器频率设置为: ${this.value}Hz`, 'info');
+            });
+            
+            highpassFreqSlider.addEventListener('input', function() {
+                AUDIO_PROCESSING_CONFIG.highpassFrequency = parseInt(this.value);
+                document.getElementById('highpassFreqValue').textContent = this.value;
+                log(`高通滤波器频率设置为: ${this.value}Hz`, 'info');
+            });
+            
+            compressorThresholdSlider.addEventListener('input', function() {
+                AUDIO_PROCESSING_CONFIG.compressorThreshold = parseInt(this.value);
+                document.getElementById('compressorThresholdValue').textContent = this.value;
+                log(`压缩器阈值设置为: ${this.value}dB`, 'info');
+            });
+            
+            gainValueSlider.addEventListener('input', function() {
+                AUDIO_PROCESSING_CONFIG.gainValue = parseFloat(this.value);
+                document.getElementById('gainValueValue').textContent = this.value;
+                log(`增益值设置为: ${this.value}`, 'info');
+            });
+        }
+
+        // 重置音频处理配置为默认值
+        function resetAudioProcessingConfig() {
+            AUDIO_PROCESSING_CONFIG.lowpassFrequency = 3000;
+            AUDIO_PROCESSING_CONFIG.highpassFrequency = 300;
+            AUDIO_PROCESSING_CONFIG.compressorThreshold = -24;
+            AUDIO_PROCESSING_CONFIG.compressorRatio = 12;
+            AUDIO_PROCESSING_CONFIG.gainValue = 1.2;
+            
+            // 更新滑块位置和显示值
+            document.getElementById('lowpassFreq').value = 3000;
+            document.getElementById('highpassFreq').value = 300;
+            document.getElementById('compressorThreshold').value = -24;
+            document.getElementById('gainValue').value = 1.2;
+            
+            document.getElementById('lowpassFreqValue').textContent = '3000';
+            document.getElementById('highpassFreqValue').textContent = '300';
+            document.getElementById('compressorThresholdValue').textContent = '-24';
+            document.getElementById('gainValueValue').textContent = '1.2';
+            
+            log('音频处理配置已重置为默认值', 'info');
+        }
 
         // WebRTC配置 - 支持双向音频+单向视频
         const rtcConfig = {
@@ -810,7 +918,7 @@
             updateStatus();
         }
         
-        // 处理音频轨道（双向音频通信）
+        // 处理音频轨道（双向音频通信）- 添加音频处理功能减少杂音
         function handleAudioTrack(event) {
             hasAudioStream = true;
             
@@ -832,10 +940,68 @@
                 audioContainer.appendChild(audioElement);
             }
             
-            // 设置音频流
-            audioElement.srcObject = event.streams[0];
+            // 显示音频处理控制面板
+            const audioControls = document.getElementById('audioControls');
+            audioControls.style.display = 'block';
             
-            log(`音频流已添加到页面 (${AUDIO_CONFIG.sampleRate}Hz Opus编码)`, 'webrtc');
+            // 使用Web Audio API处理音频流以减少杂音
+            try {
+                // 创建AudioContext
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const audioContext = new AudioContext();
+                
+                // 创建音频源
+                const source = audioContext.createMediaStreamSource(event.streams[0]);
+                
+                // 创建降噪处理链
+                let currentNode = source;
+                
+                // 1. 低通滤波器 - 过滤高频噪声
+                const lowpassFilter = audioContext.createBiquadFilter();
+                lowpassFilter.type = 'lowpass';
+                lowpassFilter.frequency.value = AUDIO_PROCESSING_CONFIG.lowpassFrequency; // 使用配置的截止频率
+                lowpassFilter.Q.value = 1.0;
+                currentNode.connect(lowpassFilter);
+                currentNode = lowpassFilter;
+                
+                // 2. 高通滤波器 - 过滤低频噪声（如风声、嗡嗡声）
+                const highpassFilter = audioContext.createBiquadFilter();
+                highpassFilter.type = 'highpass';
+                highpassFilter.frequency.value = AUDIO_PROCESSING_CONFIG.highpassFrequency; // 使用配置的截止频率
+                highpassFilter.Q.value = 1.0;
+                currentNode.connect(highpassFilter);
+                currentNode = highpassFilter;
+                
+                // 3. 动态压缩器 - 减少音量波动，增强语音清晰度
+                const compressor = audioContext.createDynamicsCompressor();
+                compressor.threshold.value = AUDIO_PROCESSING_CONFIG.compressorThreshold; // 使用配置的阈值
+                compressor.knee.value = 30;          // 膝点
+                compressor.ratio.value = AUDIO_PROCESSING_CONFIG.compressorRatio;        // 使用配置的压缩比
+                compressor.attack.value = 0.003;     // 攻击时间
+                compressor.release.value = 0.25;     // 释放时间
+                currentNode.connect(compressor);
+                currentNode = compressor;
+                
+                // 4. 增益控制 - 调整输出音量
+                const gainNode = audioContext.createGain();
+                gainNode.gain.value = AUDIO_PROCESSING_CONFIG.gainValue; // 使用配置的增益值
+                currentNode.connect(gainNode);
+                currentNode = gainNode;
+                
+                // 连接到音频输出
+                currentNode.connect(audioContext.destination);
+                
+                // 同时将音频流连接到audio元素以便播放
+                audioElement.srcObject = event.streams[0];
+                
+                log(`音频流已添加到页面 (${AUDIO_CONFIG.sampleRate}Hz Opus编码) 并启用高级降噪处理`, 'webrtc');
+            } catch (error) {
+                // 如果Web Audio API不可用，回退到原始方法
+                console.warn('Web Audio API不可用，使用原始音频处理:', error);
+                audioElement.srcObject = event.streams[0];
+                log(`音频流已添加到页面 (${AUDIO_CONFIG.sampleRate}Hz Opus编码)`, 'webrtc');
+            }
+            
             updateStatus();
         }
         
@@ -1045,11 +1211,13 @@
                 audioElement = null;
             }
             
-            // 隐藏音视频面板
+            // 隐藏音视频面板和音频控制面板
             const videoPanel = document.getElementById('videoPanel');
             const audioPanel = document.getElementById('audioPanel');
+            const audioControls = document.getElementById('audioControls');
             videoPanel.style.display = 'none';
             audioPanel.style.display = 'none';
+            audioControls.style.display = 'none';
             
             // 重置状态
             hasVideoStream = false;
@@ -1084,11 +1252,13 @@
                 audioElement = null;
             }
             
-            // 隐藏音视频面板
+            // 隐藏音视频面板和音频控制面板
             const videoPanel = document.getElementById('videoPanel');
             const audioPanel = document.getElementById('audioPanel');
+            const audioControls = document.getElementById('audioControls');
             videoPanel.style.display = 'none';
             audioPanel.style.display = 'none';
+            audioControls.style.display = 'none';
             
             // 重置状态
             hasVideoStream = false;

@@ -1,4 +1,4 @@
- # App module CMakeLists.txt
+# App module CMakeLists.txt
 
 # 收集当前目录及子目录中的所有代码文件
 file(GLOB_RECURSE APP_SOURCES
@@ -21,6 +21,11 @@ target_link_libraries(app ${OpenCV_LIBS})
 # samplerate 依赖
 include_directories(${SAMPLERATE_INCLUDE_DIRS})
 target_link_libraries(app ${SAMPLERATE_LIBRARIES})
+
+# speexdsp 依赖
+target_include_directories(app PRIVATE ${SPEEX_INCLUDE_DIRS})
+target_link_directories(app PRIVATE ${SPEEX_LIBRARY_DIRS})
+target_link_libraries(app speexdsp)
 
 # 设置头文件包含目录
 target_include_directories(app PUBLIC

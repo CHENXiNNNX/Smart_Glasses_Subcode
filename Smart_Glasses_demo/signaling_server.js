@@ -301,6 +301,104 @@ class RoomManager {
             }))
         };
     }
+
+    // 基于特定事件下发房间信息
+    sendRoomInfoByEvent(roomId, eventType, eventData = {}) {
+        const room = this.rooms.get(roomId);
+        if (!room || room.connections.length === 0) return;
+
+        console.log(`[INFO] 基于事件 ${eventType} 下发房间信息: ${roomId}`);
+
+        const roomInfo = {
+            room_id: room.id,
+            num: room.connections.length,
+            room_status: room.status === ROOM_STATUS.PAIRED ? 'open' : 'close',
+            event_type: eventType,
+            event_data: eventData,
+            timestamp: this.getCurrentTimestamp()
+        };
+
+        // 向房间内所有客户端发送
+        room.connections.forEach(connection => {
+            const message = {
+                type: 'info',
+                device_id: connection.deviceId,
+                from: 'server',
+                to: connection.deviceId,
+                data: roomInfo,
+                time: this.getCurrentTimestamp()
+            };
+            
+            this.sendMessage(connection, message);
+            console.log(`[INFO] 发送事件房间信息给 ${connection.deviceId}: 事件${eventType}, 房间${room.id}, 人数${roomInfo.num}, 状态${roomInfo.room_status}`);
+        });
+    }
+
+    // 客户端请求房间信息
+    sendRoomInfoOnRequest(connection) {
+        if (!connection.roomId) {
+            return this.sendError(connection, ERROR_CODES.ROOM_NOT_EXISTS, "未加入房间");
+        }
+
+        const room = this.rooms.get(connection.roomId);
+        if (!room) {
+            return this.sendError(connection, ERROR_CODES.ROOM_NOT_EXISTS, "房间不存在");
+        }
+
+        console.log(`[INFO] 客户端 ${connection.deviceId} 请求房间信息: ${connection.roomId}`);
+
+        const roomInfo = {
+            room_id: room.id,
+            num: room.connections.length,
+            room_status: room.status === ROOM_STATUS.PAIRED ? 'open' : 'close',
+            request_type: 'client_request',
+            timestamp: this.getCurrentTimestamp()
+        };
+
+        const message = {
+            type: 'info',
+            device_id: connection.deviceId,
+            from: 'server',
+            to: connection.deviceId,
+            data: roomInfo,
+            time: this.getCurrentTimestamp()
+        };
+        
+        this.sendMessage(connection, message);
+        console.log(`[INFO] 发送请求房间信息给 ${connection.deviceId}: 房间${room.id}, 人数${roomInfo.num}, 状态${roomInfo.room_status}`);
+    }
+
+    // 广播房间信息给指定房间
+    broadcastRoomInfo(roomId, customData = {}) {
+        const room = this.rooms.get(roomId);
+        if (!room || room.connections.length === 0) return;
+
+        console.log(`[INFO] 广播房间信息: ${roomId}`);
+
+        const roomInfo = {
+            room_id: room.id,
+            num: room.connections.length,
+            room_status: room.status === ROOM_STATUS.PAIRED ? 'open' : 'close',
+            broadcast_type: 'manual',
+            ...customData,
+            timestamp: this.getCurrentTimestamp()
+        };
+
+        // 向房间内所有客户端发送
+        room.connections.forEach(connection => {
+            const message = {
+                type: 'info',
+                device_id: connection.deviceId,
+                from: 'server',
+                to: connection.deviceId,
+                data: roomInfo,
+                time: this.getCurrentTimestamp()
+            };
+            
+            this.sendMessage(connection, message);
+            console.log(`[INFO] 广播房间信息给 ${connection.deviceId}: 房间${room.id}, 人数${roomInfo.num}, 状态${roomInfo.room_status}`);
+        });
+    }
 }
 
 // 创建HTTP服务器和WebSocket服务器
@@ -362,6 +460,32 @@ wss.on('connection', (ws, req) => {
                     roomManager.forwardMessage(connection, message);
                     break;
                     
+                case 'get_room_info':
+                    roomManager.sendRoomInfoOnRequest(connection);
+                    break;
+                    
+                case 'broadcast_room_info':
+                    // 处理广播房间信息请求（需要管理员权限或特殊验证）
+                    if (message.data && message.data.room_id) {
+                        roomManager.broadcastRoomInfo(message.data.room_id, message.data.custom_data || {});
+                    } else {
+                        roomManager.sendError(connection, ERROR_CODES.MESSAGE_FORMAT_ERROR, "广播房间信息需要指定room_id");
+                    }
+                    break;
+                    
+                case 'trigger_event':
+                    // 处理触发特定事件请求
+                    if (message.data && message.data.room_id && message.data.event_type) {
+                        eventManager.triggerCustomEvent(
+                            message.data.room_id, 
+                            message.data.event_type, 
+                            message.data.event_data || {}
+                        );
+                    } else {
+                        roomManager.sendError(connection, ERROR_CODES.MESSAGE_FORMAT_ERROR, "触发事件需要指定room_id和event_type");
+                    }
+                    break;
+                    
                 default:
                     roomManager.sendError(connection, ERROR_CODES.MESSAGE_FORMAT_ERROR, `未知消息类型: ${message.type}`);
                     break;
@@ -406,6 +530,132 @@ setInterval(() => {
     console.log(`[STATS] 房间数: ${stats.totalRooms}, 连接数: ${stats.totalConnections}`);
 }, 30000); // 每30秒输出一次
 
+// 基于特定事件的房间信息下发机制
+class EventManager {
+    constructor(roomManager) {
+        this.roomManager = roomManager;
+        this.eventListeners = new Map();
+        this.setupEventHandlers();
+    }
+
+    // 设置事件处理器
+    setupEventHandlers() {
+        // 定期房间状态检查事件
+        setInterval(() => {
+            this.triggerPeriodicRoomCheck();
+        }, 60000); // 每分钟检查一次
+
+        // WebRTC连接状态变化事件（模拟）
+        setInterval(() => {
+            this.triggerWebRTCStatusCheck();
+        }, 15000); // 每15秒检查一次WebRTC状态
+
+        // 网络质量检查事件
+        setInterval(() => {
+            this.triggerNetworkQualityCheck();
+        }, 30000); // 每30秒检查一次网络质量
+    }
+
+    // 定期房间状态检查
+    triggerPeriodicRoomCheck() {
+        console.log(`[EVENT] 触发定期房间状态检查`);
+        
+        this.roomManager.rooms.forEach((room, roomId) => {
+            if (room.connections.length > 0) {
+                this.roomManager.sendRoomInfoByEvent(roomId, 'periodic_check', {
+                    check_type: 'room_status',
+                    room_age: Date.now() - room.createdAt,
+                    last_check: Date.now()
+                });
+            }
+        });
+    }
+
+    // WebRTC连接状态检查
+    triggerWebRTCStatusCheck() {
+        console.log(`[EVENT] 触发WebRTC连接状态检查`);
+        
+        this.roomManager.rooms.forEach((room, roomId) => {
+            if (room.status === ROOM_STATUS.PAIRED && room.connections.length === 2) {
+                // 模拟WebRTC连接状态检查
+                const connectionQuality = this.simulateConnectionQuality();
+                
+                this.roomManager.sendRoomInfoByEvent(roomId, 'webrtc_status_check', {
+                    connection_quality: connectionQuality,
+                    ice_state: 'connected',
+                    data_channel_open: true,
+                    last_check: Date.now()
+                });
+            }
+        });
+    }
+
+    // 网络质量检查
+    triggerNetworkQualityCheck() {
+        console.log(`[EVENT] 触发网络质量检查`);
+        
+        this.roomManager.rooms.forEach((room, roomId) => {
+            if (room.connections.length > 0) {
+                const networkQuality = this.simulateNetworkQuality();
+                
+                this.roomManager.sendRoomInfoByEvent(roomId, 'network_quality_check', {
+                    latency: networkQuality.latency,
+                    bandwidth: networkQuality.bandwidth,
+                    packet_loss: networkQuality.packetLoss,
+                    last_check: Date.now()
+                });
+            }
+        });
+    }
+
+    // 模拟连接质量
+    simulateConnectionQuality() {
+        const qualities = ['excellent', 'good', 'fair', 'poor'];
+        return qualities[Math.floor(Math.random() * qualities.length)];
+    }
+
+    // 模拟网络质量
+    simulateNetworkQuality() {
+        return {
+            latency: Math.floor(Math.random() * 100) + 10, // 10-110ms
+            bandwidth: Math.floor(Math.random() * 5000) + 1000, // 1-6 Mbps
+            packetLoss: Math.random() * 0.05 // 0-5% packet loss
+        };
+    }
+
+    // 手动触发特定事件
+    triggerCustomEvent(roomId, eventType, eventData) {
+        if (this.roomManager.rooms.has(roomId)) {
+            this.roomManager.sendRoomInfoByEvent(roomId, eventType, eventData);
+            console.log(`[EVENT] 手动触发事件: ${eventType} for room: ${roomId}`);
+        } else {
+            console.log(`[EVENT] 房间不存在: ${roomId}`);
+        }
+    }
+
+    // 添加事件监听器
+    addEventListener(eventType, callback) {
+        if (!this.eventListeners.has(eventType)) {
+            this.eventListeners.set(eventType, []);
+        }
+        this.eventListeners.get(eventType).push(callback);
+    }
+
+    // 移除事件监听器
+    removeEventListener(eventType, callback) {
+        if (this.eventListeners.has(eventType)) {
+            const listeners = this.eventListeners.get(eventType);
+            const index = listeners.indexOf(callback);
+            if (index > -1) {
+                listeners.splice(index, 1);
+            }
+        }
+    }
+}
+
+// 创建事件管理器
+const eventManager = new EventManager(roomManager);
+
 // 优雅关闭处理
 process.on('SIGINT', () => {
     console.log('\n[INFO] 正在关闭服务器...');
@@ -423,4 +673,4 @@ process.on('SIGINT', () => {
     });
 });
 
-module.exports = { roomManager, wss, server };
+module.exports = { roomManager, eventManager, wss, server };
