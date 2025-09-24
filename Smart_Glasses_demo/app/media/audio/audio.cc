@@ -49,8 +49,10 @@ static int recordCallback(const void *inputBuffer, void *outputBuffer,
                     reinterpret_cast<uint8_t*>(frame.data()),
                     frame.size() * sizeof(int16_t),
                     opus_buffer, &opus_size) == AUDIO_ERROR_NONE) {
+            // 获取同步后的时间戳
+             uint64_t synced_timestamp = audio_system->sync_ctx ? sync_get_timestamp(audio_system->sync_ctx, get_nowus(), true) : get_nowus();
             // 调用WebRTC回调发送Opus数据
-            audio_system->webrtc_audio_callback(opus_buffer, opus_size, get_nowus());
+            audio_system->webrtc_audio_callback(opus_buffer, opus_size, synced_timestamp);
         }
     }
 #endif
@@ -101,7 +103,7 @@ static int playCallback(const void *inputBuffer, void *outputBuffer,
     return paContinue;
 }
 
-audio_error_t audio_system_init(audio_system_t *audio_system) {
+audio_error_t audio_system_init(audio_system_t *audio_system, sync_context_t *sync_ctx) {
     if (!audio_system) {
         return AUDIO_ERROR_INVALID_PARAM;
     }
@@ -117,6 +119,7 @@ audio_error_t audio_system_init(audio_system_t *audio_system) {
     audio_system->isRecording = false;
     audio_system->isPlaying = false;
     audio_system->current_mode = AUDIO_MODE_NONE;
+    audio_system->sync_ctx = sync_ctx;  // 设置时间同步上下文
     
     // 初始化重采样配置
     audio_system->resample_config.input_sample_rate = 0;

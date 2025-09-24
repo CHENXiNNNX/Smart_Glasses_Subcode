@@ -267,8 +267,11 @@ static void *stream_process_thread(void *arg) {
                                 offset += stFrame.pstPack[i].u32Len;
                             }
                     
+                            // 获取同步后的时间戳
+                             RK_U64 synced_timestamp = sys->sync_ctx ? sync_get_timestamp(sys->sync_ctx, stFrame.pstPack[0].u64PTS, false) : stFrame.pstPack[0].u64PTS;
+                            
                             // 调用 WebRTC 回调，保证完整一帧
-                            sys->webrtc_frame_callback(frameBuf, totalLen, stFrame.pstPack[0].u64PTS);
+                            sys->webrtc_frame_callback(frameBuf, totalLen, synced_timestamp);
                     
                             free(frameBuf);
                         }
@@ -303,7 +306,7 @@ static void *stream_process_thread(void *arg) {
 }
 
 // 初始化视频系统
-int init_video_system(video_system_t **sys, int width, int height, video_mode_t mode) {
+int init_video_system(video_system_t **sys, int width, int height, video_mode_t mode, sync_context_t *sync_ctx) {
     printf("[CAMERA] Init video system\n");
     
     // 停止RkLunch服务
@@ -326,6 +329,7 @@ int init_video_system(video_system_t **sys, int width, int height, video_mode_t 
     (*sys)->is_streaming = false;
     (*sys)->current_fps = 0;
     (*sys)->quit_flag = false;
+    (*sys)->sync_ctx = sync_ctx;  // 设置时间同步上下文
 
     // rtsp config
     #if USE_RTSP

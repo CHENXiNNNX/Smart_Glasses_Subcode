@@ -343,6 +343,30 @@ media/camera/test/test_camera.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/media/camera/test/test_camera.cc.s
 .PHONY : media/camera/test/test_camera.cc.s
 
+media/sync.o: media/sync.cc.o
+.PHONY : media/sync.o
+
+# target to build an object file
+media/sync.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/media/sync.cc.o
+.PHONY : media/sync.cc.o
+
+media/sync.i: media/sync.cc.i
+.PHONY : media/sync.i
+
+# target to preprocess a source file
+media/sync.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/media/sync.cc.i
+.PHONY : media/sync.cc.i
+
+media/sync.s: media/sync.cc.s
+.PHONY : media/sync.s
+
+# target to generate assembly for a file
+media/sync.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/media/sync.cc.s
+.PHONY : media/sync.cc.s
+
 protocol/webrtc/signaling.o: protocol/webrtc/signaling.cc.o
 .PHONY : protocol/webrtc/signaling.o
 
@@ -449,6 +473,9 @@ help:
 	@echo "... media/camera/test/test_camera.o"
 	@echo "... media/camera/test/test_camera.i"
 	@echo "... media/camera/test/test_camera.s"
+	@echo "... media/sync.o"
+	@echo "... media/sync.i"
+	@echo "... media/sync.s"
 	@echo "... protocol/webrtc/signaling.o"
 	@echo "... protocol/webrtc/signaling.i"
 	@echo "... protocol/webrtc/signaling.s"

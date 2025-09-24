@@ -7,6 +7,7 @@
 #include "app/protocol/webrtc/webrtc.h"
 #include "app/media/camera/camera.h"
 #include "app/media/audio/audio.h"
+#include "app/media/sync.h"
 #include <nlohmann/json.hpp>
 
 using namespace glasses::protocol;
@@ -21,6 +22,7 @@ std::shared_ptr<Signaling> signaling;
 std::shared_ptr<WebRTCManager> webrtcManager;
 video_system_t* video_system = nullptr;
 audio_system_t* audio_system = nullptr;
+sync_context_t sync_ctx;  // 时间同步上下文
 
 // 创建WebRTC配置
 WebRTCConfig createWebRTCConfig() {
@@ -150,10 +152,19 @@ int main(void) {
     // 初始化libdatachannel日志
     rtc::InitLogger(rtc::LogLevel::Info);
 
+    // 初始化时间同步模块
+    std::cout << "[Main] 初始化时间同步模块..." << std::endl;
+    if (sync_init(&sync_ctx) != 0) {
+        std::cout << "[Main] 时间同步模块初始化失败" << std::endl;
+        return -1;
+    }
+    std::cout << "[Main] 时间同步模块初始化成功" << std::endl;
+
     // 初始化视频系统
     std::cout << "[Main] 初始化视频系统..." << std::endl;
-    if (init_video_system(&video_system, CAMERA_WIDTH, CAMERA_HEIGHT, VIDEO_MODE_NONE) != 0) {
+    if (init_video_system(&video_system, CAMERA_WIDTH, CAMERA_HEIGHT, VIDEO_MODE_NONE, &sync_ctx) != 0) {
         std::cout << "[Main] 视频系统初始化失败" << std::endl;
+        sync_deinit(&sync_ctx);
         return -1;
     }
     std::cout << "[Main] 视频系统初始化成功" << std::endl;
@@ -161,7 +172,7 @@ int main(void) {
     // 初始化音频系统
     std::cout << "[Main] 初始化音频系统..." << std::endl;
     audio_system = new audio_system_t();
-    if (audio_system_init(audio_system) != AUDIO_ERROR_NONE) {
+    if (audio_system_init(audio_system, &sync_ctx) != AUDIO_ERROR_NONE) {
         std::cout << "[Main] 音频系统初始化失败" << std::endl;
         delete audio_system;
         audio_system = nullptr;
@@ -247,6 +258,10 @@ int main(void) {
         release_video_system(&video_system);
         std::cout << "[Main] 视频系统已释放" << std::endl;
     }
+    
+    // 释放时间同步模块
+    sync_deinit(&sync_ctx);
+    std::cout << "[Main] 时间同步模块已释放" << std::endl;
     
     // 按依赖关系清理资源
     if (webrtcManager) {

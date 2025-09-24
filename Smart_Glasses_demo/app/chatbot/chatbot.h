@@ -2,6 +2,7 @@
 #define CHATBOT_H
 
 #include "../media/audio/audio.h"
+#include "../media/sync.h"
 #include "../protocol/websocket/websocket.h"
 #include "state_machine/state_machine.h"
 #include "event/eventqueue.h"
@@ -333,6 +334,9 @@ private:
     int sample_rate_;
     int channels_;
     int frame_duration_;
+    
+    // 时间同步上下文
+    sync_context_t sync_ctx_;
     
     // 线程控制
     std::atomic<bool> threads_stop_flag_ = false;

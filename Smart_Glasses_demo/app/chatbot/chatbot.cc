@@ -162,9 +162,16 @@ Chatbot::Chatbot(const std::string& address, int port, const std::string& token,
       msg_handler_(std::make_unique<ChatbotMsgHandler>(this)),
       snowboy_detector_(nullptr),
       wakeword_detection_running_(false),
-      wakeword_detection_thread_() {
+      wakeword_detection_thread_(),
+      sync_ctx_() {
     
     USER_LOG_INFO("Initializing Chatbot with server %s:%d", address.c_str(), port);
+    
+    // 初始化时间同步模块
+    if (sync_init(&sync_ctx_) != 0) {
+        USER_LOG_ERROR("Failed to initialize time synchronization");
+        throw std::runtime_error("Time synchronization initialization failed");
+    }
     
     // 初始化音频系统
     if (!initAudioSystem()) {
@@ -186,6 +193,9 @@ Chatbot::Chatbot(const std::string& address, int port, const std::string& token,
 
 Chatbot::~Chatbot() {
     USER_LOG_INFO("Destroying Chatbot...");
+    
+    // 释放时间同步模块
+    sync_deinit(&sync_ctx_);
     
     // 停止所有线程
     threads_stop_flag_.store(true);
@@ -255,7 +265,7 @@ bool Chatbot::initAudioSystem() {
     audio_system_.frame_duration_ms = frame_duration_;
     
     // 初始化音频系统
-    audio_error_t result = audio_system_init(&audio_system_);
+    audio_error_t result = audio_system_init(&audio_system_, &sync_ctx_);
     if (result != AUDIO_ERROR_NONE) {
         USER_LOG_ERROR("Failed to initialize audio system: %d", result);
         return false;

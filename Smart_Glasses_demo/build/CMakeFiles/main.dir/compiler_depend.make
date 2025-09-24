@@ -725,6 +725,7 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/sigthread.h \
   ../rkmpi/include/sample_comm.h \
   ../rkmpi/include/sample_comm.h \
+  ../app/media/sync.h \
   ../app/protocol/webrtc/webrtc.h \
   ../app/media/audio/audio.h \
   /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/opus/opus.h \
@@ -1763,7 +1764,9 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/impl/write_at.hpp \
   /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/websocketpp/common/type_traits.hpp \
   /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/websocketpp/transport/asio/security/none.hpp \
-  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/websocketpp/transport/asio/security/base.hpp
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/websocketpp/transport/asio/security/base.hpp \
+  ../app/media/sync.h \
+  ../app/media/sync.h
 
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/writable_pipe.hpp:
@@ -2507,6 +2510,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/mpl/aux_/config/eti.hpp:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/mpl/aux_/config/msvc.hpp:
+
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/mpl/aux_/config/integral.hpp:
 
 ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_abayernr_v2.h:
 
@@ -3449,8 +3454,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/uClibc_touplow.h:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/math.h:
-
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/mpl/aux_/config/integral.hpp:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/detail/base_from_completion_cond.hpp:
 
@@ -4516,6 +4519,20 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/sigthread.h:
 
+../app/media/sync.h:
+
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/predef/os/bsd/dragonfly.h:
+
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/date_time/posix_time/posix_time_duration.hpp:
+
+../libdatachannel/include/rtc/rtppacketizationconfig.hpp:
+
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/execution/impl/receiver_invocation_error.ipp:
+
+../rkmpi/include/rkaiq/algos/acnr/rk_aiq_types_acnr_hw_v1.h:
+
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/date_time/posix_time/posix_time_config.hpp:
+
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/bind_executor.hpp:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/detail/impl/buffer_sequence_adapter.ipp:
@@ -4751,18 +4768,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/eventfd.h:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/system/detail/error_category_impl.hpp:
-
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/predef/os/bsd/dragonfly.h:
-
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/date_time/posix_time/posix_time_duration.hpp:
-
-../libdatachannel/include/rtc/rtppacketizationconfig.hpp:
-
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/execution/impl/receiver_invocation_error.ipp:
-
-../rkmpi/include/rkaiq/algos/acnr/rk_aiq_types_acnr_hw_v1.h:
-
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/date_time/posix_time/posix_time_config.hpp:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/traits/set_done_free.hpp:
 

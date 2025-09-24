@@ -7,6 +7,7 @@
 #include "../media_config.h"
 #include "../../../common/common.h"
 #include "../../../rkmpi/include/sample_comm.h"
+#include "../sync.h"
 
 #if USE_RTSP
 #include "../../protocol/rtsp/rtsp.h"
@@ -91,6 +92,9 @@ typedef struct {
     int bitrate;                  // 码率
     int gop;                      // GOP大小
     int quality;                  // 质量参数
+    
+    // 时间同步上下文
+    sync_context_t *sync_ctx;     // 时间同步上下文指针
 } video_system_t;
 
 // 视频系统管理
@@ -98,7 +102,7 @@ int isp_init(void);
 int vi_dev_init(void);
 int vi_chn_init(int channelId, int width, int height);
 int venc_init(int chnId, int width, int height, RK_CODEC_ID_E enType);
-int init_video_system(video_system_t **sys, int width, int height, video_mode_t mode);
+int init_video_system(video_system_t **sys, int width, int height, video_mode_t mode, sync_context_t *sync_ctx);
 int release_video_system(video_system_t **sys);
 
 // 视频流管理

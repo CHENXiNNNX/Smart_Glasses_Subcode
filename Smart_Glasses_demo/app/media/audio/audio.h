@@ -13,6 +13,7 @@
 #include "../media_config.h"
 #include "../../../common/common.h"
 #include "../../protocol/websocket/websocket.h"
+#include "../sync.h"
 
 // 音频模式枚举
 typedef enum {
@@ -99,10 +100,13 @@ typedef struct {
     bool is_webrtc_streaming;       // WebRTC音频推流状态
     void (*webrtc_audio_callback)(void *data, int len, uint64_t timestamp); // WebRTC音频回调函数
     #endif
+    
+    // 时间同步上下文
+    sync_context_t *sync_ctx;        // 时间同步上下文指针
 } audio_system_t;
 
 // 初始化音频系统
-audio_error_t audio_system_init(audio_system_t *audio_system);
+audio_error_t audio_system_init(audio_system_t *audio_system, sync_context_t *sync_ctx);
 
 // 释放音频系统
 audio_error_t audio_system_deinit(audio_system_t *audio_system);

@@ -13,6 +13,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/app.dir/media/camera/camera.cc.o.d"
   "CMakeFiles/app.dir/media/camera/test/test_camera.cc.o"
   "CMakeFiles/app.dir/media/camera/test/test_camera.cc.o.d"
+  "CMakeFiles/app.dir/media/sync.cc.o"
+  "CMakeFiles/app.dir/media/sync.cc.o.d"
   "CMakeFiles/app.dir/protocol/webrtc/signaling.cc.o"
   "CMakeFiles/app.dir/protocol/webrtc/signaling.cc.o.d"
   "CMakeFiles/app.dir/protocol/webrtc/webrtc.cc.o"
