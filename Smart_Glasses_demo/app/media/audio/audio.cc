@@ -17,8 +17,9 @@ static int recordCallback(const void *inputBuffer, void *outputBuffer,
     audio_system_t* audio_system = static_cast<audio_system_t*>(userData);
     const int16_t* input = static_cast<const int16_t*>(inputBuffer);
 
-    std::vector<int16_t> frame(framesPerBuffer * audio_system->channels);
-    std::copy(input, input + framesPerBuffer * audio_system->channels, frame.begin());
+    std::vector<int16_t> frame;
+    frame.reserve(framesPerBuffer * audio_system->channels);
+    frame.assign(input, input + framesPerBuffer * audio_system->channels);
 
     // 应用3A算法处理
     if (audio_system->a3_state) {
@@ -84,7 +85,8 @@ static int playCallback(const void *inputBuffer, void *outputBuffer,
     std::vector<int16_t>& currentFrame = audio_system->playbackQueue.front();
     size_t samplesToCopy = std::min(static_cast<size_t>(framesPerBuffer * audio_system->channels), currentFrame.size());
 
-    std::copy(currentFrame.begin(), currentFrame.begin() + samplesToCopy, output);
+    // 使用memcpy优化大数据拷贝性能
+    std::memcpy(output, currentFrame.data(), samplesToCopy * sizeof(int16_t));
 
     if (samplesToCopy < framesPerBuffer * audio_system->channels) {
         // 如果当前帧不足，则用静音填充剩余部分

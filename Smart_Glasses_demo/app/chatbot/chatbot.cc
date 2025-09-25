@@ -157,13 +157,13 @@ Chatbot::Chatbot(const std::string& address, int port, const std::string& token,
       sample_rate_(sample_rate),
       channels_(channels),
       frame_duration_(frame_duration),
+      sync_ctx_(),
       threads_stop_flag_(false),
       state_trans_thread_(),
       msg_handler_(std::make_unique<ChatbotMsgHandler>(this)),
       snowboy_detector_(nullptr),
       wakeword_detection_running_(false),
-      wakeword_detection_thread_(),
-      sync_ctx_() {
+      wakeword_detection_thread_() {
     
     USER_LOG_INFO("Initializing Chatbot with server %s:%d", address.c_str(), port);
     

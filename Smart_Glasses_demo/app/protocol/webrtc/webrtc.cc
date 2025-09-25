@@ -21,13 +21,22 @@ WebRTCManager::WebRTCManager(const WebRTCConfig& config)
     , audioRtpConfig_(nullptr)
     , audioPacketizer_(nullptr)
     , audioSrReporter_(nullptr)
-    , lastVideoSendTime_{} {
+    , videoRtcpSession_(nullptr)
+    , audioRtcpSession_(nullptr)
+    , videoRembHandler_(nullptr)
+    , audioRembHandler_(nullptr)
+    , sendQueue_(std::make_unique<DispatchQueue>("WebRTC_SendQueue", 1))  // 单线程发送队列
+    , lastVideoSendTime_{}
+    , lastAudioSendTime_{} {
     
     std::cout << "[WebRTC] 初始化WebRTC管理器" << std::endl;
     std::cout << "[WebRTC] 数据通道: " << (config_.enableDataChannel ? "启用" : "禁用") << std::endl;
     std::cout << "[WebRTC] 音频发送: " << (config_.enableAudioSend ? "启用" : "禁用") << std::endl;
     std::cout << "[WebRTC] 音频接收: " << (config_.enableAudioReceive ? "启用" : "禁用") << std::endl;
     std::cout << "[WebRTC] 视频发送: " << (config_.enableVideoSend ? "启用" : "禁用") << std::endl;
+    
+    // 配置SCTP设置
+    configureSctpSettings();
 }
 
 WebRTCManager::~WebRTCManager() {
@@ -86,6 +95,47 @@ bool WebRTCManager::createPeerConnection() {
         // 添加STUN服务器
         for (const auto& stunServer : config_.stunServers) {
             rtcConfig.iceServers.emplace_back(stunServer);
+            std::cout << "[WebRTC] 添加STUN服务器: " << stunServer << std::endl;
+        }
+        
+        // 添加TURN服务器
+        for (const auto& turnServer : config_.turnServers) {
+            if (turnServer.isTurn && !turnServer.url.empty()) {
+                // 构建TURN服务器URL
+                std::string turnUrl = turnServer.url;
+                
+                // 如果URL中没有用户名密码，则添加
+                if (!turnServer.username.empty() && !turnServer.password.empty()) {
+                    // 检查URL格式并添加认证信息
+                    if (turnUrl.find("@") == std::string::npos) {
+                        // 在hostname前插入username:password@
+                        size_t hostStart = turnUrl.find("://");
+                        if (hostStart != std::string::npos) {
+                            hostStart += 3;
+                            turnUrl.insert(hostStart, turnServer.username + ":" + turnServer.password + "@");
+                        }
+                    }
+                }
+                
+                // 添加传输协议参数
+                if (turnUrl.find("?") == std::string::npos) {
+                    turnUrl += "?transport=" + turnServer.transport;
+                } else {
+                    turnUrl += "&transport=" + turnServer.transport;
+                }
+                
+                rtcConfig.iceServers.emplace_back(turnUrl);
+                std::cout << "[WebRTC] 添加TURN服务器: " << turnUrl << std::endl;
+            }
+        }
+        
+        // 设置ICE传输策略
+        if (config_.iceTransportPolicy == WebRTCConfig::IceTransportPolicy::RELAY) {
+            rtcConfig.iceTransportPolicy = rtc::TransportPolicy::Relay;
+            std::cout << "[WebRTC] ICE传输策略: 仅使用中继候选" << std::endl;
+        } else {
+            rtcConfig.iceTransportPolicy = rtc::TransportPolicy::All;
+            std::cout << "[WebRTC] ICE传输策略: 使用所有候选" << std::endl;
         }
         
         rtcConfig.disableAutoNegotiation = true;
@@ -104,6 +154,12 @@ bool WebRTCManager::createPeerConnection() {
 
 void WebRTCManager::closePeerConnection() {
     // 清理音频轨道相关资源
+    if (audioRembHandler_) {
+        audioRembHandler_.reset();
+    }
+    if (audioRtcpSession_) {
+        audioRtcpSession_.reset();
+    }
     if (audioSrReporter_) {
         audioSrReporter_.reset();
     }
@@ -118,6 +174,12 @@ void WebRTCManager::closePeerConnection() {
     }
 
     // 清理视频轨道相关资源
+    if (videoRembHandler_) {
+        videoRembHandler_.reset();
+    }
+    if (videoRtcpSession_) {
+        videoRtcpSession_.reset();
+    }
     if (videoSrReporter_) {
         videoSrReporter_.reset();
     }
@@ -380,10 +442,10 @@ void WebRTCManager::setupPeerConnectionCallbacks() {
         });
     }
     
-    // 音频轨道接收回调（应答方）
-    if (role_ == "answerer" && config_.enableAudioReceive) {
+    // 音频轨道接收回调
+    if (config_.enableAudioReceive) {
         peerConnection_->onTrack([this](std::shared_ptr<rtc::Track> track) {
-            std::cout << "[WebRTC] 接收到远程音频轨道: " << track->mid() << std::endl;
+            std::cout << "[WebRTC] 接收到远程轨道: " << track->mid() << std::endl;
             
             if (track->description().type() == "audio") {
                 audioTrack_ = track;
@@ -480,6 +542,16 @@ void WebRTCManager::setupAudioTrack() {
         audioSrReporter_ = std::make_shared<rtc::RtcpSrReporter>(audioRtpConfig_);
         audioPacketizer_->addToChain(audioSrReporter_);
         
+        // 创建RTCP接收会话用于拥塞控制
+        audioRtcpSession_ = std::make_shared<rtc::RtcpReceivingSession>();
+        audioPacketizer_->addToChain(audioRtcpSession_);
+        
+        // 创建REMB处理器用于拥塞控制
+        audioRembHandler_ = std::make_shared<rtc::RembHandler>([this](unsigned int bitrate) {
+            onRembReceived(bitrate);
+        });
+        audioPacketizer_->addToChain(audioRembHandler_);
+        
         // 添加RTCP NACK处理器
         auto nackResponder = std::make_shared<rtc::RtcpNackResponder>();
         audioPacketizer_->addToChain(nackResponder);
@@ -526,12 +598,22 @@ void WebRTCManager::setupVideoTrack() {
         videoPacketizer_ = std::make_shared<rtc::H264RtpPacketizer>(
             rtc::NalUnit::Separator::StartSequence,  
             videoRtpConfig_,
-            1000
+            800
         );
         
         // 创建RTCP SR报告器
         videoSrReporter_ = std::make_shared<rtc::RtcpSrReporter>(videoRtpConfig_);
         videoPacketizer_->addToChain(videoSrReporter_);
+        
+        // 创建RTCP接收会话用于拥塞控制
+        videoRtcpSession_ = std::make_shared<rtc::RtcpReceivingSession>();
+        videoPacketizer_->addToChain(videoRtcpSession_);
+        
+        // 创建REMB处理器用于拥塞控制
+        videoRembHandler_ = std::make_shared<rtc::RembHandler>([this](unsigned int bitrate) {
+            onRembReceived(bitrate);
+        });
+        videoPacketizer_->addToChain(videoRembHandler_);
         
         // 添加RTCP NACK处理器
         auto nackResponder = std::make_shared<rtc::RtcpNackResponder>();
@@ -569,57 +651,6 @@ void WebRTCManager::setStatus(WebRTCStatus newStatus) {
 }
 
 // ========== 音频接口实现 ==========
-
-bool WebRTCManager::startAudioSend() {
-    if (!config_.enableAudioSend) {
-        std::cout << "[WebRTC] 音频发送功能未启用" << std::endl;
-        return false;
-    }
-    
-    if (!audioTrack_ || !audioTrack_->isOpen()) {
-        std::cout << "[WebRTC] 音频轨道未打开，无法开始音频发送" << std::endl;
-        return false;
-    }
-    
-    std::cout << "[WebRTC] 音频发送已准备就绪" << std::endl;
-    return true;
-}
-
-bool WebRTCManager::stopAudioSend() {
-    if (!config_.enableAudioSend) {
-        std::cout << "[WebRTC] 音频发送功能未启用" << std::endl;
-        return false;
-    }
-    
-    std::cout << "[WebRTC] 音频发送已停止" << std::endl;
-    return true;
-}
-
-bool WebRTCManager::startAudioReceive() {
-    if (!config_.enableAudioReceive) {
-        std::cout << "[WebRTC] 音频接收功能未启用" << std::endl;
-        return false;
-    }
-    
-    if (!audioTrack_) {
-        std::cout << "[WebRTC] 音频轨道未创建，无法开始音频接收" << std::endl;
-        return false;
-    }
-    
-    std::cout << "[WebRTC] 音频接收已准备就绪" << std::endl;
-    return true;
-}
-
-bool WebRTCManager::stopAudioReceive() {
-    if (!config_.enableAudioReceive) {
-        std::cout << "[WebRTC] 音频接收功能未启用" << std::endl;
-        return false;
-    }
-    
-    std::cout << "[WebRTC] 音频接收已停止" << std::endl;
-    return true;
-}
-
 void WebRTCManager::sendAudioData(const uint8_t* data, size_t size, uint64_t timestamp) {
     // 检查基本条件
     if (!audioTrack_ || !audioTrack_->isOpen()) {
@@ -645,17 +676,38 @@ void WebRTCManager::sendAudioData(const uint8_t* data, size_t size, uint64_t tim
         return;
     }
     
-    try {
-        // 使用统一的时间戳（微秒转换为duration）
-        auto sampleTime = std::chrono::duration<double, std::micro>(timestamp);
+    // 发送频率控制
+    auto now = std::chrono::steady_clock::now();
+    if (lastAudioSendTime_ != std::chrono::steady_clock::time_point{}) {
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastAudioSendTime_);
+        if (elapsed.count() < AUDIO_SEND_INTERVAL_MS) {
+            // 跳过此帧，控制发送频率
+            return;
+        }
+    }
+    lastAudioSendTime_ = now;
+    
+    // 使用任务队列调度发送
+    if (sendQueue_) {
+        // 使用shared_ptr管理数据，避免不必要的拷贝
+        auto dataPtr = std::make_shared<std::vector<uint8_t>>(data, data + size);
         
-        // 发送Opus音频数据
-        audioTrack_->sendFrame(reinterpret_cast<const std::byte*>(data), size, sampleTime);
-        
-        std::cout << "[Debug] 音频数据发送成功: " << size << " 字节, 时间戳: " << timestamp << "μs" << std::endl;
-        
-    } catch (const std::exception& e) {
-        std::cout << "[WebRTC] 发送音频数据失败: " << e.what() << std::endl;
+        sendQueue_->dispatch([this, dataPtr, timestamp]() {
+            try {
+                // 使用统一的时间戳（微秒转换为duration）
+                auto sampleTime = std::chrono::duration<double, std::micro>(timestamp);
+                
+                // 发送Opus音频数据
+                audioTrack_->sendFrame(reinterpret_cast<const std::byte*>(dataPtr->data()), dataPtr->size(), sampleTime);
+                
+                std::cout << "[Debug] 音频数据发送成功: " << dataPtr->size() << " 字节, 时间戳: " << timestamp << "μs" << std::endl;
+                
+            } catch (const std::exception& e) {
+                std::cout << "[WebRTC] 发送音频数据失败: " << e.what() << std::endl;
+            }
+        });
+    } else {
+        std::cout << "[WebRTC] 发送队列未初始化" << std::endl;
     }
 }
 
@@ -675,18 +727,8 @@ void WebRTCManager::handleAudioData(const uint8_t* data, size_t size, uint64_t t
 }
 
 // ========== 视频接口实现 ==========
-
-bool WebRTCManager::startVideoSend() {
-    std::cout << "[WebRTC] 视频发送功能暂未实现" << std::endl;
-    return false;
-}
-
-bool WebRTCManager::stopVideoSend() {
-    std::cout << "[WebRTC] 视频发送功能暂未实现" << std::endl;
-    return false;
-}
-
-void WebRTCManager::sendVideoFrame(const uint8_t* data, size_t size, uint64_t timestamp) {
+void WebRTCManager::sendVideoData(const uint8_t* data, size_t size, uint64_t timestamp) {
+    
     // 检查基本条件
     if (!videoTrack_ || !videoTrack_->isOpen()) {
         std::cout << "[WebRTC] 视频轨道未打开，无法发送视频数据" << std::endl;
@@ -746,23 +788,177 @@ void WebRTCManager::sendVideoFrame(const uint8_t* data, size_t size, uint64_t ti
     if (lastVideoSendTime_ != std::chrono::steady_clock::time_point{}) {
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastVideoSendTime_);
         if (elapsed.count() < VIDEO_SEND_INTERVAL_MS) {
-            // 跳过此帧，控制发送频率为30fps
+            // 跳过此帧，控制发送频率
             return;
         }
     }
     lastVideoSendTime_ = now;
     
+    // 使用任务队列调度发送
+    if (sendQueue_) {
+        // 使用shared_ptr管理数据，避免不必要的拷贝
+        auto dataPtr = std::make_shared<std::vector<uint8_t>>(data, data + size);
+        
+        sendQueue_->dispatch([this, dataPtr, timestamp]() {
+            try {
+                // 微秒转换为duration
+                auto sampleTime = std::chrono::duration<double, std::micro>(timestamp);
+                
+                // 发送H264数据 
+                videoTrack_->sendFrame(reinterpret_cast<const std::byte*>(dataPtr->data()), dataPtr->size(), sampleTime);
+                
+                std::cout << "[Debug] 视频帧发送成功: " << dataPtr->size() << " 字节, 时间戳: " << timestamp << "μs" << std::endl;
+                
+            } catch (const std::exception& e) {
+                // 参考官方例程：发送失败时记录但不中断
+                std::cout << "[WebRTC] 发送视频帧失败: " << e.what() << std::endl;
+            }
+        });
+    } else {
+        std::cout << "[WebRTC] 发送队列未初始化" << std::endl;
+    }
+}
+
+
+// REMB消息接收回调
+void WebRTCManager::onRembReceived(unsigned int bitrate) {
+
+    // 记录接收到的码率值
+    // std::cout << "[WebRTC] Received REMB bitrate: " << bitrate << " bps" << std::endl;
+    
+    // 忽略0码率值，这通常表示没有有效的拥塞控制信息
+    if (bitrate == 0) {
+        // std::cout << "[WebRTC] Ignoring zero bitrate REMB message" << std::endl;
+        return;
+    }
+    else {
+        std::cout << "[WebRTC] Received REMB: " << bitrate << " bps" << std::endl;
+    }
+    
+    // 在实际应用中，这里应该根据接收到的码率值调整视频编码器的码率
+    // 例如：
+    // 1. 限制码率不超过REMB值
+    // 2. 可以添加一些缓冲以避免频繁调整
+    // 3. 可以设置最小码率阈值
+    
+    
+    // 通知应用程序层码率变化
+    // 可以通过回调或其他方式通知上层应用
+}
+
+// ========== DispatchQueue实现 ==========
+
+DispatchQueue::DispatchQueue(std::string name, size_t threadCount) 
+    : name(std::move(name)), threads(threadCount) {
+    for (size_t i = 0; i < threads.size(); i++) {
+        threads[i] = std::thread(&DispatchQueue::dispatchThreadHandler, this);
+    }
+}
+
+DispatchQueue::~DispatchQueue() {
+    // Signal to dispatch threads that it's time to wrap up
+    std::unique_lock<std::mutex> lock(lockMutex);
+    quit = true;
+    lock.unlock();
+    condition.notify_all();
+
+    // Wait for threads to finish before we exit
+    for (size_t i = 0; i < threads.size(); i++) {
+        if (threads[i].joinable()) {
+            threads[i].join();
+        }
+    }
+}
+
+void DispatchQueue::dispatch(const fp_t& op) {
+    std::unique_lock<std::mutex> lock(lockMutex);
+    queue.push(op);
+    lock.unlock();
+    condition.notify_one();
+}
+
+void DispatchQueue::dispatch(fp_t&& op) {
+    std::unique_lock<std::mutex> lock(lockMutex);
+    queue.push(std::move(op));
+    lock.unlock();
+    condition.notify_one();
+}
+
+void DispatchQueue::removePending() {
+    std::unique_lock<std::mutex> lock(lockMutex);
+    std::queue<fp_t> empty;
+    queue.swap(empty);
+}
+
+void DispatchQueue::dispatchThreadHandler(void) {
+    std::unique_lock<std::mutex> lock(lockMutex);
+    do {
+        //Wait until we have data or a quit signal
+        condition.wait(lock, [this]{
+            return (queue.size() || quit);
+        });
+
+        //after wait, we own the lock
+        if(!quit && queue.size())
+        {
+            auto op = std::move(queue.front());
+            queue.pop();
+
+            //unlock now that we're done messing with the queue
+            lock.unlock();
+
+            op();
+
+            lock.lock();
+        }
+    } while (!quit);
+}
+
+// ========== SCTP配置实现 ==========
+
+void WebRTCManager::configureSctpSettings() {
     try {
-        // 微秒转换为duration
-        auto sampleTime = std::chrono::duration<double, std::micro>(timestamp);
+        std::cout << "[WebRTC] 配置SCTP传输设置..." << std::endl;
         
-        // 发送H264数据
-        videoTrack_->sendFrame(reinterpret_cast<const std::byte*>(data), size, sampleTime);
+        // 创建SCTP配置
+        rtc::SctpSettings sctpSettings;
         
-        std::cout << "[Debug] 视频帧发送成功: " << size << " 字节, 时间戳: " << timestamp << "μs" << std::endl;
+        // 缓冲区配置
+        sctpSettings.recvBufferSize = config_.sctpConfig.recvBufferSize;
+        sctpSettings.sendBufferSize = config_.sctpConfig.sendBufferSize;
+        sctpSettings.maxChunksOnQueue = config_.sctpConfig.maxChunksOnQueue;
+        
+        // 拥塞控制配置
+        sctpSettings.initialCongestionWindow = config_.sctpConfig.initialCongestionWindow;
+        sctpSettings.maxBurst = config_.sctpConfig.maxBurst;
+        sctpSettings.congestionControlModule = config_.sctpConfig.congestionControlModule;
+        
+        // 重传和超时配置
+        sctpSettings.delayedSackTime = config_.sctpConfig.delayedSackTime;
+        sctpSettings.minRetransmitTimeout = config_.sctpConfig.minRetransmitTimeout;
+        sctpSettings.maxRetransmitTimeout = config_.sctpConfig.maxRetransmitTimeout;
+        sctpSettings.initialRetransmitTimeout = config_.sctpConfig.initialRetransmitTimeout;
+        sctpSettings.maxRetransmitAttempts = config_.sctpConfig.maxRetransmitAttempts;
+        sctpSettings.heartbeatInterval = config_.sctpConfig.heartbeatInterval;
+        
+        // 应用SCTP设置
+        rtc::SetSctpSettings(std::move(sctpSettings));
+        
+        std::cout << "[WebRTC] SCTP配置完成:" << std::endl;
+        std::cout << "  - 接收缓冲区: " << (config_.sctpConfig.recvBufferSize / 1024 / 1024) << "MB" << std::endl;
+        std::cout << "  - 发送缓冲区: " << (config_.sctpConfig.sendBufferSize / 1024 / 1024) << "MB" << std::endl;
+        std::cout << "  - 队列最大块数: " << (config_.sctpConfig.maxChunksOnQueue / 1024) << "K" << std::endl;
+        std::cout << "  - 初始拥塞窗口: " << config_.sctpConfig.initialCongestionWindow << " MTUs" << std::endl;
+        std::cout << "  - 最大突发: " << config_.sctpConfig.maxBurst << " MTUs" << std::endl;
+        std::cout << "  - 拥塞控制算法: " << config_.sctpConfig.congestionControlModule << " (RFC2581)" << std::endl;
+        std::cout << "  - SACK延迟: " << config_.sctpConfig.delayedSackTime.count() << "ms" << std::endl;
+        std::cout << "  - 最小重传超时: " << config_.sctpConfig.minRetransmitTimeout.count() << "ms" << std::endl;
+        std::cout << "  - 最大重传超时: " << config_.sctpConfig.maxRetransmitTimeout.count() << "ms" << std::endl;
+        std::cout << "  - 最大重传次数: " << config_.sctpConfig.maxRetransmitAttempts << std::endl;
+        std::cout << "  - 心跳间隔: " << config_.sctpConfig.heartbeatInterval.count() << "ms" << std::endl;
         
     } catch (const std::exception& e) {
-        std::cout << "[WebRTC] 发送视频帧失败: " << e.what() << std::endl;
+        std::cout << "[WebRTC] SCTP配置失败: " << e.what() << std::endl;
     }
 }
 

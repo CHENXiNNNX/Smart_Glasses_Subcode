@@ -316,6 +316,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   ../libdatachannel/include/rtc/rtp.hpp \
   ../libdatachannel/include/rtc/rtcpnackresponder.hpp \
   ../libdatachannel/include/rtc/rtppacketizer.hpp \
+  ../libdatachannel/include/rtc/rembhandler.hpp \
+  ../libdatachannel/include/rtc/global.hpp \
   ../app/protocol/webrtc/signaling.h \
   ../app/media/media_config.h \
   ../app/media/camera/camera.h \
