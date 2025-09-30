@@ -56,7 +56,7 @@ public:
     void setSize(size_t size) { size_ = std::min(size, capacity_); }
     void reset() { size_ = 0; }
     
-    // 写入数据（零拷贝写入）
+    // 写入数据
     bool write(const uint8_t* src, size_t len) {
         if (len > capacity_) return false;
         std::memcpy(data_, src, len);
@@ -185,9 +185,10 @@ struct WebRTCConfig {
     // 音频配置
     struct {
         std::string codec = "opus";
-        int sampleRate = 48000;
-        int channels = 1;
-        int bitrate = 32000;
+        int sampleRate = AUDIO_SAMPLE_RATE;
+        int channels = AUDIO_CHANNELS;
+        int bitrate = AUDIO_BIT_RATE;
+        float volume = AUDIO_MASTER_VOLUME;
     } audio;
     
     // 视频配置

@@ -128,7 +128,7 @@ void onReceivedAudioDataCallback(const uint8_t* data, size_t size) {
     int num_pcm_samples = pcm_size / sizeof(int16_t);
     
     // 音量增强处理
-    const float volume_boost = 0.5f;
+    const float volume_boost = AUDIO_MASTER_VOLUME;
     for (int i = 0; i < num_pcm_samples; i++) {
         float sample = static_cast<float>(pcm_data[i]);
         sample *= volume_boost;

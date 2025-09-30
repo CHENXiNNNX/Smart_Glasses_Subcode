@@ -305,7 +305,7 @@ void WebRTCManage::shutdown() {
     cleanup();
     initialized_ = false;
     setState(WebRTCState::DISCONNECTED);
-    std::cout << "[WebRTC] WebRTC管理器V2已关闭" << std::endl;
+    std::cout << "[WebRTC] WebRTC管理器已关闭" << std::endl;
 }
 
 bool WebRTCManage::createConnection() {
@@ -490,7 +490,7 @@ void WebRTCManage::sendAudioData(const uint8_t* data, size_t size, uint64_t time
     }
     lastAudioSendTime_ = now;
     
-    // 零拷贝优化：使用缓冲区池
+    // 使用缓冲区池
     if (config_.performance.enableZeroCopy && audioBufferPool_) {
         auto buffer = audioBufferPool_->acquire();
         if (!buffer || !buffer->write(data, size)) {
@@ -521,7 +521,7 @@ void WebRTCManage::sendAudioData(const uint8_t* data, size_t size, uint64_t time
         }
     }
     
-    // 降级：使用传统拷贝模式
+    // 失败退回使用传统拷贝模式
     auto dataPtr = std::make_shared<std::vector<uint8_t>>(data, data + size);
     audioTaskQueue_->post([this, dataPtr, timestamp]() {
         try {
@@ -561,7 +561,7 @@ void WebRTCManage::sendVideoData(const uint8_t* data, size_t size, uint64_t time
     }
     lastVideoSendTime_ = now;
     
-    // 零拷贝优化：使用缓冲区池
+    // 缓冲区池
     if (config_.performance.enableZeroCopy && videoBufferPool_) {
         auto buffer = videoBufferPool_->acquire(size);
         if (!buffer || !buffer->write(data, size)) {
@@ -593,7 +593,7 @@ void WebRTCManage::sendVideoData(const uint8_t* data, size_t size, uint64_t time
         }
     }
     
-    // 降级：使用传统拷贝模式
+    // 失败退回使用传统拷贝模式
     auto dataPtr = std::make_shared<std::vector<uint8_t>>(data, data + size);
     TaskPriority priority = isKeyFrame ? TaskPriority::NORMAL : TaskPriority::LOW;
     
@@ -947,7 +947,7 @@ void WebRTCManage::setupVideoTrack() {
             });
             
         } else if (videoDirection == rtc::Description::Direction::RecvOnly) {
-            // 接收端（暂留空实现）
+            // 视频接收端（暂留空实现）
             auto receiveSession = std::make_shared<rtc::RtcpReceivingSession>();
             videoTrack_->setMediaHandler(receiveSession);
         }
@@ -963,7 +963,7 @@ void WebRTCManage::handleDataChannelOpen() {
     std::cout << "[WebRTC] DataChannel连接已打开" << std::endl;
     
     if (role_ == "offerer") {
-        std::string testMessage = "Hello from glasses device V2 (Zero-Copy)!";
+        std::string testMessage = "Hello from glasses device !";
         sendDataMessage(testMessage);
     }
 }
@@ -972,7 +972,7 @@ void WebRTCManage::handleDataMessage(const std::string& message) {
     std::cout << "[WebRTC] 收到DataChannel消息: " << message << std::endl;
     
     if (role_ == "answerer") {
-        std::string reply = "Reply from peer V2: " + message;
+        std::string reply = "Reply from peer : " + message;
         sendDataMessage(reply);
     }
     
