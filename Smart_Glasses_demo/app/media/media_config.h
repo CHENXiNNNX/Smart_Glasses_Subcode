@@ -32,7 +32,7 @@
 #define AUDIO_DEREVERB_ENABLED true          // 去混响功能开关
 #define AUDIO_AGC_LEVEL 8000.0f              // AGC目标电平 (dB): 范围1000.0-32768.0
 #define AUDIO_NOISE_SUPPRESS_LEVEL -45       // 噪声抑制级别 (dB): 范围-30至0, 值越小抑制越强,
-#define AUDIO_ECHO_SUPPRESS_LEVEL -40        // 回声抑制级别 (dB): 范围-90至0, 值越小抑制越强
+#define AUDIO_ECHO_SUPPRESS_LEVEL -90        // 回声抑制级别 (dB): 范围-90至0, 值越小抑制越强
 #define AUDIO_AGC_INCREMENT 12               // AGC增益增加速度 (dB/秒): 范围0-30
 #define AUDIO_AGC_DECREMENT -40              // AGC增益减少速度 (dB/秒): 范围-90至0
 #define AUDIO_AGC_MAX_GAIN 10                // AGC最大增益 (dB): 范围0-60

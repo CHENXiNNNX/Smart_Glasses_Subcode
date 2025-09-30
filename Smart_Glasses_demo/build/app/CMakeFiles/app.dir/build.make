@@ -209,10 +209,38 @@ app/CMakeFiles/app.dir/protocol/webrtc/webrtc.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/app.dir/protocol/webrtc/webrtc.cc.s"
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/webrtc.cc -o CMakeFiles/app.dir/protocol/webrtc/webrtc.cc.s
 
+app/CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.o: app/CMakeFiles/app.dir/flags.make
+app/CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.o: ../app/protocol/webrtc/webrtcv2.cc
+app/CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.o: app/CMakeFiles/app.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object app/CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.o"
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT app/CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.o -MF CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.o.d -o CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/webrtcv2.cc
+
+app/CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.i"
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/webrtcv2.cc > CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.i
+
+app/CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.s"
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/webrtcv2.cc -o CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.s
+
+app/CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.o: app/CMakeFiles/app.dir/flags.make
+app/CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.o: ../app/protocol/webrtc/webrtcv3.cc
+app/CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.o: app/CMakeFiles/app.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object app/CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.o"
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT app/CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.o -MF CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.o.d -o CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/webrtcv3.cc
+
+app/CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.i"
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/webrtcv3.cc > CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.i
+
+app/CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.s"
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/webrtcv3.cc -o CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.s
+
 app/CMakeFiles/app.dir/protocol/websocket/websocket.cc.o: app/CMakeFiles/app.dir/flags.make
 app/CMakeFiles/app.dir/protocol/websocket/websocket.cc.o: ../app/protocol/websocket/websocket.cc
 app/CMakeFiles/app.dir/protocol/websocket/websocket.cc.o: app/CMakeFiles/app.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object app/CMakeFiles/app.dir/protocol/websocket/websocket.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object app/CMakeFiles/app.dir/protocol/websocket/websocket.cc.o"
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT app/CMakeFiles/app.dir/protocol/websocket/websocket.cc.o -MF CMakeFiles/app.dir/protocol/websocket/websocket.cc.o.d -o CMakeFiles/app.dir/protocol/websocket/websocket.cc.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/websocket/websocket.cc
 
 app/CMakeFiles/app.dir/protocol/websocket/websocket.cc.i: cmake_force
@@ -222,6 +250,20 @@ app/CMakeFiles/app.dir/protocol/websocket/websocket.cc.i: cmake_force
 app/CMakeFiles/app.dir/protocol/websocket/websocket.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/app.dir/protocol/websocket/websocket.cc.s"
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/websocket/websocket.cc -o CMakeFiles/app.dir/protocol/websocket/websocket.cc.s
+
+app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o: app/CMakeFiles/app.dir/flags.make
+app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o: ../app/tool/memory/mem_pool.cc
+app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o: app/CMakeFiles/app.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o"
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o -MF CMakeFiles/app.dir/tool/memory/mem_pool.cc.o.d -o CMakeFiles/app.dir/tool/memory/mem_pool.cc.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/tool/memory/mem_pool.cc
+
+app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/app.dir/tool/memory/mem_pool.cc.i"
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/tool/memory/mem_pool.cc > CMakeFiles/app.dir/tool/memory/mem_pool.cc.i
+
+app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/app.dir/tool/memory/mem_pool.cc.s"
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/tool/memory/mem_pool.cc -o CMakeFiles/app.dir/tool/memory/mem_pool.cc.s
 
 # Object files for target app
 app_OBJECTS = \
@@ -235,7 +277,10 @@ app_OBJECTS = \
 "CMakeFiles/app.dir/media/sync.cc.o" \
 "CMakeFiles/app.dir/protocol/webrtc/signaling.cc.o" \
 "CMakeFiles/app.dir/protocol/webrtc/webrtc.cc.o" \
-"CMakeFiles/app.dir/protocol/websocket/websocket.cc.o"
+"CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.o" \
+"CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.o" \
+"CMakeFiles/app.dir/protocol/websocket/websocket.cc.o" \
+"CMakeFiles/app.dir/tool/memory/mem_pool.cc.o"
 
 # External object files for target app
 app_EXTERNAL_OBJECTS =
@@ -250,10 +295,13 @@ app/libapp.a: app/CMakeFiles/app.dir/media/camera/test/test_camera.cc.o
 app/libapp.a: app/CMakeFiles/app.dir/media/sync.cc.o
 app/libapp.a: app/CMakeFiles/app.dir/protocol/webrtc/signaling.cc.o
 app/libapp.a: app/CMakeFiles/app.dir/protocol/webrtc/webrtc.cc.o
+app/libapp.a: app/CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.o
+app/libapp.a: app/CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.o
 app/libapp.a: app/CMakeFiles/app.dir/protocol/websocket/websocket.cc.o
+app/libapp.a: app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o
 app/libapp.a: app/CMakeFiles/app.dir/build.make
 app/libapp.a: app/CMakeFiles/app.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Linking CXX static library libapp.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Linking CXX static library libapp.a"
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && $(CMAKE_COMMAND) -P CMakeFiles/app.dir/cmake_clean_target.cmake
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/app.dir/link.txt --verbose=$(VERBOSE)
 

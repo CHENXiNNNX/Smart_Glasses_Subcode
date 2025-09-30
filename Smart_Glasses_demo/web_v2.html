@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能眼镜 - Web端V2 (适配C++端)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+            max-width: 900px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .status-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #007bff;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px 0;
+        }
+
+        .status-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .status-value {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .status-disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-connecting {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .server-config-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .server-config-panel h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .config-input {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .config-input label {
+            font-weight: 600;
+            color: #495057;
+            min-width: 100px;
+        }
+
+        .config-input input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .config-input input:focus {
+            outline: none;
+            border-color: #17a2b8;
+        }
+
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: #212529;
+        }
+
+        .message-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .message-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .message-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .message-input input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .log-container {
+            background: #1a1a1a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            border-radius: 10px;
+            height: 300px;
+            overflow-y: auto;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .log-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .log-container::-webkit-scrollbar-track {
+            background: #2a2a2a;
+            border-radius: 4px;
+        }
+
+        .log-container::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+
+        .log-container::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            word-wrap: break-word;
+        }
+
+        .log-timestamp {
+            color: #888;
+        }
+
+        .log-info {
+            color: #00ff00;
+        }
+
+        .log-warn {
+            color: #ffff00;
+        }
+
+        .log-error {
+            color: #ff4444;
+        }
+
+        .log-webrtc {
+            color: #00bfff;
+        }
+
+        .video-panel, .audio-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #28a745;
+            display: none;
+        }
+
+        .video-panel h3, .audio-panel h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        #videoContainer, #audioContainer {
+            text-align: center;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+        }
+
+        #videoElement {
+            width: 100%;
+            max-width: 800px;
+            border-radius: 8px;
+            border: 2px solid #007bff;
+        }
+
+        #audioElement {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 10px;
+        }
+
+        .audio-controls {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .audio-controls h4 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #495057;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-item label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9em;
+        }
+
+        .control-item input[type="range"] {
+            width: 100%;
+        }
+
+        .control-item span {
+            font-size: 0.8em;
+            color: #666;
+            text-align: center;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+
+            .message-input {
+                flex-direction: column;
+            }
+
+            .config-input {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .config-input label {
+                min-width: auto;
+                margin-bottom: 5px;
+            }
+
+            .config-input input {
+                min-width: auto;
+            }
+
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🕶️ 智能眼镜 - Web端V2</h1>
+            <p>适配C++端：双向音频 + 单向视频接收 + 数据通道</p>
+        </div>
+
+        <div class="status-panel">
+            <div class="status-item">
+                <span class="status-label">WebSocket状态:</span>
+                <span class="status-value status-disconnected" id="wsStatus">未连接</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">WebRTC状态:</span>
+                <span class="status-value status-disconnected" id="rtcStatus">未连接</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">视频流:</span>
+                <span class="status-value status-disconnected" id="videoStatus">未接收</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">音频流:</span>
+                <span class="status-value status-disconnected" id="audioStatus">未接收</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">设备ID:</span>
+                <span class="status-value" id="deviceId">app_123456</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">对端设备:</span>
+                <span class="status-value" id="peerDevice">未连接</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">角色:</span>
+                <span class="status-value" id="role">未分配</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">房间状态:</span>
+                <span class="status-value" id="roomStatus">未加入</span>
+            </div>
+        </div>
+
+        <div class="server-config-panel">
+            <h3>🔧 服务器配置</h3>
+            <div class="config-input">
+                <label for="serverUrlInput">服务器地址:</label>
+                <input type="text" id="serverUrlInput" value="ws://192.168.2.248:8000" placeholder="ws://192.168.2.248:8000">
+                <button class="btn btn-primary" onclick="updateServerUrl()">更新地址</button>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <button class="btn btn-primary" id="connectBtn" onclick="connectToServer()">连接服务器</button>
+            <button class="btn btn-success" id="joinBtn" onclick="joinRoom()" disabled>加入房间</button>
+            <button class="btn btn-warning" id="leaveBtn" onclick="leaveRoom()" disabled>离开房间</button>
+            <button class="btn btn-info" id="startSineWaveBtn" onclick="createAudioTrackWithSineWave()" disabled>开始发送正弦波</button>
+            <button class="btn btn-secondary" id="stopSineWaveBtn" onclick="stopSineWaveAudio()" disabled>停止正弦波</button>
+            <button class="btn btn-danger" id="disconnectBtn" onclick="disconnectFromServer()" disabled>断开连接</button>
+        </div>
+
+        <div class="message-panel">
+            <h3>💬 数据通道消息</h3>
+            <div class="message-input">
+                <input type="text" id="messageInput" placeholder="输入要发送的消息..." disabled>
+                <button class="btn btn-primary" onclick="sendMessage()" disabled id="sendBtn">发送</button>
+            </div>
+        </div>
+
+        <div class="video-panel" id="videoPanel">
+            <h3>📹 视频流 (设备端→Web端)</h3>
+            <div id="videoContainer">
+                <p style="color: #666; margin: 0;">等待视频流...</p>
+            </div>
+        </div>
+
+        <div class="audio-panel" id="audioPanel">
+            <h3>🔊 音频流 (双向通信)</h3>
+            <div id="audioContainer">
+                <p style="color: #666; margin: 0;">等待音频流...</p>
+                <audio id="audioElement" controls autoplay></audio>
+            </div>
+            <div class="audio-controls" id="audioControls">
+                <h4>音频处理设置</h4>
+                <div class="control-grid">
+                    <div class="control-item">
+                        <label for="lowpassFreq">高频噪声过滤 (Hz):</label>
+                        <input type="range" id="lowpassFreq" min="1000" max="8000" step="100" value="3000">
+                        <span id="lowpassFreqValue">3000</span>
+                    </div>
+                    <div class="control-item">
+                        <label for="highpassFreq">低频噪声过滤 (Hz):</label>
+                        <input type="range" id="highpassFreq" min="50" max="1000" step="10" value="300">
+                        <span id="highpassFreqValue">300</span>
+                    </div>
+                    <div class="control-item">
+                        <label for="compressorThreshold">音量压缩阈值 (dB):</label>
+                        <input type="range" id="compressorThreshold" min="-60" max="-10" step="1" value="-24">
+                        <span id="compressorThresholdValue">-24</span>
+                    </div>
+                    <div class="control-item">
+                        <label for="gainValue">音量增益:</label>
+                        <input type="range" id="gainValue" min="0.5" max="3" step="0.1" value="1.2">
+                        <span id="gainValueValue">1.2</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="resetAudioProcessingConfig()" style="margin-top: 10px;">重置默认设置</button>
+            </div>
+        </div>
+
+        <div class="log-container" id="logContainer">
+            <div class="log-entry log-info">
+                <span class="log-timestamp">[系统]</span> Web端V2初始化完成，等待连接...
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Smart Glasses WebRTC Client V2 - 适配C++端</p>
+    </div>
+
+    <script>
+        // ========== 全局变量配置 ==========
+        const DEVICE_ID = 'app_123456';  // Web端固定标识，与C++端配对
+        const PEER_DEVICE_ID = 'glasses_123456';  // C++端设备标识
+        let SERVER_URL = 'ws://192.168.2.248:8000';  // 与C++端main.cpp中的服务器地址一致
+        
+        // 连接状态管理
+        let ws = null;
+        let pc = null;
+        let dataChannel = null;
+        let connectionStatus = 'disconnected';  // disconnected, connected, joined, paired
+        let peerDeviceId = '';
+        let role = '';  // offerer, answerer
+        let roomId = '';
+        let roomStatus = 'close';  // open, close
+        
+        // 音视频元素
+        let videoElement = null;
+        let audioElement = null;
+        let hasVideoStream = false;
+        let hasAudioStream = false;
+        
+        // 音频配置 - 与C++端libdatachannel库保持一致
+        const AUDIO_CONFIG = {
+            sampleRate: 48000,  // 48kHz采样率，与C++端一致
+            channels: 1,        // 单声道
+            codec: 'opus'      // Opus编码
+        };
+
+        // 音频处理配置 - 用于降噪和音频增强
+        const AUDIO_PROCESSING_CONFIG = {
+            lowpassFrequency: 3000,    // 低通滤波器截止频率 (Hz)
+            highpassFrequency: 300,    // 高通滤波器截止频率 (Hz)
+            compressorThreshold: -24,  // 压缩器阈值 (dB)
+            compressorRatio: 12,       // 压缩比
+            gainValue: 1.2             // 增益值
+        };
+
+        // WebRTC配置 - 与C++端STUN服务器配置一致
+        const rtcConfig = {
+            iceServers: [
+                { 
+                    urls: [
+                        "stun:stun.l.google.com:19302",
+                        "stun:stun.miwifi.com:3478",
+                        "stun:stun.chat.bilibili.com:3478"
+                    ]
+                }
+            ],
+            iceCandidatePoolSize: 10
+        };
+
+        // ========== 页面初始化 ==========
+        window.addEventListener('DOMContentLoaded', function() {
+            // 初始化音频控制面板
+            initAudioControls();
+            
+            // 设置设备ID显示
+            document.getElementById('deviceId').textContent = DEVICE_ID;
+            
+            log('Web端V2初始化完成，等待连接...', 'info');
+            log(`Web端设备ID: ${DEVICE_ID}`, 'info');
+            log(`目标设备ID: ${PEER_DEVICE_ID}`, 'info');
+            log(`服务器地址: ${SERVER_URL}`, 'info');
+            log(`音频配置: ${AUDIO_CONFIG.sampleRate}Hz ${AUDIO_CONFIG.codec.toUpperCase()}`, 'info');
+            log('支持功能: 双向音频 + 单向视频接收 + 数据通道', 'info');
+            log('适配C++端WebRTC实现', 'info');
+        });
+
+        // ========== 音频控制面板初始化 ==========
+        function initAudioControls() {
+            // 获取所有滑块元素
+            const lowpassFreqSlider = document.getElementById('lowpassFreq');
+            const highpassFreqSlider = document.getElementById('highpassFreq');
+            const compressorThresholdSlider = document.getElementById('compressorThreshold');
+            const gainValueSlider = document.getElementById('gainValue');
+            
+            // 设置初始值显示
+            document.getElementById('lowpassFreqValue').textContent = lowpassFreqSlider.value;
+            document.getElementById('highpassFreqValue').textContent = highpassFreqSlider.value;
+            document.getElementById('compressorThresholdValue').textContent = compressorThresholdSlider.value;
+            document.getElementById('gainValueValue').textContent = gainValueSlider.value;
+            
+            // 添加事件监听器
+            lowpassFreqSlider.addEventListener('input', function() {
+                AUDIO_PROCESSING_CONFIG.lowpassFrequency = parseInt(this.value);
+                document.getElementById('lowpassFreqValue').textContent = this.value;
+                log(`低通滤波器频率设置为: ${this.value}Hz`, 'info');
+            });
+            
+            highpassFreqSlider.addEventListener('input', function() {
+                AUDIO_PROCESSING_CONFIG.highpassFrequency = parseInt(this.value);
+                document.getElementById('highpassFreqValue').textContent = this.value;
+                log(`高通滤波器频率设置为: ${this.value}Hz`, 'info');
+            });
+            
+            compressorThresholdSlider.addEventListener('input', function() {
+                AUDIO_PROCESSING_CONFIG.compressorThreshold = parseInt(this.value);
+                document.getElementById('compressorThresholdValue').textContent = this.value;
+                log(`压缩器阈值设置为: ${this.value}dB`, 'info');
+            });
+            
+            gainValueSlider.addEventListener('input', function() {
+                AUDIO_PROCESSING_CONFIG.gainValue = parseFloat(this.value);
+                document.getElementById('gainValueValue').textContent = this.value;
+                log(`增益值设置为: ${this.value}`, 'info');
+            });
+        }
+
+        // 重置音频处理配置为默认值
+        function resetAudioProcessingConfig() {
+            AUDIO_PROCESSING_CONFIG.lowpassFrequency = 3000;
+            AUDIO_PROCESSING_CONFIG.highpassFrequency = 300;
+            AUDIO_PROCESSING_CONFIG.compressorThreshold = -24;
+            AUDIO_PROCESSING_CONFIG.compressorRatio = 12;
+            AUDIO_PROCESSING_CONFIG.gainValue = 1.2;
+            
+            // 更新滑块位置和显示值
+            document.getElementById('lowpassFreq').value = 3000;
+            document.getElementById('highpassFreq').value = 300;
+            document.getElementById('compressorThreshold').value = -24;
+            document.getElementById('gainValue').value = 1.2;
+            
+            document.getElementById('lowpassFreqValue').textContent = '3000';
+            document.getElementById('highpassFreqValue').textContent = '300';
+            document.getElementById('compressorThresholdValue').textContent = '-24';
+            document.getElementById('gainValueValue').textContent = '1.2';
+            
+            log('音频处理配置已重置为默认值', 'info');
+        }
+
+        // ========== 日志函数 ==========
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // ========== 状态管理函数 ==========
+        function updateStatus() {
+            // 更新WebSocket状态
+            document.getElementById('wsStatus').textContent = getWSStatusText();
+            document.getElementById('wsStatus').className = `status-value ${getWSStatusClass()}`;
+            
+            // 更新WebRTC状态
+            document.getElementById('rtcStatus').textContent = getRTCStatusText();
+            document.getElementById('rtcStatus').className = `status-value ${getRTCStatusClass()}`;
+            
+            // 更新音视频流状态
+            document.getElementById('videoStatus').textContent = hasVideoStream ? '已接收' : '未接收';
+            document.getElementById('videoStatus').className = `status-value ${hasVideoStream ? 'status-connected' : 'status-disconnected'}`;
+            
+            document.getElementById('audioStatus').textContent = hasAudioStream ? '已接收' : '未接收';
+            document.getElementById('audioStatus').className = `status-value ${hasAudioStream ? 'status-connected' : 'status-disconnected'}`;
+            
+            // 更新连接信息
+            document.getElementById('peerDevice').textContent = peerDeviceId || '未连接';
+            document.getElementById('role').textContent = role || '未分配';
+            document.getElementById('roomStatus').textContent = getRoomStatusText();
+            document.getElementById('roomStatus').className = `status-value ${getRoomStatusClass()}`;
+
+            // 更新按钮状态
+            updateButtonStates();
+        }
+        
+        function getRoomStatusText() {
+            switch (roomStatus) {
+                case 'open': return '已打开';
+                case 'close': return '已关闭';
+                default: return '未知';
+            }
+        }
+        
+        function getRoomStatusClass() {
+            switch (roomStatus) {
+                case 'open': return 'status-connected';
+                case 'close': return 'status-disconnected';
+                default: return 'status-disconnected';
+            }
+        }
+
+        function getWSStatusText() {
+            if (!ws) return '未连接';
+            switch (ws.readyState) {
+                case WebSocket.CONNECTING: return '连接中';
+                case WebSocket.OPEN: return connectionStatus === 'paired' ? '已配对' : 
+                                           connectionStatus === 'joined' ? '已加入房间' : '已连接';
+                case WebSocket.CLOSING: return '断开中';
+                case WebSocket.CLOSED: return '已断开';
+                default: return '未知';
+            }
+        }
+
+        function getWSStatusClass() {
+            if (!ws) return 'status-disconnected';
+            switch (ws.readyState) {
+                case WebSocket.CONNECTING: return 'status-connecting';
+                case WebSocket.OPEN: return 'status-connected';
+                default: return 'status-disconnected';
+            }
+        }
+
+        function getRTCStatusText() {
+            if (!pc) return '未创建';
+            switch (pc.connectionState) {
+                case 'new': return '新建';
+                case 'connecting': return '连接中';
+                case 'connected': return '已连接';
+                case 'disconnected': return '已断开';
+                case 'failed': return '连接失败';
+                case 'closed': return '已关闭';
+                default: return '未知';
+            }
+        }
+
+        function getRTCStatusClass() {
+            if (!pc) return 'status-disconnected';
+            switch (pc.connectionState) {
+                case 'connecting': return 'status-connecting';
+                case 'connected': return 'status-connected';
+                default: return 'status-disconnected';
+            }
+        }
+
+        function updateButtonStates() {
+            const isConnected = ws && ws.readyState === WebSocket.OPEN;
+            const isJoined = connectionStatus === 'joined' || connectionStatus === 'paired';
+            const isDataChannelOpen = dataChannel && dataChannel.readyState === 'open';
+            const isRtcConnected = rtcStatus === 'connected';
+
+            document.getElementById('connectBtn').disabled = isConnected;
+            document.getElementById('joinBtn').disabled = !isConnected || isJoined;
+            document.getElementById('leaveBtn').disabled = !isJoined;
+            document.getElementById('startSineWaveBtn').disabled = !isRtcConnected;
+            document.getElementById('stopSineWaveBtn').disabled = !isRtcConnected || !sineWaveGenerator;
+            document.getElementById('disconnectBtn').disabled = !isConnected;
+            document.getElementById('messageInput').disabled = !isDataChannelOpen;
+            document.getElementById('sendBtn').disabled = !isDataChannelOpen;
+        }
+
+        // ========== 服务器地址更新 ==========
+        function updateServerUrl() {
+            const input = document.getElementById('serverUrlInput');
+            const newUrl = input.value.trim();
+            
+            if (!newUrl) {
+                log('请输入服务器地址', 'warn');
+                return;
+            }
+            
+            // 验证URL格式
+            if (!newUrl.startsWith('ws://') && !newUrl.startsWith('wss://')) {
+                log('服务器地址必须以 ws:// 或 wss:// 开头', 'warn');
+                return;
+            }
+            
+            // 如果当前已连接，先断开
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                log('当前已连接，请先断开连接再更改服务器地址', 'warn');
+                return;
+            }
+            
+            SERVER_URL = newUrl;
+            log(`服务器地址已更新为: ${SERVER_URL}`, 'info');
+        }
+
+        // ========== WebSocket连接管理 ==========
+        function connectToServer() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                log('已经连接到服务器', 'warn');
+                return;
+            }
+
+            log(`正在连接到服务器: ${SERVER_URL}`, 'info');
+            ws = new WebSocket(SERVER_URL);
+
+            ws.onopen = function() {
+                log('WebSocket连接成功', 'info');
+                connectionStatus = 'connected';
+                updateStatus();
+            };
+
+            ws.onmessage = function(event) {
+                try {
+                    const message = JSON.parse(event.data);
+                    handleWebSocketMessage(message);
+                } catch (error) {
+                    log(`解析消息失败: ${error.message}`, 'error');
+                }
+            };
+
+            ws.onclose = function() {
+                log('WebSocket连接已关闭', 'warn');
+                connectionStatus = 'disconnected';
+                peerDeviceId = '';
+                role = '';
+                updateStatus();
+            };
+
+            ws.onerror = function(error) {
+                log(`WebSocket错误: ${error}`, 'error');
+            };
+        }
+
+        // ========== WebSocket消息处理 ==========
+        function handleWebSocketMessage(message) {
+            log(`收到消息: ${message.type} from ${message.from}`, 'info');
+
+            // 验证消息格式
+            if (!message.type || !message.from || !message.to || !message.time) {
+                log(`消息格式错误，缺少必要字段`, 'error');
+                return;
+            }
+
+            switch (message.type) {
+                case 'role':
+                    handleRoleMessage(message);
+                    break;
+                case 'offer':
+                    handleOfferMessage(message);
+                    break;
+                case 'answer':
+                    handleAnswerMessage(message);
+                    break;
+                case 'ice':
+                    handleIceMessage(message);
+                    break;
+                case 'info':
+                    handleInfoMessage(message);
+                    break;
+                case 'error':
+                    handleErrorMessage(message);
+                    break;
+                default:
+                    log(`未知消息类型: ${message.type}`, 'warn');
+            }
+        }
+        
+        // 处理房间信息变动消息
+        function handleInfoMessage(message) {
+            if (message.data) {
+                if (message.data.room_id) {
+                    roomId = message.data.room_id;
+                }
+                if (message.data.num !== undefined) {
+                    log(`房间人数: ${message.data.num}`, 'info');
+                }
+                if (message.data.room_status) {
+                    roomStatus = message.data.room_status;
+                    log(`房间状态变更: ${roomStatus}`, 'info');
+                    updateStatus();
+                }
+            }
+        }
+
+        // 处理角色分配消息 - 适配C++端逻辑
+        function handleRoleMessage(message) {
+            if (message.data && message.data.peer_device_id) {
+                peerDeviceId = message.data.peer_device_id;
+            }
+            if (message.data && message.data.role) {
+                role = message.data.role;
+            }
+            
+            connectionStatus = 'paired';
+            log(`配对成功 - 对端设备: ${peerDeviceId}, 角色: ${role}`, 'info');
+            updateStatus();
+
+            // 创建WebRTC连接
+            createPeerConnection();
+        }
+
+        // ========== WebRTC连接管理 ==========
+        function createPeerConnection() {
+            try {
+                pc = new RTCPeerConnection(rtcConfig);
+                log('创建WebRTC PeerConnection', 'webrtc');
+
+                // ICE候选事件
+                pc.onicecandidate = function(event) {
+                    if (event.candidate) {
+                        log(`生成本地ICE候选`, 'webrtc');
+                        sendIceCandidate(event.candidate);
+                    }
+                };
+
+                // 连接状态变化
+                pc.onconnectionstatechange = function() {
+                    log(`WebRTC连接状态: ${pc.connectionState}`, 'webrtc');
+                    updateStatus();
+                };
+
+                // ICE连接状态变化
+                pc.oniceconnectionstatechange = function() {
+                    log(`ICE连接状态: ${pc.iceConnectionState}`, 'webrtc');
+                };
+
+                // 数据通道事件（应答方接收）
+                pc.ondatachannel = function(event) {
+                    const channel = event.channel;
+                    log(`收到远程DataChannel: ${channel.label}`, 'webrtc');
+                    setupDataChannel(channel);
+                };
+
+                // 音视频轨道接收事件
+                pc.ontrack = function(event) {
+                    log(`收到远程轨道: ${event.track.kind}`, 'webrtc');
+                    
+                    if (event.track.kind === 'video') {
+                        handleVideoTrack(event);
+                    } else if (event.track.kind === 'audio') {
+                        handleAudioTrack(event);
+                    }
+                };
+
+                // 根据角色执行不同操作 - 适配C++端逻辑
+                if (role === 'offerer') {
+                    log('作为发起方，创建DataChannel和音视频轨道', 'webrtc');
+                    setupOffererMode();
+                } else if (role === 'answerer') {
+                    log('作为应答方，等待接收DataChannel和音视频轨道', 'webrtc');
+                    setupAnswererMode();
+                }
+
+            } catch (error) {
+                log(`创建WebRTC连接失败: ${error}`, 'error');
+            }
+        }
+        
+        // 处理视频轨道（设备端到Web端的单向视频）
+        function handleVideoTrack(event) {
+            hasVideoStream = true;
+            
+            // 显示视频面板
+            const videoPanel = document.getElementById('videoPanel');
+            const videoContainer = document.getElementById('videoContainer');
+            videoPanel.style.display = 'block';
+            
+            // 清空视频容器
+            videoContainer.innerHTML = '';
+            
+            // 创建视频元素显示视频流
+            videoElement = document.createElement('video');
+            videoElement.srcObject = event.streams[0];
+            videoElement.autoplay = true;
+            videoElement.controls = true;
+            videoElement.style.width = '100%';
+            videoElement.style.maxWidth = '800px';
+            videoElement.style.borderRadius = '8px';
+            videoElement.style.border = '2px solid #007bff';
+            
+            // 添加到视频容器
+            videoContainer.appendChild(videoElement);
+            
+            log('视频流已添加到页面 (设备端→Web端)', 'webrtc');
+            updateStatus();
+        }
+        
+        // 处理音频轨道（双向音频通信）- 适配C++端Opus编码
+        function handleAudioTrack(event) {
+            hasAudioStream = true;
+            
+            // 显示音频面板
+            const audioPanel = document.getElementById('audioPanel');
+            const audioContainer = document.getElementById('audioContainer');
+            audioPanel.style.display = 'block';
+            
+            // 获取或创建音频元素
+            audioElement = document.getElementById('audioElement');
+            if (!audioElement) {
+                audioElement = document.createElement('audio');
+                audioElement.id = 'audioElement';
+                audioElement.controls = true;
+                audioElement.autoplay = true;
+                audioElement.style.width = '100%';
+                audioElement.style.maxWidth = '400px';
+                audioElement.style.marginTop = '10px';
+                audioContainer.appendChild(audioElement);
+            }
+            
+            // 显示音频处理控制面板
+            const audioControls = document.getElementById('audioControls');
+            audioControls.style.display = 'block';
+            
+            // 使用Web Audio API处理音频流以减少杂音
+            try {
+                // 创建AudioContext
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const audioContext = new AudioContext();
+                
+                // 创建音频源
+                const source = audioContext.createMediaStreamSource(event.streams[0]);
+                
+                // 创建降噪处理链
+                let currentNode = source;
+                
+                // 1. 低通滤波器 - 过滤高频噪声
+                const lowpassFilter = audioContext.createBiquadFilter();
+                lowpassFilter.type = 'lowpass';
+                lowpassFilter.frequency.value = AUDIO_PROCESSING_CONFIG.lowpassFrequency;
+                lowpassFilter.Q.value = 1.0;
+                currentNode.connect(lowpassFilter);
+                currentNode = lowpassFilter;
+                
+                // 2. 高通滤波器 - 过滤低频噪声（如风声、嗡嗡声）
+                const highpassFilter = audioContext.createBiquadFilter();
+                highpassFilter.type = 'highpass';
+                highpassFilter.frequency.value = AUDIO_PROCESSING_CONFIG.highpassFrequency;
+                highpassFilter.Q.value = 1.0;
+                currentNode.connect(highpassFilter);
+                currentNode = highpassFilter;
+                
+                // 3. 动态压缩器 - 减少音量波动，增强语音清晰度
+                const compressor = audioContext.createDynamicsCompressor();
+                compressor.threshold.value = AUDIO_PROCESSING_CONFIG.compressorThreshold;
+                compressor.knee.value = 30;
+                compressor.ratio.value = AUDIO_PROCESSING_CONFIG.compressorRatio;
+                compressor.attack.value = 0.003;
+                compressor.release.value = 0.25;
+                currentNode.connect(compressor);
+                currentNode = compressor;
+                
+                // 4. 增益控制 - 调整输出音量
+                const gainNode = audioContext.createGain();
+                gainNode.gain.value = AUDIO_PROCESSING_CONFIG.gainValue;
+                currentNode.connect(gainNode);
+                currentNode = gainNode;
+                
+                // 连接到音频输出
+                currentNode.connect(audioContext.destination);
+                
+                // 同时将音频流连接到audio元素以便播放
+                audioElement.srcObject = event.streams[0];
+                
+                log(`音频流已添加到页面 (${AUDIO_CONFIG.sampleRate}Hz Opus编码) 并启用高级降噪处理`, 'webrtc');
+            } catch (error) {
+                // 如果Web Audio API不可用，回退到原始方法
+                console.warn('Web Audio API不可用，使用原始音频处理:', error);
+                audioElement.srcObject = event.streams[0];
+                log(`音频流已添加到页面 (${AUDIO_CONFIG.sampleRate}Hz Opus编码)`, 'webrtc');
+            }
+            
+            updateStatus();
+        }
+        
+        // 发起方模式设置 - 适配C++端offerer逻辑
+        async function setupOffererMode() {
+            try {
+                // 创建数据通道
+                dataChannel = pc.createDataChannel('glasses_data_channel');
+                setupDataChannel(dataChannel);
+                
+                // 等待音频轨道创建完成
+                await createAudioTrackWithSineWave();
+                
+                // 创建并发送offer
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                
+                log('发送SDP Offer', 'webrtc');
+                
+                // 调试：检查SDP中的音频媒体行
+                const sdpLines = offer.sdp.split('\n');
+                const audioMediaLine = sdpLines.find(line => line.startsWith('m=audio'));
+                if (audioMediaLine) {
+                    log(`SDP音频媒体行: ${audioMediaLine}`, 'webrtc');
+                }
+                
+                const audioDirection = sdpLines.find(line => line.startsWith('a=sendrecv') || line.startsWith('a=sendonly') || line.startsWith('a=recvonly') || line.startsWith('a=inactive'));
+                if (audioDirection) {
+                    log(`SDP音频方向: ${audioDirection}`, 'webrtc');
+                }
+                
+                sendOffer(pc.localDescription.sdp);
+                
+            } catch (error) {
+                log(`发起方模式设置失败: ${error}`, 'error');
+            }
+        }
+        
+        // 正弦波音频生成器 - 用于测试音频传输
+        class SineWaveGenerator {
+            constructor(sampleRate = 48000, frequency = 440, volume = 0.1) {
+                this.sampleRate = sampleRate;
+                this.frequency = frequency;
+                this.volume = volume;
+                this.phase = 0;
+                this.audioContext = null;
+                this.audioStream = null;
+                this.isPlaying = false;
+            }
+            
+            // 生成正弦波音频流
+            async generateAudioStream() {
+                try {
+                    // 创建AudioContext
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)({
+                        sampleRate: this.sampleRate
+                    });
+                    
+                    // 创建音频流
+                    const destination = this.audioContext.createMediaStreamDestination();
+                    this.audioStream = destination.stream;
+                    
+                    // 创建正弦波振荡器
+                    const oscillator = this.audioContext.createOscillator();
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(this.frequency, this.audioContext.currentTime);
+                    
+                    // 创建增益节点控制音量
+                    const gainNode = this.audioContext.createGain();
+                    gainNode.gain.setValueAtTime(this.volume, this.audioContext.currentTime);
+                    
+                    // 连接音频节点
+                    oscillator.connect(gainNode);
+                    gainNode.connect(destination);
+                    
+                    // 开始生成音频
+                    oscillator.start();
+                    
+                    log(`正弦波音频流创建成功 - 频率: ${this.frequency}Hz, 音量: ${this.volume}`, 'webrtc');
+                    return this.audioStream;
+                    
+                } catch (error) {
+                    log(`创建正弦波音频流失败: ${error}`, 'error');
+                    return null;
+                }
+            }
+            
+            // 停止音频生成
+            stop() {
+                if (this.audioContext) {
+                    this.audioContext.close();
+                    this.audioContext = null;
+                }
+                this.audioStream = null;
+                this.isPlaying = false;
+                log('正弦波音频流已停止', 'webrtc');
+            }
+        }
+        
+        // 全局正弦波生成器
+        let sineWaveGenerator = null;
+        
+        // 应答方模式设置 - 适配C++端answerer逻辑
+        function setupAnswererMode() {
+            // 应答方只需要等待接收，不需要主动创建轨道
+            log('等待接收远程DataChannel和音视频轨道', 'webrtc');
+        }
+        
+        // 创建音频轨道并发送正弦波
+        async function createAudioTrackWithSineWave() {
+            try {
+                // 创建正弦波生成器
+                sineWaveGenerator = new SineWaveGenerator(48000, 440, 0.1); // 440Hz正弦波
+                const audioStream = await sineWaveGenerator.generateAudioStream();
+                
+                if (!audioStream) {
+                    log('创建正弦波音频流失败', 'error');
+                    return;
+                }
+                
+                // 从音频流中获取音频轨道
+                const audioTracks = audioStream.getAudioTracks();
+                if (audioTracks.length === 0) {
+                    log('音频流中没有音频轨道', 'error');
+                    return;
+                }
+                
+                const audioTrack = audioTracks[0];
+                log(`音频轨道创建成功，轨道ID: ${audioTrack.id}`, 'webrtc');
+                
+                // 添加音频轨道到PeerConnection
+                pc.addTrack(audioTrack, audioStream);
+                log('音频轨道已添加到PeerConnection，开始发送正弦波', 'webrtc');
+                
+                // 调试：检查PeerConnection中的轨道数量
+                const senderTracks = pc.getSenders();
+                log(`PeerConnection当前发送轨道数量: ${senderTracks.length}`, 'webrtc');
+                
+                senderTracks.forEach((sender, index) => {
+                    const track = sender.track;
+                    if (track) {
+                        log(`发送轨道 ${index}: ${track.kind} - ${track.id}`, 'webrtc');
+                    }
+                });
+                
+                // 注意：在setupOffererMode中会自动创建offer，这里不需要重复创建
+                
+            } catch (error) {
+                log(`创建音频轨道失败: ${error}`, 'error');
+            }
+        }
+        
+        // 停止正弦波音频
+        function stopSineWaveAudio() {
+            if (sineWaveGenerator) {
+                sineWaveGenerator.stop();
+                sineWaveGenerator = null;
+                log('正弦波音频已停止', 'webrtc');
+            }
+        }
+
+        // 设置数据通道
+        function setupDataChannel(channel) {
+            dataChannel = channel;
+
+            dataChannel.onopen = function() {
+                log('DataChannel连接已打开', 'webrtc');
+                updateStatus();
+                
+                // 发送测试消息
+                if (role === 'offerer') {
+                    const testMessage = 'Hello from web client V2!';
+                    dataChannel.send(testMessage);
+                    log(`发送消息: ${testMessage}`, 'info');
+                }
+            };
+
+            dataChannel.onmessage = function(event) {
+                log(`收到DataChannel消息: ${event.data}`, 'info');
+                
+                // 如果是应答方，回复消息
+                if (role === 'answerer') {
+                    const reply = `Reply from web V2: ${event.data}`;
+                    dataChannel.send(reply);
+                    log(`回复消息: ${reply}`, 'info');
+                }
+            };
+
+            dataChannel.onclose = function() {
+                log('DataChannel已关闭', 'warn');
+                updateStatus();
+            };
+
+            dataChannel.onerror = function(error) {
+                log(`DataChannel错误: ${error}`, 'error');
+            };
+        }
+
+        // 处理SDP Offer
+        function handleOfferMessage(message) {
+            if (!pc || !message.data || !message.data.sdp) return;
+
+            log('收到SDP Offer', 'webrtc');
+            
+            const offer = new RTCSessionDescription({
+                type: 'offer',
+                sdp: message.data.sdp
+            });
+
+            pc.setRemoteDescription(offer).then(function() {
+                log('设置远程SDP Offer成功', 'webrtc');
+                return pc.createAnswer();
+            }).then(function(answer) {
+                return pc.setLocalDescription(answer);
+            }).then(function() {
+                log('发送SDP Answer', 'webrtc');
+                sendAnswer(pc.localDescription.sdp);
+            }).catch(function(error) {
+                log(`处理Offer失败: ${error}`, 'error');
+            });
+        }
+
+        // 处理SDP Answer
+        function handleAnswerMessage(message) {
+            if (!pc || !message.data || !message.data.sdp) return;
+
+            log('收到SDP Answer', 'webrtc');
+            
+            const answer = new RTCSessionDescription({
+                type: 'answer',
+                sdp: message.data.sdp
+            });
+
+            pc.setRemoteDescription(answer).then(function() {
+                log('设置远程SDP Answer成功', 'webrtc');
+            }).catch(function(error) {
+                log(`设置远程SDP失败: ${error}`, 'error');
+            });
+        }
+
+        // 处理ICE候选
+        function handleIceMessage(message) {
+            if (!pc || !message.data || !message.data.candidate) return;
+
+            log('收到ICE候选', 'webrtc');
+            
+            try {
+                const candidate = new RTCIceCandidate({
+                    candidate: message.data.candidate,
+                    sdpMLineIndex: 0,
+                    sdpMid: '0'
+                });
+                
+                pc.addIceCandidate(candidate).then(function() {
+                    log('添加远程ICE候选成功', 'webrtc');
+                }).catch(function(error) {
+                    log(`添加ICE候选失败: ${error}`, 'error');
+                });
+            } catch (error) {
+                log(`解析ICE候选失败: ${error}`, 'error');
+            }
+        }
+
+        // 处理错误消息
+        function handleErrorMessage(message) {
+            if (message.data) {
+                const errorCode = message.data.error_code || 'unknown';
+                const errorMessage = message.data.error_message || '未知错误';
+                log(`服务器错误 [${errorCode}]: ${errorMessage}`, 'error');
+            }
+        }
+
+        // 发送消息到服务器
+        function sendToServer(message) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(message));
+                return true;
+            }
+            log('WebSocket未连接，无法发送消息', 'error');
+            return false;
+        }
+
+        // ========== 房间管理函数 ==========
+        function joinRoom() {
+            const message = {
+                type: 'join',
+                device_id: DEVICE_ID,
+                from: DEVICE_ID,
+                to: 'server',
+                time: Date.now() * 1000  // 微秒时间戳
+            };
+            
+            if (sendToServer(message)) {
+                log('发送加入房间消息', 'info');
+                connectionStatus = 'joined';
+                updateStatus();
+            }
+        }
+
+        function leaveRoom() {
+            const message = {
+                type: 'leave',
+                device_id: DEVICE_ID,
+                from: DEVICE_ID,
+                to: 'server',
+                time: Date.now() * 1000  // 微秒时间戳
+            };
+            
+            if (sendToServer(message)) {
+                log('发送离开房间消息', 'info');
+                connectionStatus = 'connected';
+                peerDeviceId = '';
+                role = '';
+                roomId = '';
+                roomStatus = 'close';
+                
+                // 关闭WebRTC连接
+                closeWebRTCConnection();
+                updateStatus();
+            }
+        }
+        
+        function closeWebRTCConnection() {
+            if (pc) {
+                pc.close();
+                pc = null;
+            }
+            if (dataChannel) {
+                dataChannel.close();
+                dataChannel = null;
+            }
+            
+            // 停止正弦波音频
+            stopSineWaveAudio();
+            
+            // 清理音视频元素
+            if (videoElement) {
+                videoElement.remove();
+                videoElement = null;
+            }
+            
+            if (audioElement) {
+                audioElement.pause();
+                audioElement.srcObject = null;
+                audioElement = null;
+            }
+            
+            // 隐藏音视频面板和音频控制面板
+            const videoPanel = document.getElementById('videoPanel');
+            const audioPanel = document.getElementById('audioPanel');
+            const audioControls = document.getElementById('audioControls');
+            videoPanel.style.display = 'none';
+            audioPanel.style.display = 'none';
+            audioControls.style.display = 'none';
+            
+            // 重置状态
+            hasVideoStream = false;
+            hasAudioStream = false;
+        }
+
+        // 断开连接
+        function disconnectFromServer() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+            
+            if (pc) {
+                pc.close();
+                pc = null;
+            }
+            
+            if (dataChannel) {
+                dataChannel.close();
+                dataChannel = null;
+            }
+            
+            if (videoElement) {
+                videoElement.remove();
+                videoElement = null;
+            }
+            
+            if (audioElement) {
+                audioElement.pause();
+                audioElement.srcObject = null;
+                audioElement = null;
+            }
+            
+            // 隐藏音视频面板和音频控制面板
+            const videoPanel = document.getElementById('videoPanel');
+            const audioPanel = document.getElementById('audioPanel');
+            const audioControls = document.getElementById('audioControls');
+            videoPanel.style.display = 'none';
+            audioPanel.style.display = 'none';
+            audioControls.style.display = 'none';
+            
+            // 重置状态
+            hasVideoStream = false;
+            hasAudioStream = false;
+            connectionStatus = 'disconnected';
+            peerDeviceId = '';
+            role = '';
+            updateStatus();
+            
+            log('已断开连接', 'info');
+        }
+
+        // ========== WebRTC消息发送函数 ==========
+        function sendOffer(sdp) {
+            const message = {
+                type: 'offer',
+                device_id: DEVICE_ID,
+                from: DEVICE_ID,
+                to: peerDeviceId,
+                data: { sdp: sdp },
+                time: Date.now() * 1000  // 微秒时间戳
+            };
+            sendToServer(message);
+            log('发送SDP Offer到设备端', 'webrtc');
+        }
+
+        function sendAnswer(sdp) {
+            const message = {
+                type: 'answer',
+                device_id: DEVICE_ID,
+                from: DEVICE_ID,
+                to: peerDeviceId,
+                data: { sdp: sdp },
+                time: Date.now() * 1000  // 微秒时间戳
+            };
+            sendToServer(message);
+            log('发送SDP Answer到设备端', 'webrtc');
+        }
+
+        function sendIceCandidate(candidate) {
+            const message = {
+                type: 'ice',
+                device_id: DEVICE_ID,
+                from: DEVICE_ID,
+                to: peerDeviceId,
+                data: { candidate: candidate.candidate },
+                time: Date.now() * 1000  // 微秒时间戳
+            };
+            sendToServer(message);
+        }
+
+        // 发送DataChannel消息
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) {
+                log('请输入消息内容', 'warn');
+                return;
+            }
+            
+            if (dataChannel && dataChannel.readyState === 'open') {
+                dataChannel.send(message);
+                log(`发送消息: ${message}`, 'info');
+                input.value = '';
+            } else {
+                log('DataChannel未连接，无法发送消息', 'error');
+            }
+        }
+
+        // ========== 事件监听器 ==========
+        // 回车发送消息
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // 回车更新服务器地址
+        document.getElementById('serverUrlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                updateServerUrl();
+            }
+        });
+
+        // 页面加载完成后初始化状态
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus();
+        });
+    </script>
+</body>
+</html>

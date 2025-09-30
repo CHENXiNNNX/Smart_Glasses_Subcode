@@ -1,5 +1,7 @@
 #include <iostream>
 #include <memory>
+#include <algorithm>
+#include <cmath>
 
 #include "app/media/media_config.h"
 #include "rtc/rtc.hpp"
@@ -7,6 +9,7 @@
 #include "app/protocol/webrtc/webrtc.h"
 #include "app/media/camera/camera.h"
 #include "app/media/audio/audio.h"
+#include "app/media/sync.h"
 #include <nlohmann/json.hpp>
 
 using namespace glasses::protocol;
@@ -14,13 +17,14 @@ using json = nlohmann::json;
 
 // 设备配置
 constexpr const char* DEVICE_ID = "glasses_123456";
-constexpr const char* SERVER_URL = "ws://192.168.50.184:8000";
+constexpr const char* SERVER_URL = "ws://192.168.2.248:8000";
 
 // 全局变量
 std::shared_ptr<Signaling> signaling;
-std::shared_ptr<WebRTCManager> webrtcManager;
-video_system_t* video_system = nullptr;
-audio_system_t* audio_system = nullptr;
+std::shared_ptr<WebRTCManage> webrtcManager;
+std::unique_ptr<video_system_t> video_system;
+std::unique_ptr<audio_system_t> audio_system;
+sync_context_t sync_ctx;  // 时间同步上下文
 
 // 创建WebRTC配置
 WebRTCConfig createWebRTCConfig() {
@@ -29,18 +33,40 @@ WebRTCConfig createWebRTCConfig() {
     // 功能开关配置
     config.enableDataChannel = false;    // 启用数据通道
     config.enableAudioSend = true;      // 启用音频发送
-    config.enableAudioReceive = false;   // 启用音频接收
+    config.enableAudioReceive = true;   // 启用音频接收
     config.enableVideoSend = false;      // 启用视频发送
     
     // 数据通道配置
     config.dataChannelLabel = "glasses_data_channel";
     
-    // STUN服务器配置
-    config.stunServers = {
+    // ICE服务器配置
+    config.ice.stunServers = {
         "stun:stun.l.google.com:19302",
         "stun:stun.miwifi.com:3478",
         "stun:stun.chat.bilibili.com:3478"
     };
+    
+    // TURN服务器配置
+    config.ice.turnServers = {
+
+    };
+    
+    // ICE传输策略配置
+    config.ice.useRelayOnly = false; 
+    
+    // SCTP传输配置 
+    config.sctp.recvBufferSize = 2 * 1024 * 1024;        // 接收缓冲区: 2MB
+    config.sctp.sendBufferSize = 2 * 1024 * 1024;        // 发送缓冲区: 2MB
+    config.sctp.maxChunksOnQueue = 20 * 1024;            // 队列最大块数: 20K
+    config.sctp.initialCongestionWindow = 10;            // 初始拥塞窗口: 10 MTUs
+    config.sctp.maxBurst = 10;                           // 最大突发: 10 MTUs
+    config.sctp.congestionControlModule = 0;             // 拥塞控制算法: RFC2581
+    config.sctp.delayedSackTime = std::chrono::milliseconds{20};  // SACK延迟: 20ms
+    config.sctp.minRetransmitTimeout = std::chrono::milliseconds{200};  // 最小重传超时: 200ms
+    config.sctp.maxRetransmitTimeout = std::chrono::milliseconds{10000}; // 最大重传超时: 10s
+    config.sctp.initialRetransmitTimeout = std::chrono::milliseconds{1000}; // 初始重传超时: 1s
+    config.sctp.maxRetransmitAttempts = 5;               // 最大重传次数: 5次
+    config.sctp.heartbeatInterval = std::chrono::milliseconds{30000}; // 心跳间隔: 30s
     
     return config;
 }
@@ -50,7 +76,7 @@ void onVideoFrameCallback(void *data, int len, uint64_t timestamp) {
     
     // 转发给WebRTC管理器
     if (webrtcManager) {
-        webrtcManager->sendVideoFrame(static_cast<const uint8_t*>(data), len, timestamp);
+        webrtcManager->sendVideoData(static_cast<const uint8_t*>(data), len, timestamp);
     }
 }
 
@@ -61,6 +87,75 @@ void onAudioDataCallback(void *data, int len, uint64_t timestamp) {
     if (webrtcManager) {
         webrtcManager->sendAudioData(static_cast<const uint8_t*>(data), len, timestamp);
     }
+}
+
+// 音频数据接收回调函数
+void onReceivedAudioDataCallback(const uint8_t* data, size_t size) {
+    if (!audio_system || !data || size == 0) {
+        std::cout << "[Main] 音频系统未初始化或数据无效，无法播放音频" << std::endl;
+        return;
+    }
+    
+    std::cout << "[Main] 接收到Opus音频数据: " << size << " 字节" << std::endl;
+    
+    // 解码Opus数据为PCM
+    uint8_t pcm_buffer[4096];  // 足够大的缓冲区来存储解码后的PCM数据
+    size_t pcm_size = sizeof(pcm_buffer);
+    
+    if (decode_opus(audio_system.get(), const_cast<uint8_t*>(data), size, pcm_buffer, &pcm_size) != AUDIO_ERROR_NONE) {
+        std::cout << "[Main] 音频解码失败" << std::endl;
+        return;
+    }
+    
+    std::cout << "[Main] Opus解码成功，PCM数据大小: " << pcm_size << " 字节" << std::endl;
+    
+    // 将解码后的PCM数据转换为vector<int16_t>
+    int16_t* pcm_data = reinterpret_cast<int16_t*>(pcm_buffer);
+    int num_pcm_samples = pcm_size / sizeof(int16_t);
+    
+    // 音量增强处理 - 让音频更明显
+    const float volume_boost = 0.5f; // 音量增强倍数，进一步增大
+    for (int i = 0; i < num_pcm_samples; i++) {
+        float sample = static_cast<float>(pcm_data[i]);
+        sample *= volume_boost;
+        
+        // 防止溢出
+        if (sample > 32767.0f) sample = 32767.0f;
+        if (sample < -32768.0f) sample = -32768.0f;
+        
+        pcm_data[i] = static_cast<int16_t>(sample);
+    }
+    
+    // 分帧处理 - 模拟测试代码的播放方式
+    const int FRAME_SIZE = AUDIO_FRAME_SIZE; // 20ms帧 (960样本 @ 48kHz)
+    
+    // 如果数据长度超过一帧，需要分帧处理
+    if (num_pcm_samples > FRAME_SIZE) {
+        // 分帧添加到播放队列
+        for (size_t i = 0; i < num_pcm_samples; i += FRAME_SIZE) {
+            size_t remaining = num_pcm_samples - i;
+            size_t current_frame_size = std::min(static_cast<size_t>(FRAME_SIZE), remaining);
+            
+            std::vector<int16_t> playback_frame(pcm_data + i, pcm_data + i + current_frame_size);
+            add_frame_to_playback_queue(audio_system.get(), playback_frame);
+        }
+    } else {
+        // 单帧直接添加
+        std::vector<int16_t> pcm_frame(pcm_data, pcm_data + num_pcm_samples);
+        add_frame_to_playback_queue(audio_system.get(), pcm_frame);
+    }
+    
+    // 计算音频信号强度用于调试
+    float max_amplitude = 0.0f;
+    for (int i = 0; i < num_pcm_samples; i++) {
+        float abs_sample = std::abs(static_cast<float>(pcm_data[i]));
+        if (abs_sample > max_amplitude) {
+            max_amplitude = abs_sample;
+        }
+    }
+    
+    std::cout << "[Main] 音频帧已添加到播放队列，样本数: " << num_pcm_samples 
+              << ", 最大振幅: " << max_amplitude << " (增强" << volume_boost << "倍)" << std::endl;
 }
 
 // 设置信令回调
@@ -89,22 +184,22 @@ void setupWebRTCCallbacks() {
     if (!webrtcManager) return;
     
     // 状态变化回调
-    webrtcManager->onStatusChanged([](WebRTCStatus status) {
+    webrtcManager->onStateChanged([](WebRTCState status) {
         std::cout << "[Main] WebRTC状态变化: " << static_cast<int>(status) << std::endl;
         
         // 当WebRTC连接建立成功后，自动启动音视频流
-        if (status == WebRTCStatus::CONNECTED) {
+        if (status == WebRTCState::CONNECTED) {
             std::cout << "[Main] WebRTC连接建立成功，启动音视频流..." << std::endl;
             
             // 启动视频流
-            if (start_video_stream(video_system) == 0) {
+            if (start_video_stream(video_system.get()) == 0) {
                 std::cout << "[Main] 基础视频流启动成功" << std::endl;
                 
-                if (set_video_mode(video_system, VIDEO_MODE_WEBRTC) == 0) {
+                if (set_video_mode(video_system.get(), VIDEO_MODE_WEBRTC) == 0) {
                     std::cout << "[Main] 视频模式设置为WebRTC" << std::endl;
                     
                     #if USE_WEBRTC
-                    if (start_webrtc_video_stream(video_system) == 0) {
+                    if (start_webrtc_video_stream(video_system.get()) == 0) {
                         std::cout << "[Main] WebRTC视频流启动成功" << std::endl;
                     } else {
                         std::cout << "[Main] WebRTC视频流启动失败" << std::endl;
@@ -119,12 +214,30 @@ void setupWebRTCCallbacks() {
             
             // 启动音频流
             if (audio_system) {
-                if (set_audio_mode(audio_system, AUDIO_MODE_WEBRTC) == AUDIO_ERROR_NONE) {
+                if (set_audio_mode(audio_system.get(), AUDIO_MODE_WEBRTC) == AUDIO_ERROR_NONE) {
                     std::cout << "[Main] 音频模式设置为WebRTC" << std::endl;
                     
                     #if USE_WEBRTC
-                    if (start_webrtc_audio_stream(audio_system) == AUDIO_ERROR_NONE) {
+                    if (start_webrtc_audio_stream(audio_system.get()) == AUDIO_ERROR_NONE) {
                         std::cout << "[Main] WebRTC音频流启动成功" << std::endl;
+                        
+                        // 启动音频播放
+                        if (start_playback(audio_system.get()) == AUDIO_ERROR_NONE) {
+                            std::cout << "[Main] 音频播放已启动" << std::endl;
+                        } else {
+                            std::cout << "[Main] 音频播放启动失败" << std::endl;
+                        }
+                        
+                        // 启动WebRTC音频接收
+                        if (webrtcManager) {
+                            if (webrtcManager->getConfig().enableAudioReceive) {
+                                // if (webrtcManager->startAudioReceive()) {
+                                //     std::cout << "[Main] WebRTC音频接收已启动" << std::endl;
+                                // } else {
+                                //     std::cout << "[Main] WebRTC音频接收启动失败" << std::endl;
+                                // }
+                            }
+                        }
                     } else {
                         std::cout << "[Main] WebRTC音频流启动失败" << std::endl;
                     }
@@ -137,9 +250,12 @@ void setupWebRTCCallbacks() {
     });
     
     // 数据通道消息回调
-    webrtcManager->onDataChannelMessage([](const std::string& message) {
+    webrtcManager->onDataMessage([](const std::string& message) {
         std::cout << "[Main] 收到数据通道消息: " << message << std::endl;
     });
+    
+    // 音频数据接收回调
+    webrtcManager->onAudioData(onReceivedAudioDataCallback);
 }
 
 int main(void) {
@@ -150,21 +266,31 @@ int main(void) {
     // 初始化libdatachannel日志
     rtc::InitLogger(rtc::LogLevel::Info);
 
-    // 初始化视频系统
-    std::cout << "[Main] 初始化视频系统..." << std::endl;
-    if (init_video_system(&video_system, CAMERA_WIDTH, CAMERA_HEIGHT, VIDEO_MODE_NONE) != 0) {
-        std::cout << "[Main] 视频系统初始化失败" << std::endl;
+    // 初始化时间同步模块
+    std::cout << "[Main] 初始化时间同步模块..." << std::endl;
+    if (sync_init(&sync_ctx) != 0) {
+        std::cout << "[Main] 时间同步模块初始化失败" << std::endl;
         return -1;
     }
+    std::cout << "[Main] 时间同步模块初始化成功" << std::endl;
+
+    // 初始化视频系统
+    std::cout << "[Main] 初始化视频系统..." << std::endl;
+    video_system_t* temp_video_system = nullptr;
+    if (init_video_system(&temp_video_system, CAMERA_WIDTH, CAMERA_HEIGHT, VIDEO_MODE_NONE, &sync_ctx) != 0) {
+        std::cout << "[Main] 视频系统初始化失败" << std::endl;
+        sync_deinit(&sync_ctx);
+        return -1;
+    }
+    video_system.reset(temp_video_system);
     std::cout << "[Main] 视频系统初始化成功" << std::endl;
 
     // 初始化音频系统
     std::cout << "[Main] 初始化音频系统..." << std::endl;
-    audio_system = new audio_system_t();
-    if (audio_system_init(audio_system) != AUDIO_ERROR_NONE) {
+    audio_system = std::make_unique<audio_system_t>();
+    if (audio_system_init(audio_system.get(), &sync_ctx) != AUDIO_ERROR_NONE) {
         std::cout << "[Main] 音频系统初始化失败" << std::endl;
-        delete audio_system;
-        audio_system = nullptr;
+        audio_system.reset();
         return -1;
     }
     std::cout << "[Main] 音频系统初始化成功" << std::endl;
@@ -174,7 +300,7 @@ int main(void) {
     
     // 创建模块实例
     signaling = std::make_shared<Signaling>(DEVICE_ID, SERVER_URL);
-    webrtcManager = std::make_shared<WebRTCManager>(config);
+    webrtcManager = std::make_shared<WebRTCManage>(config);
     
     // 初始化WebRTC管理器
     if (!webrtcManager->initialize(signaling)) {
@@ -189,7 +315,7 @@ int main(void) {
     // 设置视频WebRTC回调
     std::cout << "[Main] 设置视频WebRTC回调..." << std::endl;
     #if USE_WEBRTC
-    if (set_webrtc_callback(video_system, webrtcManager.get(), onVideoFrameCallback) != 0) {
+    if (set_webrtc_callback(video_system.get(), webrtcManager.get(), onVideoFrameCallback) != 0) {
         std::cout << "[Main] 设置视频WebRTC回调失败" << std::endl;
         return -1;
     }
@@ -199,7 +325,7 @@ int main(void) {
     // 设置音频WebRTC回调
     std::cout << "[Main] 设置音频WebRTC回调..." << std::endl;
     #if USE_WEBRTC
-    if (set_webrtc_audio_callback(audio_system, webrtcManager.get(), onAudioDataCallback) != AUDIO_ERROR_NONE) {
+    if (set_webrtc_audio_callback(audio_system.get(), webrtcManager.get(), onAudioDataCallback) != AUDIO_ERROR_NONE) {
         std::cout << "[Main] 设置音频WebRTC回调失败" << std::endl;
         return -1;
     }
@@ -231,22 +357,26 @@ int main(void) {
     // 停止音视频流
     if (audio_system) {
         #if USE_WEBRTC
-        stop_webrtc_audio_stream(audio_system);
+        stop_webrtc_audio_stream(audio_system.get());
         #endif
-        audio_system_deinit(audio_system);
-        delete audio_system;
-        audio_system = nullptr;
+        audio_system_deinit(audio_system.get());
+        audio_system.reset();
         std::cout << "[Main] 音频系统已释放" << std::endl;
     }
     
     if (video_system) {
         #if USE_WEBRTC
-        stop_webrtc_video_stream(video_system);
+        stop_webrtc_video_stream(video_system.get());
         #endif
-        stop_video_stream(video_system);
-        release_video_system(&video_system);
+        stop_video_stream(video_system.get());
+        video_system_t* temp_video_system = video_system.release();
+        release_video_system(&temp_video_system);
         std::cout << "[Main] 视频系统已释放" << std::endl;
     }
+    
+    // 释放时间同步模块
+    sync_deinit(&sync_ctx);
+    std::cout << "[Main] 时间同步模块已释放" << std::endl;
     
     // 按依赖关系清理资源
     if (webrtcManager) {

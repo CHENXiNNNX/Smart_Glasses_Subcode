@@ -46,6 +46,9 @@ target_include_directories(app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/protocol
     ${CMAKE_CURRENT_SOURCE_DIR}/protocol/rtsp
     ${CMAKE_CURRENT_SOURCE_DIR}/protocol/websocket
+    # tool headers
+    ${CMAKE_CURRENT_SOURCE_DIR}/tool
+    ${CMAKE_CURRENT_SOURCE_DIR}/tool/memory
     # libdatachannel headers
     ${PROJECT_SOURCE_DIR}/libdatachannel/include
     ${PROJECT_SOURCE_DIR}/libdatachannel/deps/json/single_include

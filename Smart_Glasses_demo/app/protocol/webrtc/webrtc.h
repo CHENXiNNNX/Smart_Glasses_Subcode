@@ -11,6 +11,8 @@
 #include <queue>
 #include <vector>
 #include <chrono>
+#include <atomic>
+#include <array>
 #include <rtc/rtc.hpp>
 #include <rtc/track.hpp>
 #include <rtc/rtp.hpp>
@@ -19,8 +21,8 @@
 #include <rtc/rembhandler.hpp>
 #include <rtc/global.hpp>
 #include "signaling.h"
-
 #include "../../media/media_config.h"
+#include "../../tool/memory/mem_pool.h"
 
 namespace glasses {
 namespace protocol {
@@ -28,322 +30,363 @@ namespace protocol {
 // 前向声明
 class Signaling;
 
-// 任务队列调度器
-class DispatchQueue {
-    typedef std::function<void(void)> fp_t;
+// ========== 零拷贝缓冲区管理 ==========
 
+// 媒体缓冲区
+class MediaBuffer {
 public:
-    DispatchQueue(std::string name, size_t threadCount = 1);
-    ~DispatchQueue();
-
-    // dispatch and copy
-    void dispatch(const fp_t& op);
-    // dispatch and move
-    void dispatch(fp_t&& op);
-
-    void removePending();
-
-    // Deleted operations
-    DispatchQueue(const DispatchQueue& rhs) = delete;
-    DispatchQueue& operator=(const DispatchQueue& rhs) = delete;
-    DispatchQueue(DispatchQueue&& rhs) = delete;
-    DispatchQueue& operator=(DispatchQueue&& rhs) = delete;
-
+    MediaBuffer(uint8_t* data, size_t capacity, tool::memory::MemoryPool* pool)
+        : data_(data), capacity_(capacity), size_(0), pool_(pool) {}
+    
+    ~MediaBuffer() {
+        if (data_ && pool_) {
+            pool_->deallocate(data_);
+        }
+    }
+    
+    // 禁用拷贝
+    MediaBuffer(const MediaBuffer&) = delete;
+    MediaBuffer& operator=(const MediaBuffer&) = delete;
+    
+    uint8_t* data() { return data_; }
+    const uint8_t* data() const { return data_; }
+    size_t size() const { return size_; }
+    size_t capacity() const { return capacity_; }
+    
+    void setSize(size_t size) { size_ = std::min(size, capacity_); }
+    void reset() { size_ = 0; }
+    
+    // 写入数据（零拷贝写入）
+    bool write(const uint8_t* src, size_t len) {
+        if (len > capacity_) return false;
+        std::memcpy(data_, src, len);
+        size_ = len;
+        return true;
+    }
+    
 private:
-    std::string name;
-    std::mutex lockMutex;
-    std::vector<std::thread> threads;
-    std::queue<fp_t> queue;
-    std::condition_variable condition;
-    bool quit = false;
-
-    void dispatchThreadHandler(void);
+    uint8_t* data_;
+    size_t capacity_;
+    size_t size_;
+    tool::memory::MemoryPool* pool_;
 };
 
-// WebRTC功能配置结构体
+using MediaBufferPtr = std::shared_ptr<MediaBuffer>;
+
+// ========== 优先级任务队列 ==========
+
+// 任务优先级
+enum class TaskPriority {
+    HIGH = 0,     // 高优先级（音频）
+    NORMAL = 1,   // 普通优先级（视频关键帧）
+    LOW = 2       // 低优先级（视频P帧）
+};
+
+// 任务结构
+struct Task {
+    std::function<void()> func;
+    TaskPriority priority;
+    uint64_t timestamp;
+    
+    // 优先级比较
+    bool operator<(const Task& other) const {
+        if (priority != other.priority) {
+            return priority > other.priority;  // 数值越小优先级越高
+        }
+        return timestamp > other.timestamp;    // 先进先出
+    }
+};
+
+// 优先级任务队列
+class PriorityTaskQueue {
+public:
+    explicit PriorityTaskQueue(const std::string& name, size_t threadCount = 2);
+    ~PriorityTaskQueue();
+    
+    void post(std::function<void()> func, TaskPriority priority);
+    void clear();
+    
+    // 禁用拷贝和移动
+    PriorityTaskQueue(const PriorityTaskQueue&) = delete;
+    PriorityTaskQueue& operator=(const PriorityTaskQueue&) = delete;
+
+private:
+    void workerThread();
+    
+    std::string name_;
+    std::vector<std::thread> workers_;
+    std::priority_queue<Task> tasks_;
+    std::mutex mutex_;
+    std::condition_variable condition_;
+    std::atomic<bool> stop_{false};
+};
+
+// ========== 缓冲区池 ==========
+
+// 音频缓冲区池（小块快速分配）
+class AudioBufferPool {
+public:
+    AudioBufferPool();
+    ~AudioBufferPool();
+    
+    MediaBufferPtr acquire();
+    void release(MediaBufferPtr buffer);
+    
+private:
+    static constexpr size_t AUDIO_BUFFER_SIZE = 4096;  // 4KB缓冲区
+    static constexpr size_t POOL_SIZE = 100;            // 预分配100个缓冲区
+    
+    std::unique_ptr<tool::memory::MemoryPool> memPool_;
+    std::queue<MediaBufferPtr> freeBuffers_;
+    std::mutex mutex_;
+};
+
+// 视频缓冲区池（大块优化分配）
+class VideoBufferPool {
+public:
+    VideoBufferPool();
+    ~VideoBufferPool();
+    
+    MediaBufferPtr acquire(size_t requiredSize);
+    void release(MediaBufferPtr buffer);
+    
+private:
+    // 分级缓冲区
+    static constexpr size_t SMALL_BUFFER_SIZE = 64 * 1024;    // 64KB (P帧)
+    static constexpr size_t MEDIUM_BUFFER_SIZE = 256 * 1024;  // 256KB (小I帧)
+    static constexpr size_t LARGE_BUFFER_SIZE = 1024 * 1024;  // 1MB (大I帧)
+    
+    static constexpr size_t SMALL_POOL_SIZE = 30;   // P帧较多
+    static constexpr size_t MEDIUM_POOL_SIZE = 10;
+    static constexpr size_t LARGE_POOL_SIZE = 5;
+    
+    std::unique_ptr<tool::memory::MemoryPool> memPool_;
+    
+    std::queue<MediaBufferPtr> smallBuffers_;
+    std::queue<MediaBufferPtr> mediumBuffers_;
+    std::queue<MediaBufferPtr> largeBuffers_;
+    
+    std::mutex mutex_;
+};
+
+// ========== WebRTC配置结构体 ==========
+
 struct WebRTCConfig {
     // 功能开关
-    bool enableDataChannel = false;      // 数据通道开关
-    bool enableAudioSend = false;        // 音频发送开关
-    bool enableAudioReceive = false;     // 音频接收开关
-    bool enableVideoSend = false;        // 视频发送开关
+    bool enableDataChannel = false;
+    bool enableAudioSend = false;
+    bool enableAudioReceive = false;
+    bool enableVideoSend = false;
+    bool enableVideoReceive = false;
     
-    // 数据通道配置
+    // 基本配置
     std::string dataChannelLabel = "glasses_data_channel";
     
     // 音频配置
-    struct AudioConfig {
+    struct {
         std::string codec = "opus";
-        int sampleRate = 48000;  
+        int sampleRate = 48000;
         int channels = 1;
         int bitrate = 32000;
-    } audioConfig;
+    } audio;
     
     // 视频配置
-    struct VideoConfig {
+    struct {
         std::string codec = "h264";
         int width = CAMERA_WIDTH;
         int height = CAMERA_HEIGHT;
         int fps = CAMERA_FPS;
         int bitrate = H264_Default_Bitrate;
-    } videoConfig;
+    } video;
     
-    // SCTP传输配置
-    struct SctpConfig {
-        size_t recvBufferSize = 1 * 1024 * 1024;        // 接收缓冲区(默认1MB)
-        size_t sendBufferSize = 1 * 1024 * 1024;        // 发送缓冲区(默认1MB)
-        size_t maxChunksOnQueue = 10 * 1024;            // 队列最大块数(默认10K)
-        size_t initialCongestionWindow = 10;            // 初始拥塞窗口: 10 MTUs (RFC 6928)
-        size_t maxBurst = 10;                           // 最大突发: 10 MTUs
-        unsigned int congestionControlModule = 0;       // 拥塞控制算法: 0=RFC2581, 1=HSTCP, 2=H-TCP, 3=RTCC
-        std::chrono::milliseconds delayedSackTime = std::chrono::milliseconds(20);  // SACK延迟: 20ms
-        std::chrono::milliseconds minRetransmitTimeout = std::chrono::milliseconds(200);  // 最小重传超时: 200ms
-        std::chrono::milliseconds maxRetransmitTimeout = std::chrono::milliseconds(10000); // 最大重传超时: 10s
-        std::chrono::milliseconds initialRetransmitTimeout = std::chrono::milliseconds(1000); // 初始重传超时: 1s
-        unsigned int maxRetransmitAttempts = 5;         // 最大重传次数: 5次
-        std::chrono::milliseconds heartbeatInterval = std::chrono::milliseconds(30000); // 心跳间隔: 30s
-    } sctpConfig;
+    // ICE服务器配置
+    struct {
+        std::vector<std::string> stunServers;
+        std::vector<std::string> turnServers;
+        bool useRelayOnly = false;
+    } ice;
     
-    // ICE服务器配置 (STUN/TURN)
-    struct IceServerConfig {
-        std::string url;                    // 服务器URL
-        std::string username;               // TURN服务器用户名 (仅TURN需要)
-        std::string password;               // TURN服务器密码 (仅TURN需要)
-        std::string transport;              // 传输协议: udp/tcp/tls
-        bool isTurn = false;                // 是否为TURN服务器
-    };
+    // SCTP配置
+    struct {
+        size_t recvBufferSize = 2 * 1024 * 1024;
+        size_t sendBufferSize = 2 * 1024 * 1024;
+        size_t maxChunksOnQueue = 20 * 1024;
+        int initialCongestionWindow = 10;
+        int maxBurst = 10;
+        int congestionControlModule = 0;
+        std::chrono::milliseconds delayedSackTime{20};
+        std::chrono::milliseconds minRetransmitTimeout{200};
+        std::chrono::milliseconds maxRetransmitTimeout{10000};
+        std::chrono::milliseconds initialRetransmitTimeout{1000};
+        int maxRetransmitAttempts = 5;
+        std::chrono::milliseconds heartbeatInterval{30000};
+    } sctp;
     
-    // STUN服务器列表
-    std::vector<std::string> stunServers = {
-        // "stun:stun.l.google.com:19302",
-        // "stun:stun.miwifi.com:3478",
-        // "stun:stun.chat.bilibili.com:3478"
-    };
-    
-    // TURN服务器列表
-    std::vector<IceServerConfig> turnServers = {
-        // 示例1: UDP TURN服务器
-        // {"turn:turnserver.example.com:3478", "username", "password", "udp", true},
-
-        // 示例2: TCP TURN服务器
-        // {"turn:turnserver.example.com:3478", "username", "password", "tcp", true},
-        
-        // 示例3: TLS TURN服务器
-        // {"turns:turnserver.example.com:5349", "username", "password", "tls", true},
-        
-        // 示例4: 使用完整URL格式的TURN服务器
-        // {"turn:username:password@turnserver.example.com:3478?transport=udp", "", "", "udp", true}
-    
-    };
-    
-    // ICE传输策略
-    enum class IceTransportPolicy {
-        ALL,        // 使用所有候选 (默认)
-        RELAY       // 仅使用中继候选 (TURN)
-    } iceTransportPolicy = IceTransportPolicy::ALL;
+    // 性能优化配置
+    struct {
+        size_t audioThreadCount = 1;  // 音频处理线程数
+        size_t videoThreadCount = 2;  // 视频处理线程数（分离编码和发送）
+        bool enableZeroCopy = true;   // 启用零拷贝
+        size_t maxQueueSize = 100;    // 最大队列长度
+    } performance;
 };
 
-// WebRTC连接状态枚举
-enum class WebRTCStatus {
-    DISCONNECTED,   // 未连接
-    CONNECTING,     // 连接中
-    ICE_CONNECTING, // ICE连接中
-    CONNECTED,      // 已连接
-    FAILED          // 连接失败
+// WebRTC连接状态
+enum class WebRTCState {
+    DISCONNECTED,
+    CONNECTING,
+    ICE_CONNECTING,
+    CONNECTED,
+    FAILED
 };
 
 // 回调函数类型定义
-using WebRTCStatusCallback = std::function<void(WebRTCStatus)>;
-using DataChannelMessageCallback = std::function<void(const std::string&)>;
+using StateCallback = std::function<void(WebRTCState)>;
+using DataMessageCallback = std::function<void(const std::string&)>;
 using AudioDataCallback = std::function<void(const uint8_t*, size_t)>;
 using VideoFrameCallback = std::function<void(const uint8_t*, size_t, uint64_t)>;
 
-/**
- * WebRTC管理类 - 负责WebRTC连接建立后的媒体通信
- * 职责：PeerConnection管理、DataChannel管理、音视频传输
- */
-class WebRTCManager {
+// ========== WebRTC管理器 ==========
+
+class WebRTCManage {
 public:
-    /**
-     * 构造函数
-     * @param config WebRTC功能配置
-     */
-    WebRTCManager(const WebRTCConfig& config = WebRTCConfig{});
+    explicit WebRTCManage(const WebRTCConfig& config = WebRTCConfig{});
+    ~WebRTCManage();
     
-    /**
-     * 析构函数
-     */
-    ~WebRTCManager();
-
-    // ========== 初始化和清理接口 ==========
-    /**
-     * 初始化WebRTC管理器
-     * @param signaling 信令模块实例
-     * @return true 初始化成功，false 初始化失败
-     */
+    // 禁用拷贝和移动
+    WebRTCManage(const WebRTCManage&) = delete;
+    WebRTCManage& operator=(const WebRTCManage&) = delete;
+    WebRTCManage(WebRTCManage&&) = delete;
+    WebRTCManage& operator=(WebRTCManage&&) = delete;
+    
+    // ========== 初始化和清理 ==========
     bool initialize(std::shared_ptr<Signaling> signaling);
-
-    /**
-     * 关闭WebRTC管理器
-     */
     void shutdown();
-
-    // ========== WebRTC连接管理 ==========
-    /**
-     * 创建PeerConnection
-     * @return true 创建成功，false 创建失败
-     */
-    bool createPeerConnection();
-
-    /**
-     * 关闭PeerConnection
-     */
-    void closePeerConnection();
-
-    /**
-     * 处理角色分配 - 由信令模块调用
-     * @param role 角色信息 (offerer/answerer)
-     * @param peerDeviceId 对端设备ID
-     */
+    
+    // ========== 连接管理 ==========
+    bool createConnection();
+    void closeConnection();
+    
+    // ========== 信令处理 ==========
     void handleRole(const std::string& role, const std::string& peerDeviceId);
-
-    /**
-     * 处理远程SDP Offer
-     * @param sdp SDP内容
-     */
     void handleRemoteOffer(const std::string& sdp);
-
-    /**
-     * 处理远程SDP Answer
-     * @param sdp SDP内容
-     */
     void handleRemoteAnswer(const std::string& sdp);
-
-    /**
-     * 处理远程ICE候选
-     * @param candidate ICE候选信息
-     */
     void handleRemoteIceCandidate(const std::string& candidate);
-
-    // ========== 数据通道接口 ==========
-    /**
-     * 发送数据通道消息
-     * @param message 消息内容
-     * @return true 发送成功，false 发送失败
-     */
-    bool sendDataChannelMessage(const std::string& message);
-
-    /**
-     * 检查数据通道是否打开
-     * @return true 已打开，false 未打开
-     */
+    
+    // ========== 数据通道 ==========
+    bool sendDataMessage(const std::string& message);
     bool isDataChannelOpen() const;
-
-    // ========== 音频接口 ==========
-    /**
-     * 发送音频数据
-     * @param data 音频数据
-     * @param size 数据大小
-     * @param timestamp 时间戳（微秒）
-     */
+    
+    // ========== 媒体传输 ==========
+    // 音频发送
     void sendAudioData(const uint8_t* data, size_t size, uint64_t timestamp);
-
-    // ========== 视频接口（预留空实现） ==========
-    /**
-     * 发送视频帧
-     * @param data 视频帧数据
-     * @param size 数据大小
-     * @param timestamp 时间戳
-     */
-    void sendVideoData(const uint8_t* data, size_t size, uint64_t timestamp);
-
-    // ========== 状态查询接口 ==========
-    WebRTCStatus getStatus() const { return status_; }
+    
+    // 视频发送
+    void sendVideoData(const uint8_t* data, size_t size, uint64_t timestamp, bool isKeyFrame = false);
+    
+    // ========== 状态查询 ==========
+    WebRTCState getState() const { return state_; }
     const WebRTCConfig& getConfig() const { return config_; }
+    bool isConnected() const { return state_ == WebRTCState::CONNECTED; }
+    bool isIceConnected() const { return iceConnected_; }
     
-    // ICE状态查询接口
-    bool isIceConnected() const { return isIceConnected_; }
-    rtc::PeerConnection::IceState getIceState() const { return iceState_; }
-    
-    // 连接就绪检查
-    bool isReadyForDataSending() const {
-        return status_ == WebRTCStatus::CONNECTED && 
-               isIceConnected_ && 
-               videoTrack_ && 
-               videoTrack_->isOpen();
-    }
-
-    // ========== 回调函数设置接口 ==========
-    void onStatusChanged(WebRTCStatusCallback callback) { statusCallback_ = callback; }
-    void onDataChannelMessage(DataChannelMessageCallback callback) { dataMessageCallback_ = callback; }
+    // ========== 回调设置 ==========
+    void onStateChanged(StateCallback callback) { stateCallback_ = callback; }
+    void onDataMessage(DataMessageCallback callback) { dataMessageCallback_ = callback; }
     void onAudioData(AudioDataCallback callback) { audioCallback_ = callback; }
     void onVideoFrame(VideoFrameCallback callback) { videoCallback_ = callback; }
+    
+    // ========== 统计信息 ==========
+    struct Stats {
+        uint64_t audioPacketsSent = 0;
+        uint64_t audioPacketsReceived = 0;
+        uint64_t videoPacketsSent = 0;
+        uint64_t audioBytesSent = 0;
+        uint64_t videoBytesSent = 0;
+        float audioSendFps = 0.0f;
+        float videoSendFps = 0.0f;
+    };
+    
+    Stats getStats() const;
 
 private:
     // ========== 内部方法 ==========
-    void setupPeerConnectionCallbacks();
+    void setupPeerConnection();
+    void setupCallbacks();
     void setupDataChannel();
-    void setupVideoTrack();
     void setupAudioTrack();
+    void setupVideoTrack();
     void handleDataChannelOpen();
-    void handleDataChannelMessage(const std::string& message);
-    void handleAudioData(const uint8_t* data, size_t size, uint64_t timestamp);
-    void setStatus(WebRTCStatus newStatus);
+    void handleDataMessage(const std::string& message);
+    void handleAudioData(const uint8_t* data, size_t size);
+    void handleVideoFrame(const uint8_t* data, size_t size, uint64_t timestamp);
+    void setState(WebRTCState newState);
+    void configureSctp();
+    void cleanup();
     
-    // SCTP配置方法
-    void configureSctpSettings();
+    // RTP解析器
+    bool parseRtpPacket(const uint8_t* rtpData, size_t rtpSize, const uint8_t*& payloadData, size_t& payloadSize);
     
     // ========== 成员变量 ==========
-    WebRTCConfig config_;               // 配置信息
-    WebRTCStatus status_;               // 连接状态
-    rtc::PeerConnection::IceState iceState_;  // ICE连接状态
-    bool isIceConnected_;                     // ICE是否已连接
+    WebRTCConfig config_;
+    WebRTCState state_;
+    std::atomic<bool> iceConnected_;
+    std::atomic<bool> initialized_;
     
-    std::shared_ptr<Signaling> signaling_;          // 信令模块引用
-    std::shared_ptr<rtc::PeerConnection> peerConnection_; // WebRTC连接
-    std::shared_ptr<rtc::DataChannel> dataChannel_;       // 数据通道
+    // 信令和连接
+    std::shared_ptr<Signaling> signaling_;
+    std::shared_ptr<rtc::PeerConnection> peerConnection_;
+    std::string role_;
+    std::string peerDeviceId_;
     
-    // 视频轨道相关成员
-    std::shared_ptr<rtc::Track> videoTrack_;               // H264视频轨道
-    std::shared_ptr<rtc::RtpPacketizationConfig> videoRtpConfig_; // 视频RTP配置
-    std::shared_ptr<rtc::H264RtpPacketizer> videoPacketizer_;    // H264 RTP封装器
-    std::shared_ptr<rtc::RtcpSrReporter> videoSrReporter_;       // RTCP SR报告器
+    // 数据通道
+    std::shared_ptr<rtc::DataChannel> dataChannel_;
     
-    // 音频轨道相关成员
-    std::shared_ptr<rtc::Track> audioTrack_;               // Opus音频轨道
-    std::shared_ptr<rtc::RtpPacketizationConfig> audioRtpConfig_; // 音频RTP配置
-    std::shared_ptr<rtc::OpusRtpPacketizer> audioPacketizer_;    // Opus RTP封装器
-    std::shared_ptr<rtc::RtcpSrReporter> audioSrReporter_;       // 音频RTCP SR报告器
+    // 音频轨道
+    std::shared_ptr<rtc::Track> audioTrack_;
+    std::shared_ptr<rtc::RtpPacketizationConfig> audioRtpConfig_;
+    std::shared_ptr<rtc::OpusRtpPacketizer> audioPacketizer_;
+    std::shared_ptr<rtc::RtcpSrReporter> audioSrReporter_;
+    std::shared_ptr<rtc::RtcpReceivingSession> audioRtcpSession_;
+    std::shared_ptr<rtc::RembHandler> audioRembHandler_;
     
-    // 拥塞控制相关成员
-    std::shared_ptr<rtc::RtcpReceivingSession> videoRtcpSession_; // 视频RTCP接收会话
-    std::shared_ptr<rtc::RtcpReceivingSession> audioRtcpSession_; // 音频RTCP接收会话
-    std::shared_ptr<rtc::RembHandler> videoRembHandler_;          // 视频REMB处理器
-    std::shared_ptr<rtc::RembHandler> audioRembHandler_;          // 音频REMB处理器
+    // 视频轨道
+    std::shared_ptr<rtc::Track> videoTrack_;
+    std::shared_ptr<rtc::RtpPacketizationConfig> videoRtpConfig_;
+    std::shared_ptr<rtc::H264RtpPacketizer> videoPacketizer_;
+    std::shared_ptr<rtc::RtcpSrReporter> videoSrReporter_;
+    std::shared_ptr<rtc::RtcpReceivingSession> videoRtcpSession_;
+    std::shared_ptr<rtc::RembHandler> videoRembHandler_;
     
-    std::string role_;                  // 角色信息
-    std::string peerDeviceId_;          // 对端设备ID
+    // 优先级任务队列
+    std::unique_ptr<PriorityTaskQueue> audioTaskQueue_;   // 音频队列
+    std::unique_ptr<PriorityTaskQueue> videoTaskQueue_;   // 视频队列
     
-    // 任务队列调度器
-    std::unique_ptr<DispatchQueue> sendQueue_;              // 发送任务队列
+    // 缓冲区池
+    std::unique_ptr<AudioBufferPool> audioBufferPool_;
+    std::unique_ptr<VideoBufferPool> videoBufferPool_;
     
-    // 视频发送频率控制
-    std::chrono::steady_clock::time_point lastVideoSendTime_;  // 上次视频发送时间
-    std::chrono::steady_clock::time_point lastAudioSendTime_;  // 上次音频发送时间
-    static constexpr int VIDEO_SEND_INTERVAL_MS = 1000 / CAMERA_FPS;          // 视频发送间隔
-    static constexpr int AUDIO_SEND_INTERVAL_MS = AUDIO_FRAME_DURATION_MS;                         // 音频发送间隔(50fps)
+    // 发送频率控制
+    std::chrono::steady_clock::time_point lastAudioSendTime_;
+    std::chrono::steady_clock::time_point lastVideoSendTime_;
+    static constexpr int AUDIO_SEND_INTERVAL_MS = AUDIO_FRAME_DURATION_MS;
+    static constexpr int VIDEO_SEND_INTERVAL_MS = 1000 / CAMERA_FPS;
     
-    // 回调函数存储
-    WebRTCStatusCallback statusCallback_;
-    DataChannelMessageCallback dataMessageCallback_;
+    // 回调函数
+    StateCallback stateCallback_;
+    DataMessageCallback dataMessageCallback_;
     AudioDataCallback audioCallback_;
     VideoFrameCallback videoCallback_;
     
-    // 拥塞控制回调
-    void onRembReceived(unsigned int bitrate);                 // REMB消息接收回调
+    // 统计信息
+    mutable std::mutex statsMutex_;
+    Stats stats_;
+    
+    // 拥塞控制
+    void onRembReceived(unsigned int bitrate);
 };
 
 } // namespace protocol
 } // namespace glasses
 
-#endif // WEBRTC_H
+#endif // WEBRTC_V2_H

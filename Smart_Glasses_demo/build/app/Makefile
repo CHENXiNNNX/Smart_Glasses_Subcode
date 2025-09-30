@@ -415,6 +415,54 @@ protocol/webrtc/webrtc.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/protocol/webrtc/webrtc.cc.s
 .PHONY : protocol/webrtc/webrtc.cc.s
 
+protocol/webrtc/webrtcv2.o: protocol/webrtc/webrtcv2.cc.o
+.PHONY : protocol/webrtc/webrtcv2.o
+
+# target to build an object file
+protocol/webrtc/webrtcv2.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.o
+.PHONY : protocol/webrtc/webrtcv2.cc.o
+
+protocol/webrtc/webrtcv2.i: protocol/webrtc/webrtcv2.cc.i
+.PHONY : protocol/webrtc/webrtcv2.i
+
+# target to preprocess a source file
+protocol/webrtc/webrtcv2.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.i
+.PHONY : protocol/webrtc/webrtcv2.cc.i
+
+protocol/webrtc/webrtcv2.s: protocol/webrtc/webrtcv2.cc.s
+.PHONY : protocol/webrtc/webrtcv2.s
+
+# target to generate assembly for a file
+protocol/webrtc/webrtcv2.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.s
+.PHONY : protocol/webrtc/webrtcv2.cc.s
+
+protocol/webrtc/webrtcv3.o: protocol/webrtc/webrtcv3.cc.o
+.PHONY : protocol/webrtc/webrtcv3.o
+
+# target to build an object file
+protocol/webrtc/webrtcv3.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.o
+.PHONY : protocol/webrtc/webrtcv3.cc.o
+
+protocol/webrtc/webrtcv3.i: protocol/webrtc/webrtcv3.cc.i
+.PHONY : protocol/webrtc/webrtcv3.i
+
+# target to preprocess a source file
+protocol/webrtc/webrtcv3.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.i
+.PHONY : protocol/webrtc/webrtcv3.cc.i
+
+protocol/webrtc/webrtcv3.s: protocol/webrtc/webrtcv3.cc.s
+.PHONY : protocol/webrtc/webrtcv3.s
+
+# target to generate assembly for a file
+protocol/webrtc/webrtcv3.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.s
+.PHONY : protocol/webrtc/webrtcv3.cc.s
+
 protocol/websocket/websocket.o: protocol/websocket/websocket.cc.o
 .PHONY : protocol/websocket/websocket.o
 
@@ -438,6 +486,30 @@ protocol/websocket/websocket.s: protocol/websocket/websocket.cc.s
 protocol/websocket/websocket.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/protocol/websocket/websocket.cc.s
 .PHONY : protocol/websocket/websocket.cc.s
+
+tool/memory/mem_pool.o: tool/memory/mem_pool.cc.o
+.PHONY : tool/memory/mem_pool.o
+
+# target to build an object file
+tool/memory/mem_pool.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o
+.PHONY : tool/memory/mem_pool.cc.o
+
+tool/memory/mem_pool.i: tool/memory/mem_pool.cc.i
+.PHONY : tool/memory/mem_pool.i
+
+# target to preprocess a source file
+tool/memory/mem_pool.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.i
+.PHONY : tool/memory/mem_pool.cc.i
+
+tool/memory/mem_pool.s: tool/memory/mem_pool.cc.s
+.PHONY : tool/memory/mem_pool.s
+
+# target to generate assembly for a file
+tool/memory/mem_pool.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.s
+.PHONY : tool/memory/mem_pool.cc.s
 
 # Help Target
 help:
@@ -482,9 +554,18 @@ help:
 	@echo "... protocol/webrtc/webrtc.o"
 	@echo "... protocol/webrtc/webrtc.i"
 	@echo "... protocol/webrtc/webrtc.s"
+	@echo "... protocol/webrtc/webrtcv2.o"
+	@echo "... protocol/webrtc/webrtcv2.i"
+	@echo "... protocol/webrtc/webrtcv2.s"
+	@echo "... protocol/webrtc/webrtcv3.o"
+	@echo "... protocol/webrtc/webrtcv3.i"
+	@echo "... protocol/webrtc/webrtcv3.s"
 	@echo "... protocol/websocket/websocket.o"
 	@echo "... protocol/websocket/websocket.i"
 	@echo "... protocol/websocket/websocket.s"
+	@echo "... tool/memory/mem_pool.o"
+	@echo "... tool/memory/mem_pool.i"
+	@echo "... tool/memory/mem_pool.s"
 .PHONY : help
 
 

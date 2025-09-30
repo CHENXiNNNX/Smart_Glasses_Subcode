@@ -18,7 +18,10 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/media/sync.cc" "app/CMakeFiles/app.dir/media/sync.cc.o" "gcc" "app/CMakeFiles/app.dir/media/sync.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/signaling.cc" "app/CMakeFiles/app.dir/protocol/webrtc/signaling.cc.o" "gcc" "app/CMakeFiles/app.dir/protocol/webrtc/signaling.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/webrtc.cc" "app/CMakeFiles/app.dir/protocol/webrtc/webrtc.cc.o" "gcc" "app/CMakeFiles/app.dir/protocol/webrtc/webrtc.cc.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/webrtcv2.cc" "app/CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.o" "gcc" "app/CMakeFiles/app.dir/protocol/webrtc/webrtcv2.cc.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/webrtcv3.cc" "app/CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.o" "gcc" "app/CMakeFiles/app.dir/protocol/webrtc/webrtcv3.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/websocket/websocket.cc" "app/CMakeFiles/app.dir/protocol/websocket/websocket.cc.o" "gcc" "app/CMakeFiles/app.dir/protocol/websocket/websocket.cc.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/tool/memory/mem_pool.cc" "app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o" "gcc" "app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o.d"
   )
 
 # Targets to which this target links.

@@ -187,6 +187,16 @@
             color: #212529;
         }
 
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #545b62);
+            color: white;
+        }
+
         .message-panel {
             background: #f8f9fa;
             border-radius: 10px;
@@ -401,6 +411,8 @@
             <button class="btn btn-primary" id="connectBtn" onclick="connectToServer()">连接服务器</button>
             <button class="btn btn-success" id="joinBtn" onclick="joinRoom()" disabled>加入房间</button>
             <button class="btn btn-warning" id="leaveBtn" onclick="leaveRoom()" disabled>离开房间</button>
+            <button class="btn btn-info" id="startVariedAudioBtn" onclick="createAudioTrackWithVariedAudio()" disabled>开始发送起伏音频</button>
+            <button class="btn btn-secondary" id="stopVariedAudioBtn" onclick="stopVariedAudio()" disabled>停止起伏音频</button>
             <button class="btn btn-danger" id="disconnectBtn" onclick="disconnectFromServer()" disabled>断开连接</button>
         </div>
 
@@ -717,10 +729,13 @@
             const isJoined = connectionStatus === 'joined' || connectionStatus === 'paired';
             const isPaired = connectionStatus === 'paired';
             const isDataChannelOpen = dataChannel && dataChannel.readyState === 'open';
+            const isRtcConnected = pc && pc.connectionState === 'connected';
 
             document.getElementById('connectBtn').disabled = isConnected;
             document.getElementById('joinBtn').disabled = !isConnected || isJoined;
             document.getElementById('leaveBtn').disabled = !isJoined;
+            document.getElementById('startVariedAudioBtn').disabled = !isRtcConnected;
+            document.getElementById('stopVariedAudioBtn').disabled = !isRtcConnected || !audioGenerator;
             document.getElementById('disconnectBtn').disabled = !isConnected;
             document.getElementById('messageInput').disabled = !isDataChannelOpen;
             document.getElementById('sendBtn').disabled = !isDataChannelOpen;
@@ -1006,26 +1021,268 @@
         }
         
         // 发起方模式设置
-        function setupOffererMode() {
-            // 创建数据通道
-            dataChannel = pc.createDataChannel('glasses_data_channel');
-            setupDataChannel(dataChannel);
-            
-            // 创建并发送offer
-            pc.createOffer().then(function(offer) {
-                return pc.setLocalDescription(offer);
-            }).then(function() {
+        async function setupOffererMode() {
+            try {
+                // 创建数据通道
+                dataChannel = pc.createDataChannel('glasses_data_channel');
+                setupDataChannel(dataChannel);
+                
+                // 等待音频轨道创建完成
+                await createAudioTrackWithVariedAudio();
+                
+                // 等待一小段时间确保轨道完全添加到PeerConnection
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // 再次确认轨道已添加
+                const senderTracks = pc.getSenders();
+                log(`最终确认 - PeerConnection发送轨道数量: ${senderTracks.length}`, 'webrtc');
+                
+                if (senderTracks.length === 0) {
+                    log('警告：没有找到发送轨道，SDP可能不包含音频发送能力', 'warn');
+                }
+                
+                // 创建并发送offer
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                
                 log('发送SDP Offer', 'webrtc');
+                
+                // 调试：检查SDP中的音频媒体行
+                const sdpLines = offer.sdp.split('\n');
+                const audioMediaLine = sdpLines.find(line => line.startsWith('m=audio'));
+                if (audioMediaLine) {
+                    log(`SDP音频媒体行: ${audioMediaLine}`, 'webrtc');
+                }
+                
+                const audioDirection = sdpLines.find(line => line.startsWith('a=sendrecv') || line.startsWith('a=sendonly') || line.startsWith('a=recvonly') || line.startsWith('a=inactive'));
+                if (audioDirection) {
+                    log(`SDP音频方向: ${audioDirection}`, 'webrtc');
+                } else {
+                    log('警告：SDP中没有找到音频方向属性', 'warn');
+                }
+                
                 sendOffer(pc.localDescription.sdp);
-            }).catch(function(error) {
-                log(`创建Offer失败: ${error}`, 'error');
-            });
+                
+            } catch (error) {
+                log(`发起方模式设置失败: ${error}`, 'error');
+            }
         }
         
         // 应答方模式设置
         function setupAnswererMode() {
-            // 应答方只需要等待接收，不需要主动创建轨道
+            // 应答方等待接收远程轨道和DataChannel
             log('等待接收远程DataChannel和音视频轨道', 'webrtc');
+        }
+        
+        // 高低起伏音频生成器 - 用于测试音频传输
+        class VariedAudioGenerator {
+            constructor(sampleRate = 48000, baseFrequency = 440, volume = 1) {
+                this.sampleRate = sampleRate;
+                this.baseFrequency = baseFrequency;
+                this.volume = volume;
+                this.audioContext = null;
+                this.audioStream = null;
+                this.isPlaying = false;
+                this.oscillator = null;
+                this.gainNode = null;
+                this.frequencyModulator = null;
+                this.volumeModulator = null;
+                this.animationId = null;
+                this.startTime = 0;
+            }
+            
+            // 生成高低起伏音频流
+            async generateAudioStream() {
+                try {
+                    // 创建AudioContext
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)({
+                        sampleRate: this.sampleRate
+                    });
+                    
+                    // 创建音频流
+                    const destination = this.audioContext.createMediaStreamDestination();
+                    this.audioStream = destination.stream;
+                    
+                    // 创建主振荡器
+                    this.oscillator = this.audioContext.createOscillator();
+                    this.oscillator.type = 'sine';
+                    this.oscillator.frequency.setValueAtTime(this.baseFrequency, this.audioContext.currentTime);
+                    
+                    // 创建频率调制器（LFO - Low Frequency Oscillator）
+                    this.frequencyModulator = this.audioContext.createOscillator();
+                    this.frequencyModulator.type = 'sine';
+                    this.frequencyModulator.frequency.setValueAtTime(0.5, this.audioContext.currentTime); // 0.5Hz调制频率
+                    
+                    // 创建频率调制增益节点
+                    const freqModGain = this.audioContext.createGain();
+                    freqModGain.gain.setValueAtTime(300, this.audioContext.currentTime); // ±300Hz的频率变化，更明显
+                    
+                    // 创建音量调制器
+                    this.volumeModulator = this.audioContext.createOscillator();
+                    this.volumeModulator.type = 'triangle'; // 三角波产生更平滑的音量变化
+                    this.volumeModulator.frequency.setValueAtTime(0.3, this.audioContext.currentTime); // 0.3Hz调制频率
+                    
+                    // 创建音量调制增益节点
+                    this.volumeModGain = this.audioContext.createGain();
+                    this.volumeModGain.gain.setValueAtTime(0.15, this.audioContext.currentTime); // 进一步降低音量变化范围
+                    
+                    // 创建主增益节点
+                    this.gainNode = this.audioContext.createGain();
+                    this.gainNode.gain.setValueAtTime(this.volume * 0.1, this.audioContext.currentTime); // 进一步大幅降低基础音量
+                    
+                    // 连接音频节点
+                    // 频率调制链
+                    this.frequencyModulator.connect(freqModGain);
+                    freqModGain.connect(this.oscillator.frequency);
+                    
+                    // 音量调制链
+                    this.volumeModulator.connect(this.volumeModGain);
+                    this.volumeModGain.connect(this.gainNode.gain);
+                    
+                    // 主音频链
+                    this.oscillator.connect(this.gainNode);
+                    this.gainNode.connect(destination);
+                    
+                    // 开始生成音频
+                    this.startTime = this.audioContext.currentTime;
+                    this.oscillator.start();
+                    this.frequencyModulator.start();
+                    this.volumeModulator.start();
+                    
+                    // 启动动态变化
+                    this.startDynamicChanges();
+                    
+                    this.isPlaying = true;
+                    log(`高低起伏音频流创建成功 - 基础频率: ${this.baseFrequency}Hz, 音量: ${this.volume}`, 'webrtc');
+                    log('音频模式: 频率±300Hz变化, 音量周期性变化, 大幅降低音量产生非常温和的起伏效果', 'webrtc');
+                    
+                    return this.audioStream;
+                    
+                } catch (error) {
+                    log(`创建高低起伏音频流失败: ${error}`, 'error');
+                    return null;
+                }
+            }
+            
+            // 启动动态变化
+            startDynamicChanges() {
+                const updateAudio = () => {
+                    if (!this.isPlaying || !this.audioContext) return;
+                    
+                    const currentTime = this.audioContext.currentTime;
+                    const elapsed = currentTime - this.startTime;
+                    
+                    // 动态改变频率调制参数
+                    const freqModFreq = 0.5 + 0.3 * Math.sin(elapsed * 0.2);
+                    const freqModDepth = 250 + 150 * Math.sin(elapsed * 0.15); // 更大的频率变化范围
+                    
+                    // 动态改变音量调制参数
+                    const volModFreq = 0.3 + 0.2 * Math.sin(elapsed * 0.1);
+                    const volModDepth = 0.2 + 0.1 * Math.sin(elapsed * 0.12); // 大幅降低音量变化范围，非常温和
+                    
+                    // 应用变化
+                    if (this.frequencyModulator) {
+                        this.frequencyModulator.frequency.setValueAtTime(freqModFreq, currentTime);
+                    }
+                    if (this.volumeModulator) {
+                        this.volumeModulator.frequency.setValueAtTime(volModFreq, currentTime);
+                    }
+                    
+                    // 继续下一帧
+                    this.animationId = requestAnimationFrame(updateAudio);
+                };
+                
+                updateAudio();
+            }
+            
+            // 停止音频生成
+            stop() {
+                this.isPlaying = false;
+                
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                    this.animationId = null;
+                }
+                
+                if (this.oscillator) {
+                    this.oscillator.stop();
+                    this.oscillator = null;
+                }
+                
+                if (this.frequencyModulator) {
+                    this.frequencyModulator.stop();
+                    this.frequencyModulator = null;
+                }
+                
+                if (this.volumeModulator) {
+                    this.volumeModulator.stop();
+                    this.volumeModulator = null;
+                }
+                
+                if (this.audioContext) {
+                    this.audioContext.close();
+                    this.audioContext = null;
+                }
+                
+                this.audioStream = null;
+                log('高低起伏音频流已停止', 'webrtc');
+            }
+        }
+        
+        // 全局音频生成器
+        let audioGenerator = null;
+        
+        // 创建音频轨道并发送高低起伏音频
+        async function createAudioTrackWithVariedAudio() {
+            try {
+                // 创建高低起伏音频生成器
+                audioGenerator = new VariedAudioGenerator(48000, 440, 0.02); // 440Hz基础频率，高低起伏，大幅降低音量
+                const audioStream = await audioGenerator.generateAudioStream();
+                
+                if (!audioStream) {
+                    log('创建高低起伏音频流失败', 'error');
+                    return;
+                }
+                
+                // 从音频流中获取音频轨道
+                const audioTracks = audioStream.getAudioTracks();
+                if (audioTracks.length === 0) {
+                    log('音频流中没有音频轨道', 'error');
+                    return;
+                }
+                
+                const audioTrack = audioTracks[0];
+                log(`音频轨道创建成功，轨道ID: ${audioTrack.id}`, 'webrtc');
+                
+                // 添加音频轨道到PeerConnection
+                pc.addTrack(audioTrack, audioStream);
+                log('音频轨道已添加到PeerConnection，开始发送高低起伏音频', 'webrtc');
+                
+                // 调试：检查PeerConnection中的轨道数量
+                const senderTracks = pc.getSenders();
+                log(`PeerConnection当前发送轨道数量: ${senderTracks.length}`, 'webrtc');
+                
+                senderTracks.forEach((sender, index) => {
+                    const track = sender.track;
+                    if (track) {
+                        log(`发送轨道 ${index}: ${track.kind} - ${track.id}`, 'webrtc');
+                    }
+                });
+                
+                // 注意：SDP Offer将在setupOffererMode中创建，这里不需要重复创建
+                
+            } catch (error) {
+                log(`创建音频轨道失败: ${error}`, 'error');
+            }
+        }
+        
+        // 停止高低起伏音频
+        function stopVariedAudio() {
+            if (audioGenerator) {
+                audioGenerator.stop();
+                audioGenerator = null;
+                log('高低起伏音频已停止', 'webrtc');
+            }
         }
 
         // 设置数据通道
@@ -1066,27 +1323,54 @@
         }
 
         // 处理SDP Offer
-        function handleOfferMessage(message) {
+        async function handleOfferMessage(message) {
             if (!pc || !message.data || !message.data.sdp) return;
 
             log('收到SDP Offer', 'webrtc');
+            
+            // 检查Offer中的音频方向
+            const sdpLines = message.data.sdp.split('\n');
+            const audioDirection = sdpLines.find(line => line.startsWith('a=sendrecv') || line.startsWith('a=sendonly') || line.startsWith('a=recvonly') || line.startsWith('a=inactive'));
+            if (audioDirection) {
+                log(`远程Offer音频方向: ${audioDirection}`, 'webrtc');
+            }
             
             const offer = new RTCSessionDescription({
                 type: 'offer',
                 sdp: message.data.sdp
             });
 
-            pc.setRemoteDescription(offer).then(function() {
+            try {
+                await pc.setRemoteDescription(offer);
                 log('设置远程SDP Offer成功', 'webrtc');
-                return pc.createAnswer();
-            }).then(function(answer) {
-                return pc.setLocalDescription(answer);
-            }).then(function() {
+                
+                // 如果远程Offer包含发送音频能力，我们也需要创建音频轨道
+                if (audioDirection && (audioDirection.includes('sendrecv') || audioDirection.includes('sendonly'))) {
+                    log('远程Offer包含音频发送能力，创建本地音频轨道', 'webrtc');
+                    await createAudioTrackWithVariedAudio();
+                    
+                    // 等待轨道添加完成
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                // 创建Answer
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                
                 log('发送SDP Answer', 'webrtc');
+                
+                // 调试：检查Answer中的音频方向
+                const answerSdpLines = answer.sdp.split('\n');
+                const answerAudioDirection = answerSdpLines.find(line => line.startsWith('a=sendrecv') || line.startsWith('a=sendonly') || line.startsWith('a=recvonly') || line.startsWith('a=inactive'));
+                if (answerAudioDirection) {
+                    log(`本地Answer音频方向: ${answerAudioDirection}`, 'webrtc');
+                }
+                
                 sendAnswer(pc.localDescription.sdp);
-            }).catch(function(error) {
+                
+            } catch (error) {
                 log(`处理Offer失败: ${error}`, 'error');
-            });
+            }
         }
 
         // 处理SDP Answer
@@ -1198,6 +1482,9 @@
                 dataChannel.close();
                 dataChannel = null;
             }
+            
+            // 停止高低起伏音频
+            stopVariedAudio();
             
             // 清理音视频元素
             if (videoElement) {
