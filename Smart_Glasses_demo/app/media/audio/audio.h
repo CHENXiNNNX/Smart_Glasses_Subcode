@@ -20,6 +20,7 @@ typedef enum {
     AUDIO_MODE_NONE = 0,
     AUDIO_MODE_AI,
     AUDIO_MODE_WEBRTC,
+    AUDIO_MODE_WAKEWORD,
 } audio_mode_t;
 
 // 音频错误类型枚举
@@ -68,8 +69,9 @@ typedef struct {
     int frame_duration_ms;
 
     // 编解码器相关
-    OpusEncoder* encoder;
-    OpusDecoder* decoder;
+    OpusEncoder* encoder;        // 主编码器（48kHz，用于WebRTC）
+    OpusDecoder* decoder;        // 主解码器（48kHz，用于TTS）
+    OpusEncoder* ai_encoder;     // AI专用编码器（16kHz）
 
     // 录音相关
     std::queue<std::vector<int16_t>> recordedAudioQueue;  // 录音队列
@@ -100,6 +102,11 @@ typedef struct {
     bool is_webrtc_streaming;       // WebRTC音频推流状态
     void (*webrtc_audio_callback)(void *data, int len, uint64_t timestamp); // WebRTC音频回调函数
     #endif
+    
+    // xiaozhi AI相关资源
+    void *ai_manager;               // AI管理器指针
+    bool is_ai_streaming;           // AI音频推流状态
+    void (*ai_audio_callback)(void *data, int len, uint64_t timestamp); // AI音频回调函数
     
     // 时间同步上下文
     sync_context_t *sync_ctx;        // 时间同步上下文指针
@@ -159,12 +166,6 @@ void add_frame_to_playback_queue(audio_system_t *audio_system, const std::vector
 // 从文件加载音频
 std::queue<std::vector<int16_t>> load_audio_from_file(audio_system_t *audio_system, const std::string& filename, int frame_duration_ms);
 
-// 打包二进制协议帧
-BinProtocol* pack_bin_frame(audio_system_t *audio_system, const uint8_t* payload, size_t payload_size, int ws_protocol_version);
-
-// 解包二进制协议帧
-bool unpack_bin_frame(audio_system_t *audio_system, const uint8_t* packed_data, size_t packed_data_size, BinProtocolInfo& protocol_info, std::vector<uint8_t>& opus_data);
-
 // 重采样相关函数
 audio_error_t init_audio_resample(audio_system_t *audio_system, int input_rate, int output_rate, int channels, int converter_type);
 audio_error_t process_audio_resample(audio_system_t *audio_system, const std::vector<int16_t>& input_data, std::vector<int16_t>& output_data);
@@ -185,5 +186,10 @@ audio_error_t start_webrtc_audio_stream(audio_system_t *audio_system);
 audio_error_t stop_webrtc_audio_stream(audio_system_t *audio_system);
 audio_error_t set_webrtc_audio_callback(audio_system_t *audio_system, void *webrtc_manager, void (*audio_callback)(void *data, int len, uint64_t timestamp));
 #endif
+
+// xiaozhi AI音频流管理
+audio_error_t start_ai_audio_stream(audio_system_t *audio_system);
+audio_error_t stop_ai_audio_stream(audio_system_t *audio_system);
+audio_error_t set_ai_audio_callback(audio_system_t *audio_system, void *ai_manager, void (*audio_callback)(void *data, int len, uint64_t timestamp));
 
 #endif // AUDIO_H

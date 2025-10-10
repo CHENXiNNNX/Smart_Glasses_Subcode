@@ -101,6 +101,7 @@ pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
 pkg_check_modules(OPUS REQUIRED opus)
 pkg_check_modules(JSONCPP REQUIRED jsoncpp)
 pkg_check_modules(SAMPLERATE REQUIRED samplerate)
+pkg_check_modules(CURL REQUIRED libcurl)
 find_package(WEBSOCKETPP REQUIRED)
 
 # Link libraries for opus and websocketpp
@@ -110,6 +111,7 @@ target_link_libraries(main
     ${JSONCPP_LIBRARIES} 
     ${SAMPLERATE_LIBRARIES}
     ${WEBSOCKETPP_LIBRARIES}
+    ${CURL_LIBRARIES}
     snowboy-detect-c-wrapper  
 )
 

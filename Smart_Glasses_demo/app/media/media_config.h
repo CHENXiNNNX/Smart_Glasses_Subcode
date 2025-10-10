@@ -12,8 +12,8 @@
 #define CAMERA_WIDTH  1280 
 #define CAMERA_HEIGHT 720 
 #define CAMERA_FPS 30
-#define H264_Default_Bitrate 8 * 1024  // 越高→画质更好、带宽更大、卡顿风险更低，但占网更大；越低→更省带宽，但容易糊、方块
-#define H264_Default_Gop 30 // 越大→码流更省、画质平均更稳，但丢包恢复慢、切流黑屏更久；越小→恢复快、首屏快，但码率更高
+#define H264_Default_Bitrate 5 * 1024  // 越高→画质更好、带宽更大、卡顿风险更低，但占网更大；越低→更省带宽，但容易糊、方块
+#define H264_Default_Gop 10 // 越大→码流更省、画质平均更稳，但丢包恢复慢、切流黑屏更久；越小→恢复快、首屏快，但码率更高
 
 #define ISP_PATH "/etc/iqfiles"
 #define PICTURE_PATH "/root/picture/"
@@ -37,7 +37,7 @@
 #define AUDIO_AGC_INCREMENT 12               // AGC增益增加速度 (dB/秒): 范围0-30
 #define AUDIO_AGC_DECREMENT -40              // AGC增益减少速度 (dB/秒): 范围-90至0
 #define AUDIO_AGC_MAX_GAIN 10                // AGC最大增益 (dB): 范围0-60
-#define AUDIO_MASTER_VOLUME 0.5f            // 主音量 (0.0-1.0)
+#define AUDIO_MASTER_VOLUME 0.3f            // 主音量 (0.0-1.0)
 
 
 #endif // MEDIA__CONFIG_H

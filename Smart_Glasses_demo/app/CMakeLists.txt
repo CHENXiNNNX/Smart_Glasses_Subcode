@@ -32,10 +32,12 @@ target_include_directories(app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     # chatbot headers
     ${CMAKE_CURRENT_SOURCE_DIR}/chatbot
-    ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/event
-    ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/intent
+    ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/activation
+    ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/mcp
+    ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/protocol_handle
     ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/statemachine
-    ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/utils
+    ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/uuid
+    ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/wakeword
     # media headers
     ${CMAKE_CURRENT_SOURCE_DIR}/media
     ${CMAKE_CURRENT_SOURCE_DIR}/media/audio
@@ -48,6 +50,7 @@ target_include_directories(app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/protocol/websocket
     # tool headers
     ${CMAKE_CURRENT_SOURCE_DIR}/tool
+    ${CMAKE_CURRENT_SOURCE_DIR}/tool/mac
     ${CMAKE_CURRENT_SOURCE_DIR}/tool/memory
     # libdatachannel headers
     ${PROJECT_SOURCE_DIR}/libdatachannel/include

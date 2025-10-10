@@ -175,29 +175,29 @@ utils/fast:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f utils/CMakeFiles/utils.dir/build.make utils/CMakeFiles/utils.dir/build
 .PHONY : utils/fast
 
-mouse_cursor_icon.o: mouse_cursor_icon.c.o
-.PHONY : mouse_cursor_icon.o
+utils.o: utils.c.o
+.PHONY : utils.o
 
 # target to build an object file
-mouse_cursor_icon.c.o:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f utils/CMakeFiles/utils.dir/build.make utils/CMakeFiles/utils.dir/mouse_cursor_icon.c.o
-.PHONY : mouse_cursor_icon.c.o
+utils.c.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f utils/CMakeFiles/utils.dir/build.make utils/CMakeFiles/utils.dir/utils.c.o
+.PHONY : utils.c.o
 
-mouse_cursor_icon.i: mouse_cursor_icon.c.i
-.PHONY : mouse_cursor_icon.i
+utils.i: utils.c.i
+.PHONY : utils.i
 
 # target to preprocess a source file
-mouse_cursor_icon.c.i:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f utils/CMakeFiles/utils.dir/build.make utils/CMakeFiles/utils.dir/mouse_cursor_icon.c.i
-.PHONY : mouse_cursor_icon.c.i
+utils.c.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f utils/CMakeFiles/utils.dir/build.make utils/CMakeFiles/utils.dir/utils.c.i
+.PHONY : utils.c.i
 
-mouse_cursor_icon.s: mouse_cursor_icon.c.s
-.PHONY : mouse_cursor_icon.s
+utils.s: utils.c.s
+.PHONY : utils.s
 
 # target to generate assembly for a file
-mouse_cursor_icon.c.s:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f utils/CMakeFiles/utils.dir/build.make utils/CMakeFiles/utils.dir/mouse_cursor_icon.c.s
-.PHONY : mouse_cursor_icon.c.s
+utils.c.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f utils/CMakeFiles/utils.dir/build.make utils/CMakeFiles/utils.dir/utils.c.s
+.PHONY : utils.c.s
 
 # Help Target
 help:
@@ -212,9 +212,9 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... utils"
-	@echo "... mouse_cursor_icon.o"
-	@echo "... mouse_cursor_icon.i"
-	@echo "... mouse_cursor_icon.s"
+	@echo "... utils.o"
+	@echo "... utils.i"
+	@echo "... utils.s"
 .PHONY : help
 
 

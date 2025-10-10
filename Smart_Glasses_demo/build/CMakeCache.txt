@@ -26,6 +26,36 @@ BUILD_SHARED_LIBS:BOOL=OFF
 //Add warning as error flags for libSRTP
 BUILD_WITH_WARNINGS:BOOL=OFF
 
+//Boost atomic library (debug)
+Boost_ATOMIC_LIBRARY_DEBUG:FILEPATH=Boost_ATOMIC_LIBRARY_DEBUG-NOTFOUND
+
+//Boost atomic library (release)
+Boost_ATOMIC_LIBRARY_RELEASE:FILEPATH=Boost_ATOMIC_LIBRARY_RELEASE-NOTFOUND
+
+//Boost chrono library (debug)
+Boost_CHRONO_LIBRARY_DEBUG:FILEPATH=Boost_CHRONO_LIBRARY_DEBUG-NOTFOUND
+
+//Boost chrono library (release)
+Boost_CHRONO_LIBRARY_RELEASE:FILEPATH=Boost_CHRONO_LIBRARY_RELEASE-NOTFOUND
+
+//The directory containing a CMake configuration file for Boost.
+Boost_DIR:PATH=Boost_DIR-NOTFOUND
+
+//Path to a file.
+Boost_INCLUDE_DIR:PATH=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include
+
+//Boost system library (debug)
+Boost_SYSTEM_LIBRARY_DEBUG:FILEPATH=Boost_SYSTEM_LIBRARY_DEBUG-NOTFOUND
+
+//Boost system library (release)
+Boost_SYSTEM_LIBRARY_RELEASE:FILEPATH=Boost_SYSTEM_LIBRARY_RELEASE-NOTFOUND
+
+//Boost thread library (debug)
+Boost_THREAD_LIBRARY_DEBUG:FILEPATH=Boost_THREAD_LIBRARY_DEBUG-NOTFOUND
+
+//Boost thread library (release)
+Boost_THREAD_LIBRARY_RELEASE:FILEPATH=Boost_THREAD_LIBRARY_RELEASE-NOTFOUND
+
 //Set calling convention of C API callbacks stdcall
 CAPI_STDCALL:BOOL=OFF
 
@@ -492,6 +522,9 @@ libsrtp2_IS_TOP_LEVEL:STATIC=OFF
 libsrtp2_SOURCE_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/deps/libsrtp
 
 //Path to a library.
+pkgcfg_lib_CURL_curl:FILEPATH=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcurl.so
+
+//Path to a library.
 pkgcfg_lib_JSONCPP_jsoncpp:FILEPATH=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libjsoncpp.so
 
 //Path to a library.
@@ -586,6 +619,24 @@ usrsctplib_SOURCE_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glass
 # INTERNAL cache entries
 ########################
 
+//ADVANCED property for variable: Boost_ATOMIC_LIBRARY_DEBUG
+Boost_ATOMIC_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_ATOMIC_LIBRARY_RELEASE
+Boost_ATOMIC_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_CHRONO_LIBRARY_DEBUG
+Boost_CHRONO_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_CHRONO_LIBRARY_RELEASE
+Boost_CHRONO_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_DIR
+Boost_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_SYSTEM_LIBRARY_DEBUG
+Boost_SYSTEM_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_SYSTEM_LIBRARY_RELEASE
+Boost_SYSTEM_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_THREAD_LIBRARY_DEBUG
+Boost_THREAD_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_THREAD_LIBRARY_RELEASE
+Boost_THREAD_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_ADDR2LINE
 CMAKE_ADDR2LINE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_AR
@@ -761,6 +812,41 @@ CMAKE_STRIP-ADVANCED:INTERNAL=1
 CMAKE_UNAME:INTERNAL=/usr/bin/uname
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
+CURL_CFLAGS:INTERNAL=-I/usr/include/x86_64-linux-gnu
+CURL_CFLAGS_I:INTERNAL=
+CURL_CFLAGS_OTHER:INTERNAL=
+CURL_FOUND:INTERNAL=1
+CURL_INCLUDEDIR:INTERNAL=/usr/include/x86_64-linux-gnu
+CURL_INCLUDE_DIRS:INTERNAL=/usr/include/x86_64-linux-gnu
+CURL_LDFLAGS:INTERNAL=-L/usr/lib/x86_64-linux-gnu;-lcurl
+CURL_LDFLAGS_OTHER:INTERNAL=
+CURL_LIBDIR:INTERNAL=/usr/lib/x86_64-linux-gnu
+CURL_LIBRARIES:INTERNAL=curl
+CURL_LIBRARY_DIRS:INTERNAL=/usr/lib/x86_64-linux-gnu
+CURL_LIBS:INTERNAL=
+CURL_LIBS_L:INTERNAL=
+CURL_LIBS_OTHER:INTERNAL=
+CURL_LIBS_PATHS:INTERNAL=
+CURL_MODULE_NAME:INTERNAL=libcurl
+CURL_PREFIX:INTERNAL=/usr
+CURL_STATIC_CFLAGS:INTERNAL=-I/usr/include/x86_64-linux-gnu
+CURL_STATIC_CFLAGS_I:INTERNAL=
+CURL_STATIC_CFLAGS_OTHER:INTERNAL=
+CURL_STATIC_INCLUDE_DIRS:INTERNAL=/usr/include/x86_64-linux-gnu
+CURL_STATIC_LDFLAGS:INTERNAL=-L/usr/lib/x86_64-linux-gnu;-L/usr/lib/x86_64-linux-gnu/mit-krb5;-lcurl;-lnghttp2;-lidn2;-lrtmp;-lssh;-lpsl;-lssl;-lcrypto;-lssl;-lcrypto;-lgssapi_krb5;-llber;-lldap;-llber;-lzstd;-lbrotlidec;-lz
+CURL_STATIC_LDFLAGS_OTHER:INTERNAL=
+CURL_STATIC_LIBDIR:INTERNAL=
+CURL_STATIC_LIBRARIES:INTERNAL=curl;nghttp2;idn2;rtmp;ssh;psl;ssl;crypto;ssl;crypto;gssapi_krb5;lber;ldap;lber;zstd;brotlidec;z
+CURL_STATIC_LIBRARY_DIRS:INTERNAL=/usr/lib/x86_64-linux-gnu;/usr/lib/x86_64-linux-gnu/mit-krb5
+CURL_STATIC_LIBS:INTERNAL=
+CURL_STATIC_LIBS_L:INTERNAL=
+CURL_STATIC_LIBS_OTHER:INTERNAL=
+CURL_STATIC_LIBS_PATHS:INTERNAL=
+CURL_VERSION:INTERNAL=7.81.0
+CURL_libcurl_INCLUDEDIR:INTERNAL=
+CURL_libcurl_LIBDIR:INTERNAL=
+CURL_libcurl_PREFIX:INTERNAL=
+CURL_libcurl_VERSION:INTERNAL=
 //Details about finding OpenCV
 FIND_PACKAGE_MESSAGE_DETAILS_OpenCV:INTERNAL=[/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/opencv_rv1106_410][v4.10.0()]
 //Details about finding OpenSSL
@@ -1024,11 +1110,13 @@ _OPENSSL_openssl_INCLUDEDIR:INTERNAL=
 _OPENSSL_openssl_LIBDIR:INTERNAL=
 _OPENSSL_openssl_PREFIX:INTERNAL=
 _OPENSSL_openssl_VERSION:INTERNAL=
+__pkg_config_arguments_CURL:INTERNAL=REQUIRED;libcurl
 __pkg_config_arguments_JSONCPP:INTERNAL=REQUIRED;jsoncpp
 __pkg_config_arguments_OPUS:INTERNAL=REQUIRED;opus
 __pkg_config_arguments_PORTAUDIO:INTERNAL=REQUIRED;portaudio-2.0
 __pkg_config_arguments_SAMPLERATE:INTERNAL=REQUIRED;samplerate
 __pkg_config_arguments__OPENSSL:INTERNAL=QUIET;openssl
+__pkg_config_checked_CURL:INTERNAL=1
 __pkg_config_checked_JSONCPP:INTERNAL=1
 __pkg_config_checked_OPUS:INTERNAL=1
 __pkg_config_checked_PORTAUDIO:INTERNAL=1
@@ -1078,6 +1166,8 @@ have_stdatomic_h:INTERNAL=1
 have_sys_queue_h:INTERNAL=1
 //Have include usrsctp.h
 have_usrsctp_h:INTERNAL=1
+//ADVANCED property for variable: pkgcfg_lib_CURL_curl
+pkgcfg_lib_CURL_curl-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: pkgcfg_lib_JSONCPP_jsoncpp
 pkgcfg_lib_JSONCPP_jsoncpp-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: pkgcfg_lib_OPUS_opus

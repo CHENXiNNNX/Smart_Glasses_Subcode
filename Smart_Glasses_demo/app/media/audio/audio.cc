@@ -40,8 +40,10 @@ static int recordCallback(const void *inputBuffer, void *outputBuffer,
     audio_system->recordedAudioCV.notify_one();
 
 #if USE_WEBRTC
-    // WebRTC音频数据发送
-    if (audio_system->is_webrtc_streaming && audio_system->webrtc_audio_callback) {
+    // WebRTC音频数据发送（仅在WebRTC模式下）
+    if (audio_system->current_mode == AUDIO_MODE_WEBRTC && 
+        audio_system->is_webrtc_streaming && 
+        audio_system->webrtc_audio_callback) {
         // 编码为Opus
         uint8_t opus_buffer[2048];
         size_t opus_size = 2048;
@@ -57,6 +59,81 @@ static int recordCallback(const void *inputBuffer, void *outputBuffer,
         }
     }
 #endif
+
+    // xiaozhi AI音频数据发送（仅在AI模式下）
+    if (audio_system->current_mode == AUDIO_MODE_AI &&
+        audio_system->is_ai_streaming && 
+        audio_system->ai_audio_callback) {
+        // xiaozhi服务器期望16kHz的音频，需要重采样
+        
+        // 初始化AI专用编码器和重采样器（如果还没初始化）
+        if (!audio_system->ai_encoder) {
+            // 创建16kHz Opus编码器
+            int error;
+            audio_system->ai_encoder = opus_encoder_create(16000, 1, OPUS_APPLICATION_VOIP, &error);
+            if (error != OPUS_OK) {
+                std::cerr << "[Audio] ✗ Failed to create AI Opus encoder" << std::endl;
+                return paContinue;
+            }
+            
+            // 配置AI编码器
+            opus_encoder_ctl(audio_system->ai_encoder, OPUS_SET_BITRATE(32000));
+            opus_encoder_ctl(audio_system->ai_encoder, OPUS_SET_VBR(1));
+            opus_encoder_ctl(audio_system->ai_encoder, OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));
+            
+            // 初始化重采样器 48kHz → 16kHz
+            if (init_audio_resample(audio_system, 
+                                   48000,  // 输入48kHz
+                                   16000,  // 输出16kHz (xiaozhi期望)
+                                   1,      // 单声道
+                                   SRC_SINC_BEST_QUALITY) != AUDIO_ERROR_NONE) {
+                std::cerr << "[Audio] ✗ Failed to init resampler for AI" << std::endl;
+                opus_encoder_destroy(audio_system->ai_encoder);
+                audio_system->ai_encoder = nullptr;
+                return paContinue;
+            }
+            
+            std::cout << "[Audio] ✓ AI audio pipeline: 48kHz → Resample → 16kHz → Opus" << std::endl;
+        }
+        
+        // 1. 重采样 48kHz → 16kHz
+        std::vector<int16_t> resampled_frame;
+        if (process_audio_resample(audio_system, frame, resampled_frame) != AUDIO_ERROR_NONE) {
+            std::cerr << "[Audio] ✗ Resample failed" << std::endl;
+            return paContinue;
+        }
+        
+        // 2. 使用AI专用编码器编码 (16kHz)
+        uint8_t opus_buffer[2048];
+        
+        // 调试：打印重采样后的帧大小
+        static bool first_encode = true;
+        if (first_encode) {
+            std::cout << "[Audio] Resampled frame size: " << resampled_frame.size() 
+                      << " samples (expected 320 for 16kHz 20ms)" << std::endl;
+            first_encode = false;
+        }
+        
+        int encoded_bytes = opus_encode(audio_system->ai_encoder,
+                                       resampled_frame.data(),
+                                       resampled_frame.size(),  // 应该是320 samples
+                                       opus_buffer,
+                                       2048);
+        
+        if (encoded_bytes > 0) {
+            // 调用AI回调发送Opus数据
+            audio_system->ai_audio_callback(opus_buffer, encoded_bytes, 0);
+        } else {
+            static int error_count = 0;
+            error_count++;
+            if (error_count <= 5) {  // 只打印前5次错误
+                std::cerr << "[Audio] ✗ AI Opus encode failed (frame_size=" 
+                          << resampled_frame.size() << "): " 
+                          << opus_strerror(encoded_bytes) << std::endl;
+            }
+        }
+    }
+
     return paContinue;
 }
 
@@ -116,6 +193,7 @@ audio_error_t audio_system_init(audio_system_t *audio_system, sync_context_t *sy
     audio_system->frame_duration_ms = AUDIO_FRAME_DURATION_MS;
     audio_system->encoder = nullptr;
     audio_system->decoder = nullptr;
+    audio_system->ai_encoder = nullptr;
     audio_system->recordStream = nullptr;
     audio_system->playbackStream = nullptr;
     audio_system->isRecording = false;
@@ -150,7 +228,12 @@ audio_error_t audio_system_init(audio_system_t *audio_system, sync_context_t *sy
     audio_system->is_webrtc_streaming = false;
     audio_system->webrtc_audio_callback = nullptr;
     #endif
-
+    
+    // xiaozhi AI相关初始化
+    audio_system->ai_manager = nullptr;
+    audio_system->is_ai_streaming = false;
+    audio_system->ai_audio_callback = nullptr;
+    
     // 初始化PortAudio
     PaError err = Pa_Initialize();
     if (err != paNoError) {
@@ -569,6 +652,10 @@ audio_error_t release_opus_codec(audio_system_t *audio_system) {
         opus_decoder_destroy(audio_system->decoder);
         audio_system->decoder = nullptr;
     }
+    if (audio_system->ai_encoder) {
+        opus_encoder_destroy(audio_system->ai_encoder);
+        audio_system->ai_encoder = nullptr;
+    }
     return AUDIO_ERROR_NONE;
 }
 
@@ -698,67 +785,7 @@ std::queue<std::vector<int16_t>> load_audio_from_file(audio_system_t *audio_syst
     return audio_frames;
 }
 
-BinProtocol* pack_bin_frame(audio_system_t *audio_system, const uint8_t* payload, size_t payload_size, int ws_protocol_version) {
-    (void) audio_system; // 未使用
-    
-    // 分配内存用于 BinaryProtocol + payload
-    auto pack = static_cast<BinProtocol*>(malloc(sizeof(BinProtocol) + payload_size));
-    if (!pack) {
-        std::cerr << "Memory allocation failed" << std::endl;
-        return nullptr;
-    }
-
-    // 与官方实现保持一致的协议打包格式
-    pack->version = htons(static_cast<uint16_t>(ws_protocol_version));
-    pack->type = htons(0);  // 表示音频数据类型
-    pack->payload_size = htonl(static_cast<uint32_t>(payload_size));
-    assert(sizeof(BinProtocol) == 8);
-    
-    // 复制payload数据
-    memcpy(pack->payload, payload, payload_size);
-
-    return pack;
-}
-
-bool unpack_bin_frame(audio_system_t *audio_system, const uint8_t* packed_data, size_t packed_data_size, BinProtocolInfo& protocol_info, std::vector<uint8_t>& opus_data) {
-    (void) audio_system; // 未使用
-    
-    // 检查输入数据的有效性
-    if (packed_data_size < sizeof(uint16_t) * 2 + sizeof(uint32_t)) { // 至少需要2字节版本+2字节类型+4字节负载大小
-        std::cerr << "Packed data size is too small" << std::endl;
-        return false;
-    }
-
-    // 解析头部信息 - 与官方实现保持一致的解析逻辑
-    const uint16_t* version_ptr = reinterpret_cast<const uint16_t*>(packed_data);
-    const uint16_t* type_ptr = reinterpret_cast<const uint16_t*>(packed_data + sizeof(uint16_t));
-    const uint32_t* payload_size_ptr = reinterpret_cast<const uint32_t*>(packed_data + sizeof(uint16_t) * 2);
-
-    uint16_t version = ntohs(*version_ptr);
-    uint16_t type = ntohs(*type_ptr);
-    uint32_t payload_size = ntohl(*payload_size_ptr);
-
-    // 确认总数据大小是否匹配
-    if (packed_data_size < sizeof(uint16_t) * 2 + sizeof(uint32_t) + payload_size) {
-        std::cerr << "Packed data size does not match payload size" << std::endl;
-        return false;
-    }
-
-    // protocol_info
-    protocol_info.version = version;
-    protocol_info.type = type;
-
-    // 提取并填充opus_data
-    opus_data.clear();
-    opus_data.insert(opus_data.end(), 
-                     packed_data + sizeof(uint16_t) * 2 + sizeof(uint32_t), 
-                     packed_data + sizeof(uint16_t) * 2 + sizeof(uint32_t) + payload_size);
-
-    return true;
-}
-
 // ================== 重采样功能实现 ==================
-
 audio_error_t init_audio_resample(audio_system_t *audio_system, int input_rate, int output_rate, int channels, int converter_type) {
     if (!audio_system) {
         std::cerr << "Audio system is null" << std::endl;
@@ -975,6 +1002,91 @@ audio_error_t set_webrtc_audio_callback(audio_system_t *audio_system, void *webr
     return AUDIO_ERROR_NONE;
 }
 #endif
+
+audio_error_t start_ai_audio_stream(audio_system_t *audio_system) {
+    if (!audio_system) {
+        std::cerr << "[AUDIO] Audio system is null" << std::endl;
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+    
+    if (!audio_system->ai_audio_callback) {
+        std::cerr << "[AUDIO] AI audio callback not set" << std::endl;
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+    
+    if (audio_system->is_ai_streaming) {
+        std::cout << "[AUDIO] AI audio stream already started" << std::endl;
+        return AUDIO_ERROR_NONE;
+    }
+    
+    // 设置音频模式为AI
+    if (set_audio_mode(audio_system, AUDIO_MODE_AI) != AUDIO_ERROR_NONE) {
+        std::cerr << "[AUDIO] Failed to set audio mode to AI" << std::endl;
+        return AUDIO_ERROR_MODE_CONFLICT;
+    }
+    
+    // 开始录音
+    if (start_recording(audio_system) != AUDIO_ERROR_NONE) {
+        std::cerr << "[AUDIO] Failed to start recording for AI" << std::endl;
+        return AUDIO_ERROR_STREAM_START_FAILED;
+    }
+    
+    audio_system->is_ai_streaming = true;
+    std::cout << "[AUDIO] AI audio stream started (48kHz, 1ch, 20ms, Opus)" << std::endl;
+    return AUDIO_ERROR_NONE;
+}
+
+audio_error_t stop_ai_audio_stream(audio_system_t *audio_system) {
+    if (!audio_system) {
+        std::cerr << "[AUDIO] Audio system is null" << std::endl;
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+    
+    if (!audio_system->is_ai_streaming) {
+        std::cout << "[AUDIO] AI audio stream already stopped" << std::endl;
+        return AUDIO_ERROR_NONE;
+    }
+    
+    // 停止录音
+    if (stop_recording(audio_system) != AUDIO_ERROR_NONE) {
+        std::cerr << "[AUDIO] Failed to stop recording for AI" << std::endl;
+        return AUDIO_ERROR_STREAM_START_FAILED;
+    }
+    
+    // 释放AI编码器和重采样器（重置状态）
+    if (audio_system->ai_encoder) {
+        opus_encoder_destroy(audio_system->ai_encoder);
+        audio_system->ai_encoder = nullptr;
+        std::cout << "[AUDIO] AI encoder destroyed" << std::endl;
+    }
+    
+    if (audio_system->resample_config.is_initialized) {
+        release_audio_resample(audio_system);
+        std::cout << "[AUDIO] Resampler released" << std::endl;
+    }
+    
+    audio_system->is_ai_streaming = false;
+    std::cout << "[AUDIO] AI audio stream stopped" << std::endl;
+    return AUDIO_ERROR_NONE;
+}
+
+audio_error_t set_ai_audio_callback(audio_system_t *audio_system, void *ai_manager, void (*audio_callback)(void *data, int len, uint64_t timestamp)) {
+    if (!audio_system) {
+        std::cerr << "[AUDIO] Audio system is null" << std::endl;
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+    
+    if (!audio_callback) {
+        std::cerr << "[AUDIO] Invalid audio callback" << std::endl;
+        return AUDIO_ERROR_INVALID_PARAM;
+    }
+    
+    audio_system->ai_manager = ai_manager;
+    audio_system->ai_audio_callback = audio_callback;
+    
+    std::cout << "[AUDIO] AI audio callback set successfully" << std::endl;
+    return AUDIO_ERROR_NONE;
+}
 
 // 3A算法初始化函数
 audio_error_t init_audio_3a(audio_system_t *audio_system) {

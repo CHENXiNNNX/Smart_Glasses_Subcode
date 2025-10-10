@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/utils.dir/mouse_cursor_icon.c.o"
-  "CMakeFiles/utils.dir/mouse_cursor_icon.c.o.d"
+  "CMakeFiles/utils.dir/utils.c.o"
+  "CMakeFiles/utils.dir/utils.c.o.d"
   "libutils.a"
   "libutils.pdb"
 )

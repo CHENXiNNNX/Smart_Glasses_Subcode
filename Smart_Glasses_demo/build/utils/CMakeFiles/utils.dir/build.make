@@ -69,28 +69,28 @@ include utils/CMakeFiles/utils.dir/progress.make
 # Include the compile flags for this target's objects.
 include utils/CMakeFiles/utils.dir/flags.make
 
-utils/CMakeFiles/utils.dir/mouse_cursor_icon.c.o: utils/CMakeFiles/utils.dir/flags.make
-utils/CMakeFiles/utils.dir/mouse_cursor_icon.c.o: ../utils/mouse_cursor_icon.c
-utils/CMakeFiles/utils.dir/mouse_cursor_icon.c.o: utils/CMakeFiles/utils.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object utils/CMakeFiles/utils.dir/mouse_cursor_icon.c.o"
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/utils && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT utils/CMakeFiles/utils.dir/mouse_cursor_icon.c.o -MF CMakeFiles/utils.dir/mouse_cursor_icon.c.o.d -o CMakeFiles/utils.dir/mouse_cursor_icon.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/utils/mouse_cursor_icon.c
+utils/CMakeFiles/utils.dir/utils.c.o: utils/CMakeFiles/utils.dir/flags.make
+utils/CMakeFiles/utils.dir/utils.c.o: ../utils/utils.c
+utils/CMakeFiles/utils.dir/utils.c.o: utils/CMakeFiles/utils.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object utils/CMakeFiles/utils.dir/utils.c.o"
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/utils && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT utils/CMakeFiles/utils.dir/utils.c.o -MF CMakeFiles/utils.dir/utils.c.o.d -o CMakeFiles/utils.dir/utils.c.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/utils/utils.c
 
-utils/CMakeFiles/utils.dir/mouse_cursor_icon.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/utils.dir/mouse_cursor_icon.c.i"
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/utils && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/utils/mouse_cursor_icon.c > CMakeFiles/utils.dir/mouse_cursor_icon.c.i
+utils/CMakeFiles/utils.dir/utils.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/utils.dir/utils.c.i"
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/utils && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/utils/utils.c > CMakeFiles/utils.dir/utils.c.i
 
-utils/CMakeFiles/utils.dir/mouse_cursor_icon.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/utils.dir/mouse_cursor_icon.c.s"
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/utils && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/utils/mouse_cursor_icon.c -o CMakeFiles/utils.dir/mouse_cursor_icon.c.s
+utils/CMakeFiles/utils.dir/utils.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/utils.dir/utils.c.s"
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/utils && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-gcc --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/utils/utils.c -o CMakeFiles/utils.dir/utils.c.s
 
 # Object files for target utils
 utils_OBJECTS = \
-"CMakeFiles/utils.dir/mouse_cursor_icon.c.o"
+"CMakeFiles/utils.dir/utils.c.o"
 
 # External object files for target utils
 utils_EXTERNAL_OBJECTS =
 
-utils/libutils.a: utils/CMakeFiles/utils.dir/mouse_cursor_icon.c.o
+utils/libutils.a: utils/CMakeFiles/utils.dir/utils.c.o
 utils/libutils.a: utils/CMakeFiles/utils.dir/build.make
 utils/libutils.a: utils/CMakeFiles/utils.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking C static library libutils.a"

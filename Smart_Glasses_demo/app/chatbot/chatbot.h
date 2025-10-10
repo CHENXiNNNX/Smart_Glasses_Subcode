@@ -1,474 +1,285 @@
+/**
+ * @file chatbot.h
+ * @brief xiaozhi AI主控制器
+ * @details 整合WebSocket、协议处理、状态机、MCP和音频系统
+ *          实现完整的AI对话功能
+ * 
+ * @author Smart_Glasses Team
+ * @date 2025-10-10
+ */
+
 #ifndef CHATBOT_H
 #define CHATBOT_H
 
-#include "../media/audio/audio.h"
-#include "../media/sync.h"
-#include "../protocol/websocket/websocket.h"
-#include "state_machine/state_machine.h"
-#include "event/eventqueue.h"
-#include "event/app_event.h"
-#include "intent/intent_handler.h"
-#include "utils/user_log.h"
-#include "../../3rdparty/snowboy/include/snowboy-detect-c-wrapper.h"
-
-#include <thread>
-#include <atomic>
 #include <string>
-#include <json/json.h>
 #include <memory>
+#include <functional>
+#include "../media/audio/audio.h"
 
-// 应用状态枚举
-enum class ChatbotState {
-    fault,      // 故障状态
-    startup,    // 启动状态
-    stopping,   // 停止状态
-    idle,       // 空闲状态
-    listening,  // 聆听状态
-    thinking,   // 思考状态
-    speaking,   // 说话状态
-};
+namespace glasses {
+namespace chatbot {
 
-// WebSocket消息处理器前向声明
-class ChatbotMsgHandler;
+// 前向声明
+namespace protocol { 
+    class ProtocolHandler;
+    struct IoTDescriptor;
+}
+namespace statemachine { class AIStateMachine; }
+namespace mcp { 
+    class MCPManager;
+    using MethodHandler = std::function<bool(const std::string&, const std::string&, const std::map<std::string, std::string>&)>;
+    using StateGetter = std::function<std::map<std::string, std::string>(const std::string&)>;
+}
+
+namespace websocket = glasses::protocol::websocket;
+
+// ============================================================================
+// AI管理器配置
+// ============================================================================
 
 /**
- * @brief 智能眼镜聊天机器人核心类
- * 
- * 基于官方Application架构设计，集成音频处理、状态机管理、
- * WebSocket通信和意图处理等核心功能
+ * @brief AI管理器配置
  */
-class Chatbot {
+struct AIConfig {
+    std::string device_id;              // 设备ID (MAC地址)
+    std::string client_id;              // 客户端ID (UUID)
+    std::string server_url;             // 服务器地址
+    std::string config_file_path;       // 配置文件路径
+    
+    // 音频配置
+    int audio_sample_rate;              // 音频采样率
+    int audio_channels;                 // 音频声道数
+    int audio_frame_duration;           // 帧时长(ms)
+    
+    // 是否自动重连
+    bool auto_reconnect;
+    
+    AIConfig()
+        : server_url("wss://api.tenclass.net/xiaozhi/v1/")
+        , config_file_path("./system_para.conf")
+        , audio_sample_rate(48000)
+        , audio_channels(1)
+        , audio_frame_duration(20)
+        , auto_reconnect(true) {}
+};
+
+// ============================================================================
+// AI管理器状态
+// ============================================================================
+
+/**
+ * @brief AI管理器状态
+ */
+enum class AIManagerState {
+    UNINITIALIZED,      // 未初始化
+    INITIALIZED,        // 已初始化
+    CONNECTING,         // 连接中
+    CONNECTED,          // 已连接
+    ACTIVE,             // 活跃中（可以对话）
+    ERROR,              // 错误状态
+    SHUTDOWN            // 已关闭
+};
+
+// ============================================================================
+// 回调函数类型
+// ============================================================================
+
+/**
+ * @brief STT文本回调
+ */
+using STTTextCallback = std::function<void(const std::string& text, bool is_final)>;
+
+/**
+ * @brief LLM文本回调
+ */
+using LLMTextCallback = std::function<void(const std::string& text, bool is_final)>;
+
+/**
+ * @brief TTS音频回调
+ */
+using TTSAudioCallback = std::function<void(const uint8_t* data, size_t size)>;
+
+/**
+ * @brief 状态变化回调
+ */
+using StateChangedCallback = std::function<void(AIManagerState state)>;
+
+/**
+ * @brief 错误回调
+ */
+using ErrorOccurredCallback = std::function<void(const std::string& error)>;
+
+// ============================================================================
+// AI管理器类
+// ============================================================================
+
+/**
+ * @brief xiaozhi AI主控制器
+ * @details 负责整合所有AI相关模块:
+ *          - WebSocket通信
+ *          - 协议处理
+ *          - 状态机管理
+ *          - MCP工具调用
+ *          - 音频系统集成
+ */
+class AIManager {
 public:
     /**
      * @brief 构造函数
-     * 
-     * @param address WebSocket服务器地址
-     * @param port WebSocket服务器端口
-     * @param token 认证令牌
-     * @param deviceId 设备ID
-     * @param aliyun_api_key 阿里云API密钥
-     * @param protocolVersion 协议版本
-     * @param sample_rate 音频采样率
-     * @param channels 音频声道数
-     * @param frame_duration 音频帧时长(ms)
+     * @param config AI配置
      */
-    Chatbot(const std::string& address, int port, const std::string& token, 
-            const std::string& deviceId, const std::string& aliyun_api_key, 
-            int protocolVersion, int sample_rate = 16000, int channels = 1, 
-            int frame_duration = 20);
-
+    explicit AIManager(const AIConfig& config = AIConfig());
+    
     /**
      * @brief 析构函数
      */
-    ~Chatbot();
+    ~AIManager();
+
+    // ========================================================================
+    // 初始化和关闭
+    // ========================================================================
 
     /**
-     * @brief 运行聊天机器人
-     * 
-     * 启动状态机线程和事件循环，开始处理用户交互
+     * @brief 初始化AI管理器
+     * @param audio_system 音频系统指针
+     * @return true 初始化成功
      */
-    void Run();
+    bool initialize(audio_system_t* audio_system);
 
     /**
-     * @brief 停止聊天机器人
-     * 
-     * 发送停止事件，优雅关闭所有线程和连接
+     * @brief 启动AI服务
+     * @return true 启动成功
      */
-    void Stop();
-
-    // ==================== 核心组件 ====================
-    
-    /**
-     * @brief 音频系统
-     * 
-     * 负责音频录制、播放、Opus编解码等功能
-     */
-    audio_system_t audio_system_;
+    bool start();
 
     /**
-     * @brief 状态机
-     * 
-     * 管理应用的各种状态转换
+     * @brief 停止AI服务
      */
-    StateMachine client_state_;
+    void stop();
 
     /**
-     * @brief 事件队列
-     * 
-     * 处理应用事件（如唤醒检测、VAD结束等）
+     * @brief 关闭AI管理器
      */
-    EventQueue<int> eventQueue_;
+    void shutdown();
+
+    // ========================================================================
+    // AI交互控制
+    // ========================================================================
 
     /**
-     * @brief 意图队列
-     * 
-     * 处理AI识别的用户意图
+     * @brief 开始监听用户语音
+     * @param mode 监听模式（auto/manual/realtime）
+     * @return true 成功
      */
-    EventQueue<Json::Value> intentQueue_;
+    bool startListening(const std::string& mode = "auto");
 
     /**
-     * @brief WebSocket客户端
-     * 
-     * 与AI服务器进行实时通信
+     * @brief 停止监听
+     * @return true 成功
      */
-    WebSocketClient ws_client_;
+    bool stopListening();
 
     /**
-     * @brief 意图处理器
-     * 
-     * 注册和执行用户意图对应的功能
+     * @brief 发送文本消息（用于测试）
+     * @param text 文本内容
+     * @return true 成功
      */
-    IntentHandler intent_handler_;
+    bool sendTextMessage(const std::string& text);
 
-    // ==================== 状态管理 ====================
+    // ========================================================================
+    // MCP设备注册
+    // ========================================================================
 
     /**
-     * @brief 设置首次音频消息接收标志
+     * @brief 注册IoT设备
+     * @param descriptor 设备描述符
+     * @param handler 方法处理函数
+     * @param getter 状态获取函数
+     * @return true 注册成功
      */
-    void set_first_audio_msg_received(bool flag) {
-        first_audio_msg_received_ = flag;
-    }
+    bool registerDevice(
+        const protocol::IoTDescriptor& descriptor,
+        mcp::MethodHandler handler,
+        mcp::StateGetter getter
+    );
 
     /**
-     * @brief 获取首次音频消息接收标志
+     * @brief 注销IoT设备
+     * @param device_name 设备名称
+     * @return true 注销成功
      */
-    bool get_first_audio_msg_received() const {
-        return first_audio_msg_received_;
-    }
+    bool unregisterDevice(const std::string& device_name);
+
+    // ========================================================================
+    // 状态查询
+    // ========================================================================
 
     /**
-     * @brief 设置TTS完成标志
+     * @brief 获取管理器状态
      */
-    void set_tts_completed(bool flag) {
-        tts_completed_ = flag;
-    }
+    AIManagerState getState() const;
 
     /**
-     * @brief 获取TTS完成标志
+     * @brief 检查是否已连接
      */
-    bool get_tts_completed() const {
-        return tts_completed_;
-    }
+    bool isConnected() const;
 
     /**
-     * @brief 设置对话完成标志
+     * @brief 检查是否处于活跃状态
      */
-    void set_dialogue_completed(bool flag) {
-        dialogue_completed_ = flag;
-    }
+    bool isActive() const;
 
     /**
-     * @brief 获取对话完成标志
+     * @brief 获取当前会话ID
      */
-    bool get_dialogue_completed() const {
-        return dialogue_completed_;
-    }
+    std::string getSessionId() const;
+
+    // ========================================================================
+    // 回调设置
+    // ========================================================================
 
     /**
-     * @brief 设置阿里云API密钥
+     * @brief 设置STT文本回调
      */
-    void set_aliyun_api_key(const std::string& key) {
-        aliyun_api_key_ = key;
-    }
+    void onSTTText(STTTextCallback callback);
 
     /**
-     * @brief 获取阿里云API密钥
+     * @brief 设置LLM文本回调
      */
-    std::string get_aliyun_api_key() const {
-        return aliyun_api_key_;
-    }
+    void onLLMText(LLMTextCallback callback);
 
     /**
-     * @brief 设置线程停止信号
+     * @brief 设置TTS音频回调
      */
-    void set_threads_stop_sig(bool flag) {
-        threads_stop_flag_.store(flag);
-    }
+    void onTTSAudio(TTSAudioCallback callback);
 
     /**
-     * @brief 获取线程停止信号
+     * @brief 设置状态变化回调
      */
-    bool get_threads_stop_sig() const {
-        return threads_stop_flag_.load();
-    }
+    void onStateChanged(StateChangedCallback callback);
 
     /**
-     * @brief 设置WebSocket协议版本
+     * @brief 设置错误回调
      */
-    void set_ws_protocolVersion(int version) {
-        ws_protocolVersion_ = version;
-    }
+    void onError(ErrorOccurredCallback callback);
 
-    /**
-     * @brief 获取WebSocket协议版本
-     */
-    int get_ws_protocolVersion() const {
-        return ws_protocolVersion_;
-    }
-
-    /**
-     * @brief 获取当前状态
-     */
-    int getState() const {
-        return client_state_.GetCurrentState();
-    }
-
-    // ==================== 音频控制 ====================
-
-    /**
-     * @brief 开始录音
-     */
-    bool startRecording();
-
-    /**
-     * @brief 停止录音
-     */
-    bool stopRecording();
-
-    /**
-     * @brief 开始播放
-     */
-    bool startPlayback();
-
-    /**
-     * @brief 停止播放
-     */
-    bool stopPlayback();
-
-    /**
-     * @brief 清空录音队列
-     */
-    void clearRecordingQueue();
-
-    /**
-     * @brief 清空播放队列
-     */
-    void clearPlaybackQueue();
-
-    /**
-     * @brief 获取录音数据
-     */
-    bool getRecordedAudio(std::vector<int16_t>& recordedData);
-
-    /**
-     * @brief 添加音频帧到播放队列
-     */
-    void addFrameToPlaybackQueue(const std::vector<int16_t>& pcm_frame);
-
-    // ==================== WebSocket控制 ====================
-
-    /**
-     * @brief 连接WebSocket服务器
-     */
-    void connectWebSocket();
-
-    /**
-     * @brief 断开WebSocket连接
-     */
-    void disconnectWebSocket();
-
-    /**
-     * @brief 发送文本消息
-     */
-    void sendTextMessage(const std::string& message);
-
-    /**
-     * @brief 发送二进制音频数据
-     */
-    void sendAudioData(const uint8_t* data, size_t size);
-
-    /**
-     * @brief 检查WebSocket连接状态
-     */
-    bool isWebSocketConnected() const;
-
-    // ==================== 事件处理 ====================
-
-    /**
-     * @brief 入队事件
-     */
-    void enqueueEvent(AppEvent event);
-
-    /**
-     * @brief 入队意图
-     */
-    void enqueueIntent(const Json::Value& intent);
-
-    // ==================== Opus编解码 ====================
-
-    /**
-     * @brief 编码音频数据为Opus格式
-     */
-    bool encodeOpus(const std::vector<int16_t>& pcm_data, std::vector<uint8_t>& opus_data);
-
-    /**
-     * @brief 解码Opus数据为PCM格式
-     */
-    bool decodeOpus(const std::vector<uint8_t>& opus_data, std::vector<int16_t>& pcm_data);
-
-    /**
-     * @brief 打包二进制协议帧
-     */
-    std::vector<uint8_t> packBinaryFrame(const std::vector<uint8_t>& opus_data);
-
-    /**
-     * @brief 解包二进制协议帧
-     */
-    bool unpackBinaryFrame(const std::vector<uint8_t>& packed_data, 
-                          std::vector<uint8_t>& opus_data, 
-                          BinProtocolInfo& protocol_info);
+    // 禁止拷贝和赋值
+    AIManager(const AIManager&) = delete;
+    AIManager& operator=(const AIManager&) = delete;
 
 private:
-    // ==================== 私有成员变量 ====================
-
-    // 状态标志
-    bool first_audio_msg_received_ = false;
-    bool tts_completed_ = false;
-    bool dialogue_completed_ = false;
+    class Impl;  // Pimpl惯用法
+    std::unique_ptr<Impl> pImpl_;
     
-    // 配置参数
-    std::string aliyun_api_key_;
-    int ws_protocolVersion_;
-    
-    // 音频参数
-    int sample_rate_;
-    int channels_;
-    int frame_duration_;
-    
-    // 时间同步上下文
-    sync_context_t sync_ctx_;
-    
-    // 线程控制
-    std::atomic<bool> threads_stop_flag_ = false;
-    std::thread state_trans_thread_;
-    
-    // 消息处理器
-    std::unique_ptr<ChatbotMsgHandler> msg_handler_;
-    
-    // Snowboy唤醒检测
-    SnowboyDetect* snowboy_detector_ = nullptr;
-    std::atomic<bool> wakeword_detection_running_ = false;
-    std::thread wakeword_detection_thread_;
-
-    // ==================== 私有方法 ====================
-
-    /**
-     * @brief 初始化音频系统
-     */
-    bool initAudioSystem();
-
-    /**
-     * @brief 释放音频系统
-     */
-    void deinitAudioSystem();
-
-    /**
-     * @brief 配置状态机
-     */
-    void configureStateMachine();
-
-    /**
-     * @brief 设置WebSocket回调
-     */
-    void setupWebSocketCallbacks();
-
-    /**
-     * @brief 状态机事件循环
-     */
-    void stateEventLoop();
-
-    /**
-     * @brief 处理WebSocket消息
-     */
-    void handleWebSocketMessage(const std::string& message, bool is_binary);
-
-    /**
-     * @brief 处理WebSocket关闭
-     */
-    void handleWebSocketClose();
-    
-    // ==================== Snowboy唤醒检测 ====================
-    
-    /**
-     * @brief 初始化Snowboy检测器
-     */
-    bool initSnowboyDetector();
-    
-    /**
-     * @brief 释放Snowboy检测器
-     */
-    void deinitSnowboyDetector();
-    
-    /**
-     * @brief 启动唤醒词检测
-     */
-    void startWakewordDetection();
-    
-    /**
-     * @brief 停止唤醒词检测
-     */
-    void stopWakewordDetection();
-    
-    /**
-     * @brief 唤醒词检测循环
-     */
-    void wakewordDetectionLoop();
+    // 允许音频回调访问pImpl_
+    friend void audioDataCallback(void* data, int len, uint64_t timestamp);
 };
 
-/**
- * @brief WebSocket消息处理器
- * 
- * 负责解析和处理来自AI服务器的各种消息类型
- */
-class ChatbotMsgHandler {
-public:
-    /**
-     * @brief 构造函数
-     */
-    explicit ChatbotMsgHandler(Chatbot* chatbot);
+// 音频回调函数（C函数指针兼容）
+void audioDataCallback(void* data, int len, uint64_t timestamp);
 
-    /**
-     * @brief 处理WebSocket接收到的消息
-     */
-    void handleMessage(const std::string& message, bool is_binary);
-
-private:
-    Chatbot* chatbot_;
-
-    /**
-     * @brief 处理VAD消息
-     */
-    void handleVadMessage(const Json::Value& root);
-
-    /**
-     * @brief 处理ASR消息
-     */
-    void handleAsrMessage(const Json::Value& root);
-
-    /**
-     * @brief 处理聊天消息
-     */
-    void handleChatMessage(const Json::Value& root);
-
-    /**
-     * @brief 处理TTS消息
-     */
-    void handleTtsMessage(const Json::Value& root);
-
-    /**
-     * @brief 处理意图消息
-     */
-    void handleIntentMessage(const Json::Value& root);
-
-    /**
-     * @brief 处理二进制音频消息
-     */
-    void handleBinaryMessage(const std::string& message);
-
-    /**
-     * @brief 处理错误消息
-     */
-    void handleErrorMessage(const Json::Value& root);
-};
+} // namespace chatbot
+} // namespace glasses
 
 #endif // CHATBOT_H
+

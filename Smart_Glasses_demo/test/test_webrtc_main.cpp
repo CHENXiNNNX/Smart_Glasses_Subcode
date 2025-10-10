@@ -6,7 +6,7 @@
 #include "app/media/media_config.h"
 #include "rtc/rtc.hpp"
 #include "app/protocol/webrtc/signaling.h"
-#include "app/protocol/webrtc/webrtc.h"
+#include "app/protocol/webrtc/webrtc.h"  
 #include "app/media/camera/camera.h"
 #include "app/media/audio/audio.h"
 #include "app/media/sync.h"
@@ -17,14 +17,14 @@ using json = nlohmann::json;
 
 // 设备配置
 constexpr const char* DEVICE_ID = "glasses_123456";
-constexpr const char* SERVER_URL = "ws://192.168.2.248:8000";
+constexpr const char* SERVER_URL = "ws://192.168.50.184:8000";
 
 // 全局变量
 std::shared_ptr<Signaling> signaling;
-std::shared_ptr<WebRTCManage> webrtcManager;
+std::shared_ptr<WebRTCManage> webrtcManager;  
 std::unique_ptr<video_system_t> video_system;
 std::unique_ptr<audio_system_t> audio_system;
-sync_context_t sync_ctx;  // 时间同步上下文
+sync_context_t sync_ctx;
 
 // 创建WebRTC配置
 WebRTCConfig createWebRTCConfig() {
@@ -33,8 +33,8 @@ WebRTCConfig createWebRTCConfig() {
     // 功能开关配置
     config.enableDataChannel = false;    // 启用数据通道
     config.enableAudioSend = true;      // 启用音频发送
-    config.enableAudioReceive = true;   // 启用音频接收
-    config.enableVideoSend = false;      // 启用视频发送
+    config.enableAudioReceive = false;   // 启用音频接收
+    config.enableVideoSend = true;      // 启用视频发送
     
     // 数据通道配置
     config.dataChannelLabel = "glasses_data_channel";
@@ -48,43 +48,63 @@ WebRTCConfig createWebRTCConfig() {
     
     // TURN服务器配置
     config.ice.turnServers = {
-
     };
     
     // ICE传输策略配置
     config.ice.useRelayOnly = false; 
     
     // SCTP传输配置 
-    config.sctp.recvBufferSize = 2 * 1024 * 1024;        // 接收缓冲区: 2MB
-    config.sctp.sendBufferSize = 2 * 1024 * 1024;        // 发送缓冲区: 2MB
-    config.sctp.maxChunksOnQueue = 20 * 1024;            // 队列最大块数: 20K
-    config.sctp.initialCongestionWindow = 10;            // 初始拥塞窗口: 10 MTUs
-    config.sctp.maxBurst = 10;                           // 最大突发: 10 MTUs
-    config.sctp.congestionControlModule = 0;             // 拥塞控制算法: RFC2581
-    config.sctp.delayedSackTime = std::chrono::milliseconds{20};  // SACK延迟: 20ms
-    config.sctp.minRetransmitTimeout = std::chrono::milliseconds{200};  // 最小重传超时: 200ms
-    config.sctp.maxRetransmitTimeout = std::chrono::milliseconds{10000}; // 最大重传超时: 10s
-    config.sctp.initialRetransmitTimeout = std::chrono::milliseconds{1000}; // 初始重传超时: 1s
-    config.sctp.maxRetransmitAttempts = 5;               // 最大重传次数: 5次
-    config.sctp.heartbeatInterval = std::chrono::milliseconds{30000}; // 心跳间隔: 30s
+    config.sctp.recvBufferSize = 2 * 1024 * 1024;
+    config.sctp.sendBufferSize = 2 * 1024 * 1024;
+    config.sctp.maxChunksOnQueue = 20 * 1024;
+    config.sctp.initialCongestionWindow = 10;
+    config.sctp.maxBurst = 10;
+    config.sctp.congestionControlModule = 0;
+    config.sctp.delayedSackTime = std::chrono::milliseconds{20};
+    config.sctp.minRetransmitTimeout = std::chrono::milliseconds{200};
+    config.sctp.maxRetransmitTimeout = std::chrono::milliseconds{10000};
+    config.sctp.initialRetransmitTimeout = std::chrono::milliseconds{1000};
+    config.sctp.maxRetransmitAttempts = 5;
+    config.sctp.heartbeatInterval = std::chrono::milliseconds{30000};
+    
+    // ========== 性能优化配置 ==========
+    config.performance.audioThreadCount = 1;     // 音频单线程
+    config.performance.videoThreadCount = 2;     // 视频双线程（分离编码和发送）
+    config.performance.enableZeroCopy = true;    // 启用零拷贝
+    config.performance.maxQueueSize = 100;       // 最大队列长度
     
     return config;
 }
 
 // 视频帧回调函数
 void onVideoFrameCallback(void *data, int len, uint64_t timestamp) {
-    
-    // 转发给WebRTC管理器
-    if (webrtcManager) {
-        webrtcManager->sendVideoData(static_cast<const uint8_t*>(data), len, timestamp);
+    if (webrtcManager && data && len > 0) {
+        // 判断是否为关键帧（检查H264 NAL Unit类型）
+        bool isKeyFrame = false;
+        if (len >= 5) {
+            uint8_t* h264Data = static_cast<uint8_t*>(data);
+            // 查找SPS (0x67) 或 PPS (0x68) NAL Unit，表示关键帧
+            for (int i = 0; i < len - 4; i++) {
+                if (h264Data[i] == 0x00 && h264Data[i+1] == 0x00 && 
+                    h264Data[i+2] == 0x00 && h264Data[i+3] == 0x01) {
+                    uint8_t nalType = h264Data[i+4] & 0x1F;
+                    if (nalType == 7 || nalType == 5) {  // SPS or IDR
+                        isKeyFrame = true;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // 使用外部缓冲区
+        webrtcManager->sendVideoData(static_cast<const uint8_t*>(data), len, timestamp, isKeyFrame);
     }
 }
 
 // 音频数据回调函数
 void onAudioDataCallback(void *data, int len, uint64_t timestamp) {
-    
-    // 转发给WebRTC管理器
-    if (webrtcManager) {
+    if (webrtcManager && data && len > 0) {
+        // 直接使用外部缓冲区，由WebRTC管理器使用缓冲区池管理
         webrtcManager->sendAudioData(static_cast<const uint8_t*>(data), len, timestamp);
     }
 }
@@ -92,29 +112,23 @@ void onAudioDataCallback(void *data, int len, uint64_t timestamp) {
 // 音频数据接收回调函数
 void onReceivedAudioDataCallback(const uint8_t* data, size_t size) {
     if (!audio_system || !data || size == 0) {
-        std::cout << "[Main] 音频系统未初始化或数据无效，无法播放音频" << std::endl;
         return;
     }
     
-    std::cout << "[Main] 接收到Opus音频数据: " << size << " 字节" << std::endl;
-    
     // 解码Opus数据为PCM
-    uint8_t pcm_buffer[4096];  // 足够大的缓冲区来存储解码后的PCM数据
+    uint8_t pcm_buffer[4096];
     size_t pcm_size = sizeof(pcm_buffer);
     
     if (decode_opus(audio_system.get(), const_cast<uint8_t*>(data), size, pcm_buffer, &pcm_size) != AUDIO_ERROR_NONE) {
-        std::cout << "[Main] 音频解码失败" << std::endl;
         return;
     }
-    
-    std::cout << "[Main] Opus解码成功，PCM数据大小: " << pcm_size << " 字节" << std::endl;
     
     // 将解码后的PCM数据转换为vector<int16_t>
     int16_t* pcm_data = reinterpret_cast<int16_t*>(pcm_buffer);
     int num_pcm_samples = pcm_size / sizeof(int16_t);
     
-    // 音量增强处理 - 让音频更明显
-    const float volume_boost = 0.5f; // 音量增强倍数，进一步增大
+    // 音量增强处理
+    const float volume_boost = AUDIO_MASTER_VOLUME;
     for (int i = 0; i < num_pcm_samples; i++) {
         float sample = static_cast<float>(pcm_data[i]);
         sample *= volume_boost;
@@ -126,10 +140,9 @@ void onReceivedAudioDataCallback(const uint8_t* data, size_t size) {
         pcm_data[i] = static_cast<int16_t>(sample);
     }
     
-    // 分帧处理 - 模拟测试代码的播放方式
-    const int FRAME_SIZE = AUDIO_FRAME_SIZE; // 20ms帧 (960样本 @ 48kHz)
+    // 分帧处理
+    const int FRAME_SIZE = AUDIO_FRAME_SIZE;
     
-    // 如果数据长度超过一帧，需要分帧处理
     if (num_pcm_samples > FRAME_SIZE) {
         // 分帧添加到播放队列
         for (size_t i = 0; i < num_pcm_samples; i += FRAME_SIZE) {
@@ -144,25 +157,12 @@ void onReceivedAudioDataCallback(const uint8_t* data, size_t size) {
         std::vector<int16_t> pcm_frame(pcm_data, pcm_data + num_pcm_samples);
         add_frame_to_playback_queue(audio_system.get(), pcm_frame);
     }
-    
-    // 计算音频信号强度用于调试
-    float max_amplitude = 0.0f;
-    for (int i = 0; i < num_pcm_samples; i++) {
-        float abs_sample = std::abs(static_cast<float>(pcm_data[i]));
-        if (abs_sample > max_amplitude) {
-            max_amplitude = abs_sample;
-        }
-    }
-    
-    std::cout << "[Main] 音频帧已添加到播放队列，样本数: " << num_pcm_samples 
-              << ", 最大振幅: " << max_amplitude << " (增强" << volume_boost << "倍)" << std::endl;
 }
 
 // 设置信令回调
 void setupSignalingCallbacks() {
     if (!signaling) return;
     
-    // 状态变化回调
     signaling->onStatusChanged([](ConnectionStatus status) {
         std::cout << "[Main] 信令状态变化: " << static_cast<int>(status) << std::endl;
         
@@ -172,7 +172,6 @@ void setupSignalingCallbacks() {
         }
     });
     
-    // 错误处理回调
     signaling->onError([](ErrorCode errorCode, const std::string& errorMessage) {
         std::cout << "[Main] 信令错误 [" << static_cast<int>(errorCode) 
                   << "]: " << errorMessage << std::endl;
@@ -183,11 +182,9 @@ void setupSignalingCallbacks() {
 void setupWebRTCCallbacks() {
     if (!webrtcManager) return;
     
-    // 状态变化回调
     webrtcManager->onStateChanged([](WebRTCState status) {
         std::cout << "[Main] WebRTC状态变化: " << static_cast<int>(status) << std::endl;
         
-        // 当WebRTC连接建立成功后，自动启动音视频流
         if (status == WebRTCState::CONNECTED) {
             std::cout << "[Main] WebRTC连接建立成功，启动音视频流..." << std::endl;
             
@@ -227,17 +224,6 @@ void setupWebRTCCallbacks() {
                         } else {
                             std::cout << "[Main] 音频播放启动失败" << std::endl;
                         }
-                        
-                        // 启动WebRTC音频接收
-                        if (webrtcManager) {
-                            if (webrtcManager->getConfig().enableAudioReceive) {
-                                // if (webrtcManager->startAudioReceive()) {
-                                //     std::cout << "[Main] WebRTC音频接收已启动" << std::endl;
-                                // } else {
-                                //     std::cout << "[Main] WebRTC音频接收启动失败" << std::endl;
-                                // }
-                            }
-                        }
                     } else {
                         std::cout << "[Main] WebRTC音频流启动失败" << std::endl;
                     }
@@ -246,15 +232,28 @@ void setupWebRTCCallbacks() {
                     std::cout << "[Main] 设置音频模式失败" << std::endl;
                 }
             }
+            
+            // 打印性能统计（10秒后）
+            std::thread([]{
+                std::this_thread::sleep_for(std::chrono::seconds(10));
+                if (webrtcManager) {
+                    auto stats = webrtcManager->getStats();
+                    std::cout << "\n========== WebRTC性能统计 (10秒) ==========" << std::endl;
+                    std::cout << "音频发送包数: " << stats.audioPacketsSent << std::endl;
+                    std::cout << "音频接收包数: " << stats.audioPacketsReceived << std::endl;
+                    std::cout << "视频发送包数: " << stats.videoPacketsSent << std::endl;
+                    std::cout << "音频发送字节: " << stats.audioBytesSent << " bytes" << std::endl;
+                    std::cout << "视频发送字节: " << stats.videoBytesSent << " bytes" << std::endl;
+                    std::cout << "============================================\n" << std::endl;
+                }
+            }).detach();
         }
     });
     
-    // 数据通道消息回调
     webrtcManager->onDataMessage([](const std::string& message) {
         std::cout << "[Main] 收到数据通道消息: " << message << std::endl;
     });
     
-    // 音频数据接收回调
     webrtcManager->onAudioData(onReceivedAudioDataCallback);
 }
 
@@ -339,16 +338,26 @@ int main(void) {
     }
     
     std::cout << "[Main] 正在连接服务器..." << std::endl;
-    std::cout << "[Main] 客户端运行中，音视频流将在连接建立后自动启动" << std::endl;
-    std::cout << "[Main] 输入 'q' 退出程序" << std::endl;
+    std::cout << "[Main] 输入 'q' 退出程序, 'stats' 查看统计信息" << std::endl;
     
-    // 简化的主循环 - 只等待退出命令
-    char input;
+    // 主循环
+    std::string input;
     while (std::cin >> input) {
-        if (input == 'q' || input == 'Q') {
+        if (input == "q" || input == "Q") {
             break;
+        } else if (input == "stats") {
+            if (webrtcManager) {
+                auto stats = webrtcManager->getStats();
+                std::cout << "\n========== WebRTC实时统计 ==========" << std::endl;
+                std::cout << "音频发送包数: " << stats.audioPacketsSent << std::endl;
+                std::cout << "音频接收包数: " << stats.audioPacketsReceived << std::endl;
+                std::cout << "视频发送包数: " << stats.videoPacketsSent << std::endl;
+                std::cout << "音频发送字节: " << stats.audioBytesSent / 1024.0 << " KB" << std::endl;
+                std::cout << "视频发送字节: " << stats.videoBytesSent / 1024.0 / 1024.0 << " MB" << std::endl;
+                std::cout << "====================================\n" << std::endl;
+            }
         } else {
-            std::cout << "[Main] 输入 'q' 退出程序" << std::endl;
+            std::cout << "[Main] 未知命令，输入 'q' 退出, 'stats' 查看统计" << std::endl;
         }
     }
 
