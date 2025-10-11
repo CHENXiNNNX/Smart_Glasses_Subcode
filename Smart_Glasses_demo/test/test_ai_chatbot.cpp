@@ -4,6 +4,7 @@
 #include <chrono>
 #include "app/chatbot/chatbot.h"
 #include "app/chatbot/mcp/mcp.h"
+#include "app/tool/mcp_tool/mcp_tool.h"
 #include "app/chatbot/activation/activation.h"
 #include "app/chatbot/uuid/uuid.h"
 #include "app/tool/mac/mac.h"
@@ -13,7 +14,6 @@
  
 using namespace glasses::chatbot;
 using namespace glasses::chatbot::mcp;
-using namespace glasses::chatbot::protocol;
 using namespace glasses::chatbot::activation;
 using namespace glasses::tool;
  
@@ -29,67 +29,8 @@ void signal_handler(int sig) {
 }
  
 // ============================================================================
-// MCP设备示例
+// 空实现：保留以便以后添加自定义逻辑
 // ============================================================================
- 
-// LED设备方法处理
-bool ledMethodHandler(const std::string& device_name, 
-                     const std::string& method_name,
-                     const std::map<std::string, std::string>& parameters) {
-    std::cout << "[MCP] LED." << method_name << " called" << std::endl;
-    
-    if (method_name == "turn_on") {
-        std::cout << "[MCP]   → LED turned ON" << std::endl;
-        return true;
-    } else if (method_name == "turn_off") {
-        std::cout << "[MCP]   → LED turned OFF" << std::endl;
-        return true;
-    } else if (method_name == "set_brightness") {
-        auto it = parameters.find("level");
-        if (it != parameters.end()) {
-            std::cout << "[MCP]   → LED brightness set to " << it->second << std::endl;
-            return true;
-        }
-    }
-    
-    return false;
-}
- 
-// LED设备状态获取
-std::map<std::string, std::string> ledStateGetter(const std::string& device_name) {
-    std::map<std::string, std::string> state;
-    state["power"] = "on";
-    state["brightness"] = "80";
-    return state;
-}
- 
-// 注册LED设备
-void registerLEDDevice(AIManager* manager) {
-    // 创建LED设备描述符
-    IoTDescriptor led_desc = createSimpleDescriptor(
-        "smart_led",
-        "Smart LED light control"
-    );
-    
-    // 添加属性
-    addProperty(led_desc, "power", "LED power state", "string");
-    addProperty(led_desc, "brightness", "LED brightness level", "number");
-    
-    // 添加方法
-    addMethod(led_desc, "turn_on", "Turn on the LED");
-    addMethod(led_desc, "turn_off", "Turn off the LED");
-    addMethod(led_desc, "set_brightness", "Set LED brightness");
-    addMethodParameter(led_desc, "set_brightness", "level", "Brightness level (0-100)", "number");
-    
-    // 注册设备
-    bool result = manager->registerDevice(led_desc, ledMethodHandler, ledStateGetter);
-    
-    if (result) {
-        std::cout << "[Test] ✓ LED device registered successfully" << std::endl;
-    } else {
-        std::cerr << "[Test] ✗ Failed to register LED device" << std::endl;
-    }
-}
  
 // ============================================================================
 // 主函数
@@ -196,17 +137,23 @@ int main() {
         std::cout << "[Test] ✓ Device is activated" << std::endl;
     }
     
-    // 6. 注册MCP设备
-    std::cout << "\n[Test] Step 6: Register MCP devices..." << std::endl;
-    registerLEDDevice(&ai_manager);
-    
-    // 7. 初始化AI管理器
-    std::cout << "\n[Test] Step 7: Initialize AI Manager..." << std::endl;
+    // 6. 初始化AI管理器
+    std::cout << "\n[Test] Step 6: Initialize AI Manager..." << std::endl;
     
     if (!ai_manager.initialize(&audio_system)) {
         std::cerr << "[Test] ✗ Failed to initialize AI manager" << std::endl;
         audio_system_deinit(&audio_system);
         return -1;
+    }
+    
+    // 7. 注册MCP工具
+    std::cout << "\n[Test] Step 7: Register MCP tools..." << std::endl;
+    McpServer* mcp_server = ai_manager.getMCPServer();
+    if (mcp_server) {
+        McpToolManager::register_all_tools(*mcp_server);
+        std::cout << "[Test] ✓ MCP tools registered (total: " << mcp_server->tool_count() << ")" << std::endl;
+    } else {
+        std::cerr << "[Test] ⚠ MCP server not available" << std::endl;
     }
      
     // 8. 启动AI服务
@@ -237,7 +184,7 @@ int main() {
     std::cout << "[Test] ✓ AI audio mode started (recording for wakeword detection)" << std::endl;
     
     std::cout << "\n╔════════════════════════════════════════╗" << std::endl;
-    std::cout << "║  🎙️  唤醒词检测已启用！ V2版本         ║" << std::endl;
+    std::cout << "║  🎙️  唤醒词检测已启用！                  ║" << std::endl;
     std::cout << "╚════════════════════════════════════════╝" << std::endl;
     std::cout << "\n🔊 请说出唤醒词：echo" << std::endl;
     std::cout << "   系统处于待机状态(IDLE)" << std::endl;
@@ -246,7 +193,6 @@ int main() {
     std::cout << "   2. 说出你的问题 → AI开始思考(THINKING)" << std::endl;
     std::cout << "   3. AI回复 → 进入SPEAKING状态" << std::endl;
     std::cout << "   4. AI说完 → 回到LISTENING，继续对话" << std::endl;
-    std::cout << "   5. 5分钟无活动 → 服务器关闭连接，回到IDLE" << std::endl;
     std::cout << "\n⌨️  操作提示:" << std::endl;
     std::cout << "   - 按 'i' 显示状态信息" << std::endl;
     std::cout << "   - 按 'q' 退出程序" << std::endl;

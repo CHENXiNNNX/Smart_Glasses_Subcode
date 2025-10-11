@@ -295,30 +295,6 @@ chatbot/mcp/mcp.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/mcp/mcp.cc.s
 .PHONY : chatbot/mcp/mcp.cc.s
 
-chatbot/mcp/mcpv2.o: chatbot/mcp/mcpv2.cc.o
-.PHONY : chatbot/mcp/mcpv2.o
-
-# target to build an object file
-chatbot/mcp/mcpv2.cc.o:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/mcp/mcpv2.cc.o
-.PHONY : chatbot/mcp/mcpv2.cc.o
-
-chatbot/mcp/mcpv2.i: chatbot/mcp/mcpv2.cc.i
-.PHONY : chatbot/mcp/mcpv2.i
-
-# target to preprocess a source file
-chatbot/mcp/mcpv2.cc.i:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/mcp/mcpv2.cc.i
-.PHONY : chatbot/mcp/mcpv2.cc.i
-
-chatbot/mcp/mcpv2.s: chatbot/mcp/mcpv2.cc.s
-.PHONY : chatbot/mcp/mcpv2.s
-
-# target to generate assembly for a file
-chatbot/mcp/mcpv2.cc.s:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/mcp/mcpv2.cc.s
-.PHONY : chatbot/mcp/mcpv2.cc.s
-
 chatbot/protocol_handle/handle.o: chatbot/protocol_handle/handle.cc.o
 .PHONY : chatbot/protocol_handle/handle.o
 
@@ -439,6 +415,30 @@ media/audio/audio.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/media/audio/audio.cc.s
 .PHONY : media/audio/audio.cc.s
 
+media/audio/audiov2.o: media/audio/audiov2.cc.o
+.PHONY : media/audio/audiov2.o
+
+# target to build an object file
+media/audio/audiov2.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/media/audio/audiov2.cc.o
+.PHONY : media/audio/audiov2.cc.o
+
+media/audio/audiov2.i: media/audio/audiov2.cc.i
+.PHONY : media/audio/audiov2.i
+
+# target to preprocess a source file
+media/audio/audiov2.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/media/audio/audiov2.cc.i
+.PHONY : media/audio/audiov2.cc.i
+
+media/audio/audiov2.s: media/audio/audiov2.cc.s
+.PHONY : media/audio/audiov2.s
+
+# target to generate assembly for a file
+media/audio/audiov2.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/media/audio/audiov2.cc.s
+.PHONY : media/audio/audiov2.cc.s
+
 media/camera/camera.o: media/camera/camera.cc.o
 .PHONY : media/camera/camera.o
 
@@ -462,6 +462,30 @@ media/camera/camera.s: media/camera/camera.cc.s
 media/camera/camera.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/media/camera/camera.cc.s
 .PHONY : media/camera/camera.cc.s
+
+media/camera/camerav2.o: media/camera/camerav2.cc.o
+.PHONY : media/camera/camerav2.o
+
+# target to build an object file
+media/camera/camerav2.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/media/camera/camerav2.cc.o
+.PHONY : media/camera/camerav2.cc.o
+
+media/camera/camerav2.i: media/camera/camerav2.cc.i
+.PHONY : media/camera/camerav2.i
+
+# target to preprocess a source file
+media/camera/camerav2.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/media/camera/camerav2.cc.i
+.PHONY : media/camera/camerav2.cc.i
+
+media/camera/camerav2.s: media/camera/camerav2.cc.s
+.PHONY : media/camera/camerav2.s
+
+# target to generate assembly for a file
+media/camera/camerav2.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/media/camera/camerav2.cc.s
+.PHONY : media/camera/camerav2.cc.s
 
 media/camera/test/test_camera.o: media/camera/test/test_camera.cc.o
 .PHONY : media/camera/test/test_camera.o
@@ -655,6 +679,30 @@ protocol/websocket/websocket.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/protocol/websocket/websocket.cc.s
 .PHONY : protocol/websocket/websocket.cc.s
 
+tool/log/log.o: tool/log/log.cc.o
+.PHONY : tool/log/log.o
+
+# target to build an object file
+tool/log/log.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/log/log.cc.o
+.PHONY : tool/log/log.cc.o
+
+tool/log/log.i: tool/log/log.cc.i
+.PHONY : tool/log/log.i
+
+# target to preprocess a source file
+tool/log/log.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/log/log.cc.i
+.PHONY : tool/log/log.cc.i
+
+tool/log/log.s: tool/log/log.cc.s
+.PHONY : tool/log/log.s
+
+# target to generate assembly for a file
+tool/log/log.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/log/log.cc.s
+.PHONY : tool/log/log.cc.s
+
 tool/mac/mac.o: tool/mac/mac.cc.o
 .PHONY : tool/mac/mac.o
 
@@ -755,9 +803,6 @@ help:
 	@echo "... chatbot/mcp/mcp.o"
 	@echo "... chatbot/mcp/mcp.i"
 	@echo "... chatbot/mcp/mcp.s"
-	@echo "... chatbot/mcp/mcpv2.o"
-	@echo "... chatbot/mcp/mcpv2.i"
-	@echo "... chatbot/mcp/mcpv2.s"
 	@echo "... chatbot/protocol_handle/handle.o"
 	@echo "... chatbot/protocol_handle/handle.i"
 	@echo "... chatbot/protocol_handle/handle.s"
@@ -773,9 +818,15 @@ help:
 	@echo "... media/audio/audio.o"
 	@echo "... media/audio/audio.i"
 	@echo "... media/audio/audio.s"
+	@echo "... media/audio/audiov2.o"
+	@echo "... media/audio/audiov2.i"
+	@echo "... media/audio/audiov2.s"
 	@echo "... media/camera/camera.o"
 	@echo "... media/camera/camera.i"
 	@echo "... media/camera/camera.s"
+	@echo "... media/camera/camerav2.o"
+	@echo "... media/camera/camerav2.i"
+	@echo "... media/camera/camerav2.s"
 	@echo "... media/camera/test/test_camera.o"
 	@echo "... media/camera/test/test_camera.i"
 	@echo "... media/camera/test/test_camera.s"
@@ -800,6 +851,9 @@ help:
 	@echo "... protocol/websocket/websocket.o"
 	@echo "... protocol/websocket/websocket.i"
 	@echo "... protocol/websocket/websocket.s"
+	@echo "... tool/log/log.o"
+	@echo "... tool/log/log.i"
+	@echo "... tool/log/log.s"
 	@echo "... tool/mac/mac.o"
 	@echo "... tool/mac/mac.i"
 	@echo "... tool/mac/mac.s"

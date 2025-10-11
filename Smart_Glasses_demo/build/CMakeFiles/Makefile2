@@ -302,7 +302,7 @@ CMakeFiles/main.dir/all: libdatachannel/deps/libjuice/CMakeFiles/juice-static.di
 
 # Build rule for subdir invocation for target.
 CMakeFiles/main.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 55
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 59
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/main.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
 .PHONY : CMakeFiles/main.dir/rule
@@ -323,12 +323,12 @@ CMakeFiles/main.dir/clean:
 CMakeFiles/clean-all.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/clean-all.dir/build.make CMakeFiles/clean-all.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/clean-all.dir/build.make CMakeFiles/clean-all.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=10 "Built target clean-all"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num= "Built target clean-all"
 .PHONY : CMakeFiles/clean-all.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/clean-all.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/clean-all.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
 .PHONY : CMakeFiles/clean-all.dir/rule
@@ -375,12 +375,12 @@ utils/CMakeFiles/utils.dir/clean:
 common/CMakeFiles/common.dir/all:
 	$(MAKE) $(MAKESILENT) -f common/CMakeFiles/common.dir/build.make common/CMakeFiles/common.dir/depend
 	$(MAKE) $(MAKESILENT) -f common/CMakeFiles/common.dir/build.make common/CMakeFiles/common.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num= "Built target common"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=11 "Built target common"
 .PHONY : common/CMakeFiles/common.dir/all
 
 # Build rule for subdir invocation for target.
 common/CMakeFiles/common.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 1
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 common/CMakeFiles/common.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
 .PHONY : common/CMakeFiles/common.dir/rule
@@ -401,12 +401,12 @@ common/CMakeFiles/common.dir/clean:
 app/CMakeFiles/app.dir/all:
 	$(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/depend
 	$(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8 "Built target app"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9 "Built target app"
 .PHONY : app/CMakeFiles/app.dir/all
 
 # Build rule for subdir invocation for target.
 app/CMakeFiles/app.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 8
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 9
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 app/CMakeFiles/app.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
 .PHONY : app/CMakeFiles/app.dir/rule
@@ -481,12 +481,12 @@ libdatachannel/CMakeFiles/datachannel.dir/all: libdatachannel/deps/libsrtp/CMake
 libdatachannel/CMakeFiles/datachannel.dir/all: libdatachannel/deps/libjuice/CMakeFiles/juice.dir/all
 	$(MAKE) $(MAKESILENT) -f libdatachannel/CMakeFiles/datachannel.dir/build.make libdatachannel/CMakeFiles/datachannel.dir/depend
 	$(MAKE) $(MAKESILENT) -f libdatachannel/CMakeFiles/datachannel.dir/build.make libdatachannel/CMakeFiles/datachannel.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33 "Built target datachannel"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33 "Built target datachannel"
 .PHONY : libdatachannel/CMakeFiles/datachannel.dir/all
 
 # Build rule for subdir invocation for target.
 libdatachannel/CMakeFiles/datachannel.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 46
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 44
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/CMakeFiles/datachannel.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
 .PHONY : libdatachannel/CMakeFiles/datachannel.dir/rule
@@ -509,12 +509,12 @@ libdatachannel/CMakeFiles/datachannel-static.dir/all: libdatachannel/deps/libsrt
 libdatachannel/CMakeFiles/datachannel-static.dir/all: libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/all
 	$(MAKE) $(MAKESILENT) -f libdatachannel/CMakeFiles/datachannel-static.dir/build.make libdatachannel/CMakeFiles/datachannel-static.dir/depend
 	$(MAKE) $(MAKESILENT) -f libdatachannel/CMakeFiles/datachannel-static.dir/build.make libdatachannel/CMakeFiles/datachannel-static.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55 "Built target datachannel-static"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56 "Built target datachannel-static"
 .PHONY : libdatachannel/CMakeFiles/datachannel-static.dir/all
 
 # Build rule for subdir invocation for target.
 libdatachannel/CMakeFiles/datachannel-static.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 44
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 46
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/CMakeFiles/datachannel-static.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
 .PHONY : libdatachannel/CMakeFiles/datachannel-static.dir/rule
@@ -613,7 +613,7 @@ libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/clean:
 libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
 	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/depend
 	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=56 "Built target datatypes_driver"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=57 "Built target datatypes_driver"
 .PHONY : libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/all
 
 # Build rule for subdir invocation for target.
@@ -639,7 +639,7 @@ libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/clean:
 libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
 	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/depend
 	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=9 "Built target cipher_driver"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=10 "Built target cipher_driver"
 .PHONY : libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/all
 
 # Build rule for subdir invocation for target.
@@ -665,12 +665,12 @@ libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/clean:
 libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
 	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/depend
 	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=72,73 "Built target kernel_driver"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=73 "Built target kernel_driver"
 .PHONY : libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/all
 
 # Build rule for subdir invocation for target.
 libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 8
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 7
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
 .PHONY : libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/rule
@@ -769,12 +769,12 @@ libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/clean:
 libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
 	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/depend
 	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=89 "Built target srtp_driver"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=89,90 "Built target srtp_driver"
 .PHONY : libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/all
 
 # Build rule for subdir invocation for target.
 libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 7
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 8
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
 .PHONY : libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/rule
@@ -795,12 +795,12 @@ libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/clean:
 libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
 	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/depend
 	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=90 "Built target test_srtp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num= "Built target test_srtp"
 .PHONY : libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/all
 
 # Build rule for subdir invocation for target.
 libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 7
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 6
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
 .PHONY : libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/rule
@@ -847,12 +847,12 @@ libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/clean:
 libdatachannel/deps/libjuice/CMakeFiles/juice.dir/all:
 	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libjuice/CMakeFiles/juice.dir/build.make libdatachannel/deps/libjuice/CMakeFiles/juice.dir/depend
 	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libjuice/CMakeFiles/juice.dir/build.make libdatachannel/deps/libjuice/CMakeFiles/juice.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=57,58,59,60,61,62,63,64 "Built target juice"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=58,59,60,61,62,63,64 "Built target juice"
 .PHONY : libdatachannel/deps/libjuice/CMakeFiles/juice.dir/all
 
 # Build rule for subdir invocation for target.
 libdatachannel/deps/libjuice/CMakeFiles/juice.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 8
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 7
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/libjuice/CMakeFiles/juice.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
 .PHONY : libdatachannel/deps/libjuice/CMakeFiles/juice.dir/rule
@@ -873,12 +873,12 @@ libdatachannel/deps/libjuice/CMakeFiles/juice.dir/clean:
 libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/all:
 	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/build.make libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/depend
 	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/build.make libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=65,66,67,68,69,70,71 "Built target juice-static"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=65,66,67,68,69,70,71,72 "Built target juice-static"
 .PHONY : libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/all
 
 # Build rule for subdir invocation for target.
 libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 7
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 8
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
 .PHONY : libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/rule

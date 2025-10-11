@@ -54,6 +54,7 @@ target_include_directories(app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/protocol/websocket
     # tool headers
     ${CMAKE_CURRENT_SOURCE_DIR}/tool
+    ${CMAKE_CURRENT_SOURCE_DIR}/tool/log
     ${CMAKE_CURRENT_SOURCE_DIR}/tool/mac
     ${CMAKE_CURRENT_SOURCE_DIR}/tool/memory
     # libdatachannel headers
