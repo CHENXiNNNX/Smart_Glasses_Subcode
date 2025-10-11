@@ -1,403 +1,485 @@
-/**
- * @file mcp.cc
- * @brief MCP (Model Context Protocol) 工具管理器实现
- * 
- * @author Smart Glasses Team
- * @date 2025-10-10
- */
-
 #include "mcp.h"
 #include <iostream>
-#include <json/json.h>
+#include <algorithm>
+#include <stdexcept>
 
 namespace glasses {
 namespace chatbot {
-
-// 导入protocol命名空间的类型
-using protocol::IoTDescriptor;
-using protocol::IoTDeviceState;
-using protocol::IoTMessage;
-using protocol::IoTProperty;
-using protocol::IoTMethod;
-using protocol::IoTMethodParameter;
-
 namespace mcp {
 
-// ============================================================================
-// 设备信息结构
-// ============================================================================
-
-struct DeviceInfo {
-    IoTDescriptor descriptor;  // 设备描述符
-    MethodHandler handler;     // 方法处理函数
-    StateGetter getter;        // 状态获取函数
-};
+using json = nlohmann::json;
 
 // ============================================================================
-// MCPManager::Impl (Pimpl)
+// Property 实现
 // ============================================================================
 
-class MCPManager::Impl {
-public:
-    std::map<std::string, DeviceInfo> devices_;  // 设备映射表（key=设备名称）
-};
+Property::Property(const std::string& name, PropertyType type)
+    : name_(name), type_(type), has_default_value_(false) {}
 
-// ============================================================================
-// MCPManager 实现
-// ============================================================================
-
-MCPManager::MCPManager() : pImpl(new Impl()) {
-    std::cout << "[MCP] Manager created" << std::endl;
+Property::Property(const std::string& name, PropertyType type, int min_value, int max_value)
+    : name_(name), type_(type), has_default_value_(false), 
+      min_value_(min_value), max_value_(max_value) {
+    if (type != PropertyType::Integer) {
+        throw std::invalid_argument("Range limits only apply to integer properties");
+    }
 }
 
-MCPManager::~MCPManager() {
-    std::cout << "[MCP] Manager destroyed" << std::endl;
+Property::Property(const std::string& name, PropertyType type, int default_value, int min_value, int max_value)
+    : name_(name), type_(type), has_default_value_(true),
+      min_value_(min_value), max_value_(max_value) {
+    if (type != PropertyType::Integer) {
+        throw std::invalid_argument("Range limits only apply to integer properties");
+    }
+    if (default_value < min_value || default_value > max_value) {
+        throw std::invalid_argument("Default value must be within the specified range");
+    }
+    value_ = default_value;
 }
 
-// ========================================================================
-// 设备注册
-// ========================================================================
-
-bool MCPManager::registerDevice(
-    const IoTDescriptor& descriptor,
-    MethodHandler handler,
-    StateGetter getter
-) {
-    if (descriptor.name.empty()) {
-        std::cerr << "[MCP] ✗ Device name is empty" << std::endl;
-        return false;
-    }
-
-    if (pImpl->devices_.count(descriptor.name) > 0) {
-        std::cerr << "[MCP] ✗ Device already registered: " << descriptor.name << std::endl;
-        return false;
-    }
-
-    DeviceInfo info;
-    info.descriptor = descriptor;
-    info.handler = handler;
-    info.getter = getter;
-
-    pImpl->devices_[descriptor.name] = info;
-
-    std::cout << "[MCP] ✓ Device registered: " << descriptor.name 
-              << " (" << descriptor.methods.size() << " methods, "
-              << descriptor.properties.size() << " properties)" << std::endl;
-
-    return true;
-}
-
-bool MCPManager::unregisterDevice(const std::string& device_name) {
-    auto it = pImpl->devices_.find(device_name);
-    if (it == pImpl->devices_.end()) {
-        std::cerr << "[MCP] ✗ Device not found: " << device_name << std::endl;
-        return false;
-    }
-
-    pImpl->devices_.erase(it);
-    std::cout << "[MCP] ✓ Device unregistered: " << device_name << std::endl;
-    return true;
-}
-
-bool MCPManager::isDeviceRegistered(const std::string& device_name) const {
-    return pImpl->devices_.count(device_name) > 0;
-}
-
-// ========================================================================
-// 描述符生成
-// ========================================================================
-
-std::vector<IoTDescriptor> MCPManager::getAllDescriptors() const {
-    std::vector<IoTDescriptor> descriptors;
-    for (const auto& pair : pImpl->devices_) {
-        descriptors.push_back(pair.second.descriptor);
-    }
-    return descriptors;
-}
-
-std::string MCPManager::generateDescriptorMessage(const std::string& session_id) const {
-    Json::Value root;
-    root["session_id"] = session_id;
-    root["type"] = "iot";
-    root["update"] = true;
-
-    Json::Value descriptors(Json::arrayValue);
-
-    for (const auto& pair : pImpl->devices_) {
-        const auto& desc = pair.second.descriptor;
-        Json::Value device;
-
-        device["name"] = desc.name;
-        device["description"] = desc.description;
-
-        // 添加属性
-        Json::Value properties(Json::objectValue);
-        for (const auto& prop_pair : desc.properties) {
-            const auto& prop = prop_pair.second;
-            Json::Value prop_obj;
-            prop_obj["description"] = prop.description;
-            prop_obj["type"] = prop.type;
-            properties[prop_pair.first] = prop_obj;
-        }
-        device["properties"] = properties;
-
-        // 添加方法
-        Json::Value methods(Json::objectValue);
-        for (const auto& method_pair : desc.methods) {
-            const auto& method = method_pair.second;
-            Json::Value method_obj;
-            method_obj["description"] = method.description;
-
-            // 添加参数
-            Json::Value params(Json::objectValue);
-            for (const auto& param_pair : method.parameters) {
-                const auto& param = param_pair.second;
-                Json::Value param_obj;
-                param_obj["description"] = param.description;
-                param_obj["type"] = param.type;
-                params[param_pair.first] = param_obj;
-            }
-            method_obj["parameters"] = params;
-
-            methods[method_pair.first] = method_obj;
-        }
-        device["methods"] = methods;
-
-        descriptors.append(device);
-    }
-
-    root["descriptors"] = descriptors;
-
-    Json::StreamWriterBuilder writer;
-    writer["indentation"] = "";  // 紧凑格式
-    return Json::writeString(writer, root);
-}
-
-// ========================================================================
-// 状态管理
-// ========================================================================
-
-std::vector<IoTDeviceState> MCPManager::getAllStates() const {
-    std::vector<IoTDeviceState> states;
-
-    for (const auto& pair : pImpl->devices_) {
-        const std::string& device_name = pair.first;
-        const DeviceInfo& info = pair.second;
-
-        if (info.getter) {
-            IoTDeviceState state;
-            state.name = device_name;
-            state.state = info.getter(device_name);
-            states.push_back(state);
-        }
-    }
-
-    return states;
-}
-
-std::string MCPManager::generateStateMessage(const std::string& session_id) const {
-    Json::Value root;
-    root["session_id"] = session_id;
-    root["type"] = "iot";
-    root["update"] = true;
-
-    Json::Value states(Json::arrayValue);
-
-    for (const auto& pair : pImpl->devices_) {
-        const std::string& device_name = pair.first;
-        const DeviceInfo& info = pair.second;
-
-        if (info.getter) {
-            Json::Value device_state;
-            device_state["name"] = device_name;
-
-            Json::Value state_obj(Json::objectValue);
-            auto state_map = info.getter(device_name);
-            
-            for (const auto& state_pair : state_map) {
-                // 尝试解析为数字或布尔值
-                const std::string& value = state_pair.second;
-                if (value == "true") {
-                    state_obj[state_pair.first] = true;
-                } else if (value == "false") {
-                    state_obj[state_pair.first] = false;
-                } else {
-                    // 尝试解析为数字
-                    try {
-                        size_t pos;
-                        int int_value = std::stoi(value, &pos);
-                        if (pos == value.length()) {
-                            state_obj[state_pair.first] = int_value;
-                        } else {
-                            state_obj[state_pair.first] = value;
-                        }
-                    } catch (...) {
-                        state_obj[state_pair.first] = value;
-                    }
-                }
-            }
-
-            device_state["state"] = state_obj;
-            states.append(device_state);
-        }
-    }
-
-    root["states"] = states;
-
-    Json::StreamWriterBuilder writer;
-    writer["indentation"] = "";  // 紧凑格式
-    return Json::writeString(writer, root);
-}
-
-bool MCPManager::getDeviceState(
-    const std::string& device_name,
-    std::map<std::string, std::string>& state
-) const {
-    auto it = pImpl->devices_.find(device_name);
-    if (it == pImpl->devices_.end()) {
-        return false;
-    }
-
-    if (!it->second.getter) {
-        return false;
-    }
-
-    state = it->second.getter(device_name);
-    return true;
-}
-
-// ========================================================================
-// 方法调用
-// ========================================================================
-
-bool MCPManager::invokeMethod(
-    const std::string& device_name,
-    const std::string& method_name,
-    const std::map<std::string, std::string>& parameters
-) {
-    auto it = pImpl->devices_.find(device_name);
-    if (it == pImpl->devices_.end()) {
-        std::cerr << "[MCP] ✗ Device not found: " << device_name << std::endl;
-        return false;
-    }
-
-    // 检查方法是否存在
-    const auto& descriptor = it->second.descriptor;
-    if (descriptor.methods.count(method_name) == 0) {
-        std::cerr << "[MCP] ✗ Method not found: " << method_name 
-                  << " on device " << device_name << std::endl;
-        return false;
-    }
-
-    // 调用处理函数
-    if (!it->second.handler) {
-        std::cerr << "[MCP] ✗ No handler for device: " << device_name << std::endl;
-        return false;
-    }
-
-    std::cout << "[MCP] Invoking " << device_name << "." << method_name << "(";
-    bool first = true;
-    for (const auto& param : parameters) {
-        if (!first) std::cout << ", ";
-        std::cout << param.first << "=" << param.second;
-        first = false;
-    }
-    std::cout << ")" << std::endl;
-
-    bool result = it->second.handler(device_name, method_name, parameters);
+json Property::to_json() const {
+    json j;
     
-    if (result) {
-        std::cout << "[MCP] ✓ Method invoked successfully" << std::endl;
-    } else {
-        std::cerr << "[MCP] ✗ Method invocation failed" << std::endl;
+    switch (type_) {
+        case PropertyType::Boolean:
+            j["type"] = "boolean";
+            if (has_default_value_) {
+                j["default"] = value<bool>();
+            }
+            break;
+            
+        case PropertyType::Integer:
+            j["type"] = "integer";
+            if (has_default_value_) {
+                j["default"] = value<int>();
+            }
+            if (min_value_.has_value()) {
+                j["minimum"] = min_value_.value();
+            }
+            if (max_value_.has_value()) {
+                j["maximum"] = max_value_.value();
+            }
+            break;
+            
+        case PropertyType::Number:
+            j["type"] = "number";
+            if (has_default_value_) {
+                j["default"] = value<double>();
+            }
+            break;
+            
+        case PropertyType::String:
+            j["type"] = "string";
+            if (has_default_value_) {
+                j["default"] = value<std::string>();
+            }
+            break;
     }
-
-    return result;
-}
-
-bool MCPManager::handleIoTInvoke(const IoTMessage& msg) {
-    if (msg.device_name.empty() || msg.method_name.empty()) {
-        std::cerr << "[MCP] ✗ Invalid IoT invoke message" << std::endl;
-        return false;
-    }
-
-    return invokeMethod(msg.device_name, msg.method_name, msg.parameters);
-}
-
-// ========================================================================
-// 工具函数
-// ========================================================================
-
-size_t MCPManager::getDeviceCount() const {
-    return pImpl->devices_.size();
-}
-
-void MCPManager::clear() {
-    pImpl->devices_.clear();
-    std::cout << "[MCP] All devices cleared" << std::endl;
+    
+    return j;
 }
 
 // ============================================================================
-// 辅助函数实现
+// PropertyList 实现
 // ============================================================================
 
-IoTDescriptor createSimpleDescriptor(
-    const std::string& name,
-    const std::string& description
-) {
-    IoTDescriptor descriptor;
-    descriptor.name = name;
-    descriptor.description = description;
-    return descriptor;
+PropertyList::PropertyList(const std::vector<Property>& properties)
+    : properties_(properties) {}
+
+void PropertyList::add(const Property& property) {
+    properties_.push_back(property);
 }
 
-void addProperty(
-    IoTDescriptor& descriptor,
-    const std::string& prop_name,
-    const std::string& prop_description,
-    const std::string& prop_type
-) {
-    IoTProperty prop;
-    prop.name = prop_name;
-    prop.description = prop_description;
-    prop.type = prop_type;
-    descriptor.properties[prop_name] = prop;
+const Property& PropertyList::operator[](const std::string& name) const {
+    for (const auto& property : properties_) {
+        if (property.name() == name) {
+            return property;
+        }
+    }
+    throw std::runtime_error("Property not found: " + name);
 }
 
-void addMethod(
-    IoTDescriptor& descriptor,
-    const std::string& method_name,
-    const std::string& method_description
-) {
-    IoTMethod method;
-    method.name = method_name;
-    method.description = method_description;
-    descriptor.methods[method_name] = method;
+Property& PropertyList::operator[](const std::string& name) {
+    for (auto& property : properties_) {
+        if (property.name() == name) {
+            return property;
+        }
+    }
+    throw std::runtime_error("Property not found: " + name);
 }
 
-void addMethodParameter(
-    IoTDescriptor& descriptor,
-    const std::string& method_name,
-    const std::string& param_name,
-    const std::string& param_description,
-    const std::string& param_type
-) {
-    // 确保方法存在
-    if (descriptor.methods.count(method_name) == 0) {
-        std::cerr << "[MCP] ✗ Method not found: " << method_name << std::endl;
+std::vector<std::string> PropertyList::get_required() const {
+    std::vector<std::string> required;
+    for (const auto& property : properties_) {
+        if (!property.has_default_value()) {
+            required.push_back(property.name());
+        }
+    }
+    return required;
+}
+
+json PropertyList::to_json() const {
+    json j;
+    for (const auto& property : properties_) {
+        j[property.name()] = property.to_json();
+    }
+    return j;
+}
+
+// ============================================================================
+// McpTool 实现
+// ============================================================================
+
+McpTool::McpTool(const std::string& name,
+                 const std::string& description,
+                 const PropertyList& properties,
+                 Callback callback)
+    : name_(name), description_(description), properties_(properties), callback_(callback) {}
+
+json McpTool::to_json() const {
+    json j;
+    j["name"] = name_;
+    j["description"] = description_;
+    
+    json input_schema;
+    input_schema["type"] = "object";
+    input_schema["properties"] = properties_.to_json();
+    
+    auto required = properties_.get_required();
+    if (!required.empty()) {
+        input_schema["required"] = required;
+    }
+    
+    j["inputSchema"] = input_schema;
+    
+    return j;
+}
+
+std::string McpTool::call(const PropertyList& properties) {
+    try {
+        ReturnValue return_value = callback_(properties);
+        
+        json result;
+        json content = json::array();
+        json text_item;
+        text_item["type"] = "text";
+        
+        // 转换返回值为字符串
+        if (std::holds_alternative<std::string>(return_value)) {
+            text_item["text"] = std::get<std::string>(return_value);
+        } else if (std::holds_alternative<bool>(return_value)) {
+            text_item["text"] = std::get<bool>(return_value) ? "true" : "false";
+        } else if (std::holds_alternative<int>(return_value)) {
+            text_item["text"] = std::to_string(std::get<int>(return_value));
+        } else if (std::holds_alternative<double>(return_value)) {
+            text_item["text"] = std::to_string(std::get<double>(return_value));
+        } else if (std::holds_alternative<json>(return_value)) {
+            text_item["text"] = std::get<json>(return_value).dump();
+        }
+        
+        content.push_back(text_item);
+        result["content"] = content;
+        result["isError"] = false;
+        
+        return result.dump();
+        
+    } catch (const std::exception& e) {
+        json result;
+        json content = json::array();
+        json text_item;
+        text_item["type"] = "text";
+        text_item["text"] = std::string("Error: ") + e.what();
+        content.push_back(text_item);
+        result["content"] = content;
+        result["isError"] = true;
+        
+        return result.dump();
+    }
+}
+
+// ============================================================================
+// McpServer::Impl
+// ============================================================================
+
+class McpServer::Impl {
+public:
+    std::vector<McpTool*> tools_;
+    
+    ~Impl() {
+        for (auto tool : tools_) {
+            delete tool;
+        }
+        tools_.clear();
+    }
+};
+
+// ============================================================================
+// McpServer 实现
+// ============================================================================
+
+McpServer::McpServer() : pImpl(new Impl()) {
+    std::cout << "[MCP] Server created" << std::endl;
+}
+
+McpServer::~McpServer() {
+    std::cout << "[MCP] Server destroyed" << std::endl;
+}
+
+void McpServer::add_tool(McpTool* tool) {
+    // 防止重复添加
+    if (std::find_if(pImpl->tools_.begin(), pImpl->tools_.end(),
+                     [tool](const McpTool* t) { return t->name() == tool->name(); })
+        != pImpl->tools_.end()) {
+        std::cerr << "[MCP] ✗ Tool already added: " << tool->name() << std::endl;
+        delete tool;
         return;
     }
+    
+    std::cout << "[MCP] ✓ Tool added: " << tool->name() << std::endl;
+    pImpl->tools_.push_back(tool);
+}
 
-    IoTMethodParameter param;
-    param.name = param_name;
-    param.description = param_description;
-    param.type = param_type;
+void McpServer::add_tool(const std::string& name,
+                         const std::string& description,
+                         const PropertyList& properties,
+                         std::function<ReturnValue(const PropertyList&)> callback) {
+    add_tool(new McpTool(name, description, properties, callback));
+}
 
-    descriptor.methods[method_name].parameters[param_name] = param;
+size_t McpServer::tool_count() const {
+    return pImpl->tools_.size();
+}
+
+void McpServer::clear_tools() {
+    for (auto tool : pImpl->tools_) {
+        delete tool;
+    }
+    pImpl->tools_.clear();
+    std::cout << "[MCP] All tools cleared" << std::endl;
+}
+
+// ========================================================================
+// 消息处理
+// ========================================================================
+
+std::string McpServer::handle_message(const std::string& mcp_payload_str) {
+    try {
+        json mcp_payload = json::parse(mcp_payload_str);
+        return handle_message(mcp_payload);
+    } catch (const json::parse_error& e) {
+        std::cerr << "[MCP] ✗ Failed to parse MCP message: " << e.what() << std::endl;
+        return "";
+    }
+}
+
+std::string McpServer::handle_message(const json& mcp_payload) {
+    try {
+        // 检查JSONRPC版本
+        if (!mcp_payload.contains("jsonrpc") || mcp_payload["jsonrpc"] != "2.0") {
+            std::cerr << "[MCP] ✗ Invalid JSONRPC version" << std::endl;
+            return "";
+        }
+        
+        // 检查方法
+        if (!mcp_payload.contains("method") || !mcp_payload["method"].is_string()) {
+            std::cerr << "[MCP] ✗ Missing method" << std::endl;
+            return "";
+        }
+        
+        std::string method = mcp_payload["method"];
+        
+        // 忽略通知消息
+        if (method.find("notifications/") == 0) {
+            return "";
+        }
+        
+        // 检查ID
+        if (!mcp_payload.contains("id") || !mcp_payload["id"].is_number_integer()) {
+            std::cerr << "[MCP] ✗ Invalid id for method: " << method << std::endl;
+            return "";
+        }
+        
+        int id = mcp_payload["id"];
+        json params = mcp_payload.value("params", json::object());
+        
+        // 路由到具体处理函数
+        if (method == "initialize") {
+            return handle_initialize(id, params);
+        } else if (method == "tools/list") {
+            return handle_tools_list(id, params);
+        } else if (method == "tools/call") {
+            return handle_tools_call(id, params);
+        } else {
+            std::cerr << "[MCP] ✗ Method not implemented: " << method << std::endl;
+            return reply_error(id, "Method not implemented: " + method);
+        }
+        
+    } catch (const std::exception& e) {
+        std::cerr << "[MCP] ✗ Exception handling message: " << e.what() << std::endl;
+        return "";
+    }
+}
+
+// ========================================================================
+// 处理具体请求
+// ========================================================================
+
+std::string McpServer::handle_initialize(int id, const json& params) {
+    std::cout << "[MCP] → Initialize request" << std::endl;
+    
+    // TODO: 处理客户端能力（如vision）
+    if (params.contains("capabilities")) {
+        // 可以在这里解析vision等能力
+    }
+    
+    json result;
+    result["protocolVersion"] = "2024-11-05";
+    result["capabilities"] = json::object({{"tools", json::object()}});
+    result["serverInfo"] = json::object({
+        {"name", "Smart_Glasses"},
+        {"version", "1.0.0"}
+    });
+    
+    std::cout << "[MCP] ✓ Initialize success" << std::endl;
+    return reply_result(id, result);
+}
+
+std::string McpServer::handle_tools_list(int id, const json& params) {
+    std::cout << "[MCP] → Tools list request" << std::endl;
+    
+    std::string cursor = params.value("cursor", "");
+    
+    json tools_array = json::array();
+    bool found_cursor = cursor.empty();
+    std::string next_cursor = "";
+    
+    for (const auto& tool : pImpl->tools_) {
+        // 如果还没找到起始位置，继续搜索
+        if (!found_cursor) {
+            if (tool->name() == cursor) {
+                found_cursor = true;
+            } else {
+                continue;
+            }
+        }
+        
+        tools_array.push_back(tool->to_json());
+        
+        // TODO: 可以添加分页逻辑（检查大小限制）
+    }
+    
+    json result;
+    result["tools"] = tools_array;
+    if (!next_cursor.empty()) {
+        result["nextCursor"] = next_cursor;
+    }
+    
+    std::cout << "[MCP] ✓ Tools list: " << tools_array.size() << " tools" << std::endl;
+    return reply_result(id, result);
+}
+
+std::string McpServer::handle_tools_call(int id, const json& params) {
+    try {
+        // 检查工具名称
+        if (!params.contains("name") || !params["name"].is_string()) {
+            return reply_error(id, "Missing tool name");
+        }
+        
+        std::string tool_name = params["name"];
+        json arguments = params.value("arguments", json::object());
+        
+        std::cout << "[MCP] → Calling tool: " << tool_name << std::endl;
+        
+        // 查找工具
+        auto tool_iter = std::find_if(pImpl->tools_.begin(), pImpl->tools_.end(),
+                                      [&tool_name](const McpTool* tool) {
+                                          return tool->name() == tool_name;
+                                      });
+        
+        if (tool_iter == pImpl->tools_.end()) {
+            std::cerr << "[MCP] ✗ Tool not found: " << tool_name << std::endl;
+            return reply_error(id, "Tool not found: " + tool_name);
+        }
+        
+        // 准备参数
+        PropertyList call_properties = (*tool_iter)->properties();
+        
+        for (auto& property : call_properties) {
+            bool found = false;
+            
+            if (arguments.contains(property.name())) {
+                const auto& value = arguments[property.name()];
+                
+                switch (property.type()) {
+                    case PropertyType::Boolean:
+                        if (value.is_boolean()) {
+                            property.set_value<bool>(value.get<bool>());
+                            found = true;
+                        }
+                        break;
+                        
+                    case PropertyType::Integer:
+                        if (value.is_number_integer()) {
+                            property.set_value<int>(value.get<int>());
+                            found = true;
+                        }
+                        break;
+                        
+                    case PropertyType::Number:
+                        if (value.is_number()) {
+                            property.set_value<double>(value.get<double>());
+                            found = true;
+                        }
+                        break;
+                        
+                    case PropertyType::String:
+                        if (value.is_string()) {
+                            property.set_value<std::string>(value.get<std::string>());
+                            found = true;
+                        }
+                        break;
+                }
+            }
+            
+            if (!property.has_default_value() && !found) {
+                std::cerr << "[MCP] ✗ Missing required argument: " << property.name() << std::endl;
+                return reply_error(id, "Missing required argument: " + property.name());
+            }
+        }
+        
+        // 调用工具
+        std::string result_str = (*tool_iter)->call(call_properties);
+        json result = json::parse(result_str);
+        
+        std::cout << "[MCP] ✓ Tool call success: " << tool_name << std::endl;
+        return reply_result(id, result);
+        
+    } catch (const std::exception& e) {
+        std::cerr << "[MCP] ✗ Tool call error: " << e.what() << std::endl;
+        return reply_error(id, std::string("Tool call error: ") + e.what());
+    }
+}
+
+// ========================================================================
+// 响应生成
+// ========================================================================
+
+std::string McpServer::reply_result(int id, const json& result) {
+    json response;
+    response["jsonrpc"] = "2.0";
+    response["id"] = id;
+    response["result"] = result;
+    return response.dump();
+}
+
+std::string McpServer::reply_error(int id, const std::string& message) {
+    json response;
+    response["jsonrpc"] = "2.0";
+    response["id"] = id;
+    response["error"] = json::object({{"message", message}});
+    return response.dump();
 }
 
 } // namespace mcp
 } // namespace chatbot
 } // namespace glasses
-
 

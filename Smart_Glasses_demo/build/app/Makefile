@@ -199,6 +199,30 @@ app.c.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/app.c.s
 .PHONY : app.c.s
 
+battery/battery.o: battery/battery.cc.o
+.PHONY : battery/battery.o
+
+# target to build an object file
+battery/battery.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/battery/battery.cc.o
+.PHONY : battery/battery.cc.o
+
+battery/battery.i: battery/battery.cc.i
+.PHONY : battery/battery.i
+
+# target to preprocess a source file
+battery/battery.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/battery/battery.cc.i
+.PHONY : battery/battery.cc.i
+
+battery/battery.s: battery/battery.cc.s
+.PHONY : battery/battery.s
+
+# target to generate assembly for a file
+battery/battery.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/battery/battery.cc.s
+.PHONY : battery/battery.cc.s
+
 chatbot/activation/activation.o: chatbot/activation/activation.cc.o
 .PHONY : chatbot/activation/activation.o
 
@@ -270,6 +294,30 @@ chatbot/mcp/mcp.s: chatbot/mcp/mcp.cc.s
 chatbot/mcp/mcp.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/mcp/mcp.cc.s
 .PHONY : chatbot/mcp/mcp.cc.s
+
+chatbot/mcp/mcpv2.o: chatbot/mcp/mcpv2.cc.o
+.PHONY : chatbot/mcp/mcpv2.o
+
+# target to build an object file
+chatbot/mcp/mcpv2.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/mcp/mcpv2.cc.o
+.PHONY : chatbot/mcp/mcpv2.cc.o
+
+chatbot/mcp/mcpv2.i: chatbot/mcp/mcpv2.cc.i
+.PHONY : chatbot/mcp/mcpv2.i
+
+# target to preprocess a source file
+chatbot/mcp/mcpv2.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/mcp/mcpv2.cc.i
+.PHONY : chatbot/mcp/mcpv2.cc.i
+
+chatbot/mcp/mcpv2.s: chatbot/mcp/mcpv2.cc.s
+.PHONY : chatbot/mcp/mcpv2.s
+
+# target to generate assembly for a file
+chatbot/mcp/mcpv2.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/mcp/mcpv2.cc.s
+.PHONY : chatbot/mcp/mcpv2.cc.s
 
 chatbot/protocol_handle/handle.o: chatbot/protocol_handle/handle.cc.o
 .PHONY : chatbot/protocol_handle/handle.o
@@ -607,30 +655,6 @@ protocol/websocket/websocket.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/protocol/websocket/websocket.cc.s
 .PHONY : protocol/websocket/websocket.cc.s
 
-tool/battery/battery.o: tool/battery/battery.cc.o
-.PHONY : tool/battery/battery.o
-
-# target to build an object file
-tool/battery/battery.cc.o:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/battery/battery.cc.o
-.PHONY : tool/battery/battery.cc.o
-
-tool/battery/battery.i: tool/battery/battery.cc.i
-.PHONY : tool/battery/battery.i
-
-# target to preprocess a source file
-tool/battery/battery.cc.i:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/battery/battery.cc.i
-.PHONY : tool/battery/battery.cc.i
-
-tool/battery/battery.s: tool/battery/battery.cc.s
-.PHONY : tool/battery/battery.s
-
-# target to generate assembly for a file
-tool/battery/battery.cc.s:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/battery/battery.cc.s
-.PHONY : tool/battery/battery.cc.s
-
 tool/mac/mac.o: tool/mac/mac.cc.o
 .PHONY : tool/mac/mac.o
 
@@ -654,6 +678,30 @@ tool/mac/mac.s: tool/mac/mac.cc.s
 tool/mac/mac.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/mac/mac.cc.s
 .PHONY : tool/mac/mac.cc.s
+
+tool/mcp_tool/mcp_tool.o: tool/mcp_tool/mcp_tool.cc.o
+.PHONY : tool/mcp_tool/mcp_tool.o
+
+# target to build an object file
+tool/mcp_tool/mcp_tool.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/mcp_tool/mcp_tool.cc.o
+.PHONY : tool/mcp_tool/mcp_tool.cc.o
+
+tool/mcp_tool/mcp_tool.i: tool/mcp_tool/mcp_tool.cc.i
+.PHONY : tool/mcp_tool/mcp_tool.i
+
+# target to preprocess a source file
+tool/mcp_tool/mcp_tool.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/mcp_tool/mcp_tool.cc.i
+.PHONY : tool/mcp_tool/mcp_tool.cc.i
+
+tool/mcp_tool/mcp_tool.s: tool/mcp_tool/mcp_tool.cc.s
+.PHONY : tool/mcp_tool/mcp_tool.s
+
+# target to generate assembly for a file
+tool/mcp_tool/mcp_tool.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/mcp_tool/mcp_tool.cc.s
+.PHONY : tool/mcp_tool/mcp_tool.cc.s
 
 tool/memory/mem_pool.o: tool/memory/mem_pool.cc.o
 .PHONY : tool/memory/mem_pool.o
@@ -695,6 +743,9 @@ help:
 	@echo "... app.o"
 	@echo "... app.i"
 	@echo "... app.s"
+	@echo "... battery/battery.o"
+	@echo "... battery/battery.i"
+	@echo "... battery/battery.s"
 	@echo "... chatbot/activation/activation.o"
 	@echo "... chatbot/activation/activation.i"
 	@echo "... chatbot/activation/activation.s"
@@ -704,6 +755,9 @@ help:
 	@echo "... chatbot/mcp/mcp.o"
 	@echo "... chatbot/mcp/mcp.i"
 	@echo "... chatbot/mcp/mcp.s"
+	@echo "... chatbot/mcp/mcpv2.o"
+	@echo "... chatbot/mcp/mcpv2.i"
+	@echo "... chatbot/mcp/mcpv2.s"
 	@echo "... chatbot/protocol_handle/handle.o"
 	@echo "... chatbot/protocol_handle/handle.i"
 	@echo "... chatbot/protocol_handle/handle.s"
@@ -746,12 +800,12 @@ help:
 	@echo "... protocol/websocket/websocket.o"
 	@echo "... protocol/websocket/websocket.i"
 	@echo "... protocol/websocket/websocket.s"
-	@echo "... tool/battery/battery.o"
-	@echo "... tool/battery/battery.i"
-	@echo "... tool/battery/battery.s"
 	@echo "... tool/mac/mac.o"
 	@echo "... tool/mac/mac.i"
 	@echo "... tool/mac/mac.s"
+	@echo "... tool/mcp_tool/mcp_tool.o"
+	@echo "... tool/mcp_tool/mcp_tool.i"
+	@echo "... tool/mcp_tool/mcp_tool.s"
 	@echo "... tool/memory/mem_pool.o"
 	@echo "... tool/memory/mem_pool.i"
 	@echo "... tool/memory/mem_pool.s"

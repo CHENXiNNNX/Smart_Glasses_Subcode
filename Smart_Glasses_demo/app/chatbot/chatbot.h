@@ -12,13 +12,10 @@ namespace chatbot {
 // 前向声明
 namespace protocol { 
     class ProtocolHandler;
-    struct IoTDescriptor;
 }
 namespace statemachine { class AIStateMachine; }
 namespace mcp { 
-    class MCPManager;
-    using MethodHandler = std::function<bool(const std::string&, const std::string&, const std::map<std::string, std::string>&)>;
-    using StateGetter = std::function<std::map<std::string, std::string>(const std::string&)>;
+    class McpServer;
 }
 
 namespace websocket = glasses::protocol::websocket;
@@ -178,28 +175,14 @@ public:
     bool sendTextMessage(const std::string& text);
 
     // ========================================================================
-    // MCP设备注册
+    // MCP工具访问（允许外部直接注册工具）
     // ========================================================================
 
     /**
-     * @brief 注册IoT设备
-     * @param descriptor 设备描述符
-     * @param handler 方法处理函数
-     * @param getter 状态获取函数
-     * @return true 注册成功
+     * @brief 获取MCP服务器实例（用于工具注册）
+     * @return MCP服务器指针
      */
-    bool registerDevice(
-        const protocol::IoTDescriptor& descriptor,
-        mcp::MethodHandler handler,
-        mcp::StateGetter getter
-    );
-
-    /**
-     * @brief 注销IoT设备
-     * @param device_name 设备名称
-     * @return true 注销成功
-     */
-    bool unregisterDevice(const std::string& device_name);
+    mcp::McpServer* getMCPServer();
 
     // ========================================================================
     // 状态查询

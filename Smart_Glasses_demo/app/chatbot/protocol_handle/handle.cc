@@ -28,7 +28,7 @@ public:
     STTCallback stt_callback;
     LLMCallback llm_callback;
     TTSCallback tts_callback;
-    IoTCallback iot_callback;
+    MCPCallback mcp_callback;
     ErrorCallback error_callback;
 
     Impl() : session_id("") {}
@@ -72,8 +72,8 @@ void ProtocolHandler::setTTSCallback(TTSCallback callback) {
     pimpl_->tts_callback = callback;
 }
 
-void ProtocolHandler::setIoTCallback(IoTCallback callback) {
-    pimpl_->iot_callback = callback;
+void ProtocolHandler::setMCPCallback(MCPCallback callback) {
+    pimpl_->mcp_callback = callback;
 }
 
 void ProtocolHandler::setErrorCallback(ErrorCallback callback) {
@@ -179,90 +179,15 @@ MessageType ProtocolHandler::parseMessage(const std::string& json_str) {
                 break;
             }
 
-            case MessageType::IOT: {
-                if (pimpl_->iot_callback) {
-                    IoTMessage msg;
-                    msg.session_id = j.value("session_id", "");
-                    msg.update = j.value("update", false);
-                    
-                    // 解析descriptors（如果有）
-                    if (j.contains("descriptors") && j["descriptors"].is_array()) {
-                        for (auto& desc_json : j["descriptors"]) {
-                            IoTDescriptor desc;
-                            desc.name = desc_json.value("name", "");
-                            desc.description = desc_json.value("description", "");
-                            
-                            // 解析properties
-                            if (desc_json.contains("properties")) {
-                                for (auto& [key, val] : desc_json["properties"].items()) {
-                                    IoTProperty prop;
-                                    prop.name = key;
-                                    prop.description = val.value("description", "");
-                                    prop.type = val.value("type", "string");
-                                    desc.properties[key] = prop;
-                                }
-                            }
-                            
-                            // 解析methods
-                            if (desc_json.contains("methods")) {
-                                for (auto& [key, val] : desc_json["methods"].items()) {
-                                    IoTMethod method;
-                                    method.name = key;
-                                    method.description = val.value("description", "");
-                                    
-                                    // 解析parameters
-                                    if (val.contains("parameters")) {
-                                        for (auto& [pkey, pval] : val["parameters"].items()) {
-                                            IoTMethodParameter param;
-                                            param.name = pkey;
-                                            param.description = pval.value("description", "");
-                                            param.type = pval.value("type", "string");
-                                            method.parameters[pkey] = param;
-                                        }
-                                    }
-                                    
-                                    desc.methods[key] = method;
-                                }
-                            }
-                            
-                            msg.descriptors.push_back(desc);
-                        }
+            case MessageType::MCP: {
+                if (pimpl_->mcp_callback) {
+                    // MCP协议：提取payload并处理
+                    if (j.contains("payload")) {
+                        std::string mcp_payload = j["payload"].dump();
+                        std::string response = pimpl_->mcp_callback(mcp_payload);
+                        // 响应会由回调处理并发送
+                        (void)response;
                     }
-                    
-                    // 解析states（如果有）
-                    if (j.contains("states") && j["states"].is_array()) {
-                        for (auto& state_json : j["states"]) {
-                            IoTDeviceState state;
-                            state.name = state_json.value("name", "");
-                            
-                            if (state_json.contains("state")) {
-                                for (auto& [key, val] : state_json["state"].items()) {
-                                    std::ostringstream oss;
-                                    oss << val;
-                                    state.state[key] = oss.str();
-                                }
-                            }
-                            
-                            msg.states.push_back(state);
-                        }
-                    }
-                    
-                    // 解析invoke操作（如果有）
-                    if (j.contains("device")) {
-                        msg.device_name = j.value("device", "");
-                    }
-                    if (j.contains("method")) {
-                        msg.method_name = j.value("method", "");
-                    }
-                    if (j.contains("parameters")) {
-                        for (auto& [key, val] : j["parameters"].items()) {
-                            std::ostringstream oss;
-                            oss << val;
-                            msg.parameters[key] = oss.str();
-                        }
-                    }
-                    
-                    pimpl_->iot_callback(msg);
                 }
                 break;
             }
@@ -337,104 +262,6 @@ std::string ProtocolHandler::generateListenMessage(ListenState state, ListenMode
     return j.dump();
 }
 
-std::string ProtocolHandler::generateIoTDescriptorMessage(
-    const std::vector<IoTDescriptor>& descriptors) {
-    
-    json j;
-    j["session_id"] = pimpl_->session_id;
-    j["type"] = "iot";
-    j["update"] = true;
-    j["descriptors"] = json::array();
-    
-    for (const auto& desc : descriptors) {
-        json desc_json;
-        desc_json["name"] = desc.name;
-        desc_json["description"] = desc.description;
-        desc_json["properties"] = json::object();
-        desc_json["methods"] = json::object();
-        
-        // 添加properties
-        for (const auto& [key, prop] : desc.properties) {
-            desc_json["properties"][key]["description"] = prop.description;
-            desc_json["properties"][key]["type"] = prop.type;
-        }
-        
-        // 添加methods
-        for (const auto& [key, method] : desc.methods) {
-            desc_json["methods"][key]["description"] = method.description;
-            desc_json["methods"][key]["parameters"] = json::object();
-            
-            for (const auto& [pkey, param] : method.parameters) {
-                desc_json["methods"][key]["parameters"][pkey]["description"] = param.description;
-                desc_json["methods"][key]["parameters"][pkey]["type"] = param.type;
-            }
-        }
-        
-        j["descriptors"].push_back(desc_json);
-    }
-    
-    return j.dump();
-}
-
-std::string ProtocolHandler::generateIoTStateMessage(
-    const std::vector<IoTDeviceState>& states) {
-    
-    json j;
-    j["session_id"] = pimpl_->session_id;
-    j["type"] = "iot";
-    j["update"] = true;
-    j["states"] = json::array();
-    
-    for (const auto& dev_state : states) {
-        json state_json;
-        state_json["name"] = dev_state.name;
-        state_json["state"] = json::object();
-        
-        for (const auto& [key, val] : dev_state.state) {
-            // 尝试解析为数字或布尔值
-            try {
-                if (val == "true" || val == "false") {
-                    state_json["state"][key] = (val == "true");
-                } else {
-                    // 尝试解析为数字
-                    size_t pos;
-                    int int_val = std::stoi(val, &pos);
-                    if (pos == val.length()) {
-                        state_json["state"][key] = int_val;
-                    } else {
-                        state_json["state"][key] = val;
-                    }
-                }
-            } catch (...) {
-                state_json["state"][key] = val;
-            }
-        }
-        
-        j["states"].push_back(state_json);
-    }
-    
-    return j.dump();
-}
-
-std::string ProtocolHandler::generateIoTInvokeResultMessage(
-    const std::string& device_name,
-    const std::string& method_name,
-    bool success,
-    const std::string& result) {
-    
-    json j;
-    j["session_id"] = pimpl_->session_id;
-    j["type"] = "iot";
-    j["device"] = device_name;
-    j["method"] = method_name;
-    j["success"] = success;
-    if (!result.empty()) {
-        j["result"] = result;
-    }
-    
-    return j.dump();
-}
-
 // ============================================================================
 // 会话管理
 // ============================================================================
@@ -458,7 +285,7 @@ MessageType ProtocolHandler::stringToMessageType(const std::string& type_str) {
     if (type_str == "stt") return MessageType::STT;
     if (type_str == "llm") return MessageType::LLM;
     if (type_str == "tts") return MessageType::TTS;
-    if (type_str == "iot") return MessageType::IOT;
+    if (type_str == "mcp") return MessageType::MCP;
     if (type_str == "error") return MessageType::ERROR;
     return MessageType::UNKNOWN;
 }
@@ -470,7 +297,7 @@ std::string ProtocolHandler::messageTypeToString(MessageType type) {
         case MessageType::STT:     return "stt";
         case MessageType::LLM:     return "llm";
         case MessageType::TTS:     return "tts";
-        case MessageType::IOT:     return "iot";
+        case MessageType::MCP:     return "mcp";
         case MessageType::ERROR:   return "error";
         default:                   return "unknown";
     }

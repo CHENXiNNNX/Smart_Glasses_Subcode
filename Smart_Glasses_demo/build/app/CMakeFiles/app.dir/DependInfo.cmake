@@ -9,9 +9,11 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/app.c" "app/CMakeFiles/app.dir/app.c.o" "gcc" "app/CMakeFiles/app.dir/app.c.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/battery/battery.cc" "app/CMakeFiles/app.dir/battery/battery.cc.o" "gcc" "app/CMakeFiles/app.dir/battery/battery.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/activation/activation.cc" "app/CMakeFiles/app.dir/chatbot/activation/activation.cc.o" "gcc" "app/CMakeFiles/app.dir/chatbot/activation/activation.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/chatbot.cc" "app/CMakeFiles/app.dir/chatbot/chatbot.cc.o" "gcc" "app/CMakeFiles/app.dir/chatbot/chatbot.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/mcp/mcp.cc" "app/CMakeFiles/app.dir/chatbot/mcp/mcp.cc.o" "gcc" "app/CMakeFiles/app.dir/chatbot/mcp/mcp.cc.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/mcp/mcpv2.cc" "app/CMakeFiles/app.dir/chatbot/mcp/mcpv2.cc.o" "gcc" "app/CMakeFiles/app.dir/chatbot/mcp/mcpv2.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/protocol_handle/handle.cc" "app/CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.o" "gcc" "app/CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/statemachine/machine.cc" "app/CMakeFiles/app.dir/chatbot/statemachine/machine.cc.o" "gcc" "app/CMakeFiles/app.dir/chatbot/statemachine/machine.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/uuid/uuid.cc" "app/CMakeFiles/app.dir/chatbot/uuid/uuid.cc.o" "gcc" "app/CMakeFiles/app.dir/chatbot/uuid/uuid.cc.o.d"
@@ -26,8 +28,8 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/signaling.cc" "app/CMakeFiles/app.dir/protocol/webrtc/signaling.cc.o" "gcc" "app/CMakeFiles/app.dir/protocol/webrtc/signaling.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/webrtc.cc" "app/CMakeFiles/app.dir/protocol/webrtc/webrtc.cc.o" "gcc" "app/CMakeFiles/app.dir/protocol/webrtc/webrtc.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/websocket/websocket.cc" "app/CMakeFiles/app.dir/protocol/websocket/websocket.cc.o" "gcc" "app/CMakeFiles/app.dir/protocol/websocket/websocket.cc.o.d"
-  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/tool/battery/battery.cc" "app/CMakeFiles/app.dir/tool/battery/battery.cc.o" "gcc" "app/CMakeFiles/app.dir/tool/battery/battery.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/tool/mac/mac.cc" "app/CMakeFiles/app.dir/tool/mac/mac.cc.o" "gcc" "app/CMakeFiles/app.dir/tool/mac/mac.cc.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/tool/mcp_tool/mcp_tool.cc" "app/CMakeFiles/app.dir/tool/mcp_tool/mcp_tool.cc.o" "gcc" "app/CMakeFiles/app.dir/tool/mcp_tool/mcp_tool.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/tool/memory/mem_pool.cc" "app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o" "gcc" "app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o.d"
   )
 

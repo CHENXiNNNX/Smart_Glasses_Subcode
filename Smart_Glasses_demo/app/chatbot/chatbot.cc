@@ -46,7 +46,7 @@ public:
     // 核心模块
     std::unique_ptr<ProtocolHandler> protocol_handler;
     std::unique_ptr<AIStateMachine> state_machine;
-    std::unique_ptr<MCPManager> mcp_manager;
+    std::unique_ptr<McpServer> mcp_server; 
     std::unique_ptr<WakewordDetector> wakeword_detector;
     websocket::WebSocketClient* ws_client;
     
@@ -59,6 +59,9 @@ public:
     // 状态
     std::atomic<AIManagerState> manager_state;
     std::string session_id;
+    
+    // 运行控制
+    std::atomic<bool> is_running;
     
     // 回调函数
     STTTextCallback stt_callback;
@@ -75,10 +78,17 @@ public:
         , ws_client(nullptr)
         , audio_system(nullptr)
         , wakeword_resampler(nullptr)
-        , manager_state(AIManagerState::UNINITIALIZED) {
+        , manager_state(AIManagerState::UNINITIALIZED)
+        , is_running(true) {
     }
     
     ~Impl() {
+        // 标记为已停止，让detached线程安全退出
+        is_running = false;
+        
+        // 等待一段时间，让正在运行的detached线程检查标志并退出
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        
         cleanup();
     }
     
@@ -118,7 +128,7 @@ public:
     void handleWakewordAudio(const int16_t* data, int length);
     void onWakewordDetected(int hotword_index);
     void onWebSocketClosed();
-    void sendMCPDescriptors();
+    std::string handleMCPMessage(const std::string& mcp_payload);
 };
 
 // ============================================================================
@@ -184,9 +194,9 @@ bool AIManager::initialize(audio_system_t* audio_system) {
     pImpl_->state_machine = std::make_unique<AIStateMachine>();
     std::cout << "[AIManager] ✓ State machine created" << std::endl;
     
-    // 创建MCP管理器
-    pImpl_->mcp_manager = std::make_unique<MCPManager>();
-    std::cout << "[AIManager] ✓ MCP manager created" << std::endl;
+    // 创建MCP服务器
+    pImpl_->mcp_server = std::make_unique<McpServer>();
+    std::cout << "[AIManager] ✓ MCP server created" << std::endl;
     
     // 创建唤醒词检测器
     pImpl_->wakeword_detector = std::make_unique<WakewordDetector>();
@@ -304,8 +314,9 @@ bool AIManager::start() {
             pImpl_->setState(AIManagerState::CONNECTED);
             std::cout << "[AIManager] ✓ Connected and handshaked!" << std::endl;
             
-            // 发送MCP设备描述符
-            pImpl_->sendMCPDescriptors();
+            // MCP工具应该在调用start()之前通过getMCPServer()注册
+            std::cout << "[AIManager] MCP server ready (tools: " 
+                      << pImpl_->mcp_server->tool_count() << ")" << std::endl;
             
             pImpl_->setState(AIManagerState::ACTIVE);
             return true;
@@ -421,35 +432,11 @@ bool AIManager::sendTextMessage(const std::string& text) {
 }
 
 // ========================================================================
-// MCP设备注册
+// MCP工具访问
 // ========================================================================
 
-bool AIManager::registerDevice(
-    const IoTDescriptor& descriptor,
-    MethodHandler handler,
-    StateGetter getter
-) {
-    if (!pImpl_->mcp_manager) {
-        std::cerr << "[AIManager] ✗ MCP manager not initialized" << std::endl;
-        return false;
-    }
-    
-    bool result = pImpl_->mcp_manager->registerDevice(descriptor, handler, getter);
-    
-    if (result && pImpl_->manager_state == AIManagerState::ACTIVE) {
-        // 如果已连接，立即发送更新
-        pImpl_->sendMCPDescriptors();
-    }
-    
-    return result;
-}
-
-bool AIManager::unregisterDevice(const std::string& device_name) {
-    if (!pImpl_->mcp_manager) {
-        return false;
-    }
-    
-    return pImpl_->mcp_manager->unregisterDevice(device_name);
+mcp::McpServer* AIManager::getMCPServer() {
+    return pImpl_->mcp_server.get();
 }
 
 // ========================================================================
@@ -574,42 +561,44 @@ void AIManager::Impl::setupProtocolCallbacks() {
                 
             case TTSState::STOP:
                 std::cout << "[AIManager] ← TTS: STOP" << std::endl;
-                state_machine->onTTS_stop(2000);  // 延迟2秒
+                state_machine->onTTS_stop(1000);  // 延迟一段时间再进行下次对话，防止AI自说自答
                 
                 // 重要！TTS结束后，主动发送listen请求告诉服务器继续监听
-                std::thread([this]() {
+                // 捕获必要的指针和运行标志，避免访问已销毁的对象
+                auto protocol_handler_ptr = protocol_handler.get();
+                auto ws_client_ptr = ws_client;
+                auto is_running_ptr = &is_running;
+                
+                std::thread([protocol_handler_ptr, ws_client_ptr, is_running_ptr]() {
                     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+                    
+                    // 检查AIManager是否还在运行
+                    if (!is_running_ptr->load()) {
+                        std::cout << "[AIManager] ⚠ AIManager shutting down, skip listen request" << std::endl;
+                        return;
+                    }
+                    
+                    // 检查WebSocket是否还连接
+                    if (!ws_client_ptr || !ws_client_ptr->isConnected()) {
+                        std::cout << "[AIManager] ⚠ WebSocket disconnected, skip listen request" << std::endl;
+                        return;
+                    }
                     
                     std::cout << "[AIManager] TTS finished, sending listen request..." << std::endl;
                     
-                    // 主动发送listen消息（参考官方xiaozhi逻辑）
-                    std::string listen_msg = protocol_handler->generateListenMessage(
+                    // 主动发送listen消息进行连续对话
+                    std::string listen_msg = protocol_handler_ptr->generateListenMessage(
                         ListenState::START, ListenMode::AUTO);
-                    ws_client->sendText(listen_msg.c_str(), listen_msg.length());
+                    ws_client_ptr->sendText(listen_msg.c_str(), listen_msg.length());
                     std::cout << "[AIManager] ✓ Listen request sent" << std::endl;
                 }).detach();
                 break;
         }
     });
     
-    // IoT消息回调
-    protocol_handler->setIoTCallback([this](const IoTMessage& msg) {
-        std::cout << "[AIManager] ← IoT message" << std::endl;
-        
-        // 如果是设备方法调用
-        if (!msg.device_name.empty() && !msg.method_name.empty()) {
-            std::cout << "[AIManager]   Invoke: " << msg.device_name 
-                      << "." << msg.method_name << std::endl;
-            
-            // 调用MCP处理
-            bool result = mcp_manager->handleIoTInvoke(msg);
-            
-            // 发送调用结果
-            std::string result_msg = protocol_handler->generateIoTInvokeResultMessage(
-                msg.device_name, msg.method_name, result, "");
-            
-            ws_client->sendText(result_msg.c_str(), result_msg.length());
-        }
+    // MCP消息回调
+    protocol_handler->setMCPCallback([this](const std::string& mcp_payload) -> std::string {
+        return handleMCPMessage(mcp_payload);
     });
     
     // 错误消息回调
@@ -714,27 +703,31 @@ void AIManager::Impl::handleTTSAudio(const uint8_t* data, size_t size) {
     }
 }
 
-void AIManager::Impl::sendMCPDescriptors() {
-    if (!mcp_manager || !ws_client) {
-        return;
+std::string AIManager::Impl::handleMCPMessage(const std::string& mcp_payload) {
+    if (!mcp_server) {
+        std::cerr << "[AIManager] ✗ MCP server not initialized" << std::endl;
+        return "";
     }
     
-    // 获取所有设备描述符
-    auto descriptors = mcp_manager->getAllDescriptors();
+    std::cout << "[AIManager] ← MCP message received" << std::endl;
     
-    if (descriptors.empty()) {
-        std::cout << "[AIManager] No MCP devices to send" << std::endl;
-        return;
+    // 处理MCP消息并获取响应
+    std::string response = mcp_server->handle_message(mcp_payload);
+    
+    if (!response.empty() && ws_client && ws_client->isConnected()) {
+        // 封装为完整的MCP消息
+        json full_msg;
+        full_msg["session_id"] = protocol_handler->getSessionId();
+        full_msg["type"] = "mcp";
+        full_msg["payload"] = json::parse(response);
+        
+        std::string full_response = full_msg.dump();
+        
+        std::cout << "[AIManager] → Sending MCP response" << std::endl;
+        ws_client->sendText(full_response.c_str(), full_response.length());
     }
     
-    // 生成IoT描述符消息
-    std::string msg = mcp_manager->generateDescriptorMessage(
-        protocol_handler->getSessionId());
-    
-    std::cout << "[AIManager] → Sending " << descriptors.size() 
-              << " MCP device descriptors" << std::endl;
-    
-    ws_client->sendText(msg.c_str(), msg.length());
+    return response;
 }
 
 // ========================================================================

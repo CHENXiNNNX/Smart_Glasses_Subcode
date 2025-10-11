@@ -469,11 +469,15 @@ WebSocketClient* createXiaozhiClient(
     config.headers["Protocol-Version"] = "1";
     config.headers["Authorization"] = "Bearer test-token";
 
-    // 设置Hello消息（实际发送16kHz，因为会重采样）
+    // 设置Hello消息
     config.hello_message = R"({
         "type": "hello",
         "version": 1,
         "transport": "websocket",
+        "features": {
+            "aec": true,
+            "mcp": true
+        },
         "audio_params": {
             "format": "opus",
             "sample_rate": 16000,

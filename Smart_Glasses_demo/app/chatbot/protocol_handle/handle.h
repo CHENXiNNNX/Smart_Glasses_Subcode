@@ -38,7 +38,7 @@ enum class MessageType {
     STT,            // 语音识别结果
     LLM,            // 大语言模型回复
     TTS,            // 文本转语音
-    IOT,            // IoT设备控制
+    MCP,            // MCP工具调用
     ERROR,          // 错误消息
     UNKNOWN         // 未知类型
 };
@@ -168,66 +168,6 @@ struct TTSMessage {
     std::string text;               // TTS文本（sentence_start时有效）
 };
 
-/**
- * @brief IoT设备属性
- */
-struct IoTProperty {
-    std::string name;               // 属性名称
-    std::string description;        // 属性描述
-    std::string type;               // 类型（number/string/boolean）
-};
-
-/**
- * @brief IoT设备方法参数
- */
-struct IoTMethodParameter {
-    std::string name;               // 参数名称
-    std::string description;        // 参数描述
-    std::string type;               // 类型（number/string/boolean）
-};
-
-/**
- * @brief IoT设备方法
- */
-struct IoTMethod {
-    std::string name;                                   // 方法名称
-    std::string description;                            // 方法描述
-    std::map<std::string, IoTMethodParameter> parameters;  // 参数列表
-};
-
-/**
- * @brief IoT设备描述符
- */
-struct IoTDescriptor {
-    std::string name;                               // 设备名称
-    std::string description;                        // 设备描述
-    std::map<std::string, IoTProperty> properties;  // 属性列表
-    std::map<std::string, IoTMethod> methods;       // 方法列表
-};
-
-/**
- * @brief IoT设备状态
- */
-struct IoTDeviceState {
-    std::string name;                               // 设备名称
-    std::map<std::string, std::string> state;       // 状态值（键值对）
-};
-
-/**
- * @brief IoT消息
- */
-struct IoTMessage {
-    std::string session_id;                         // 会话ID
-    bool update;                                    // 是否更新
-    std::vector<IoTDescriptor> descriptors;         // 设备描述符列表
-    std::vector<IoTDeviceState> states;             // 设备状态列表
-    
-    // 用于invoke操作
-    std::string device_name;                        // 设备名称
-    std::string method_name;                        // 方法名称
-    std::map<std::string, std::string> parameters;  // 方法参数
-};
-
 // ============================================================================
 // 回调函数类型
 // ============================================================================
@@ -253,9 +193,9 @@ using LLMCallback = std::function<void(const LLMMessage& msg)>;
 using TTSCallback = std::function<void(const TTSMessage& msg)>;
 
 /**
- * @brief IoT消息回调
+ * @brief MCP消息回调
  */
-using IoTCallback = std::function<void(const IoTMessage& msg)>;
+using MCPCallback = std::function<std::string(const std::string& mcp_payload)>;
 
 /**
  * @brief 错误消息回调
@@ -307,9 +247,9 @@ public:
     void setTTSCallback(TTSCallback callback);
 
     /**
-     * @brief 设置IoT消息回调
+     * @brief 设置MCP消息回调
      */
-    void setIoTCallback(IoTCallback callback);
+    void setMCPCallback(MCPCallback callback);
 
     /**
      * @brief 设置错误消息回调
@@ -357,33 +297,6 @@ public:
      * @return std::string JSON字符串
      */
     std::string generateListenMessage(ListenState state, ListenMode mode = ListenMode::AUTO);
-
-    /**
-     * @brief 生成IoT描述符消息
-     * @param descriptors 设备描述符列表
-     * @return std::string JSON字符串
-     */
-    std::string generateIoTDescriptorMessage(const std::vector<IoTDescriptor>& descriptors);
-
-    /**
-     * @brief 生成IoT状态消息
-     * @param states 设备状态列表
-     * @return std::string JSON字符串
-     */
-    std::string generateIoTStateMessage(const std::vector<IoTDeviceState>& states);
-
-    /**
-     * @brief 生成IoT调用结果消息
-     * @param device_name 设备名称
-     * @param method_name 方法名称
-     * @param success 是否成功
-     * @param result 结果描述
-     * @return std::string JSON字符串
-     */
-    std::string generateIoTInvokeResultMessage(const std::string& device_name,
-                                               const std::string& method_name,
-                                               bool success,
-                                               const std::string& result = "");
 
     // ========================================================================
     // 会话管理

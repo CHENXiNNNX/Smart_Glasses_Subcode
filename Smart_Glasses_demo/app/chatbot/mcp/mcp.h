@@ -1,254 +1,271 @@
-/**
- * @file mcp.h
- * @brief MCP (Model Context Protocol) 工具管理器
- * @details 管理xiaozhi AI的MCP设备能力注册、状态上报和方法调用
- * 
- * @author Smart Glasses Team
- * @date 2025-10-10
- */
-
 #ifndef MCP_H
 #define MCP_H
 
 #include <string>
-#include <map>
 #include <vector>
+#include <map>
 #include <functional>
+#include <variant>
+#include <optional>
 #include <memory>
-#include "../protocol_handle/handle.h"
+#include <nlohmann/json.hpp>
 
 namespace glasses {
 namespace chatbot {
-
-// 导入protocol命名空间的类型
-using protocol::IoTDescriptor;
-using protocol::IoTDeviceState;
-using protocol::IoTMessage;
-
 namespace mcp {
 
 // ============================================================================
 // 类型定义
 // ============================================================================
 
-/**
- * @brief 方法调用处理函数
- * @param device_name 设备名称
- * @param method_name 方法名称
- * @param parameters 方法参数（键值对）
- * @return true=调用成功, false=调用失败
- */
-using MethodHandler = std::function<bool(
-    const std::string& device_name,
-    const std::string& method_name,
-    const std::map<std::string, std::string>& parameters
-)>;
+using json = nlohmann::json;
 
 /**
- * @brief 设备状态获取函数
- * @param device_name 设备名称
- * @return 设备当前状态（键值对）
+ * @brief 工具返回值类型
  */
-using StateGetter = std::function<std::map<std::string, std::string>(
-    const std::string& device_name
-)>;
+using ReturnValue = std::variant<bool, int, double, std::string, json>;
+
+/**
+ * @brief 属性类型枚举
+ */
+enum class PropertyType {
+    Boolean,
+    Integer,
+    Number,
+    String
+};
 
 // ============================================================================
-// MCP设备管理器
+// Property - 工具参数定义
 // ============================================================================
 
 /**
- * @brief MCP工具管理器
- * @details 负责管理所有IoT设备的注册、状态和方法调用
+ * @brief 工具参数属性
  */
-class MCPManager {
+class Property {
 public:
-    MCPManager();
-    ~MCPManager();
+    // 必需参数构造函数
+    Property(const std::string& name, PropertyType type);
+    
+    // 可选参数构造函数（带默认值）
+    template<typename T>
+    Property(const std::string& name, PropertyType type, const T& default_value);
+    
+    // 整数范围参数构造函数
+    Property(const std::string& name, PropertyType type, int min_value, int max_value);
+    
+    // 带默认值的整数范围参数构造函数
+    Property(const std::string& name, PropertyType type, int default_value, int min_value, int max_value);
+
+    // Getter
+    const std::string& name() const { return name_; }
+    PropertyType type() const { return type_; }
+    bool has_default_value() const { return has_default_value_; }
+    bool has_range() const { return min_value_.has_value() && max_value_.has_value(); }
+    int min_value() const { return min_value_.value_or(0); }
+    int max_value() const { return max_value_.value_or(0); }
+
+    // 获取值
+    template<typename T>
+    T value() const;
+
+    // 设置值（带范围检查）
+    template<typename T>
+    void set_value(const T& value);
+
+    // 转换为JSON Schema
+    json to_json() const;
+
+private:
+    std::string name_;
+    PropertyType type_;
+    std::variant<bool, int, double, std::string> value_;
+    bool has_default_value_;
+    std::optional<int> min_value_;
+    std::optional<int> max_value_;
+};
+
+// ============================================================================
+// PropertyList - 参数列表
+// ============================================================================
+
+/**
+ * @brief 工具参数列表
+ */
+class PropertyList {
+public:
+    PropertyList() = default;
+    PropertyList(const std::vector<Property>& properties);
+
+    void add(const Property& property);
+    
+    const Property& operator[](const std::string& name) const;
+    Property& operator[](const std::string& name);
+    
+    auto begin() { return properties_.begin(); }
+    auto end() { return properties_.end(); }
+    auto begin() const { return properties_.begin(); }
+    auto end() const { return properties_.end(); }
+
+    std::vector<std::string> get_required() const;
+    json to_json() const;
+
+private:
+    std::vector<Property> properties_;
+};
+
+// ============================================================================
+// McpTool - MCP工具
+// ============================================================================
+
+/**
+ * @brief MCP工具定义
+ */
+class McpTool {
+public:
+    using Callback = std::function<ReturnValue(const PropertyList&)>;
+
+    McpTool(const std::string& name,
+            const std::string& description,
+            const PropertyList& properties,
+            Callback callback);
+
+    const std::string& name() const { return name_; }
+    const std::string& description() const { return description_; }
+    const PropertyList& properties() const { return properties_; }
+
+    // 转换为JSON（tools/list格式）
+    json to_json() const;
+
+    // 调用工具
+    std::string call(const PropertyList& properties);
+
+private:
+    std::string name_;
+    std::string description_;
+    PropertyList properties_;
+    Callback callback_;
+};
+
+// ============================================================================
+// McpServer - MCP服务器
+// ============================================================================
+
+/**
+ * @brief MCP协议服务器
+ * @details 处理initialize、tools/list、tools/call等MCP请求
+ */
+class McpServer {
+public:
+    McpServer();
+    ~McpServer();
 
     // ========================================================================
-    // 设备注册
+    // 工具管理
     // ========================================================================
 
     /**
-     * @brief 注册IoT设备
-     * @param descriptor 设备描述符（包含属性和方法定义）
-     * @param handler 方法调用处理函数
-     * @param getter 状态获取函数
-     * @return true=注册成功, false=注册失败
+     * @brief 添加工具
+     * @param tool 工具对象（转移所有权）
      */
-    bool registerDevice(
-        const IoTDescriptor& descriptor,
-        MethodHandler handler,
-        StateGetter getter
-    );
+    void add_tool(McpTool* tool);
 
     /**
-     * @brief 注销IoT设备
-     * @param device_name 设备名称
-     * @return true=注销成功, false=设备不存在
+     * @brief 添加工具（便捷方法）
+     * @param name 工具名称（建议格式：self.module.function）
+     * @param description 工具描述
+     * @param properties 参数列表
+     * @param callback 回调函数
      */
-    bool unregisterDevice(const std::string& device_name);
+    void add_tool(const std::string& name,
+                  const std::string& description,
+                  const PropertyList& properties,
+                  std::function<ReturnValue(const PropertyList&)> callback);
 
     /**
-     * @brief 检查设备是否已注册
-     * @param device_name 设备名称
-     * @return true=已注册, false=未注册
+     * @brief 获取工具数量
      */
-    bool isDeviceRegistered(const std::string& device_name) const;
+    size_t tool_count() const;
+
+    /**
+     * @brief 清空所有工具
+     */
+    void clear_tools();
 
     // ========================================================================
-    // 描述符生成
-    // ========================================================================
-
-    /**
-     * @brief 获取所有设备的描述符列表
-     * @return 设备描述符列表
-     */
-    std::vector<IoTDescriptor> getAllDescriptors() const;
-
-    /**
-     * @brief 生成IoT描述符消息（JSON格式）
-     * @param session_id 会话ID
-     * @return JSON字符串
-     */
-    std::string generateDescriptorMessage(const std::string& session_id) const;
-
-    // ========================================================================
-    // 状态管理
+    // 消息处理
     // ========================================================================
 
     /**
-     * @brief 获取所有设备的当前状态
-     * @return 设备状态列表
+     * @brief 处理MCP消息（JSON对象）
+     * @return 响应消息（JSON字符串），如果无需响应则返回空字符串
      */
-    std::vector<IoTDeviceState> getAllStates() const;
+    std::string handle_message(const json& mcp_payload);
 
     /**
-     * @brief 生成IoT状态消息（JSON格式）
-     * @param session_id 会话ID
-     * @return JSON字符串
+     * @brief 处理MCP消息（JSON字符串）
+     * @param mcp_payload_str JSON-RPC 2.0消息体字符串
+     * @return 响应消息（JSON字符串），如果无需响应则返回空字符串
      */
-    std::string generateStateMessage(const std::string& session_id) const;
-
-    /**
-     * @brief 获取单个设备的状态
-     * @param device_name 设备名称
-     * @param state 输出参数：设备状态
-     * @return true=成功, false=设备不存在
-     */
-    bool getDeviceState(const std::string& device_name, 
-                        std::map<std::string, std::string>& state) const;
-
-    // ========================================================================
-    // 方法调用
-    // ========================================================================
-
-    /**
-     * @brief 调用设备方法
-     * @param device_name 设备名称
-     * @param method_name 方法名称
-     * @param parameters 方法参数
-     * @return true=调用成功, false=调用失败
-     */
-    bool invokeMethod(
-        const std::string& device_name,
-        const std::string& method_name,
-        const std::map<std::string, std::string>& parameters
-    );
-
-    /**
-     * @brief 处理IoT调用消息
-     * @param msg IoT消息（来自协议层）
-     * @return true=处理成功, false=处理失败
-     */
-    bool handleIoTInvoke(const IoTMessage& msg);
-
-    // ========================================================================
-    // 工具函数
-    // ========================================================================
-
-    /**
-     * @brief 获取已注册设备数量
-     * @return 设备数量
-     */
-    size_t getDeviceCount() const;
-
-    /**
-     * @brief 清空所有设备
-     */
-    void clear();
+    std::string handle_message(const std::string& mcp_payload_str);
 
     // 禁用拷贝和赋值
-    MCPManager(const MCPManager&) = delete;
-    MCPManager& operator=(const MCPManager&) = delete;
+    McpServer(const McpServer&) = delete;
+    McpServer& operator=(const McpServer&) = delete;
 
 private:
     class Impl;
     std::unique_ptr<Impl> pImpl;
+
+    // 内部处理函数
+    std::string handle_initialize(int id, const json& params);
+    std::string handle_tools_list(int id, const json& params);
+    std::string handle_tools_call(int id, const json& params);
+
+    // 响应生成
+    std::string reply_result(int id, const json& result);
+    std::string reply_error(int id, const std::string& message);
 };
 
+} // namespace mcp
+} // namespace chatbot
+} // namespace glasses
+
 // ============================================================================
-// 辅助函数
+// 模板实现
 // ============================================================================
 
-/**
- * @brief 创建简单的IoT设备描述符
- * @param name 设备名称
- * @param description 设备描述
- * @return IoT设备描述符
- */
-IoTDescriptor createSimpleDescriptor(
-    const std::string& name,
-    const std::string& description
-);
+namespace glasses {
+namespace chatbot {
+namespace mcp {
 
-/**
- * @brief 为描述符添加属性
- * @param descriptor 设备描述符
- * @param prop_name 属性名称
- * @param prop_description 属性描述
- * @param prop_type 属性类型（number/string/boolean）
- */
-void addProperty(
-    IoTDescriptor& descriptor,
-    const std::string& prop_name,
-    const std::string& prop_description,
-    const std::string& prop_type
-);
+template<typename T>
+Property::Property(const std::string& name, PropertyType type, const T& default_value)
+    : name_(name), type_(type), has_default_value_(true) {
+    value_ = default_value;
+}
 
-/**
- * @brief 为描述符添加方法
- * @param descriptor 设备描述符
- * @param method_name 方法名称
- * @param method_description 方法描述
- */
-void addMethod(
-    IoTDescriptor& descriptor,
-    const std::string& method_name,
-    const std::string& method_description
-);
+template<typename T>
+T Property::value() const {
+    return std::get<T>(value_);
+}
 
-/**
- * @brief 为方法添加参数
- * @param descriptor 设备描述符
- * @param method_name 方法名称
- * @param param_name 参数名称
- * @param param_description 参数描述
- * @param param_type 参数类型（number/string/boolean）
- */
-void addMethodParameter(
-    IoTDescriptor& descriptor,
-    const std::string& method_name,
-    const std::string& param_name,
-    const std::string& param_description,
-    const std::string& param_type
-);
+template<typename T>
+void Property::set_value(const T& value) {
+    if constexpr (std::is_same_v<T, int>) {
+        if (min_value_.has_value() && value < min_value_.value()) {
+            throw std::invalid_argument("Value is below minimum allowed: " + std::to_string(min_value_.value()));
+        }
+        if (max_value_.has_value() && value > max_value_.value()) {
+            throw std::invalid_argument("Value exceeds maximum allowed: " + std::to_string(max_value_.value()));
+        }
+    }
+    value_ = value;
+}
 
 } // namespace mcp
 } // namespace chatbot
 } // namespace glasses
 
 #endif // MCP_H
-
 
