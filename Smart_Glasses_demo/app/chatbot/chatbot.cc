@@ -1,13 +1,9 @@
-/**
- * @file chatbot.cc
- * @brief xiaozhi AI主控制器实现
- */
-
 #include "chatbot.h"
 #include "protocol_handle/handle.h"
 #include "statemachine/machine.h"
 #include "mcp/mcp.h"
 #include "uuid/uuid.h"
+#include "wakeword/wakeword.h"
 #include "../protocol/websocket/websocket.h"
 #include "../tool/mac/mac.h"
 
@@ -15,6 +11,7 @@
 #include <atomic>
 #include <mutex>
 #include <thread>
+#include <samplerate.h>
 
 namespace glasses {
 namespace chatbot {
@@ -24,10 +21,7 @@ using namespace protocol;
 using namespace statemachine;
 using namespace mcp;
 using namespace tool;
-
-// 导入MCP类型
-using mcp::MethodHandler;
-using mcp::StateGetter;
+using namespace wakeword;
 
 // ============================================================================
 // 全局音频回调管理（用于C函数指针回调）
@@ -36,6 +30,9 @@ using mcp::StateGetter;
 // 全局AIManager实例指针（用于音频回调）
 static AIManager* g_ai_manager_instance = nullptr;
 static std::mutex g_callback_mutex;
+
+// 唤醒词音频数据回调（声明，定义在文件末尾）
+void wakewordAudioCallback(void* ai_manager, const int16_t* data, int len);
 
 // ============================================================================
 // AIManager::Impl 内部实现
@@ -50,10 +47,14 @@ public:
     std::unique_ptr<ProtocolHandler> protocol_handler;
     std::unique_ptr<AIStateMachine> state_machine;
     std::unique_ptr<MCPManager> mcp_manager;
+    std::unique_ptr<WakewordDetector> wakeword_detector;
     websocket::WebSocketClient* ws_client;
     
     // 音频系统
     audio_system_t* audio_system;
+    
+    // 唤醒词重采样器（48kHz → 16kHz）
+    SRC_STATE* wakeword_resampler;
     
     // 状态
     std::atomic<AIManagerState> manager_state;
@@ -73,6 +74,7 @@ public:
         : config(cfg)
         , ws_client(nullptr)
         , audio_system(nullptr)
+        , wakeword_resampler(nullptr)
         , manager_state(AIManagerState::UNINITIALIZED) {
     }
     
@@ -85,6 +87,11 @@ public:
             ws_client->disconnect();
             delete ws_client;
             ws_client = nullptr;
+        }
+        
+        if (wakeword_resampler) {
+            src_delete(wakeword_resampler);
+            wakeword_resampler = nullptr;
         }
     }
     
@@ -104,9 +111,13 @@ public:
     // 内部方法声明
     void setupProtocolCallbacks();
     void setupStateMachineCallbacks();
+    void setupWebSocketCallbacks();
     void handleProtocolMessage(const char* buffer, size_t size);
     void handleTTSAudio(const uint8_t* data, size_t size);
     void handleAudioData(const uint8_t* data, size_t size);
+    void handleWakewordAudio(const int16_t* data, int length);
+    void onWakewordDetected(int hotword_index);
+    void onWebSocketClosed();
     void sendMCPDescriptors();
 };
 
@@ -145,7 +156,7 @@ bool AIManager::initialize(audio_system_t* audio_system) {
     std::cout << "[AIManager] Initializing xiaozhi AI Manager..." << std::endl;
     std::cout << "[AIManager] ========================================" << std::endl;
     
-    // 1. 获取设备ID（MAC地址）
+    // 获取设备ID（MAC地址）
     if (pImpl_->config.device_id.empty()) {
         pImpl_->config.device_id = getWirelessMacAddress();
         if (pImpl_->config.device_id.empty()) {
@@ -155,7 +166,7 @@ bool AIManager::initialize(audio_system_t* audio_system) {
     }
     std::cout << "[AIManager] ✓ Device-Id: " << pImpl_->config.device_id << std::endl;
     
-    // 2. 获取客户端ID（UUID）
+    // 获取客户端ID（UUID）
     if (pImpl_->config.client_id.empty()) {
         pImpl_->config.client_id = generateUUID(pImpl_->config.config_file_path);
         if (pImpl_->config.client_id.empty()) {
@@ -165,25 +176,67 @@ bool AIManager::initialize(audio_system_t* audio_system) {
     }
     std::cout << "[AIManager] ✓ Client-Id: " << pImpl_->config.client_id << std::endl;
     
-    // 3. 创建协议处理器
+    // 创建协议处理器
     pImpl_->protocol_handler = std::make_unique<ProtocolHandler>();
     std::cout << "[AIManager] ✓ Protocol handler created" << std::endl;
     
-    // 4. 创建AI状态机
+    // 创建AI状态机
     pImpl_->state_machine = std::make_unique<AIStateMachine>();
     std::cout << "[AIManager] ✓ State machine created" << std::endl;
     
-    // 5. 创建MCP管理器
+    // 创建MCP管理器
     pImpl_->mcp_manager = std::make_unique<MCPManager>();
     std::cout << "[AIManager] ✓ MCP manager created" << std::endl;
     
-    // 6. 设置协议处理器回调
+    // 创建唤醒词检测器
+    pImpl_->wakeword_detector = std::make_unique<WakewordDetector>();
+    
+    // 配置唤醒词检测器
+    std::string resource_file = "./third_party/snowboy/resources/common.res";
+    std::string model_file = "./third_party/snowboy/resources/models/echo.pmdl";
+    float sensitivity = 0.5f;
+    float audio_gain = 1.0f;
+    
+    std::cout << "[Wakeword] Initializing detector..." << std::endl;
+    std::cout << "[Wakeword]   Resource: " << resource_file << std::endl;
+    std::cout << "[Wakeword]   Model: " << model_file << std::endl;
+    std::cout << "[Wakeword]   Sensitivity: " << sensitivity << std::endl;
+    std::cout << "[Wakeword]   Audio Gain: " << audio_gain << std::endl;
+    
+    if (pImpl_->wakeword_detector->initialize(resource_file, model_file, sensitivity, audio_gain)) {
+        std::cout << "[AIManager] ✓ Wakeword detector initialized!" << std::endl;
+        std::cout << "[Wakeword]   Sample rate: " << pImpl_->wakeword_detector->getSampleRate() << " Hz" << std::endl;
+        
+        // 设置唤醒词检测回调
+        pImpl_->wakeword_detector->setCallback([this](int hotword_index) {
+            pImpl_->onWakewordDetected(hotword_index);
+        });
+        
+        // 创建重采样器（48kHz → 16kHz）
+        int wakeword_sr = pImpl_->wakeword_detector->getSampleRate();  // 16000
+        if (wakeword_sr != pImpl_->config.audio_sample_rate) {
+            int error;
+            pImpl_->wakeword_resampler = src_new(SRC_SINC_FASTEST, 1, &error);
+            if (!pImpl_->wakeword_resampler) {
+                std::cerr << "[AIManager] ⚠ Failed to create wakeword resampler: " 
+                          << src_strerror(error) << std::endl;
+            } else {
+                std::cout << "[AIManager] ✓ Wakeword resampler created ("
+                          << pImpl_->config.audio_sample_rate << "Hz → " << wakeword_sr << "Hz)" << std::endl;
+            }
+        }
+    } else {
+        std::cerr << "[AIManager] ⚠ Failed to initialize wakeword detector" << std::endl;
+        std::cerr << "[AIManager]   Will continue without wakeword detection" << std::endl;
+    }
+    
+    // 设置协议处理器回调
     pImpl_->setupProtocolCallbacks();
     
-    // 7. 设置状态机回调
+    // 设置状态机回调
     pImpl_->setupStateMachineCallbacks();
     
-    // 8. 创建WebSocket客户端
+    // 创建WebSocket客户端
     pImpl_->ws_client = websocket::createXiaozhiClient(
         pImpl_->config.device_id,
         pImpl_->config.client_id,
@@ -204,13 +257,21 @@ bool AIManager::initialize(audio_system_t* audio_system) {
     }
     std::cout << "[AIManager] ✓ WebSocket client created" << std::endl;
     
-    // 9. 设置音频回调
+    // 设置WebSocket回调
+    pImpl_->setupWebSocketCallbacks();
+    
+    // 设置音频回调
     if (set_ai_audio_callback(audio_system, this, 
         glasses::chatbot::audioDataCallback) != AUDIO_ERROR_NONE) {
         std::cerr << "[AIManager] ✗ Failed to set audio callback" << std::endl;
         return false;
     }
     std::cout << "[AIManager] ✓ AI audio callback set" << std::endl;
+    
+    // 设置唤醒词音频回调
+    audio_system->wakeword_audio_callback = wakewordAudioCallback;
+    audio_system->ai_manager = this;
+    std::cout << "[AIManager] ✓ Wakeword audio callback set" << std::endl;
     
     pImpl_->setState(AIManagerState::INITIALIZED);
     std::cout << "[AIManager] ========================================" << std::endl;
@@ -301,13 +362,13 @@ bool AIManager::startListening(const std::string& mode) {
     
     std::cout << "[AIManager] Starting listening (mode: " << mode << ")..." << std::endl;
     
-    // 1. 启动音频推流
+    // 启动音频推流
     if (start_ai_audio_stream(pImpl_->audio_system) != AUDIO_ERROR_NONE) {
         std::cerr << "[AIManager] ✗ Failed to start audio stream" << std::endl;
         return false;
     }
     
-    // 2. 发送listen消息
+    // 发送listen消息
     ListenState listen_state = ListenState::START;
     ListenMode listen_mode = ListenMode::AUTO;
     
@@ -325,7 +386,7 @@ bool AIManager::startListening(const std::string& mode) {
         return false;
     }
     
-    // 3. 触发状态机
+    // 触发状态机
     pImpl_->state_machine->onListenStart();
     
     std::cout << "[AIManager] ✓ Listening started" << std::endl;
@@ -499,42 +560,33 @@ void AIManager::Impl::setupProtocolCallbacks() {
                 state_machine->onTTS_start();
                 break;
                 
-            case TTSState::SENTENCE_START:
+            case TTSState::SENTENCE_START: {
                 std::cout << "[AIManager] ← TTS: SENTENCE_START - \"" 
                           << msg.text << "\"" << std::endl;
                 state_machine->onTTS_sentenceStart(msg.text);
+                
+                // 重要！每个句子开始时也发送listen请求（参考官方xiaozhi）
+                std::string listen_msg = protocol_handler->generateListenMessage(
+                    ListenState::START, ListenMode::AUTO);
+                ws_client->sendText(listen_msg.c_str(), listen_msg.length());
                 break;
+            }
                 
             case TTSState::STOP:
                 std::cout << "[AIManager] ← TTS: STOP" << std::endl;
                 state_machine->onTTS_stop(2000);  // 延迟2秒
                 
-                // TTS结束后，重新启动音频流和监听
+                // 重要！TTS结束后，主动发送listen请求告诉服务器继续监听
                 std::thread([this]() {
                     std::this_thread::sleep_for(std::chrono::milliseconds(2500));
                     
-                    std::cout << "[AIManager] Checking state after TTS delay..." << std::endl;
-                    std::cout << "[AIManager]   State: " << AIStateMachine::stateToString(state_machine->getState()) << std::endl;
-                    std::cout << "[AIManager]   Audio streaming: " << (audio_system->is_ai_streaming ? "YES" : "NO") << std::endl;
-                    std::cout << "[AIManager]   Audio recording: " << (audio_system->isRecording ? "YES" : "NO") << std::endl;
+                    std::cout << "[AIManager] TTS finished, sending listen request..." << std::endl;
                     
-                    if (state_machine->getState() == AIState::LISTENING) {
-                        // 重新启动音频流（如果停止了）
-                        if (!audio_system->is_ai_streaming) {
-                            std::cout << "[AIManager] Restarting audio stream..." << std::endl;
-                            if (start_ai_audio_stream(audio_system) == AUDIO_ERROR_NONE) {
-                                std::cout << "[AIManager] ✓ Audio stream restarted" << std::endl;
-                            } else {
-                                std::cerr << "[AIManager] ✗ Failed to restart audio stream" << std::endl;
-                            }
-                        }
-                        
-                        // 重新发送listen消息
-                        std::string listen_msg = protocol_handler->generateListenMessage(
-                            ListenState::START, ListenMode::AUTO);
-                        ws_client->sendText(listen_msg.c_str(), listen_msg.length());
-                        std::cout << "[AIManager] → Continue listening (listen message sent)" << std::endl;
-                    }
+                    // 主动发送listen消息（参考官方xiaozhi逻辑）
+                    std::string listen_msg = protocol_handler->generateListenMessage(
+                        ListenState::START, ListenMode::AUTO);
+                    ws_client->sendText(listen_msg.c_str(), listen_msg.length());
+                    std::cout << "[AIManager] ✓ Listen request sent" << std::endl;
                 }).detach();
                 break;
         }
@@ -575,7 +627,7 @@ void AIManager::Impl::setupProtocolCallbacks() {
 void AIManager::Impl::setupStateMachineCallbacks() {
     // 状态变化回调
     state_machine->setStateChangeCallback([this](AIState old_state, AIState new_state) {
-        std::cout << "[AIManager] State: " 
+        std::cout << "[AIManager] AI State: " 
                   << AIStateMachine::stateToString(old_state) << " → " 
                   << AIStateMachine::stateToString(new_state) << std::endl;
     });
@@ -585,11 +637,36 @@ void AIManager::Impl::setupStateMachineCallbacks() {
         if (enable) {
             std::cout << "[AIManager] ✅ Audio upload ENABLED" << std::endl;
             // 实际控制在recordCallback中通过is_ai_streaming控制
-            // 这里可以添加额外的控制逻辑
         } else {
             std::cout << "[AIManager] ❌ Audio upload DISABLED" << std::endl;
+            
+            // 当禁用音频上传时，检查是否需要停止AI音频流
+            // 如果当前在IDLE状态且禁用上传，说明是回到IDLE了，需要停止AI音频流
+            AIState current_state = state_machine->getState();
+            if (current_state == AIState::IDLE && audio_system && audio_system->is_ai_streaming) {
+                std::cout << "[AIManager] Back to IDLE, stopping AI audio stream..." << std::endl;
+                stop_ai_audio_stream(audio_system);
+                std::cout << "[AIManager] ✓ AI audio stream stopped (back to IDLE for wakeword)" << std::endl;
+            }
         }
     });
+}
+
+void AIManager::Impl::setupWebSocketCallbacks() {
+    // 设置WebSocket关闭回调
+    std::cout << "[AIManager] ✓ WebSocket close callback configured" << std::endl;
+
+    // TODO: ws关闭回调的空实现
+    // ws_client->setOnCloseCallback([this]() { onWebSocketClosed(); });
+}
+
+void AIManager::Impl::onWebSocketClosed() {
+    std::cout << "[AIManager] WebSocket connection closed!" << std::endl;
+    
+    // 通知状态机WebSocket已关闭
+    if (state_machine) {
+        state_machine->onWebSocketClosed();
+    }
 }
 
 void AIManager::Impl::handleProtocolMessage(const char* buffer, size_t size) {
@@ -602,8 +679,6 @@ void AIManager::Impl::handleProtocolMessage(const char* buffer, size_t size) {
 }
 
 void AIManager::Impl::handleTTSAudio(const uint8_t* data, size_t size) {
-    // std::cout << "[AIManager] ← TTS Audio: " << size << " bytes" << std::endl;
-    
     // 解码Opus
     uint8_t pcm_buffer[8192];
     size_t pcm_size = 8192;
@@ -663,6 +738,99 @@ void AIManager::Impl::sendMCPDescriptors() {
 }
 
 // ========================================================================
+// 唤醒词处理方法
+// ========================================================================
+
+void AIManager::Impl::onWakewordDetected(int hotword_index) {
+    std::cout << "\n╔════════════════════════════════════════╗" << std::endl;
+    std::cout << "║   🎙️  唤醒词检测到！Hotword " << hotword_index << "       ║" << std::endl;
+    std::cout << "╚════════════════════════════════════════╝\n" << std::endl;
+    
+    // 检查当前状态
+    AIState current_state = state_machine->getState();
+    if (current_state != AIState::IDLE) {
+        std::cout << "[AIManager] ⚠ Not in IDLE state, ignoring wakeword" << std::endl;
+        return;
+    }
+    
+    // 触发状态机事件
+    state_machine->onWakewordDetected();
+    
+    // 自动开始监听
+    std::cout << "[AIManager] → Auto starting listening after wakeword..." << std::endl;
+    
+    // 启动AI音频流
+    if (start_ai_audio_stream(audio_system) != AUDIO_ERROR_NONE) {
+        std::cerr << "[AIManager] ✗ Failed to start audio stream" << std::endl;
+        return;
+    }
+    
+    // 发送listen消息
+    std::string listen_msg = protocol_handler->generateListenMessage(
+        ListenState::START, ListenMode::AUTO);
+    
+    if (!ws_client->sendText(listen_msg.c_str(), listen_msg.length())) {
+        std::cerr << "[AIManager] ✗ Failed to send listen message" << std::endl;
+        stop_ai_audio_stream(audio_system);
+        return;
+    }
+    
+    // 触发状态机进入监听状态
+    state_machine->onListenStart();
+    
+    std::cout << "[AIManager] ✓ Listening started automatically" << std::endl;
+}
+
+void AIManager::Impl::handleWakewordAudio(const int16_t* data, int length) {
+    // 只在 IDLE 状态下进行唤醒词检测
+    if (state_machine->getState() != AIState::IDLE) {
+        return;
+    }
+    
+    if (!wakeword_detector || !wakeword_detector->isEnabled()) {
+        return;
+    }
+    
+    // 如果需要重采样
+    if (wakeword_resampler) {
+        int wakeword_sr = wakeword_detector->getSampleRate();
+        double src_ratio = (double)wakeword_sr / config.audio_sample_rate;
+        
+        // 准备重采样
+        SRC_DATA src_data;
+        std::vector<float> input_float(length);
+        std::vector<float> output_float(length * 2);  // 预留空间
+        
+        // int16 → float
+        src_short_to_float_array(data, input_float.data(), length);
+        
+        // 重采样
+        src_data.data_in = input_float.data();
+        src_data.input_frames = length;
+        src_data.data_out = output_float.data();
+        src_data.output_frames = output_float.size();
+        src_data.src_ratio = src_ratio;
+        src_data.end_of_input = 0;
+        
+        int error = src_process(wakeword_resampler, &src_data);
+        if (error) {
+            std::cerr << "[AIManager] Wakeword resample error: " << src_strerror(error) << std::endl;
+            return;
+        }
+        
+        // float → int16
+        std::vector<int16_t> resampled(src_data.output_frames_gen);
+        src_float_to_short_array(output_float.data(), resampled.data(), src_data.output_frames_gen);
+        
+        // 唤醒词检测
+        wakeword_detector->processAudioFrame(resampled.data(), resampled.size());
+    } else {
+        // 无需重采样，直接检测
+        wakeword_detector->processAudioFrame(data, length);
+    }
+}
+
+// ========================================================================
 // 音频数据发送回调（命名空间内函数）
 // ========================================================================
 
@@ -696,6 +864,20 @@ void AIManager::Impl::handleAudioData(const uint8_t* data, size_t size) {
     
     // 发送Opus音频数据到服务器
     ws_client->sendBinary(reinterpret_cast<const char*>(data), size);
+}
+
+// ========================================================================
+// 唤醒词音频回调实现（必须在 Impl 定义之后）
+// ========================================================================
+
+void wakewordAudioCallback(void* ai_manager, const int16_t* data, int len) {
+    if (!ai_manager) {
+        return;
+    }
+    
+    // 调用AIManager的handleWakewordAudio
+    AIManager* manager = static_cast<AIManager*>(ai_manager);
+    manager->pImpl_->handleWakewordAudio(data, len);
 }
 
 } // namespace chatbot

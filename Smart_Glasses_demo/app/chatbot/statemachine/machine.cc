@@ -1,8 +1,3 @@
-/**
- * @file machine.cc
- * @brief AI状态机模块实现
- */
-
 #include "machine.h"
 #include <iostream>
 #include <thread>
@@ -24,10 +19,10 @@ public:
     AudioUploadCallback audio_upload_callback;
     
     std::mutex mutex;
-    std::thread delay_thread;
+    std::thread delay_thread;  // TTS结束延迟线程
 
     Impl()
-        : current_state(AIState::UNKNOWN)
+        : current_state(AIState::IDLE)
         , audio_upload_enabled(false)
         , state_change_callback(nullptr)
         , audio_upload_callback(nullptr) {
@@ -41,7 +36,7 @@ public:
     }
 
     void changeState(AIState new_state) {
-        AIState old_state = current_state.load();
+        AIState old_state = current_state.exchange(new_state);
         
         if (old_state == new_state) {
             return;  // 状态未改变，不需要通知
@@ -49,7 +44,7 @@ public:
 
         current_state = new_state;
         
-        std::cout << "[StateMachine] State changed: " 
+        std::cout << "[StateMachine] State: " 
                   << AIStateMachine::stateToString(old_state) << " → " 
                   << AIStateMachine::stateToString(new_state) << std::endl;
 
@@ -80,7 +75,7 @@ public:
 
 AIStateMachine::AIStateMachine()
     : pimpl_(new Impl()) {
-    std::cout << "[StateMachine] AI state machine created" << std::endl;
+    std::cout << "[StateMachine] V2 AI state machine created" << std::endl;
 }
 
 AIStateMachine::~AIStateMachine() {
@@ -109,10 +104,18 @@ bool AIStateMachine::isState(AIState state) const {
 void AIStateMachine::onHello() {
     std::cout << "[StateMachine] Event: Hello received" << std::endl;
     
-    // Hello握手成功 → 进入IDLE状态
+    // Hello握手成功 → 进入IDLE状态（待机，等待唤醒词）
     pimpl_->changeState(AIState::IDLE);
     
-    // 此时不启用音频上传，等待listen消息
+    // IDLE状态下不启用音频上传到服务器，只做本地唤醒词检测
+    pimpl_->setAudioUpload(false);
+}
+
+void AIStateMachine::onWakewordDetected() {
+    std::cout << "[StateMachine] Event: Wakeword detected!" << std::endl;
+    
+    // 唤醒词检测到，准备进入监听状态
+    // 注意：实际的状态切换在 onListenStart() 中完成
 }
 
 void AIStateMachine::onListenStart() {
@@ -132,9 +135,11 @@ void AIStateMachine::onSTT(const std::string& text, bool is_final) {
     if (is_final) {
         // 收到最终识别结果 → AI开始思考
         pimpl_->changeState(AIState::THINKING);
+        
+        // 停止音频上传（用户已说完）
+        pimpl_->setAudioUpload(false);
     }
-    
-    // 音频上传保持开启（直到TTS开始）
+    // 否则保持LISTENING状态，继续上传音频
 }
 
 void AIStateMachine::onLLM(const std::string& text, bool is_final) {
@@ -142,49 +147,66 @@ void AIStateMachine::onLLM(const std::string& text, bool is_final) {
               << (is_final ? "true" : "false") << ")" << std::endl;
     
     // LLM回复期间，状态保持THINKING
-    // （实际上LLM是流式返回，多次调用此函数）
+    // （实际上LLM是流式返回，会多次调用此函数）
 }
 
 void AIStateMachine::onTTS_start() {
     std::cout << "[StateMachine] Event: TTS start" << std::endl;
     
-    // TTS开始 → 禁用音频上传（避免AI听到自己的声音）
-    pimpl_->setAudioUpload(false);
+    // TTS开始 → 进入SPEAKING状态
+    pimpl_->changeState(AIState::SPEAKING);
     
-    // 状态保持LISTENING（xiaozhi的设计）
-    // 注意：这里不改为SPEAKING，因为xiaozhi在sentence_start时才改为SPEAKING
+    // 音频上传已在THINKING时禁用，保持禁用
 }
 
 void AIStateMachine::onTTS_sentenceStart(const std::string& text) {
     std::cout << "[StateMachine] Event: TTS sentence start - \"" << text << "\"" << std::endl;
     
-    // 句子开始 → 进入SPEAKING状态
-    pimpl_->changeState(AIState::SPEAKING);
-    
+    // 句子开始 → 状态保持SPEAKING
     // 音频上传保持禁用
 }
 
 void AIStateMachine::onTTS_stop(int delay_ms) {
     std::cout << "[StateMachine] Event: TTS stop (delay: " << delay_ms << "ms)" << std::endl;
     
-    // 等待延迟线程结束（如果有）
+    // 等待之前的延迟线程结束（如果有）
     if (pimpl_->delay_thread.joinable()) {
         pimpl_->delay_thread.join();
     }
     
-    // TTS结束 → 延迟后恢复监听
+    // TTS结束 → 延迟后回到LISTENING状态（继续监听）
     pimpl_->delay_thread = std::thread([this, delay_ms]() {
         // 等待指定时间（避免AI听到自己说话的尾音）
         std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
         
-        // 恢复监听状态
+        // 回到LISTENING状态（继续监听）
         pimpl_->changeState(AIState::LISTENING);
         
-        // 恢复音频上传
+        // 启用音频上传，继续监听用户说话
         pimpl_->setAudioUpload(true);
         
-        std::cout << "[StateMachine] Resumed listening after TTS" << std::endl;
+        std::cout << "[StateMachine] Back to LISTENING, continuous conversation mode" << std::endl;
+        std::cout << "[StateMachine] (Server will timeout after 5min silence)" << std::endl;
     });
+}
+
+void AIStateMachine::onWebSocketClosed() {
+    std::cout << "[StateMachine] Event: WebSocket closed (server timeout or disconnect)" << std::endl;
+    
+    AIState current = pimpl_->current_state.load();
+    
+    // 如果在对话中（LISTENING/THINKING/SPEAKING），回到IDLE
+    if (current == AIState::LISTENING || 
+        current == AIState::THINKING || 
+        current == AIState::SPEAKING) {
+        
+        std::cout << "[StateMachine] Session ended by server, returning to IDLE..." << std::endl;
+        
+        pimpl_->changeState(AIState::IDLE);
+        pimpl_->setAudioUpload(false);
+        
+        std::cout << "[StateMachine] Back to IDLE, waiting for wakeword..." << std::endl;
+    }
 }
 
 void AIStateMachine::onError(const std::string& error_msg) {
@@ -243,8 +265,6 @@ void AIStateMachine::setAudioUploadCallback(AudioUploadCallback callback) {
 
 std::string AIStateMachine::stateToString(AIState state) {
     switch (state) {
-        case AIState::UNKNOWN:      return "UNKNOWN";
-        case AIState::STARTING:     return "STARTING";
         case AIState::IDLE:         return "IDLE";
         case AIState::LISTENING:    return "LISTENING";
         case AIState::THINKING:     return "THINKING";

@@ -27,6 +27,10 @@ target_include_directories(app PRIVATE ${SPEEX_INCLUDE_DIRS})
 target_link_directories(app PRIVATE ${SPEEX_LIBRARY_DIRS})
 target_link_libraries(app speexdsp)
 
+# snowboy 唤醒词检测依赖
+target_include_directories(app PRIVATE ${SNOWBOY_INCLUDE_DIRS})
+target_link_libraries(app ${SNOWBOY_LIBRARY})
+
 # 设置头文件包含目录
 target_include_directories(app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

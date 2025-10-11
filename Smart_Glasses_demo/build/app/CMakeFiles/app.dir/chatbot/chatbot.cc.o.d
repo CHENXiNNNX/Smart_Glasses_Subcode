@@ -623,6 +623,8 @@ app/CMakeFiles/app.dir/chatbot/chatbot.cc.o: \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/mcp/mcp.h \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/mcp/../protocol_handle/handle.h \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/uuid/uuid.h \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/wakeword/wakeword.h \
+ /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/thread \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/../protocol/websocket/websocket.h \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/../tool/mac/mac.h \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/iostream \
@@ -644,5 +646,4 @@ app/CMakeFiles/app.dir/chatbot/chatbot.cc.o: \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/basic_ios.tcc \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/ostream.tcc \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/istream \
- /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/istream.tcc \
- /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/thread
+ /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/istream.tcc

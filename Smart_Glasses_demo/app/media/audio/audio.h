@@ -18,9 +18,8 @@
 // 音频模式枚举
 typedef enum {
     AUDIO_MODE_NONE = 0,
-    AUDIO_MODE_AI,
-    AUDIO_MODE_WEBRTC,
-    AUDIO_MODE_WAKEWORD,
+    AUDIO_MODE_AI,      // AI模式：包括唤醒词检测和对话
+    AUDIO_MODE_WEBRTC,  // WebRTC模式：用于音视频通话
 } audio_mode_t;
 
 // 音频错误类型枚举
@@ -107,6 +106,9 @@ typedef struct {
     void *ai_manager;               // AI管理器指针
     bool is_ai_streaming;           // AI音频推流状态
     void (*ai_audio_callback)(void *data, int len, uint64_t timestamp); // AI音频回调函数
+    void (*wakeword_audio_callback)(void *ai_manager, const int16_t *data, int len); // 唤醒词音频回调函数
+    SRC_STATE* ai_resampler;        // AI专用重采样器（48kHz → 16kHz）
+    std::vector<int16_t> ai_resample_buffer; // AI重采样缓冲区（累积到320样本）
     
     // 时间同步上下文
     sync_context_t *sync_ctx;        // 时间同步上下文指针

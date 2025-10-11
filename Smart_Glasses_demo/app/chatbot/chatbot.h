@@ -1,13 +1,3 @@
-/**
- * @file chatbot.h
- * @brief xiaozhi AI主控制器
- * @details 整合WebSocket、协议处理、状态机、MCP和音频系统
- *          实现完整的AI对话功能
- * 
- * @author Smart_Glasses Team
- * @date 2025-10-10
- */
-
 #ifndef CHATBOT_H
 #define CHATBOT_H
 
@@ -118,9 +108,10 @@ using ErrorOccurredCallback = std::function<void(const std::string& error)>;
  * @details 负责整合所有AI相关模块:
  *          - WebSocket通信
  *          - 协议处理
- *          - 状态机管理
+ *          - 状态机管理（V2版本）
  *          - MCP工具调用
  *          - 音频系统集成
+ *          - 唤醒词检测
  */
 class AIManager {
 public:
@@ -273,10 +264,14 @@ private:
     
     // 允许音频回调访问pImpl_
     friend void audioDataCallback(void* data, int len, uint64_t timestamp);
+    friend void wakewordAudioCallback(void* ai_manager, const int16_t* data, int len);
 };
 
 // 音频回调函数（C函数指针兼容）
 void audioDataCallback(void* data, int len, uint64_t timestamp);
+
+// 唤醒词音频回调函数（C函数指针兼容）
+void wakewordAudioCallback(void* ai_manager, const int16_t* data, int len);
 
 } // namespace chatbot
 } // namespace glasses

@@ -180,7 +180,7 @@ CMakeFiles/main.dir/main.cpp.o
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/atomic_base.h
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/atomic_lockfree_defines.h
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/backward/auto_ptr.h
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/wakeword/wakeword.h
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/chatbot.h
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/functional
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/std_function.h
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/unordered_map
@@ -198,7 +198,6 @@ CMakeFiles/main.dir/main.cpp.o
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/algorithmfwd.h
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_heap.h
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/uniform_int_dist.h
- /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/atomic
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/media/audio/audio.h
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/queue
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/deque
@@ -642,5 +641,11 @@ CMakeFiles/main.dir/main.cpp.o
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_map.h
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_multimap.h
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/media/sync.h
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/mcp/mcp.h
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/protocol_handle/handle.h
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/activation/activation.h
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/uuid/uuid.h
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/tool/mac/mac.h
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/media/audio/audio.h
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/media/sync.h
 

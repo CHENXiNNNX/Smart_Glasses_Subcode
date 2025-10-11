@@ -25,6 +25,26 @@ static int recordCallback(const void *inputBuffer, void *outputBuffer,
     if (audio_system->a3_state) {
         process_audio_3a(audio_system, frame);
     }
+    
+    // 唤醒词检测（仅在非AI流式传输状态下）
+    static bool logged_wakeword_callback_status = false;
+    if (!logged_wakeword_callback_status) {
+        if (audio_system->wakeword_audio_callback && audio_system->ai_manager) {
+            std::cout << "[Audio] ✓ Wakeword callback is set and will be called" << std::endl;
+        } else {
+            std::cout << "[Audio] ✗ Wakeword callback NOT set: callback=" 
+                      << (audio_system->wakeword_audio_callback ? "YES" : "NO")
+                      << ", ai_manager=" << (audio_system->ai_manager ? "YES" : "NO") << std::endl;
+        }
+        logged_wakeword_callback_status = true;
+    }
+    
+    // 只在非AI流式传输状态下处理唤醒词检测（避免与AI音频上传冲突）
+    if (!audio_system->is_ai_streaming && 
+        audio_system->wakeword_audio_callback && 
+        audio_system->ai_manager) {
+        audio_system->wakeword_audio_callback(audio_system->ai_manager, frame.data(), frame.size());
+    }
 
     {
         std::lock_guard<std::mutex> lock(audio_system->recordedAudioMutex);
@@ -81,56 +101,75 @@ static int recordCallback(const void *inputBuffer, void *outputBuffer,
             opus_encoder_ctl(audio_system->ai_encoder, OPUS_SET_VBR(1));
             opus_encoder_ctl(audio_system->ai_encoder, OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));
             
-            // 初始化重采样器 48kHz → 16kHz
-            if (init_audio_resample(audio_system, 
-                                   48000,  // 输入48kHz
-                                   16000,  // 输出16kHz (xiaozhi期望)
-                                   1,      // 单声道
-                                   SRC_SINC_BEST_QUALITY) != AUDIO_ERROR_NONE) {
-                std::cerr << "[Audio] ✗ Failed to init resampler for AI" << std::endl;
+            // 创建AI专用重采样器 48kHz → 16kHz
+            audio_system->ai_resampler = src_new(SRC_SINC_BEST_QUALITY, 1, &error);
+            if (!audio_system->ai_resampler) {
+                std::cerr << "[Audio] ✗ Failed to create AI resampler: " << src_strerror(error) << std::endl;
                 opus_encoder_destroy(audio_system->ai_encoder);
                 audio_system->ai_encoder = nullptr;
                 return paContinue;
             }
             
-            std::cout << "[Audio] ✓ AI audio pipeline: 48kHz → Resample → 16kHz → Opus" << std::endl;
+            // 清空重采样缓冲区
+            audio_system->ai_resample_buffer.clear();
+            
+            std::cout << "[Audio] ✓ AI audio pipeline: 48kHz → Resample → 16kHz → Opus (independent resampler)" << std::endl;
         }
         
-        // 1. 重采样 48kHz → 16kHz
-        std::vector<int16_t> resampled_frame;
-        if (process_audio_resample(audio_system, frame, resampled_frame) != AUDIO_ERROR_NONE) {
-            std::cerr << "[Audio] ✗ Resample failed" << std::endl;
+        // 1. 重采样 48kHz → 16kHz (使用独立的AI resampler)
+        double src_ratio = 16000.0 / 48000.0;  // 1/3
+        SRC_DATA src_data;
+        std::vector<float> input_float(frame.size());
+        std::vector<float> output_float(frame.size());  // 预留足够空间
+        
+        // int16 → float
+        src_short_to_float_array(frame.data(), input_float.data(), frame.size());
+        
+        // 重采样
+        src_data.data_in = input_float.data();
+        src_data.input_frames = frame.size();
+        src_data.data_out = output_float.data();
+        src_data.output_frames = output_float.size();
+        src_data.src_ratio = src_ratio;
+        src_data.end_of_input = 0;
+        
+        int resample_error = src_process(audio_system->ai_resampler, &src_data);
+        if (resample_error) {
+            std::cerr << "[Audio] ✗ AI resample error: " << src_strerror(resample_error) << std::endl;
             return paContinue;
         }
         
-        // 2. 使用AI专用编码器编码 (16kHz)
-        uint8_t opus_buffer[2048];
-        
-        // 调试：打印重采样后的帧大小
-        static bool first_encode = true;
-        if (first_encode) {
-            std::cout << "[Audio] Resampled frame size: " << resampled_frame.size() 
-                      << " samples (expected 320 for 16kHz 20ms)" << std::endl;
-            first_encode = false;
+        // float → int16，添加到累积缓冲区
+        for (long i = 0; i < src_data.output_frames_gen; i++) {
+            float sample = output_float[i];
+            sample = std::max(-1.0f, std::min(1.0f, sample));
+            audio_system->ai_resample_buffer.push_back(static_cast<int16_t>(sample * 32767.0f));
         }
         
-        int encoded_bytes = opus_encode(audio_system->ai_encoder,
-                                       resampled_frame.data(),
-                                       resampled_frame.size(),  // 应该是320 samples
-                                       opus_buffer,
-                                       2048);
-        
-        if (encoded_bytes > 0) {
-            // 调用AI回调发送Opus数据
-            audio_system->ai_audio_callback(opus_buffer, encoded_bytes, 0);
-        } else {
-            static int error_count = 0;
-            error_count++;
-            if (error_count <= 5) {  // 只打印前5次错误
-                std::cerr << "[Audio] ✗ AI Opus encode failed (frame_size=" 
-                          << resampled_frame.size() << "): " 
-                          << opus_strerror(encoded_bytes) << std::endl;
+        // 2. 当累积到320样本（16kHz 20ms）时，进行Opus编码
+        const int TARGET_FRAME_SIZE = 320;  // 16kHz * 0.02s = 320 samples
+        while (audio_system->ai_resample_buffer.size() >= TARGET_FRAME_SIZE) {
+            // 取出320样本
+            std::vector<int16_t> encode_frame(audio_system->ai_resample_buffer.begin(),
+                                              audio_system->ai_resample_buffer.begin() + TARGET_FRAME_SIZE);
+            audio_system->ai_resample_buffer.erase(audio_system->ai_resample_buffer.begin(),
+                                                   audio_system->ai_resample_buffer.begin() + TARGET_FRAME_SIZE);
+            
+            // 使用AI专用编码器编码
+            uint8_t opus_buffer[2048];
+            int encoded_bytes = opus_encode(audio_system->ai_encoder,
+                                           encode_frame.data(),
+                                           TARGET_FRAME_SIZE,
+                                           opus_buffer,
+                                           sizeof(opus_buffer));
+            
+            if (encoded_bytes < 0) {
+                std::cerr << "[Audio] ✗ AI Opus encode failed: " << opus_strerror(encoded_bytes) << std::endl;
+                continue;
             }
+            
+            // 3. 通过回调发送编码后的数据
+            audio_system->ai_audio_callback(opus_buffer, encoded_bytes, get_nowus());
         }
     }
 
@@ -233,6 +272,9 @@ audio_error_t audio_system_init(audio_system_t *audio_system, sync_context_t *sy
     audio_system->ai_manager = nullptr;
     audio_system->is_ai_streaming = false;
     audio_system->ai_audio_callback = nullptr;
+    audio_system->wakeword_audio_callback = nullptr;
+    audio_system->ai_resampler = nullptr;
+    audio_system->ai_resample_buffer.clear();
     
     // 初始化PortAudio
     PaError err = Pa_Initialize();
@@ -310,6 +352,7 @@ audio_error_t set_audio_mode(audio_system_t *audio_system, audio_mode_t mode) {
 
     // 设置新的模式
     audio_system->current_mode = mode;
+    std::cout << "[Audio] Mode switched to: " << mode << std::endl;
     return AUDIO_ERROR_NONE;
 }
 
@@ -1019,20 +1062,9 @@ audio_error_t start_ai_audio_stream(audio_system_t *audio_system) {
         return AUDIO_ERROR_NONE;
     }
     
-    // 设置音频模式为AI
-    if (set_audio_mode(audio_system, AUDIO_MODE_AI) != AUDIO_ERROR_NONE) {
-        std::cerr << "[AUDIO] Failed to set audio mode to AI" << std::endl;
-        return AUDIO_ERROR_MODE_CONFLICT;
-    }
-    
-    // 开始录音
-    if (start_recording(audio_system) != AUDIO_ERROR_NONE) {
-        std::cerr << "[AUDIO] Failed to start recording for AI" << std::endl;
-        return AUDIO_ERROR_STREAM_START_FAILED;
-    }
-    
+    // 标记为AI流式传输状态（开始上传音频到服务器）
     audio_system->is_ai_streaming = true;
-    std::cout << "[AUDIO] AI audio stream started (48kHz, 1ch, 20ms, Opus)" << std::endl;
+    std::cout << "[AUDIO] AI audio streaming enabled (uploading to server)" << std::endl;
     return AUDIO_ERROR_NONE;
 }
 
@@ -1047,26 +1079,26 @@ audio_error_t stop_ai_audio_stream(audio_system_t *audio_system) {
         return AUDIO_ERROR_NONE;
     }
     
-    // 停止录音
-    if (stop_recording(audio_system) != AUDIO_ERROR_NONE) {
-        std::cerr << "[AUDIO] Failed to stop recording for AI" << std::endl;
-        return AUDIO_ERROR_STREAM_START_FAILED;
-    }
-    
-    // 释放AI编码器和重采样器（重置状态）
+    // 释放AI编码器
     if (audio_system->ai_encoder) {
         opus_encoder_destroy(audio_system->ai_encoder);
         audio_system->ai_encoder = nullptr;
         std::cout << "[AUDIO] AI encoder destroyed" << std::endl;
     }
     
-    if (audio_system->resample_config.is_initialized) {
-        release_audio_resample(audio_system);
-        std::cout << "[AUDIO] Resampler released" << std::endl;
+    // 释放AI专用重采样器
+    if (audio_system->ai_resampler) {
+        src_delete(audio_system->ai_resampler);
+        audio_system->ai_resampler = nullptr;
+        std::cout << "[AUDIO] AI resampler released" << std::endl;
     }
     
+    // 清空重采样缓冲区
+    audio_system->ai_resample_buffer.clear();
+    
+    // 停止上传音频到服务器，但保持录音继续运行（用于唤醒词检测）
     audio_system->is_ai_streaming = false;
-    std::cout << "[AUDIO] AI audio stream stopped" << std::endl;
+    std::cout << "[AUDIO] AI audio streaming disabled (stopped uploading, recording continues for wakeword)" << std::endl;
     return AUDIO_ERROR_NONE;
 }
 
