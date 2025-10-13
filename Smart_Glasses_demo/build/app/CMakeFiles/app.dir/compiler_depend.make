@@ -2719,7 +2719,625 @@ app/CMakeFiles/app.dir/media/audio/audio.cc.o: ../app/media/audio/audio.cc \
   /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstring \
   /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/algorithm
 
-app/CMakeFiles/app.dir/media/audio/audiov2.cc.o: ../app/media/audio/audiov2.cc
+app/CMakeFiles/app.dir/media/audio/audiov2.cc.o: ../app/media/audio/audiov2.cc \
+  ../app/media/audio/audiov2.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/memory \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_algobase.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/c++config.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/os_defines.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/features.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/uClibc_config.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/cdefs.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/cpu_defines.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/functexcept.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/exception_defines.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/cpp_type_traits.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ext/type_traits.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ext/numeric_traits.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_pair.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/move.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/concept_check.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/type_traits \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_iterator_base_types.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_iterator_base_funcs.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/debug/assertions.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_iterator.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/ptr_traits.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/debug/debug.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/predefined_ops.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/allocator.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/c++allocator.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ext/new_allocator.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/new \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/exception \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/exception.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/exception_ptr.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/cxxabi_init_exception.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/lib/gcc/arm-rockchip830-linux-uclibcgnueabihf/8.3.0/include/stddef.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/typeinfo \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/hash_bytes.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/nested_exception.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/memoryfwd.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_construct.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ext/alloc_traits.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/alloc_traits.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_uninitialized.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/utility \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_relops.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/initializer_list \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_tempbuf.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_raw_storage_iter.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/iosfwd \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stringfwd.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/postypes.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cwchar \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/wchar.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/stdio.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/lib/gcc/arm-rockchip830-linux-uclibcgnueabihf/8.3.0/include/stdarg.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/wchar.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ext/atomicity.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/gthr.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/gthr-default.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/pthread.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/endian.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/endian.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/byteswap.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/byteswap.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/byteswap-common.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/types.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/wordsize.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/typesizes.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/byteswap-16.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sched.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/time.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/sched.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/stdlib.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstdlib \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/stdlib.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/waitflags.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/waitstatus.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/types.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/select.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/select.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/sigset.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/time.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/sysmacros.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/pthreadtypes.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/alloca.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/std_abs.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/uClibc_clk_tck.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/signal.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/setjmp.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/atomic_word.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ext/concurrence.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_function.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/backward/binders.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/uses_allocator.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/unique_ptr.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tuple \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/array \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/stdexcept \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/string \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/char_traits.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstdint \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/lib/gcc/arm-rockchip830-linux-uclibcgnueabihf/8.3.0/include/stdint.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/stdint.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/localefwd.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/c++locale.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/clocale \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/locale.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/uClibc_locale.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cctype \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/ctype.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/uClibc_touplow.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/ostream_insert.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/cxxabi_forced.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/range_access.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/basic_string.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/string_view \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/limits \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/functional_hash.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/string_view.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ext/string_conversions.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstdio \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/uClibc_stdio.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/stdio_lim.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cerrno \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/errno.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/errno.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/linux/errno.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm/errno.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm-generic/errno.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm-generic/errno-base.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/basic_string.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/invoke.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/shared_ptr.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/shared_ptr_base.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/allocated_ptr.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/refwrap.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ext/aligned_buffer.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/shared_ptr_atomic.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/atomic_base.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/atomic_lockfree_defines.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/backward/auto_ptr.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/functional \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/std_function.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/unordered_map \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/hashtable.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/hashtable_policy.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/node_handle.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/optional \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/enable_special_members.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/unordered_map.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/vector \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_vector.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_bvector.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/vector.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_algo.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/algorithmfwd.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_heap.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/uniform_int_dist.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/atomic \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/mutex \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/chrono \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ratio \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ctime \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/parse_numbers.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/system_error \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/error_constants.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/std_mutex.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/queue \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/deque \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_deque.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/deque.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_queue.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/condition_variable \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/opus/opus.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/opus/opus_types.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/opus/opus_defines.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/portaudio.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/samplerate.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/build/speexdsp-1.2.1/include/speex/speex_preprocess.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/build/speexdsp-1.2.1/include/speex/speexdsp_types.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/build/speexdsp-1.2.1/include/speex/speexdsp_config_types.h \
+  ../app/media/sync.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/lib/gcc/arm-rockchip830-linux-uclibcgnueabihf/8.3.0/include/stdbool.h \
+  ../app/tool/memory/mem_pool.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstddef \
+  ../app/tool/log/log.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/thread \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstdarg \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstring \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/string.h \
+  ../common/common.h \
+  ../rkmpi/include/sample_comm.h \
+  ../rkmpi/include/loadbmp.h \
+  ../rkmpi/include/rk_type.h \
+  ../rkmpi/include/rk_debug.h \
+  ../rkmpi/include/rk_common.h \
+  ../rkmpi/include/rk_defines.h \
+  ../rkmpi/include/rk_mpi_adec.h \
+  ../rkmpi/include/rk_comm_adec.h \
+  ../rkmpi/include/rk_comm_mb.h \
+  ../rkmpi/include/rk_errno.h \
+  ../rkmpi/include/rk_comm_aio.h \
+  ../rkmpi/include/rk_mpi_aenc.h \
+  ../rkmpi/include/rk_comm_aenc.h \
+  ../rkmpi/include/rk_mpi_ai.h \
+  ../rkmpi/include/rk_mpi_ao.h \
+  ../rkmpi/include/rk_mpi_avs.h \
+  ../rkmpi/include/rk_comm_video.h \
+  ../rkmpi/include/rk_comm_avs.h \
+  ../rkmpi/include/rk_mpi_cal.h \
+  ../rkmpi/include/rk_mpi_ivs.h \
+  ../rkmpi/include/rk_comm_ivs.h \
+  ../rkmpi/include/rk_mpi_mb.h \
+  ../rkmpi/include/rk_mpi_rgn.h \
+  ../rkmpi/include/rk_comm_rgn.h \
+  ../rkmpi/include/rk_mpi_sys.h \
+  ../rkmpi/include/rk_comm_sys.h \
+  ../rkmpi/include/rk_mpi_tde.h \
+  ../rkmpi/include/rk_comm_tde.h \
+  ../rkmpi/include/rk_mpi_vdec.h \
+  ../rkmpi/include/rk_comm_vdec.h \
+  ../rkmpi/include/rk_mpi_venc.h \
+  ../rkmpi/include/rk_comm_venc.h \
+  ../rkmpi/include/rk_comm_rc.h \
+  ../rkmpi/include/rk_mpi_vi.h \
+  ../rkmpi/include/rk_comm_vi.h \
+  ../rkmpi/include/rk_mpi_vo.h \
+  ../rkmpi/include/rk_comm_vo.h \
+  ../rkmpi/include/rk_mpi_vpss.h \
+  ../rkmpi/include/rk_comm_vpss.h \
+  ../rkmpi/include/rk_comm_aiisp.h \
+  ../rkmpi/include/sample_comm_isp.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/assert.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/fcntl.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/fcntl.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/uio.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/stat.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/stat.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_camgroup.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq.h \
+  ../rkmpi/include/rkaiq/xcore/base/xcam_common.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/math.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cmath \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/math.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/huge_val.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/huge_valf.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/huge_vall.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/inf.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/nan.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/mathdef.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/mathcalls.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/specfun.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/gamma.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/special_function_util.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/bessel_function.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/special_function_util.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/beta_function.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/ell_integral.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/exp_integral.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/hypergeometric.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/legendre_function.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/modified_bessel_func.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/poly_hermite.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/poly_laguerre.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/riemann_zeta.tcc \
+  ../rkmpi/include/rkaiq/xcore/base/xcam_defs.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/unistd.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/posix_opt.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/uClibc_posix_opt.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/environments.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/confname.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/getopt.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_types.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_comm.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_mems_sensor.h \
+  ../rkmpi/include/rkaiq/common/rk-camera-module.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/linux/types.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm/types.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm-generic/int-ll64.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm/bitsperlong.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm-generic/bitsperlong.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/linux/posix_types.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/linux/stddef.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm/posix_types.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm-generic/posix_types.h \
+  ../rkmpi/include/rkaiq/common/rk_isp20_hw.h \
+  ../rkmpi/include/rkaiq/algos/adebayer/rk_aiq_types_adebayer_algo.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_comm.h \
+  ../rkmpi/include/rkaiq/algos/adebayer/rk_aiq_types_adebayer_hw.h \
+  ../rkmpi/include/rkaiq/algos/ae/rk_aiq_types_ae_algo.h \
+  ../rkmpi/include/rkaiq/algos/ae/rk_aiq_types_ae_hw.h \
+  ../rkmpi/include/rkaiq/algos/afd/rk_aiq_types_afd_algo.h \
+  ../rkmpi/include/rkaiq/algos/awb/rk_aiq_types_awb_algo.h \
+  ../rkmpi/include/rkaiq/algos/awb/rk_aiq_types_awb_stat_v200.h \
+  ../rkmpi/include/rkaiq/algos/awb/rk_aiq_types_awb_stat_v2xx.h \
+  ../rkmpi/include/rkaiq/algos/awb/rk_aiq_types_awb_stat_v201.h \
+  ../rkmpi/include/rkaiq/algos/awb/rk_aiq_types_awb_stat_v32.h \
+  ../rkmpi/include/rkaiq/algos/alsc/rk_aiq_types_alsc_algo.h \
+  ../rkmpi/include/rkaiq/algos/alsc/rk_aiq_types_alsc_hw.h \
+  ../rkmpi/include/rkaiq/algos/accm/rk_aiq_types_accm_algo.h \
+  ../rkmpi/include/rkaiq/algos/accm/rk_aiq_types_accm_hw.h \
+  ../rkmpi/include/rkaiq/algos/a3dlut/rk_aiq_types_a3dlut_algo.h \
+  ../rkmpi/include/rkaiq/algos/a3dlut/rk_aiq_types_a3dlut_hw.h \
+  ../rkmpi/include/rkaiq/algos/amerge/rk_aiq_types_amerge_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser/RkAiqCalibDbTypes.h \
+  ../rkmpi/include/rkaiq/algos/rk_aiq_algo_des.h \
+  ../rkmpi/include/rkaiq/common/list.h \
+  ../rkmpi/include/rkaiq/iq_parser/RkAiqCalibDbTypesIsp20.h \
+  ../rkmpi/include/rkaiq/algos/adpcc/rk_aiq_types_adpcc_ext.h \
+  ../rkmpi/include/rkaiq/iq_parser/RkAiqCalibDbTypesIsp21.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/amerge_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adehaze_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/amerge_uapi_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/amerge_head.h \
+  ../rkmpi/include/rkaiq/algos/atmo/rk_aiq_types_atmo_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/atmo_head.h \
+  ../rkmpi/include/rkaiq/algos/atmo/rk_aiq_types_atmo_algo.h \
+  ../rkmpi/include/rkaiq/algos/atmo/rk_aiq_types_atmo_stat_v200.h \
+  ../rkmpi/include/rkaiq/algos/adrc/rk_aiq_types_adrc_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adrc_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adrc_uapi_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adrc_head.h \
+  ../rkmpi/include/rkaiq/algos/adrc/rk_aiq_types_adrc_algo.h \
+  ../rkmpi/include/rkaiq/algos/adrc/rk_aiq_types_adrc_hw.h \
+  ../rkmpi/include/rkaiq/algos/agamma/rk_aiq_types_agamma_algo_int.h \
+  ../rkmpi/include/rkaiq/algos/agamma/rk_aiq_types_agamma_algo.h \
+  ../rkmpi/include/rkaiq/algos/agamma/rk_aiq_types_agamma_hw.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/agamma_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/agamma_uapi_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/agamma_head.h \
+  ../rkmpi/include/rkaiq/algos/adegamma/rk_aiq_types_adegamma_algo_int.h \
+  ../rkmpi/include/rkaiq/algos/adegamma/rk_aiq_types_adegamma_algo.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adegamma_head.h \
+  ../rkmpi/include/rkaiq/algos/adehaze/rk_aiq_types_adehaze_algo_int.h \
+  ../rkmpi/include/rkaiq/algos/adehaze/rk_aiq_types_adehaze_algo.h \
+  ../rkmpi/include/rkaiq/algos/adehaze/rk_aiq_types_adehaze_hw.h \
+  ../rkmpi/include/rkaiq/algos/adehaze/rk_aiq_types_adehaze_stat.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adehaze_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adehaze_uapi_head.h \
+  ../rkmpi/include/rkaiq/algos/acp/rk_aiq_types_acp_algo.h \
+  ../rkmpi/include/rkaiq/algos/aie/rk_aiq_types_aie_algo_int.h \
+  ../rkmpi/include/rkaiq/algos/aie/rk_aiq_types_aie_algo.h \
+  ../rkmpi/include/rkaiq/algos/aorb/rk_aiq_types_orb_algo.h \
+  ../rkmpi/include/rkaiq/algos/asd/rk_aiq_types_asd_algo.h \
+  ../rkmpi/include/rkaiq/algos/anr/rk_aiq_types_anr_algo.h \
+  ../rkmpi/include/rkaiq/algos/anr/rk_aiq_types_anr_hw.h \
+  ../rkmpi/include/rkaiq/algos/anr/rk_aiq_types_anr_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayernr_head_v1.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/mfnr_head_v1.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ynr_head_v1.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/uvnr_head_v1.h \
+  ../rkmpi/include/rkaiq/algos/asharp/rk_aiq_types_asharp_algo.h \
+  ../rkmpi/include/rkaiq/algos/asharp/rk_aiq_types_asharp_hw.h \
+  ../rkmpi/include/rkaiq/algos/asharp/rk_aiq_types_asharp_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/sharp_head_v1.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/edgefilter_head_v1.h \
+  ../rkmpi/include/rkaiq/algos/adpcc/rk_aiq_types_adpcc_algo.h \
+  ../rkmpi/include/rkaiq/algos/adpcc/rk_aiq_types_adpcc_hw.h \
+  ../rkmpi/include/rkaiq/algos/adpcc/rk_aiq_types_adpcc_algo_int.h \
+  ../rkmpi/include/rkaiq/algos/ablc/rk_aiq_types_ablc_algo.h \
+  ../rkmpi/include/rkaiq/algos/ablc/rk_aiq_types_ablc_hw.h \
+  ../rkmpi/include/rkaiq/algos/ablc/rk_aiq_types_ablc_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ablc_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ablc_uapi_head.h \
+  ../rkmpi/include/rkaiq/algos/agic/rk_aiq_types_algo_agic_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/agic_uapi_head.h \
+  ../rkmpi/include/rkaiq/algos/aldch/rk_aiq_types_aldch_algo.h \
+  ../rkmpi/include/rkaiq/algos/afec/rk_aiq_types_afec_algo.h \
+  ../rkmpi/include/rkaiq/algos/asharp3/rk_aiq_types_asharp_algo_v3.h \
+  ../rkmpi/include/rkaiq/algos/asharp3/rk_aiq_types_asharp_hw_v3.h \
+  ../rkmpi/include/rkaiq/algos/aynr2/rk_aiq_types_aynr_algo_v2.h \
+  ../rkmpi/include/rkaiq/algos/aynr2/rk_aiq_types_aynr_hw_v2.h \
+  ../rkmpi/include/rkaiq/algos/acnr/rk_aiq_types_acnr_algo_v1.h \
+  ../rkmpi/include/rkaiq/algos/acnr/rk_aiq_types_acnr_hw_v1.h \
+  ../rkmpi/include/rkaiq/algos/arawnr2/rk_aiq_types_abayernr_algo_v2.h \
+  ../rkmpi/include/rkaiq/algos/arawnr2/rk_aiq_types_abayernr_hw_v2.h \
+  ../rkmpi/include/rkaiq/algos/amd/rk_aiq_types_amd_algo.h \
+  ../rkmpi/include/rkaiq/algos/arawnr/rk_aiq_types_abayernr_algo_v1.h \
+  ../rkmpi/include/rkaiq/algos/arawnr/rk_aiq_types_abayernr_hw_v1.h \
+  ../rkmpi/include/rkaiq/algos/amfnr/rk_aiq_types_amfnr_algo_v1.h \
+  ../rkmpi/include/rkaiq/algos/amfnr/rk_aiq_types_amfnr_hw_v1.h \
+  ../rkmpi/include/rkaiq/algos/aynr/rk_aiq_types_aynr_algo_v1.h \
+  ../rkmpi/include/rkaiq/algos/aynr/rk_aiq_types_aynr_hw_v1.h \
+  ../rkmpi/include/rkaiq/algos/auvnr/rk_aiq_types_auvnr_algo_v1.h \
+  ../rkmpi/include/rkaiq/algos/auvnr/rk_aiq_types_auvnr_hw_v1.h \
+  ../rkmpi/include/rkaiq/algos/again/rk_aiq_types_again_algo.h \
+  ../rkmpi/include/rkaiq/algos/again/rk_aiq_types_again_hw.h \
+  ../rkmpi/include/rkaiq/algos/acsm/rk_aiq_types_acsm_algo.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/csm_head.h \
+  ../rkmpi/include/rkaiq/algos/acgc/rk_aiq_types_acgc_algo.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/cgc_head.h \
+  ../rkmpi/include/rkaiq/algos/af/rk_aiq_types_af_algo.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/time.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_types_v20.h \
+  ../rkmpi/include/rkaiq/algos/amerge/rk_aiq_types_amerge_algo.h \
+  ../rkmpi/include/rkaiq/algos/amerge/rk_aiq_types_amerge_hw.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_types_v21.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_types_v3x.h \
+  ../rkmpi/include/rkaiq/algos/abayer2dnr2/rk_aiq_types_abayer2dnr_algo_v2.h \
+  ../rkmpi/include/rkaiq/algos/abayer2dnr2/rk_aiq_types_abayer2dnr_hw_v2.h \
+  ../rkmpi/include/rkaiq/algos/abayertnr2/rk_aiq_types_abayertnr_algo_v2.h \
+  ../rkmpi/include/rkaiq/algos/abayertnr2/rk_aiq_types_abayertnr_hw_v2.h \
+  ../rkmpi/include/rkaiq/algos/acac/rk_aiq_types_acac_algo.h \
+  ../rkmpi/include/rkaiq/algos/acac/rk_aiq_types_acac_hw.h \
+  ../rkmpi/include/rkaiq/algos/acnr2/rk_aiq_types_acnr_algo_v2.h \
+  ../rkmpi/include/rkaiq/algos/acnr2/rk_aiq_types_acnr_hw_v2.h \
+  ../rkmpi/include/rkaiq/algos/again2/rk_aiq_types_again_algo_v2.h \
+  ../rkmpi/include/rkaiq/algos/again2/rk_aiq_types_again_hw_v2.h \
+  ../rkmpi/include/rkaiq/algos/again2/rk_aiq_types_again_stat.h \
+  ../rkmpi/include/rkaiq/algos/asharp4/rk_aiq_types_asharp_algo_v4.h \
+  ../rkmpi/include/rkaiq/algos/asharp4/rk_aiq_types_asharp_hw_v4.h \
+  ../rkmpi/include/rkaiq/algos/aynr3/rk_aiq_types_aynr_algo_v3.h \
+  ../rkmpi/include/rkaiq/algos/aynr3/rk_aiq_types_aynr_hw_v3.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_types_v32.h \
+  ../rkmpi/include/rkaiq/algos/abayer2dnrV23/rk_aiq_types_abayer2dnr_algo_v23.h \
+  ../rkmpi/include/rkaiq/algos/abayer2dnrV23/rk_aiq_types_abayer2dnr_hw_v23.h \
+  ../rkmpi/include/rkaiq/algos/abayertnrV23/rk_aiq_types_abayertnr_algo_v23.h \
+  ../rkmpi/include/rkaiq/algos/abayertnrV23/rk_aiq_types_abayertnr_hw_v23.h \
+  ../rkmpi/include/rkaiq/algos/ablcV32/rk_aiq_types_ablc_algo_int_v32.h \
+  ../rkmpi/include/rkaiq/algos/ablcV32/rk_aiq_types_ablc_algo_v32.h \
+  ../rkmpi/include/rkaiq/algos/ablcV32/rk_aiq_types_ablc_hw_v32.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ablc_head_V32.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ablc_uapi_head_v32.h \
+  ../rkmpi/include/rkaiq/algos/acnrV30/rk_aiq_types_acnr_algo_v30.h \
+  ../rkmpi/include/rkaiq/algos/acnrV30/rk_aiq_types_acnr_hw_v30.h \
+  ../rkmpi/include/rkaiq/algos/acac/rk_aiq_types_acac_algo.h \
+  ../rkmpi/include/rkaiq/algos/asharpV33/rk_aiq_types_asharp_algo_v33.h \
+  ../rkmpi/include/rkaiq/algos/asharpV33/rk_aiq_types_asharp_hw_v33.h \
+  ../rkmpi/include/rkaiq/algos/aynrV22/rk_aiq_types_aynr_algo_v22.h \
+  ../rkmpi/include/rkaiq/algos/aynrV22/rk_aiq_types_aynr_hw_v22.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_sysctl.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_offline_raw.h \
+  ../rkmpi/include/rkaiq/algos/anr/rkpostisp.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api_common.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_imgproc.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_a3dlut.h \
+  ../rkmpi/include/rkaiq/algos/a3dlut/rk_aiq_uapi_a3dlut_int.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_types.h \
+  ../rkmpi/include/rkaiq/algos/a3dlut/rk_aiq_types_a3dlut_algo_int.h \
+  ../rkmpi/include/rkaiq/algos/a3dlut/rk_aiq_types_a3dlut_algo.h \
+  ../rkmpi/include/rkaiq/algos/a3dlut/rk_aiq_types_a3dlut_ext.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_abayer2dnr_v2.h \
+  ../rkmpi/include/rkaiq/algos/abayer2dnr2/rk_aiq_uapi_abayer2dnr_int_v2.h \
+  ../rkmpi/include/rkaiq/algos/abayer2dnr2/rk_aiq_types_abayer2dnr_algo_int_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayer2dnr_head_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayer2dnr_uapi_head_v2.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_abayer2dnr_v23.h \
+  ../rkmpi/include/rkaiq/algos/abayer2dnrV23/rk_aiq_uapi_abayer2dnr_int_v23.h \
+  ../rkmpi/include/rkaiq/algos/abayer2dnrV23/rk_aiq_types_abayer2dnr_algo_int_v23.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayer2dnr_head_v23.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayer2dnr_uapi_head_v23.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_abayernr_v2.h \
+  ../rkmpi/include/rkaiq/algos/arawnr2/rk_aiq_uapi_abayernr_int_v2.h \
+  ../rkmpi/include/rkaiq/algos/arawnr2/rk_aiq_types_abayernr_algo_int_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayernr_head_v2.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_abayertnr_v2.h \
+  ../rkmpi/include/rkaiq/algos/abayertnr2/rk_aiq_uapi_abayertnr_int_v2.h \
+  ../rkmpi/include/rkaiq/algos/abayertnr2/rk_aiq_types_abayertnr_algo_int_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayertnr_head_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayertnr_uapi_head_v2.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_abayertnr_v23.h \
+  ../rkmpi/include/rkaiq/algos/abayertnrV23/rk_aiq_uapi_abayertnr_int_v23.h \
+  ../rkmpi/include/rkaiq/algos/abayertnrV23/rk_aiq_types_abayertnr_algo_int_v23.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayertnr_head_v23.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayertnr_uapi_head_v23.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_ablc.h \
+  ../rkmpi/include/rkaiq/algos/ablc/rk_aiq_uapi_ablc_int.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_accm.h \
+  ../rkmpi/include/rkaiq/algos/accm/rk_aiq_uapi_accm_int.h \
+  ../rkmpi/include/rkaiq/algos/accm/rk_aiq_types_accm_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ccm_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ccm_uapi_head.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_acnr_v1.h \
+  ../rkmpi/include/rkaiq/algos/acnr/rk_aiq_uapi_acnr_int_v1.h \
+  ../rkmpi/include/rkaiq/algos/acnr/rk_aiq_types_acnr_algo_int_v1.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/cnr_head_v1.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_acnr_v2.h \
+  ../rkmpi/include/rkaiq/algos/acnr2/rk_aiq_uapi_acnr_int_v2.h \
+  ../rkmpi/include/rkaiq/algos/acnr2/rk_aiq_types_acnr_algo_int_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/cnr_head_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/cnr_uapi_head_v2.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_acnr_v30.h \
+  ../rkmpi/include/rkaiq/algos/acnrV30/rk_aiq_uapi_acnr_int_v30.h \
+  ../rkmpi/include/rkaiq/algos/acnrV30/rk_aiq_types_acnr_algo_int_v30.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/cnr_head_v30.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/cnr_uapi_head_v30.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_acp.h \
+  ../rkmpi/include/rkaiq/algos/acp/rk_aiq_uapi_acp_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/acp_uapi_head.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_adebayer.h \
+  ../rkmpi/include/rkaiq/algos/adebayer/rk_aiq_uapi_adebayer_int.h \
+  ../rkmpi/include/rkaiq/algos/adebayer/rk_aiq_types_adebayer_algo_int.h \
+  ../rkmpi/include/rkaiq/algos/adebayer/rk_aiq_types_adebayer_algo.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/debayer_head.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_adegamma.h \
+  ../rkmpi/include/rkaiq/algos/adegamma/rk_aiq_uapi_adegamma_int.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_adehaze.h \
+  ../rkmpi/include/rkaiq/algos/adehaze/rk_aiq_uapi_adehaze_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adehaze_uapi_compact.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_adpcc.h \
+  ../rkmpi/include/rkaiq/algos/adpcc/rk_aiq_uapi_adpcc_int.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_adrc.h \
+  ../rkmpi/include/rkaiq/algos/adrc/rk_aiq_uapi_adrc_int.h \
+  ../rkmpi/include/rkaiq/algos/adrc/rk_aiq_types_adrc_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adrc_uapi_compact.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adrc_uapi_head.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_ae.h \
+  ../rkmpi/include/rkaiq/algos/ae/rk_aiq_uapi_ae_int.h \
+  ../rkmpi/include/rkaiq/algos/ae/rk_aiq_uapi_ae_int_types_v1.h \
+  ../rkmpi/include/rkaiq/algos/ae/rk_aiq_types_ae_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/moduleinfo_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/aec_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/sensorinfo_head.h \
+  ../rkmpi/include/rkaiq/algos/ae/rk_aiq_types_ae_algo.h \
+  ../rkmpi/include/rkaiq/algos/ae/rk_aiq_uapi_ae_int_types_v2.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_af.h \
+  ../rkmpi/include/rkaiq/algos/af/rk_aiq_uapi_af_int.h \
+  ../rkmpi/include/rkaiq/algos/af/rk_aiq_types_af_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/af_uapi_head.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api_common.h \
+  ../rkmpi/include/rkaiq/algos/af/rk_aiq_types_af_algo.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_afec.h \
+  ../rkmpi/include/rkaiq/algos/afec/rk_aiq_uapi_afec_int.h \
+  ../rkmpi/include/rkaiq/algos/afec/rk_aiq_types_afec_algo_int.h \
+  ../rkmpi/include/rkaiq/algos/afec/rk_aiq_types_afec_algo.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_agamma.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/agamma_uapi_compact.h \
+  ../rkmpi/include/rkaiq/algos/agamma/rk_aiq_types_agamma_algo_int.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_aie.h \
+  ../rkmpi/include/rkaiq/algos/aie/rk_aiq_uapi_aie_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/aie_uapi_head.h \
+  ../rkmpi/include/rkaiq/algos/aie/rk_aiq_types_aie_algo.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_aldch.h \
+  ../rkmpi/include/rkaiq/algos/aldch/rk_aiq_uapi_aldch_int.h \
+  ../rkmpi/include/rkaiq/algos/aldch/rk_aiq_types_aldch_algo_int.h \
+  ../rkmpi/include/rkaiq/algos/aldch/rk_aiq_types_aldch_algo.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_alsc.h \
+  ../rkmpi/include/rkaiq/algos/alsc/rk_aiq_uapi_alsc_int.h \
+  ../rkmpi/include/rkaiq/algos/alsc/rk_aiq_types_alsc_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/alsc_uapi_head.h \
+  ../rkmpi/include/rkaiq/algos/alsc/rk_aiq_types_alsc_common.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_amerge.h \
+  ../rkmpi/include/rkaiq/algos/amerge/rk_aiq_uapi_amerge_int.h \
+  ../rkmpi/include/rkaiq/algos/amerge/rk_aiq_types_amerge_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/amerge_uapi_compact.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/amerge_uapi_head.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_anr.h \
+  ../rkmpi/include/rkaiq/algos/anr/rk_aiq_uapi_anr_int.h \
+  ../rkmpi/include/rkaiq/algos/arawnr/rk_aiq_uapi_abayernr_int_v1.h \
+  ../rkmpi/include/rkaiq/algos/arawnr/rk_aiq_types_abayernr_algo_int_v1.h \
+  ../rkmpi/include/rkaiq/algos/aynr/rk_aiq_uapi_aynr_int_v1.h \
+  ../rkmpi/include/rkaiq/algos/aynr/rk_aiq_types_aynr_algo_int_v1.h \
+  ../rkmpi/include/rkaiq/algos/auvnr/rk_aiq_uapi_auvnr_int_v1.h \
+  ../rkmpi/include/rkaiq/algos/auvnr/rk_aiq_types_auvnr_algo_int_v1.h \
+  ../rkmpi/include/rkaiq/algos/amfnr/rk_aiq_uapi_amfnr_int_v1.h \
+  ../rkmpi/include/rkaiq/algos/amfnr/rk_aiq_types_amfnr_algo_int_v1.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_asharp_v3.h \
+  ../rkmpi/include/rkaiq/algos/asharp3/rk_aiq_uapi_asharp_int_v3.h \
+  ../rkmpi/include/rkaiq/algos/asharp3/rk_aiq_types_asharp_algo_int_v3.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/sharp_head_v3.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_asharp_v33.h \
+  ../rkmpi/include/rkaiq/algos/asharpV33/rk_aiq_uapi_asharp_int_v33.h \
+  ../rkmpi/include/rkaiq/algos/asharpV33/rk_aiq_types_asharp_algo_int_v33.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/sharp_head_v33.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/sharp_uapi_head_v33.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_asharp_v4.h \
+  ../rkmpi/include/rkaiq/algos/asharp4/rk_aiq_uapi_asharp_int_v4.h \
+  ../rkmpi/include/rkaiq/algos/asharp4/rk_aiq_types_asharp_algo_int_v4.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/sharp_head_v4.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/sharp_uapi_head_v4.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_atmo.h \
+  ../rkmpi/include/rkaiq/algos/atmo/rk_aiq_uapi_atmo_int.h \
+  ../rkmpi/include/rkaiq/algos/atmo/rk_aiq_types_atmo_algo_int.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_awb.h \
+  ../rkmpi/include/rkaiq/algos/awb/rk_aiq_uapi_awb_int.h \
+  ../rkmpi/include/rkaiq/algos/awb/rk_aiq_types_awb_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/awb_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/awb_uapi_head.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_aynr_v2.h \
+  ../rkmpi/include/rkaiq/algos/aynr2/rk_aiq_uapi_aynr_int_v2.h \
+  ../rkmpi/include/rkaiq/algos/aynr2/rk_aiq_types_aynr_algo_int_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ynr_head_v2.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_aynr_v22.h \
+  ../rkmpi/include/rkaiq/algos/aynrV22/rk_aiq_uapi_aynr_int_v22.h \
+  ../rkmpi/include/rkaiq/algos/aynrV22/rk_aiq_types_aynr_algo_int_v22.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ynr_head_v22.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ynr_uapi_head_v22.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_aynr_v3.h \
+  ../rkmpi/include/rkaiq/algos/aynr3/rk_aiq_uapi_aynr_int_v3.h \
+  ../rkmpi/include/rkaiq/algos/aynr3/rk_aiq_types_aynr_algo_int_v3.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ynr_head_v3.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ynr_uapi_head_v3.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_again_v2.h \
+  ../rkmpi/include/rkaiq/algos/again2/rk_aiq_types_again_algo_int_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/gain_head_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/gain_uapi_head_v2.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_aldch_v21.h \
+  ../rkmpi/include/rkaiq/algos/aldch/rk_aiq_uapi_aldch_v21_int.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_ablc_v32.h \
+  ../rkmpi/include/rkaiq/algos/ablcV32/rk_aiq_uapi_ablc_int_v32.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_acsm.h \
+  ../rkmpi/include/rkaiq/algos/acsm/rk_aiq_uapi_acsm_int.h \
+  ../rkmpi/include/rkaiq/algos/acsm/rk_aiq_types_acsm_algo.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_acgc.h \
+  ../rkmpi/include/rkaiq/algos/acgc/rk_aiq_uapi_acgc_int.h \
+  ../rkmpi/include/rkaiq/algos/acgc/rk_aiq_types_acgc_algo.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_sysctl.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/signum.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/siginfo.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/sigaction.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/sigcontext.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm/sigcontext.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/sigstack.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/ucontext.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/procfs.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/user.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/sigthread.h \
+  ../rkmpi/include/sample_comm.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/algorithm
 
 app/CMakeFiles/app.dir/media/camera/camera.cc.o: ../app/media/camera/camera.cc \
   ../app/media/camera/camera.h \
@@ -3448,7 +4066,617 @@ app/CMakeFiles/app.dir/media/camera/camera.cc.o: ../app/media/camera/camera.cc \
   ../app/media/media_config.h \
   ../app/tool/memory/mem_pool.h
 
-app/CMakeFiles/app.dir/media/camera/camerav2.cc.o: ../app/media/camera/camerav2.cc
+app/CMakeFiles/app.dir/media/camera/camerav2.cc.o: ../app/media/camera/camerav2.cc \
+  ../app/media/camera/camerav2.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstdint \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/c++config.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/os_defines.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/features.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/uClibc_config.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/cdefs.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/cpu_defines.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/lib/gcc/arm-rockchip830-linux-uclibcgnueabihf/8.3.0/include/stdint.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/stdint.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/wchar.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/wordsize.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/memory \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_algobase.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/functexcept.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/exception_defines.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/cpp_type_traits.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ext/type_traits.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ext/numeric_traits.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_pair.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/move.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/concept_check.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/type_traits \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_iterator_base_types.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_iterator_base_funcs.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/debug/assertions.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_iterator.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/ptr_traits.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/debug/debug.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/predefined_ops.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/allocator.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/c++allocator.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ext/new_allocator.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/new \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/exception \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/exception.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/exception_ptr.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/cxxabi_init_exception.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/lib/gcc/arm-rockchip830-linux-uclibcgnueabihf/8.3.0/include/stddef.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/typeinfo \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/hash_bytes.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/nested_exception.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/memoryfwd.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_construct.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ext/alloc_traits.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/alloc_traits.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_uninitialized.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/utility \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_relops.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/initializer_list \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_tempbuf.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_raw_storage_iter.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/iosfwd \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stringfwd.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/postypes.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cwchar \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/wchar.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/stdio.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/lib/gcc/arm-rockchip830-linux-uclibcgnueabihf/8.3.0/include/stdarg.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ext/atomicity.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/gthr.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/gthr-default.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/pthread.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/endian.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/endian.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/byteswap.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/byteswap.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/byteswap-common.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/types.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/typesizes.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/byteswap-16.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sched.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/time.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/sched.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/stdlib.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstdlib \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/stdlib.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/waitflags.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/waitstatus.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/types.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/select.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/select.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/sigset.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/time.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/sysmacros.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/pthreadtypes.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/alloca.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/std_abs.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/uClibc_clk_tck.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/signal.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/setjmp.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/atomic_word.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ext/concurrence.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_function.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/backward/binders.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/uses_allocator.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/unique_ptr.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tuple \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/array \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/stdexcept \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/string \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/char_traits.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/localefwd.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/c++locale.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/clocale \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/locale.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/uClibc_locale.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cctype \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/ctype.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/uClibc_touplow.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/ostream_insert.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/cxxabi_forced.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/range_access.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/basic_string.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/string_view \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/limits \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/functional_hash.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/string_view.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ext/string_conversions.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstdio \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/uClibc_stdio.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/stdio_lim.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cerrno \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/errno.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/errno.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/linux/errno.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm/errno.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm-generic/errno.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm-generic/errno-base.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/basic_string.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/invoke.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/shared_ptr.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/shared_ptr_base.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/allocated_ptr.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/refwrap.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ext/aligned_buffer.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/shared_ptr_atomic.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/atomic_base.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/atomic_lockfree_defines.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/backward/auto_ptr.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/vector \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_vector.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_bvector.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/vector.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/functional \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/std_function.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/unordered_map \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/hashtable.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/hashtable_policy.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/node_handle.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/optional \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/enable_special_members.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/unordered_map.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_algo.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/algorithmfwd.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_heap.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/uniform_int_dist.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/atomic \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/mutex \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/chrono \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ratio \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/ctime \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/parse_numbers.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/system_error \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/arm-rockchip830-linux-uclibcgnueabihf/bits/error_constants.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/std_mutex.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/condition_variable \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/thread \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/queue \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/deque \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_deque.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/deque.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_queue.h \
+  ../rkmpi/include/sample_comm.h \
+  ../rkmpi/include/loadbmp.h \
+  ../rkmpi/include/rk_type.h \
+  ../rkmpi/include/rk_debug.h \
+  ../rkmpi/include/rk_common.h \
+  ../rkmpi/include/rk_defines.h \
+  ../rkmpi/include/rk_mpi_adec.h \
+  ../rkmpi/include/rk_comm_adec.h \
+  ../rkmpi/include/rk_comm_mb.h \
+  ../rkmpi/include/rk_errno.h \
+  ../rkmpi/include/rk_comm_aio.h \
+  ../rkmpi/include/rk_mpi_aenc.h \
+  ../rkmpi/include/rk_comm_aenc.h \
+  ../rkmpi/include/rk_mpi_ai.h \
+  ../rkmpi/include/rk_mpi_ao.h \
+  ../rkmpi/include/rk_mpi_avs.h \
+  ../rkmpi/include/rk_comm_video.h \
+  ../rkmpi/include/rk_comm_avs.h \
+  ../rkmpi/include/rk_mpi_cal.h \
+  ../rkmpi/include/rk_mpi_ivs.h \
+  ../rkmpi/include/rk_comm_ivs.h \
+  ../rkmpi/include/rk_mpi_mb.h \
+  ../rkmpi/include/rk_mpi_rgn.h \
+  ../rkmpi/include/rk_comm_rgn.h \
+  ../rkmpi/include/rk_mpi_sys.h \
+  ../rkmpi/include/rk_comm_sys.h \
+  ../rkmpi/include/rk_mpi_tde.h \
+  ../rkmpi/include/rk_comm_tde.h \
+  ../rkmpi/include/rk_mpi_vdec.h \
+  ../rkmpi/include/rk_comm_vdec.h \
+  ../rkmpi/include/rk_mpi_venc.h \
+  ../rkmpi/include/rk_comm_venc.h \
+  ../rkmpi/include/rk_comm_rc.h \
+  ../rkmpi/include/rk_mpi_vi.h \
+  ../rkmpi/include/rk_comm_vi.h \
+  ../rkmpi/include/rk_mpi_vo.h \
+  ../rkmpi/include/rk_comm_vo.h \
+  ../rkmpi/include/rk_mpi_vpss.h \
+  ../rkmpi/include/rk_comm_vpss.h \
+  ../rkmpi/include/rk_comm_aiisp.h \
+  ../rkmpi/include/sample_comm_isp.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/assert.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/fcntl.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/fcntl.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/uio.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/stat.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/stat.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_camgroup.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq.h \
+  ../rkmpi/include/rkaiq/xcore/base/xcam_common.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/string.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/lib/gcc/arm-rockchip830-linux-uclibcgnueabihf/8.3.0/include/stdbool.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/math.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cmath \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/math.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/huge_val.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/huge_valf.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/huge_vall.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/inf.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/nan.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/mathdef.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/mathcalls.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/specfun.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/gamma.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/special_function_util.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/bessel_function.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/special_function_util.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/beta_function.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/ell_integral.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/exp_integral.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/hypergeometric.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/legendre_function.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/modified_bessel_func.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/poly_hermite.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/poly_laguerre.tcc \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/tr1/riemann_zeta.tcc \
+  ../rkmpi/include/rkaiq/xcore/base/xcam_defs.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/unistd.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/posix_opt.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/uClibc_posix_opt.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/environments.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/confname.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/getopt.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_types.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_comm.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_mems_sensor.h \
+  ../rkmpi/include/rkaiq/common/rk-camera-module.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/linux/types.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm/types.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm-generic/int-ll64.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm/bitsperlong.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm-generic/bitsperlong.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/linux/posix_types.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/linux/stddef.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm/posix_types.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm-generic/posix_types.h \
+  ../rkmpi/include/rkaiq/common/rk_isp20_hw.h \
+  ../rkmpi/include/rkaiq/algos/adebayer/rk_aiq_types_adebayer_algo.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_comm.h \
+  ../rkmpi/include/rkaiq/algos/adebayer/rk_aiq_types_adebayer_hw.h \
+  ../rkmpi/include/rkaiq/algos/ae/rk_aiq_types_ae_algo.h \
+  ../rkmpi/include/rkaiq/algos/ae/rk_aiq_types_ae_hw.h \
+  ../rkmpi/include/rkaiq/algos/afd/rk_aiq_types_afd_algo.h \
+  ../rkmpi/include/rkaiq/algos/awb/rk_aiq_types_awb_algo.h \
+  ../rkmpi/include/rkaiq/algos/awb/rk_aiq_types_awb_stat_v200.h \
+  ../rkmpi/include/rkaiq/algos/awb/rk_aiq_types_awb_stat_v2xx.h \
+  ../rkmpi/include/rkaiq/algos/awb/rk_aiq_types_awb_stat_v201.h \
+  ../rkmpi/include/rkaiq/algos/awb/rk_aiq_types_awb_stat_v32.h \
+  ../rkmpi/include/rkaiq/algos/alsc/rk_aiq_types_alsc_algo.h \
+  ../rkmpi/include/rkaiq/algos/alsc/rk_aiq_types_alsc_hw.h \
+  ../rkmpi/include/rkaiq/algos/accm/rk_aiq_types_accm_algo.h \
+  ../rkmpi/include/rkaiq/algos/accm/rk_aiq_types_accm_hw.h \
+  ../rkmpi/include/rkaiq/algos/a3dlut/rk_aiq_types_a3dlut_algo.h \
+  ../rkmpi/include/rkaiq/algos/a3dlut/rk_aiq_types_a3dlut_hw.h \
+  ../rkmpi/include/rkaiq/algos/amerge/rk_aiq_types_amerge_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser/RkAiqCalibDbTypes.h \
+  ../rkmpi/include/rkaiq/algos/rk_aiq_algo_des.h \
+  ../rkmpi/include/rkaiq/common/list.h \
+  ../rkmpi/include/rkaiq/iq_parser/RkAiqCalibDbTypesIsp20.h \
+  ../rkmpi/include/rkaiq/algos/adpcc/rk_aiq_types_adpcc_ext.h \
+  ../rkmpi/include/rkaiq/iq_parser/RkAiqCalibDbTypesIsp21.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/amerge_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adehaze_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/amerge_uapi_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/amerge_head.h \
+  ../rkmpi/include/rkaiq/algos/atmo/rk_aiq_types_atmo_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/atmo_head.h \
+  ../rkmpi/include/rkaiq/algos/atmo/rk_aiq_types_atmo_algo.h \
+  ../rkmpi/include/rkaiq/algos/atmo/rk_aiq_types_atmo_stat_v200.h \
+  ../rkmpi/include/rkaiq/algos/adrc/rk_aiq_types_adrc_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adrc_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adrc_uapi_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adrc_head.h \
+  ../rkmpi/include/rkaiq/algos/adrc/rk_aiq_types_adrc_algo.h \
+  ../rkmpi/include/rkaiq/algos/adrc/rk_aiq_types_adrc_hw.h \
+  ../rkmpi/include/rkaiq/algos/agamma/rk_aiq_types_agamma_algo_int.h \
+  ../rkmpi/include/rkaiq/algos/agamma/rk_aiq_types_agamma_algo.h \
+  ../rkmpi/include/rkaiq/algos/agamma/rk_aiq_types_agamma_hw.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/agamma_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/agamma_uapi_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/agamma_head.h \
+  ../rkmpi/include/rkaiq/algos/adegamma/rk_aiq_types_adegamma_algo_int.h \
+  ../rkmpi/include/rkaiq/algos/adegamma/rk_aiq_types_adegamma_algo.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adegamma_head.h \
+  ../rkmpi/include/rkaiq/algos/adehaze/rk_aiq_types_adehaze_algo_int.h \
+  ../rkmpi/include/rkaiq/algos/adehaze/rk_aiq_types_adehaze_algo.h \
+  ../rkmpi/include/rkaiq/algos/adehaze/rk_aiq_types_adehaze_hw.h \
+  ../rkmpi/include/rkaiq/algos/adehaze/rk_aiq_types_adehaze_stat.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adehaze_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adehaze_uapi_head.h \
+  ../rkmpi/include/rkaiq/algos/acp/rk_aiq_types_acp_algo.h \
+  ../rkmpi/include/rkaiq/algos/aie/rk_aiq_types_aie_algo_int.h \
+  ../rkmpi/include/rkaiq/algos/aie/rk_aiq_types_aie_algo.h \
+  ../rkmpi/include/rkaiq/algos/aorb/rk_aiq_types_orb_algo.h \
+  ../rkmpi/include/rkaiq/algos/asd/rk_aiq_types_asd_algo.h \
+  ../rkmpi/include/rkaiq/algos/anr/rk_aiq_types_anr_algo.h \
+  ../rkmpi/include/rkaiq/algos/anr/rk_aiq_types_anr_hw.h \
+  ../rkmpi/include/rkaiq/algos/anr/rk_aiq_types_anr_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayernr_head_v1.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/mfnr_head_v1.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ynr_head_v1.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/uvnr_head_v1.h \
+  ../rkmpi/include/rkaiq/algos/asharp/rk_aiq_types_asharp_algo.h \
+  ../rkmpi/include/rkaiq/algos/asharp/rk_aiq_types_asharp_hw.h \
+  ../rkmpi/include/rkaiq/algos/asharp/rk_aiq_types_asharp_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/sharp_head_v1.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/edgefilter_head_v1.h \
+  ../rkmpi/include/rkaiq/algos/adpcc/rk_aiq_types_adpcc_algo.h \
+  ../rkmpi/include/rkaiq/algos/adpcc/rk_aiq_types_adpcc_hw.h \
+  ../rkmpi/include/rkaiq/algos/adpcc/rk_aiq_types_adpcc_algo_int.h \
+  ../rkmpi/include/rkaiq/algos/ablc/rk_aiq_types_ablc_algo.h \
+  ../rkmpi/include/rkaiq/algos/ablc/rk_aiq_types_ablc_hw.h \
+  ../rkmpi/include/rkaiq/algos/ablc/rk_aiq_types_ablc_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ablc_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ablc_uapi_head.h \
+  ../rkmpi/include/rkaiq/algos/agic/rk_aiq_types_algo_agic_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/agic_uapi_head.h \
+  ../rkmpi/include/rkaiq/algos/aldch/rk_aiq_types_aldch_algo.h \
+  ../rkmpi/include/rkaiq/algos/afec/rk_aiq_types_afec_algo.h \
+  ../rkmpi/include/rkaiq/algos/asharp3/rk_aiq_types_asharp_algo_v3.h \
+  ../rkmpi/include/rkaiq/algos/asharp3/rk_aiq_types_asharp_hw_v3.h \
+  ../rkmpi/include/rkaiq/algos/aynr2/rk_aiq_types_aynr_algo_v2.h \
+  ../rkmpi/include/rkaiq/algos/aynr2/rk_aiq_types_aynr_hw_v2.h \
+  ../rkmpi/include/rkaiq/algos/acnr/rk_aiq_types_acnr_algo_v1.h \
+  ../rkmpi/include/rkaiq/algos/acnr/rk_aiq_types_acnr_hw_v1.h \
+  ../rkmpi/include/rkaiq/algos/arawnr2/rk_aiq_types_abayernr_algo_v2.h \
+  ../rkmpi/include/rkaiq/algos/arawnr2/rk_aiq_types_abayernr_hw_v2.h \
+  ../rkmpi/include/rkaiq/algos/amd/rk_aiq_types_amd_algo.h \
+  ../rkmpi/include/rkaiq/algos/arawnr/rk_aiq_types_abayernr_algo_v1.h \
+  ../rkmpi/include/rkaiq/algos/arawnr/rk_aiq_types_abayernr_hw_v1.h \
+  ../rkmpi/include/rkaiq/algos/amfnr/rk_aiq_types_amfnr_algo_v1.h \
+  ../rkmpi/include/rkaiq/algos/amfnr/rk_aiq_types_amfnr_hw_v1.h \
+  ../rkmpi/include/rkaiq/algos/aynr/rk_aiq_types_aynr_algo_v1.h \
+  ../rkmpi/include/rkaiq/algos/aynr/rk_aiq_types_aynr_hw_v1.h \
+  ../rkmpi/include/rkaiq/algos/auvnr/rk_aiq_types_auvnr_algo_v1.h \
+  ../rkmpi/include/rkaiq/algos/auvnr/rk_aiq_types_auvnr_hw_v1.h \
+  ../rkmpi/include/rkaiq/algos/again/rk_aiq_types_again_algo.h \
+  ../rkmpi/include/rkaiq/algos/again/rk_aiq_types_again_hw.h \
+  ../rkmpi/include/rkaiq/algos/acsm/rk_aiq_types_acsm_algo.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/csm_head.h \
+  ../rkmpi/include/rkaiq/algos/acgc/rk_aiq_types_acgc_algo.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/cgc_head.h \
+  ../rkmpi/include/rkaiq/algos/af/rk_aiq_types_af_algo.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/time.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_types_v20.h \
+  ../rkmpi/include/rkaiq/algos/amerge/rk_aiq_types_amerge_algo.h \
+  ../rkmpi/include/rkaiq/algos/amerge/rk_aiq_types_amerge_hw.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_types_v21.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_types_v3x.h \
+  ../rkmpi/include/rkaiq/algos/abayer2dnr2/rk_aiq_types_abayer2dnr_algo_v2.h \
+  ../rkmpi/include/rkaiq/algos/abayer2dnr2/rk_aiq_types_abayer2dnr_hw_v2.h \
+  ../rkmpi/include/rkaiq/algos/abayertnr2/rk_aiq_types_abayertnr_algo_v2.h \
+  ../rkmpi/include/rkaiq/algos/abayertnr2/rk_aiq_types_abayertnr_hw_v2.h \
+  ../rkmpi/include/rkaiq/algos/acac/rk_aiq_types_acac_algo.h \
+  ../rkmpi/include/rkaiq/algos/acac/rk_aiq_types_acac_hw.h \
+  ../rkmpi/include/rkaiq/algos/acnr2/rk_aiq_types_acnr_algo_v2.h \
+  ../rkmpi/include/rkaiq/algos/acnr2/rk_aiq_types_acnr_hw_v2.h \
+  ../rkmpi/include/rkaiq/algos/again2/rk_aiq_types_again_algo_v2.h \
+  ../rkmpi/include/rkaiq/algos/again2/rk_aiq_types_again_hw_v2.h \
+  ../rkmpi/include/rkaiq/algos/again2/rk_aiq_types_again_stat.h \
+  ../rkmpi/include/rkaiq/algos/asharp4/rk_aiq_types_asharp_algo_v4.h \
+  ../rkmpi/include/rkaiq/algos/asharp4/rk_aiq_types_asharp_hw_v4.h \
+  ../rkmpi/include/rkaiq/algos/aynr3/rk_aiq_types_aynr_algo_v3.h \
+  ../rkmpi/include/rkaiq/algos/aynr3/rk_aiq_types_aynr_hw_v3.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_types_v32.h \
+  ../rkmpi/include/rkaiq/algos/abayer2dnrV23/rk_aiq_types_abayer2dnr_algo_v23.h \
+  ../rkmpi/include/rkaiq/algos/abayer2dnrV23/rk_aiq_types_abayer2dnr_hw_v23.h \
+  ../rkmpi/include/rkaiq/algos/abayertnrV23/rk_aiq_types_abayertnr_algo_v23.h \
+  ../rkmpi/include/rkaiq/algos/abayertnrV23/rk_aiq_types_abayertnr_hw_v23.h \
+  ../rkmpi/include/rkaiq/algos/ablcV32/rk_aiq_types_ablc_algo_int_v32.h \
+  ../rkmpi/include/rkaiq/algos/ablcV32/rk_aiq_types_ablc_algo_v32.h \
+  ../rkmpi/include/rkaiq/algos/ablcV32/rk_aiq_types_ablc_hw_v32.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ablc_head_V32.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ablc_uapi_head_v32.h \
+  ../rkmpi/include/rkaiq/algos/acnrV30/rk_aiq_types_acnr_algo_v30.h \
+  ../rkmpi/include/rkaiq/algos/acnrV30/rk_aiq_types_acnr_hw_v30.h \
+  ../rkmpi/include/rkaiq/algos/acac/rk_aiq_types_acac_algo.h \
+  ../rkmpi/include/rkaiq/algos/asharpV33/rk_aiq_types_asharp_algo_v33.h \
+  ../rkmpi/include/rkaiq/algos/asharpV33/rk_aiq_types_asharp_hw_v33.h \
+  ../rkmpi/include/rkaiq/algos/aynrV22/rk_aiq_types_aynr_algo_v22.h \
+  ../rkmpi/include/rkaiq/algos/aynrV22/rk_aiq_types_aynr_hw_v22.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_sysctl.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_offline_raw.h \
+  ../rkmpi/include/rkaiq/algos/anr/rkpostisp.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api_common.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_imgproc.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_a3dlut.h \
+  ../rkmpi/include/rkaiq/algos/a3dlut/rk_aiq_uapi_a3dlut_int.h \
+  ../rkmpi/include/rkaiq/common/rk_aiq_types.h \
+  ../rkmpi/include/rkaiq/algos/a3dlut/rk_aiq_types_a3dlut_algo_int.h \
+  ../rkmpi/include/rkaiq/algos/a3dlut/rk_aiq_types_a3dlut_algo.h \
+  ../rkmpi/include/rkaiq/algos/a3dlut/rk_aiq_types_a3dlut_ext.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_abayer2dnr_v2.h \
+  ../rkmpi/include/rkaiq/algos/abayer2dnr2/rk_aiq_uapi_abayer2dnr_int_v2.h \
+  ../rkmpi/include/rkaiq/algos/abayer2dnr2/rk_aiq_types_abayer2dnr_algo_int_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayer2dnr_head_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayer2dnr_uapi_head_v2.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_abayer2dnr_v23.h \
+  ../rkmpi/include/rkaiq/algos/abayer2dnrV23/rk_aiq_uapi_abayer2dnr_int_v23.h \
+  ../rkmpi/include/rkaiq/algos/abayer2dnrV23/rk_aiq_types_abayer2dnr_algo_int_v23.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayer2dnr_head_v23.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayer2dnr_uapi_head_v23.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_abayernr_v2.h \
+  ../rkmpi/include/rkaiq/algos/arawnr2/rk_aiq_uapi_abayernr_int_v2.h \
+  ../rkmpi/include/rkaiq/algos/arawnr2/rk_aiq_types_abayernr_algo_int_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayernr_head_v2.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_abayertnr_v2.h \
+  ../rkmpi/include/rkaiq/algos/abayertnr2/rk_aiq_uapi_abayertnr_int_v2.h \
+  ../rkmpi/include/rkaiq/algos/abayertnr2/rk_aiq_types_abayertnr_algo_int_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayertnr_head_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayertnr_uapi_head_v2.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_abayertnr_v23.h \
+  ../rkmpi/include/rkaiq/algos/abayertnrV23/rk_aiq_uapi_abayertnr_int_v23.h \
+  ../rkmpi/include/rkaiq/algos/abayertnrV23/rk_aiq_types_abayertnr_algo_int_v23.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayertnr_head_v23.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/bayertnr_uapi_head_v23.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_ablc.h \
+  ../rkmpi/include/rkaiq/algos/ablc/rk_aiq_uapi_ablc_int.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_accm.h \
+  ../rkmpi/include/rkaiq/algos/accm/rk_aiq_uapi_accm_int.h \
+  ../rkmpi/include/rkaiq/algos/accm/rk_aiq_types_accm_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ccm_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ccm_uapi_head.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_acnr_v1.h \
+  ../rkmpi/include/rkaiq/algos/acnr/rk_aiq_uapi_acnr_int_v1.h \
+  ../rkmpi/include/rkaiq/algos/acnr/rk_aiq_types_acnr_algo_int_v1.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/cnr_head_v1.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_acnr_v2.h \
+  ../rkmpi/include/rkaiq/algos/acnr2/rk_aiq_uapi_acnr_int_v2.h \
+  ../rkmpi/include/rkaiq/algos/acnr2/rk_aiq_types_acnr_algo_int_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/cnr_head_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/cnr_uapi_head_v2.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_acnr_v30.h \
+  ../rkmpi/include/rkaiq/algos/acnrV30/rk_aiq_uapi_acnr_int_v30.h \
+  ../rkmpi/include/rkaiq/algos/acnrV30/rk_aiq_types_acnr_algo_int_v30.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/cnr_head_v30.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/cnr_uapi_head_v30.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_acp.h \
+  ../rkmpi/include/rkaiq/algos/acp/rk_aiq_uapi_acp_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/acp_uapi_head.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_adebayer.h \
+  ../rkmpi/include/rkaiq/algos/adebayer/rk_aiq_uapi_adebayer_int.h \
+  ../rkmpi/include/rkaiq/algos/adebayer/rk_aiq_types_adebayer_algo_int.h \
+  ../rkmpi/include/rkaiq/algos/adebayer/rk_aiq_types_adebayer_algo.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/debayer_head.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_adegamma.h \
+  ../rkmpi/include/rkaiq/algos/adegamma/rk_aiq_uapi_adegamma_int.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_adehaze.h \
+  ../rkmpi/include/rkaiq/algos/adehaze/rk_aiq_uapi_adehaze_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adehaze_uapi_compact.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_adpcc.h \
+  ../rkmpi/include/rkaiq/algos/adpcc/rk_aiq_uapi_adpcc_int.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_adrc.h \
+  ../rkmpi/include/rkaiq/algos/adrc/rk_aiq_uapi_adrc_int.h \
+  ../rkmpi/include/rkaiq/algos/adrc/rk_aiq_types_adrc_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adrc_uapi_compact.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/adrc_uapi_head.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_ae.h \
+  ../rkmpi/include/rkaiq/algos/ae/rk_aiq_uapi_ae_int.h \
+  ../rkmpi/include/rkaiq/algos/ae/rk_aiq_uapi_ae_int_types_v1.h \
+  ../rkmpi/include/rkaiq/algos/ae/rk_aiq_types_ae_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/moduleinfo_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/aec_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/sensorinfo_head.h \
+  ../rkmpi/include/rkaiq/algos/ae/rk_aiq_types_ae_algo.h \
+  ../rkmpi/include/rkaiq/algos/ae/rk_aiq_uapi_ae_int_types_v2.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_af.h \
+  ../rkmpi/include/rkaiq/algos/af/rk_aiq_uapi_af_int.h \
+  ../rkmpi/include/rkaiq/algos/af/rk_aiq_types_af_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/af_uapi_head.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api_common.h \
+  ../rkmpi/include/rkaiq/algos/af/rk_aiq_types_af_algo.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_afec.h \
+  ../rkmpi/include/rkaiq/algos/afec/rk_aiq_uapi_afec_int.h \
+  ../rkmpi/include/rkaiq/algos/afec/rk_aiq_types_afec_algo_int.h \
+  ../rkmpi/include/rkaiq/algos/afec/rk_aiq_types_afec_algo.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_agamma.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/agamma_uapi_compact.h \
+  ../rkmpi/include/rkaiq/algos/agamma/rk_aiq_types_agamma_algo_int.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_aie.h \
+  ../rkmpi/include/rkaiq/algos/aie/rk_aiq_uapi_aie_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/aie_uapi_head.h \
+  ../rkmpi/include/rkaiq/algos/aie/rk_aiq_types_aie_algo.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_aldch.h \
+  ../rkmpi/include/rkaiq/algos/aldch/rk_aiq_uapi_aldch_int.h \
+  ../rkmpi/include/rkaiq/algos/aldch/rk_aiq_types_aldch_algo_int.h \
+  ../rkmpi/include/rkaiq/algos/aldch/rk_aiq_types_aldch_algo.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_alsc.h \
+  ../rkmpi/include/rkaiq/algos/alsc/rk_aiq_uapi_alsc_int.h \
+  ../rkmpi/include/rkaiq/algos/alsc/rk_aiq_types_alsc_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/alsc_uapi_head.h \
+  ../rkmpi/include/rkaiq/algos/alsc/rk_aiq_types_alsc_common.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_amerge.h \
+  ../rkmpi/include/rkaiq/algos/amerge/rk_aiq_uapi_amerge_int.h \
+  ../rkmpi/include/rkaiq/algos/amerge/rk_aiq_types_amerge_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/amerge_uapi_compact.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/amerge_uapi_head.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_anr.h \
+  ../rkmpi/include/rkaiq/algos/anr/rk_aiq_uapi_anr_int.h \
+  ../rkmpi/include/rkaiq/algos/arawnr/rk_aiq_uapi_abayernr_int_v1.h \
+  ../rkmpi/include/rkaiq/algos/arawnr/rk_aiq_types_abayernr_algo_int_v1.h \
+  ../rkmpi/include/rkaiq/algos/aynr/rk_aiq_uapi_aynr_int_v1.h \
+  ../rkmpi/include/rkaiq/algos/aynr/rk_aiq_types_aynr_algo_int_v1.h \
+  ../rkmpi/include/rkaiq/algos/auvnr/rk_aiq_uapi_auvnr_int_v1.h \
+  ../rkmpi/include/rkaiq/algos/auvnr/rk_aiq_types_auvnr_algo_int_v1.h \
+  ../rkmpi/include/rkaiq/algos/amfnr/rk_aiq_uapi_amfnr_int_v1.h \
+  ../rkmpi/include/rkaiq/algos/amfnr/rk_aiq_types_amfnr_algo_int_v1.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_asharp_v3.h \
+  ../rkmpi/include/rkaiq/algos/asharp3/rk_aiq_uapi_asharp_int_v3.h \
+  ../rkmpi/include/rkaiq/algos/asharp3/rk_aiq_types_asharp_algo_int_v3.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/sharp_head_v3.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_asharp_v33.h \
+  ../rkmpi/include/rkaiq/algos/asharpV33/rk_aiq_uapi_asharp_int_v33.h \
+  ../rkmpi/include/rkaiq/algos/asharpV33/rk_aiq_types_asharp_algo_int_v33.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/sharp_head_v33.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/sharp_uapi_head_v33.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_asharp_v4.h \
+  ../rkmpi/include/rkaiq/algos/asharp4/rk_aiq_uapi_asharp_int_v4.h \
+  ../rkmpi/include/rkaiq/algos/asharp4/rk_aiq_types_asharp_algo_int_v4.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/sharp_head_v4.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/sharp_uapi_head_v4.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_atmo.h \
+  ../rkmpi/include/rkaiq/algos/atmo/rk_aiq_uapi_atmo_int.h \
+  ../rkmpi/include/rkaiq/algos/atmo/rk_aiq_types_atmo_algo_int.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_awb.h \
+  ../rkmpi/include/rkaiq/algos/awb/rk_aiq_uapi_awb_int.h \
+  ../rkmpi/include/rkaiq/algos/awb/rk_aiq_types_awb_algo_int.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/awb_head.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/awb_uapi_head.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_aynr_v2.h \
+  ../rkmpi/include/rkaiq/algos/aynr2/rk_aiq_uapi_aynr_int_v2.h \
+  ../rkmpi/include/rkaiq/algos/aynr2/rk_aiq_types_aynr_algo_int_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ynr_head_v2.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_aynr_v22.h \
+  ../rkmpi/include/rkaiq/algos/aynrV22/rk_aiq_uapi_aynr_int_v22.h \
+  ../rkmpi/include/rkaiq/algos/aynrV22/rk_aiq_types_aynr_algo_int_v22.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ynr_head_v22.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ynr_uapi_head_v22.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_aynr_v3.h \
+  ../rkmpi/include/rkaiq/algos/aynr3/rk_aiq_uapi_aynr_int_v3.h \
+  ../rkmpi/include/rkaiq/algos/aynr3/rk_aiq_types_aynr_algo_int_v3.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ynr_head_v3.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/ynr_uapi_head_v3.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_again_v2.h \
+  ../rkmpi/include/rkaiq/algos/again2/rk_aiq_types_again_algo_int_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/gain_head_v2.h \
+  ../rkmpi/include/rkaiq/iq_parser_v2/gain_uapi_head_v2.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_aldch_v21.h \
+  ../rkmpi/include/rkaiq/algos/aldch/rk_aiq_uapi_aldch_v21_int.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_ablc_v32.h \
+  ../rkmpi/include/rkaiq/algos/ablcV32/rk_aiq_uapi_ablc_int_v32.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_acsm.h \
+  ../rkmpi/include/rkaiq/algos/acsm/rk_aiq_uapi_acsm_int.h \
+  ../rkmpi/include/rkaiq/algos/acsm/rk_aiq_types_acsm_algo.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_acgc.h \
+  ../rkmpi/include/rkaiq/algos/acgc/rk_aiq_uapi_acgc_int.h \
+  ../rkmpi/include/rkaiq/algos/acgc/rk_aiq_types_acgc_algo.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_sysctl.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/signum.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/siginfo.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/sigaction.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/sigcontext.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/asm/sigcontext.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/sigstack.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/ucontext.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/procfs.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/user.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/sigthread.h \
+  ../rkmpi/include/sample_comm.h \
+  ../app/media/sync.h \
+  ../app/tool/memory/mem_pool.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstddef \
+  ../app/tool/log/log.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstdarg \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstring \
+  ../app/media/media_config.h \
+  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/algorithm
 
 app/CMakeFiles/app.dir/media/camera/test/test_camera.cc.o: ../app/media/camera/test/test_camera.cc \
   ../app/media/camera/test/test_camera.h \
@@ -8620,6 +9848,10 @@ app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o: ../app/tool/memory/mem_pool.cc
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/date_time/gregorian/greg_month.hpp:
 
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/preprocessor/tuple/eat.hpp:
+
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/date_time/gregorian/greg_ymd.hpp:
+
 ../rkmpi/include/rkaiq/iq_parser_v2/bayertnr_uapi_head_v2.h:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/assert.h:
@@ -9330,6 +10562,10 @@ app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o: ../app/tool/memory/mem_pool.cc
 
 ../libdatachannel/deps/json/single_include/nlohmann/json.hpp:
 
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/date_time/gregorian/greg_day.hpp:
+
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cwchar:
+
 ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_abayertnr_v23.h:
 
 ../rkmpi/include/rkaiq/iq_parser_v2/sharp_head_v3.h:
@@ -9353,6 +10589,8 @@ app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o: ../app/tool/memory/mem_pool.cc
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/alloca.h:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/shared_ptr.h:
+
+../app/media/audio/audiov2.h:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/basic_string.h:
 
@@ -9780,6 +11018,8 @@ app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o: ../app/tool/memory/mem_pool.cc
 
 ../rkmpi/include/rkaiq/algos/amfnr/rk_aiq_types_amfnr_hw_v1.h:
 
+../app/media/camera/camerav2.h:
+
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/valarray_array.h:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cwctype:
@@ -9794,9 +11034,9 @@ app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o: ../app/tool/memory/mem_pool.cc
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstdio:
 
-../app/tool/log/log.h:
-
 ../rkmpi/include/rkaiq/algos/adpcc/rk_aiq_types_adpcc_ext.h:
+
+../app/tool/log/log.h:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_iterator_base_funcs.h:
 
@@ -9911,10 +11151,6 @@ app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o: ../app/tool/memory/mem_pool.cc
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/mask_array.h:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/detail/chrono_time_traits.hpp:
-
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cwchar:
-
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/date_time/gregorian/greg_day.hpp:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/detail/impl/strand_service.ipp:
 
@@ -10468,6 +11704,14 @@ app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o: ../app/tool/memory/mem_pool.cc
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/netdb.h:
 
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/local/basic_endpoint.hpp:
+
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/ip/multicast.hpp:
+
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/date_time/gregorian/greg_year.hpp:
+
+../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_acnr_v30.h:
+
 ../rkmpi/include/rkaiq/iq_parser_v2/cnr_head_v30.h:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/basic_socket_iostream.hpp:
@@ -10778,6 +12022,18 @@ app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o: ../app/tool/memory/mem_pool.cc
 
 ../app/media/audio/audiov2.cc:
 
+../app/tool/memory/mem_pool.h:
+
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/detail/pop_options.hpp:
+
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/eventfd.h:
+
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/system/detail/error_category_impl.hpp:
+
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/predef/detail/test.h:
+
+/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstdarg:
+
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/openssl/x509err.h:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/date_time/date_duration.hpp:
@@ -10879,14 +12135,6 @@ app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o: ../app/tool/memory/mem_pool.cc
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/ioctl.h:
 
 ../app/protocol/webrtc/signaling.h:
-
-../app/tool/memory/mem_pool.h:
-
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/detail/pop_options.hpp:
-
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/eventfd.h:
-
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/system/detail/error_category_impl.hpp:
 
 ../app/media/camera/camerav2.cc:
 
@@ -11188,10 +12436,6 @@ app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o: ../app/tool/memory/mem_pool.cc
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/detail/impl/service_registry.hpp:
 
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/predef/detail/test.h:
-
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstdarg:
-
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/bind_cancellation_slot.hpp:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/detail/is_buffer_sequence.hpp:
@@ -11451,15 +12695,3 @@ app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o: ../app/tool/memory/mem_pool.cc
 ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_awb.h:
 
 /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/date_time/gregorian_calendar.ipp:
-
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/preprocessor/tuple/eat.hpp:
-
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/date_time/gregorian/greg_ymd.hpp:
-
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/local/basic_endpoint.hpp:
-
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/asio/ip/multicast.hpp:
-
-../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_acnr_v30.h:
-
-/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/boost/date_time/gregorian/greg_year.hpp:

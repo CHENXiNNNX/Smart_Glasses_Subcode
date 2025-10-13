@@ -58,17 +58,31 @@ void* MemoryPool::allocate(size_t size) {
     // 计算对齐后的大小
     size_t alignedRequestSize = alignedSize(size);
     
-    // 查找合适的空闲块
-    BlockHeader* block = findFreeBlock(alignedRequestSize);
+    // 查找合适的空闲块，并记录池块索引
+    size_t poolIndex = 0;
+    BlockHeader* block = nullptr;
     
+    for (size_t i = 0; i < poolBlocks_.size(); i++) {
+        BlockHeader* current = poolBlocks_[i].firstBlock;
+        while (current) {
+            if (current->isFree && current->size >= alignedRequestSize) {
+                block = current;
+                poolIndex = i;
+                goto found;
+            }
+            current = current->next;
+        }
+    }
+    
+found:
     if (!block) {
         // 没有找到合适的块，需要扩展内存池
         expandPool(alignedRequestSize);
+        poolIndex = poolBlocks_.size() - 1;  // 新扩展的块在最后
         
-        // 再次查找
-        block = findFreeBlock(alignedRequestSize);
-        
-        if (!block) {
+        // 在新扩展的块中查找
+        block = poolBlocks_[poolIndex].firstBlock;
+        if (!block || !block->isFree || block->size < alignedRequestSize) {
             // 扩展后仍然没有找到，返回nullptr
             return nullptr;
         }
@@ -80,9 +94,9 @@ void* MemoryPool::allocate(size_t size) {
     // 标记为已使用
     block->isFree = false;
     
-    // 记录指针映射
+    // 记录指针映射（记录正确的池块索引）
     void* userData = reinterpret_cast<uint8_t*>(block) + getHeaderSize();
-    ptrMap_[userData] = poolBlocks_.size() - 1; // 记录在最后一个块中
+    ptrMap_[userData] = poolIndex;
     
     // 从空闲块映射中移除
     freeBlocks_.erase(userData);
