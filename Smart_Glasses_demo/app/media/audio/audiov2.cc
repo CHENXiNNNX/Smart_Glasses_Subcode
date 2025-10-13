@@ -86,7 +86,7 @@ void AudioMemoryPool::FixedPool::deallocateBlock(int index) {
 }
 
 // ============================================================================
-// AudioMemoryPool实现（三级缓冲池）
+// AudioMemoryPool实现（两级缓冲池）
 // ============================================================================
 
 AudioMemoryPool::AudioMemoryPool(const AudioMemoryPoolConfig& config)
@@ -94,7 +94,7 @@ AudioMemoryPool::AudioMemoryPool(const AudioMemoryPoolConfig& config)
     , fixed_pool_(std::make_unique<FixedPool>())
     , dynamic_pool_(nullptr) {
     
-    LOG_INFO("AudioBuffer", "Initializing audio memory pool...");
+    LOG_INFO("AudioBuffer", "Initializing audio memory pool (2-tier)...");
     LOG_INFO("AudioBuffer", "  Fixed pool: %zu blocks × %zu bytes = %.2f KB",
              config_.fixed_block_count, config_.fixed_block_size,
              (config_.fixed_block_count * config_.fixed_block_size) / 1024.0);
@@ -103,7 +103,6 @@ AudioMemoryPool::AudioMemoryPool(const AudioMemoryPoolConfig& config)
     for (size_t i = 0; i < FixedPool::BLOCK_COUNT; i++) {
         fixed_pool_->frame_objects[i].pool = this;
         fixed_pool_->frame_objects[i].is_from_fixed_pool = true;
-        fixed_pool_->frame_objects[i].is_dma_buffer = false;
     }
     
     // 创建动态内存池（第二级）
@@ -115,11 +114,6 @@ AudioMemoryPool::AudioMemoryPool(const AudioMemoryPoolConfig& config)
         );
         LOG_INFO("AudioBuffer", "  Dynamic pool: %.2f MB (initial)",
                  config_.dynamic_pool_size / (1024.0 * 1024.0));
-    }
-    
-    // DMA池（第三级）- 暂不实现，留待后续优化
-    if (config_.enable_dma) {
-        LOG_WARN("AudioBuffer", "DMA zero-copy not implemented yet, using normal memory");
     }
     
     LOG_INFO("AudioBuffer", "Audio memory pool initialized successfully");
@@ -157,15 +151,6 @@ AudioFramePtr AudioMemoryPool::allocate(size_t size) {
         return frame;
     }
     
-    // 第三级：DMA池（如果启用）
-    if (config_.enable_dma) {
-        auto frame = allocateFromDMA(size);
-        if (frame) {
-            stats_.dma_pool_hits.fetch_add(1, std::memory_order_relaxed);
-            return frame;
-        }
-    }
-    
     // 分配失败
     stats_.allocation_failures.fetch_add(1, std::memory_order_relaxed);
     LOG_ERROR("AudioBuffer", "Memory allocation failed: %zu bytes", size);
@@ -191,7 +176,6 @@ AudioFramePtr AudioMemoryPool::allocateFromFixed(size_t size) {
     frame->size = size;
     frame->timestamp = get_nowus();
     frame->is_from_fixed_pool = true;
-    frame->is_dma_buffer = false;
     frame->pool = this;
     
     // 创建智能指针（自定义删除器调用release()）
@@ -226,17 +210,9 @@ AudioFramePtr AudioMemoryPool::allocateFromDynamic(size_t size) {
     frame->size = size;
     frame->timestamp = get_nowus();
     frame->is_from_fixed_pool = false;
-    frame->is_dma_buffer = false;
     frame->pool = this;
     
     return frame;
-}
-
-AudioFramePtr AudioMemoryPool::allocateFromDMA(size_t size) {
-    // TODO: 实现DMA缓冲区分配
-    // 需要使用RK MPP API: RK_MPI_SYS_MallocMB
-    LOG_WARN("AudioBuffer", "DMA allocation not implemented, fallback to dynamic pool");
-    return allocateFromDynamic(size);
 }
 
 void AudioMemoryPool::deallocate(AudioFrame* frame) {
@@ -263,7 +239,6 @@ void AudioMemoryPool::deallocate(AudioFrame* frame) {
 void AudioMemoryPool::getStats(Stats& out_stats) const {
     out_stats.fixed_pool_hits.store(stats_.fixed_pool_hits.load());
     out_stats.dynamic_pool_hits.store(stats_.dynamic_pool_hits.load());
-    out_stats.dma_pool_hits.store(stats_.dma_pool_hits.load());
     out_stats.total_allocations.store(stats_.total_allocations.load());
     out_stats.allocation_failures.store(stats_.allocation_failures.load());
 }
@@ -271,7 +246,6 @@ void AudioMemoryPool::getStats(Stats& out_stats) const {
 void AudioMemoryPool::resetStats() {
     stats_.fixed_pool_hits.store(0);
     stats_.dynamic_pool_hits.store(0);
-    stats_.dma_pool_hits.store(0);
     stats_.total_allocations.store(0);
     stats_.allocation_failures.store(0);
 }

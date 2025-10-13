@@ -4669,6 +4669,8 @@ app/CMakeFiles/app.dir/media/camera/camerav2.cc.o: ../app/media/camera/camerav2.
   /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/user.h \
   /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/sigthread.h \
   ../rkmpi/include/sample_comm.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_imgproc.h \
+  ../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_sysctl.h \
   ../app/media/sync.h \
   ../app/tool/memory/mem_pool.h \
   /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstddef \

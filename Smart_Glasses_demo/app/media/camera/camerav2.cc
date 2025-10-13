@@ -392,28 +392,336 @@ void VideoMemoryPool::logStats() const {
 ISPWrapper::ISPWrapper(int camera_id, const std::string& iq_dir)
     : camera_id_(camera_id) {
     
-    LOG_INFO("Camera", "Initializing ISP for camera %d", camera_id);
+    LOG_INFO("Camera", "Initializing ISP for camera %d with direct AIQ API", camera_id);
     
     // 停止RkLunch服务
-    system("RkLunch-stop.sh");
+    system("RkLunch-stop.sh 2>/dev/null");
     
-    RK_BOOL multi_sensor = RK_FALSE;
+    // 步骤1：枚举相机静态信息，获取sensor entity name
+    rk_aiq_static_info_t static_info;
+    memset(&static_info, 0, sizeof(static_info));
+    
+    if (rk_aiq_uapi2_sysctl_enumStaticMetas(camera_id, &static_info) != 0) {
+        LOG_ERROR("Camera", "Failed to enumerate camera static metas");
+        return;
+    }
+    
+    const char* sns_ent_name = static_info.sensor_info.sensor_name;
+    LOG_INFO("Camera", "Found sensor: %s", sns_ent_name);
+    
+    // 步骤2：直接使用AIQ API初始化（不使用SAMPLE_COMM_ISP）
+    aiq_ctx_ = rk_aiq_uapi2_sysctl_init(sns_ent_name, iq_dir.c_str(), nullptr, nullptr);
+    
+    if (!aiq_ctx_) {
+        LOG_ERROR("Camera", "Failed to initialize AIQ context");
+        return;
+    }
+    
+    LOG_INFO("Camera", "✓ AIQ context created successfully");
+    
+    // 步骤3：准备并启动AIQ
     rk_aiq_working_mode_t hdr_mode = RK_AIQ_WORKING_MODE_NORMAL;
     
-    if (SAMPLE_COMM_ISP_Init(camera_id, hdr_mode, multi_sensor, iq_dir.c_str()) == 0 &&
-        SAMPLE_COMM_ISP_Run(camera_id) == 0) {
-        valid_ = true;
-        LOG_INFO("Camera", "✓ ISP initialized successfully");
-    } else {
-        LOG_ERROR("Camera", "✗ ISP initialization failed");
+    if (rk_aiq_uapi2_sysctl_prepare(aiq_ctx_, 0, 0, hdr_mode) != 0) {
+        LOG_ERROR("Camera", "Failed to prepare AIQ");
+        rk_aiq_uapi2_sysctl_deinit(aiq_ctx_);
+        aiq_ctx_ = nullptr;
+        return;
     }
+    
+    if (rk_aiq_uapi2_sysctl_start(aiq_ctx_) != 0) {
+        LOG_ERROR("Camera", "Failed to start AIQ");
+        rk_aiq_uapi2_sysctl_deinit(aiq_ctx_);
+        aiq_ctx_ = nullptr;
+        return;
+    }
+    
+    valid_ = true;
+    LOG_INFO("Camera", "✓ ISP initialized successfully with full AIQ control");
+    LOG_INFO("Camera", "✓ ISP parameter control is now AVAILABLE");
 }
 
 ISPWrapper::~ISPWrapper() {
-    if (valid_) {
-        SAMPLE_COMM_ISP_Stop(camera_id_);
-        LOG_INFO("Camera", "ISP stopped");
+    if (aiq_ctx_) {
+        rk_aiq_uapi2_sysctl_stop(aiq_ctx_, false);
+        rk_aiq_uapi2_sysctl_deinit(aiq_ctx_);
+        LOG_INFO("Camera", "ISP/AIQ stopped and deinitialized");
     }
+}
+
+// ========================================================================
+// ISP参数控制实现
+// ========================================================================
+
+VideoError ISPWrapper::setExposureMode(opMode_t mode) {
+    if (!aiq_ctx_) {
+        LOG_ERROR("ISP", "AIQ context not initialized");
+        return VideoError::NOT_INITIALIZED;
+    }
+    
+    XCamReturn ret = rk_aiq_uapi2_setExpMode(aiq_ctx_, mode);
+    if (ret == XCAM_RETURN_NO_ERROR) {
+        LOG_INFO("ISP", "✓ Exposure mode set to: %s", mode == OP_AUTO ? "AUTO" : "MANUAL");
+        return VideoError::NONE;
+    }
+    
+    LOG_ERROR("ISP", "Failed to set exposure mode: %d", ret);
+    return VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::getExposureMode(opMode_t& mode) const {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = rk_aiq_uapi2_getExpMode(aiq_ctx_, &mode);
+    return (ret == XCAM_RETURN_NO_ERROR) ? VideoError::NONE : VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::setExpGainRange(float min_gain, float max_gain) {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    
+    paRange_t gain;
+    gain.min = min_gain;
+    gain.max = max_gain;
+    
+    XCamReturn ret = rk_aiq_uapi2_setExpGainRange(aiq_ctx_, &gain);
+    if (ret == XCAM_RETURN_NO_ERROR) {
+        LOG_INFO("ISP", "✓ Exposure gain range set to: [%.2f, %.2f]", min_gain, max_gain);
+        return VideoError::NONE;
+    }
+    LOG_ERROR("ISP", "Failed to set exposure gain range");
+    return VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::getExpGainRange(float& min_gain, float& max_gain) const {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    paRange_t gain;
+    XCamReturn ret = rk_aiq_uapi2_getExpGainRange(aiq_ctx_, &gain);
+    if (ret == XCAM_RETURN_NO_ERROR) {
+        min_gain = gain.min;
+        max_gain = gain.max;
+        return VideoError::NONE;
+    }
+    return VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::setExpTimeRange(float min_time, float max_time) {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    paRange_t time;
+    time.min = min_time;
+    time.max = max_time;
+    XCamReturn ret = rk_aiq_uapi2_setExpTimeRange(aiq_ctx_, &time);
+    if (ret == XCAM_RETURN_NO_ERROR) {
+        LOG_INFO("ISP", "✓ Exposure time range set to: [%.4f, %.4f]s", min_time, max_time);
+        return VideoError::NONE;
+    }
+    LOG_ERROR("ISP", "Failed to set exposure time range");
+    return VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::getExpTimeRange(float& min_time, float& max_time) const {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    paRange_t time;
+    XCamReturn ret = rk_aiq_uapi2_getExpTimeRange(aiq_ctx_, &time);
+    if (ret == XCAM_RETURN_NO_ERROR) {
+        min_time = time.min;
+        max_time = time.max;
+        return VideoError::NONE;
+    }
+    return VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::lockAE(bool lock) {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = rk_aiq_uapi2_setAeLock(aiq_ctx_, lock);
+    if (ret == XCAM_RETURN_NO_ERROR) {
+        LOG_INFO("ISP", "✓ AE %s", lock ? "locked" : "unlocked");
+        return VideoError::NONE;
+    }
+    LOG_ERROR("ISP", "Failed to %s AE", lock ? "lock" : "unlock");
+    return VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::setWhiteBalanceMode(opMode_t mode) {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = rk_aiq_uapi2_setWBMode(aiq_ctx_, mode);
+    if (ret == XCAM_RETURN_NO_ERROR) {
+        LOG_INFO("ISP", "✓ White balance mode set to: %s", mode == OP_AUTO ? "AUTO" : "MANUAL");
+        return VideoError::NONE;
+    }
+    LOG_ERROR("ISP", "Failed to set white balance mode");
+    return VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::getWhiteBalanceMode(opMode_t& mode) const {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = rk_aiq_uapi2_getWBMode(aiq_ctx_, &mode);
+    return (ret == XCAM_RETURN_NO_ERROR) ? VideoError::NONE : VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::setWhiteBalanceGain(float r_gain, float b_gain) {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    rk_aiq_wb_gain_t gain;
+    gain.rgain = r_gain;
+    gain.bgain = b_gain;
+    gain.grgain = 1.0f;
+    gain.gbgain = 1.0f;
+    XCamReturn ret = rk_aiq_uapi2_setMWBGain(aiq_ctx_, &gain);
+    if (ret == XCAM_RETURN_NO_ERROR) {
+        LOG_INFO("ISP", "✓ WB gain set to: R=%.2f, B=%.2f", r_gain, b_gain);
+        return VideoError::NONE;
+    }
+    LOG_ERROR("ISP", "Failed to set WB gain");
+    return VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::getWhiteBalanceGain(float& r_gain, float& b_gain) const {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    rk_aiq_wb_gain_t gain;
+    XCamReturn ret = rk_aiq_uapi2_getWBGain(aiq_ctx_, &gain);
+    if (ret == XCAM_RETURN_NO_ERROR) {
+        r_gain = gain.rgain;
+        b_gain = gain.bgain;
+        return VideoError::NONE;
+    }
+    return VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::setColorTemperature(unsigned int ct) {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = rk_aiq_uapi2_setMWBCT(aiq_ctx_, ct);
+    if (ret == XCAM_RETURN_NO_ERROR) {
+        LOG_INFO("ISP", "✓ Color temperature set to: %uK", ct);
+        return VideoError::NONE;
+    }
+    LOG_ERROR("ISP", "Failed to set color temperature");
+    return VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::getColorTemperature(unsigned int& ct) const {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = rk_aiq_uapi2_getWBCT(aiq_ctx_, &ct);
+    return (ret == XCAM_RETURN_NO_ERROR) ? VideoError::NONE : VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::lockAWB(bool lock) {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = lock ? rk_aiq_uapi2_lockAWB(aiq_ctx_) : rk_aiq_uapi2_unlockAWB(aiq_ctx_);
+    if (ret == XCAM_RETURN_NO_ERROR) {
+        LOG_INFO("ISP", "✓ AWB %s", lock ? "locked" : "unlocked");
+        return VideoError::NONE;
+    }
+    LOG_ERROR("ISP", "Failed to %s AWB", lock ? "lock" : "unlock");
+    return VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::setBrightness(unsigned int level) {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = rk_aiq_uapi2_setBrightness(aiq_ctx_, level);
+    if (ret == XCAM_RETURN_NO_ERROR) {
+        LOG_INFO("ISP", "✓ Brightness set to: %u", level);
+        return VideoError::NONE;
+    }
+    LOG_ERROR("ISP", "Failed to set brightness");
+    return VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::getBrightness(unsigned int& level) const {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = rk_aiq_uapi2_getBrightness(aiq_ctx_, &level);
+    return (ret == XCAM_RETURN_NO_ERROR) ? VideoError::NONE : VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::setContrast(unsigned int level) {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = rk_aiq_uapi2_setContrast(aiq_ctx_, level);
+    if (ret == XCAM_RETURN_NO_ERROR) {
+        LOG_INFO("ISP", "✓ Contrast set to: %u", level);
+        return VideoError::NONE;
+    }
+    LOG_ERROR("ISP", "Failed to set contrast");
+    return VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::getContrast(unsigned int& level) const {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = rk_aiq_uapi2_getContrast(aiq_ctx_, &level);
+    return (ret == XCAM_RETURN_NO_ERROR) ? VideoError::NONE : VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::setSaturation(unsigned int level) {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = rk_aiq_uapi2_setSaturation(aiq_ctx_, level);
+    if (ret == XCAM_RETURN_NO_ERROR) {
+        LOG_INFO("ISP", "✓ Saturation set to: %u", level);
+        return VideoError::NONE;
+    }
+    LOG_ERROR("ISP", "Failed to set saturation");
+    return VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::getSaturation(unsigned int& level) const {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = rk_aiq_uapi2_getSaturation(aiq_ctx_, &level);
+    return (ret == XCAM_RETURN_NO_ERROR) ? VideoError::NONE : VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::setHue(unsigned int level) {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = rk_aiq_uapi2_setHue(aiq_ctx_, level);
+    if (ret == XCAM_RETURN_NO_ERROR) {
+        LOG_INFO("ISP", "✓ Hue set to: %u", level);
+        return VideoError::NONE;
+    }
+    LOG_ERROR("ISP", "Failed to set hue");
+    return VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::getHue(unsigned int& level) const {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = rk_aiq_uapi2_getHue(aiq_ctx_, &level);
+    return (ret == XCAM_RETURN_NO_ERROR) ? VideoError::NONE : VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::setSharpness(unsigned int level) {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = rk_aiq_uapi2_setSharpness(aiq_ctx_, level);
+    if (ret == XCAM_RETURN_NO_ERROR) {
+        LOG_INFO("ISP", "✓ Sharpness set to: %u", level);
+        return VideoError::NONE;
+    }
+    LOG_ERROR("ISP", "Failed to set sharpness");
+    return VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::getSharpness(unsigned int& level) const {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = rk_aiq_uapi2_getSharpness(aiq_ctx_, &level);
+    return (ret == XCAM_RETURN_NO_ERROR) ? VideoError::NONE : VideoError::RKMPI_ERROR;
+}
+
+VideoError ISPWrapper::setDehazeLevel(unsigned int level) {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = rk_aiq_uapi2_setDehazeEnable(aiq_ctx_, level > 0);
+    if (ret != XCAM_RETURN_NO_ERROR) {
+        LOG_ERROR("ISP", "Failed to enable/disable dehaze");
+        return VideoError::RKMPI_ERROR;
+    }
+    if (level > 0) {
+        ret = rk_aiq_uapi2_setMDehazeStrth(aiq_ctx_, level);
+        if (ret == XCAM_RETURN_NO_ERROR) {
+            LOG_INFO("ISP", "✓ Dehaze level set to: %u", level);
+            return VideoError::NONE;
+        }
+        LOG_ERROR("ISP", "Failed to set dehaze level");
+        return VideoError::RKMPI_ERROR;
+    }
+    LOG_INFO("ISP", "✓ Dehaze disabled");
+    return VideoError::NONE;
+}
+
+VideoError ISPWrapper::getDehazeLevel(unsigned int& level) const {
+    if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+    XCamReturn ret = rk_aiq_uapi2_getMDehazeStrth(aiq_ctx_, &level);
+    return (ret == XCAM_RETURN_NO_ERROR) ? VideoError::NONE : VideoError::RKMPI_ERROR;
 }
 
 // VIDeviceWrapper 实现
@@ -547,12 +855,11 @@ VENCWrapper::VENCWrapper(int chn_id, int width, int height, EncodeFormat format,
         case EncodeFormat::JPEG:
             codec_type = RK_VIDEO_ID_MJPEG;
             stAttr.stRcAttr.enRcMode = VENC_RC_MODE_MJPEGFIXQP;
-            stAttr.stRcAttr.stH264Cbr.u32BitRate = 10 * 1024;
-            stAttr.stRcAttr.stH264Cbr.u32Gop = 1;
+            stAttr.stRcAttr.stMjpegFixQp.u32Qfactor = 70;
             stAttr.stVencAttr.stAttrJpege.bSupportDCF = RK_FALSE;
             stAttr.stVencAttr.stAttrJpege.stMPFCfg.u8LargeThumbNailNum = 0;
             stAttr.stVencAttr.stAttrJpege.enReceiveMode = VENC_PIC_RECEIVE_SINGLE;
-            stAttr.stVencAttr.u32BufSize = width * height * 3 / 2;
+            stAttr.stVencAttr.u32BufSize = width * height * 3;
             break;
     }
     
@@ -862,10 +1169,9 @@ VideoError VENCWrapper::setJPEGQuality(int quality) {
         return VideoError::ENCODE_FAILED;
     }
     
-    // 设置JPEG质量参数（通过码率控制实现质量调整）
+    // 设置JPEG质量参数
     if (stVencChnAttr.stRcAttr.enRcMode == VENC_RC_MODE_MJPEGFIXQP) {
-        // 质量范围[1,100] → Qfactor范围[1,50]（质量越高，Qfactor越大）
-        int qp = std::max(1, std::min(50, (quality + 1) / 2));
+        int qp = std::max(1, std::min(99, (quality * 99 + 50) / 100));
         stVencChnAttr.stRcAttr.stMjpegFixQp.u32Qfactor = qp;
         
         ret = RK_MPI_VENC_SetChnAttr(chn_id_, &stVencChnAttr);
@@ -880,7 +1186,6 @@ VideoError VENCWrapper::setJPEGQuality(int quality) {
         LOG_WARN("Camera", "JPEG encoder not in FixQP mode, cannot adjust quality");
     }
     
-    // ✅ 保存质量设置（即使当前无法应用）
     current_jpeg_quality_ = quality;
     LOG_INFO("Camera", "✓ JPEG quality setting saved: %d", quality);
     return VideoError::NONE;
@@ -2035,6 +2340,108 @@ void VideoSystemV2::resetStats() {
 
 void VideoSystemV2::logStats() const {
     pImpl_->logStats();
+}
+
+// ========================================================================
+// ISP参数控制代理实现（转发到ISPWrapper）
+// ========================================================================
+
+VideoError VideoSystemV2::setExposureMode(opMode_t mode) {
+    if (!isInitialized() || !pImpl_->isp_ || !pImpl_->isp_->isValid()) {
+        return VideoError::NOT_INITIALIZED;
+    }
+    return pImpl_->isp_->setExposureMode(mode);
+}
+
+VideoError VideoSystemV2::setExpGainRange(float min_gain, float max_gain) {
+    if (!isInitialized() || !pImpl_->isp_ || !pImpl_->isp_->isValid()) {
+        return VideoError::NOT_INITIALIZED;
+    }
+    return pImpl_->isp_->setExpGainRange(min_gain, max_gain);
+}
+
+VideoError VideoSystemV2::setExpTimeRange(float min_time, float max_time) {
+    if (!isInitialized() || !pImpl_->isp_ || !pImpl_->isp_->isValid()) {
+        return VideoError::NOT_INITIALIZED;
+    }
+    return pImpl_->isp_->setExpTimeRange(min_time, max_time);
+}
+
+VideoError VideoSystemV2::lockAE(bool lock) {
+    if (!isInitialized() || !pImpl_->isp_ || !pImpl_->isp_->isValid()) {
+        return VideoError::NOT_INITIALIZED;
+    }
+    return pImpl_->isp_->lockAE(lock);
+}
+
+VideoError VideoSystemV2::setWhiteBalanceMode(opMode_t mode) {
+    if (!isInitialized() || !pImpl_->isp_ || !pImpl_->isp_->isValid()) {
+        return VideoError::NOT_INITIALIZED;
+    }
+    return pImpl_->isp_->setWhiteBalanceMode(mode);
+}
+
+VideoError VideoSystemV2::setWhiteBalanceGain(float r_gain, float b_gain) {
+    if (!isInitialized() || !pImpl_->isp_ || !pImpl_->isp_->isValid()) {
+        return VideoError::NOT_INITIALIZED;
+    }
+    return pImpl_->isp_->setWhiteBalanceGain(r_gain, b_gain);
+}
+
+VideoError VideoSystemV2::setColorTemperature(unsigned int ct) {
+    if (!isInitialized() || !pImpl_->isp_ || !pImpl_->isp_->isValid()) {
+        return VideoError::NOT_INITIALIZED;
+    }
+    return pImpl_->isp_->setColorTemperature(ct);
+}
+
+VideoError VideoSystemV2::lockAWB(bool lock) {
+    if (!isInitialized() || !pImpl_->isp_ || !pImpl_->isp_->isValid()) {
+        return VideoError::NOT_INITIALIZED;
+    }
+    return pImpl_->isp_->lockAWB(lock);
+}
+
+VideoError VideoSystemV2::setBrightness(unsigned int level) {
+    if (!isInitialized() || !pImpl_->isp_ || !pImpl_->isp_->isValid()) {
+        return VideoError::NOT_INITIALIZED;
+    }
+    return pImpl_->isp_->setBrightness(level);
+}
+
+VideoError VideoSystemV2::setContrast(unsigned int level) {
+    if (!isInitialized() || !pImpl_->isp_ || !pImpl_->isp_->isValid()) {
+        return VideoError::NOT_INITIALIZED;
+    }
+    return pImpl_->isp_->setContrast(level);
+}
+
+VideoError VideoSystemV2::setSaturation(unsigned int level) {
+    if (!isInitialized() || !pImpl_->isp_ || !pImpl_->isp_->isValid()) {
+        return VideoError::NOT_INITIALIZED;
+    }
+    return pImpl_->isp_->setSaturation(level);
+}
+
+VideoError VideoSystemV2::setHue(unsigned int level) {
+    if (!isInitialized() || !pImpl_->isp_ || !pImpl_->isp_->isValid()) {
+        return VideoError::NOT_INITIALIZED;
+    }
+    return pImpl_->isp_->setHue(level);
+}
+
+VideoError VideoSystemV2::setSharpness(unsigned int level) {
+    if (!isInitialized() || !pImpl_->isp_ || !pImpl_->isp_->isValid()) {
+        return VideoError::NOT_INITIALIZED;
+    }
+    return pImpl_->isp_->setSharpness(level);
+}
+
+VideoError VideoSystemV2::setDehazeLevel(unsigned int level) {
+    if (!isInitialized() || !pImpl_->isp_ || !pImpl_->isp_->isValid()) {
+        return VideoError::NOT_INITIALIZED;
+    }
+    return pImpl_->isp_->setDehazeLevel(level);
 }
 
 } // namespace camera

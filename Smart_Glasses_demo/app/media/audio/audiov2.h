@@ -4,7 +4,7 @@
  * @details 特性：
  *          - RAII资源管理
  *          - 智能指针（无裸指针）
- *          - 三级内存池（固定池+动态池+零拷贝）
+ *          - 两级内存池（固定池+动态池）
  *          - 线程安全
  *          - 状态机管理
  *          - 性能优化（<50ns分配延迟）
@@ -156,12 +156,11 @@ using PaStreamPtr = std::unique_ptr<PaStream, PaStreamDeleter>;
  */
 struct AudioFrame {
     std::atomic<int> ref_count{1};      // 引用计数
-    uint8_t* data;                       // 数据指针（指向内存池或DMA）
+    uint8_t* data;                       // 数据指针（指向内存池）
     size_t capacity;                     // 缓冲区容量
     size_t size;                         // 实际数据大小
     uint64_t timestamp;                  // 时间戳（微秒）
     bool is_from_fixed_pool;             // 是否来自固定池
-    bool is_dma_buffer;                  // 是否为DMA缓冲区
     AudioMemoryPool* pool;               // 所属内存池（用于回收）
     
     AudioFrame()
@@ -170,7 +169,6 @@ struct AudioFrame {
         , size(0)
         , timestamp(0)
         , is_from_fixed_pool(false)
-        , is_dma_buffer(false)
         , pool(nullptr) {
     }
     
@@ -225,15 +223,10 @@ struct AudioMemoryPoolConfig {
     
     // 第二级：动态池配置
     size_t dynamic_pool_size = 2 * 1024 * 1024;  // 2MB
-    
-    // 第三级：DMA零拷贝配置
-    bool enable_dma = false;             // 是否启用DMA（默认false）
-    size_t dma_block_size = 4096;        // DMA块大小
-    size_t dma_block_count = 10;         // DMA块数量
 };
 
 /**
- * @brief 音频内存池（三级缓冲池架构）
+ * @brief 音频内存池（两级缓冲池架构）
  */
 class AudioMemoryPool {
 public:
@@ -266,7 +259,6 @@ public:
     struct Stats {
         std::atomic<uint64_t> fixed_pool_hits{0};      // 固定池命中次数
         std::atomic<uint64_t> dynamic_pool_hits{0};    // 动态池命中次数
-        std::atomic<uint64_t> dma_pool_hits{0};        // DMA池命中次数
         std::atomic<uint64_t> total_allocations{0};    // 总分配次数
         std::atomic<uint64_t> allocation_failures{0};  // 分配失败次数
         
@@ -308,7 +300,6 @@ private:
     // 内部分配方法
     AudioFramePtr allocateFromFixed(size_t size);
     AudioFramePtr allocateFromDynamic(size_t size);
-    AudioFramePtr allocateFromDMA(size_t size);
 };
 
 // ============================================================================
@@ -377,7 +368,7 @@ using StateChangeCallback = std::function<void(StateEnum old_state, StateEnum ne
  * @details 现代C++重写的音频系统，特性：
  *          - RAII自动资源管理
  *          - 智能指针，无裸指针
- *          - 三级内存池，<50ns分配延迟
+ *          - 两级内存池，<50ns分配延迟
  *          - 零拷贝传输（智能指针）
  *          - 完全线程安全
  *          - 主+子状态机管理

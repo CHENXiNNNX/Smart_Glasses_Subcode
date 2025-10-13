@@ -13,6 +13,8 @@
 #include <queue>
 #include <array>
 #include "../../../rkmpi/include/sample_comm.h"
+#include "../../../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_imgproc.h"
+#include "../../../rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_sysctl.h"
 #include "../sync.h"
 #include "../../tool/memory/mem_pool.h"
 
@@ -40,6 +42,7 @@ enum class VideoError {
     ENCODE_FAILED,         // 编码失败
     FILE_OPEN_FAILED,      // 文件打开失败
     RKMPI_ERROR,           // RKMPI错误
+    NOT_SUPPORTED,         // 功能暂不支持
     UNKNOWN                // 未知错误
 };
 
@@ -61,7 +64,6 @@ enum class VideoMainState {
     NONE = 0,              // 空闲状态
     PHOTO,                 // 拍照模式
     RECORD,                // 录像模式
-    RTSP,                  // RTSP推流模式
     WEBRTC                 // WebRTC推流模式
 };
 
@@ -250,7 +252,7 @@ private:
 // ============================================================================
 
 /**
- * @brief ISP资源包装器
+ * @brief ISP资源包装器（支持RK AIQ参数动态调整）
  */
 class ISPWrapper {
 public:
@@ -261,10 +263,124 @@ public:
     ISPWrapper& operator=(const ISPWrapper&) = delete;
     
     bool isValid() const { return valid_; }
+    
+    // ========================================================================
+    // 曝光控制（AE - Auto Exposure）
+    // ========================================================================
+    
+    /**
+     * @brief 设置曝光模式
+     * @param mode OP_AUTO=自动曝光, OP_MANUAL=手动曝光
+     */
+    VideoError setExposureMode(opMode_t mode);
+    VideoError getExposureMode(opMode_t& mode) const;
+    
+    /**
+     * @brief 设置曝光增益范围
+     * @param min_gain 最小增益 [1.0-32.0]
+     * @param max_gain 最大增益 [1.0-32.0]
+     */
+    VideoError setExpGainRange(float min_gain, float max_gain);
+    VideoError getExpGainRange(float& min_gain, float& max_gain) const;
+    
+    /**
+     * @brief 设置曝光时间范围（秒）
+     * @param min_time 最小曝光时间 [0.0001-1.0]
+     * @param max_time 最大曝光时间 [0.0001-1.0]
+     */
+    VideoError setExpTimeRange(float min_time, float max_time);
+    VideoError getExpTimeRange(float& min_time, float& max_time) const;
+    
+    /**
+     * @brief 锁定/解锁自动曝光
+     */
+    VideoError lockAE(bool lock);
+    
+    // ========================================================================
+    // 白平衡控制（AWB - Auto White Balance）
+    // ========================================================================
+    
+    /**
+     * @brief 设置白平衡模式
+     * @param mode OP_AUTO=自动白平衡, OP_MANUAL=手动白平衡
+     */
+    VideoError setWhiteBalanceMode(opMode_t mode);
+    VideoError getWhiteBalanceMode(opMode_t& mode) const;
+    
+    /**
+     * @brief 设置手动白平衡增益（r_gain和b_gain）
+     * @param r_gain 红色增益 [0.0-4.0]
+     * @param b_gain 蓝色增益 [0.0-4.0]
+     */
+    VideoError setWhiteBalanceGain(float r_gain, float b_gain);
+    VideoError getWhiteBalanceGain(float& r_gain, float& b_gain) const;
+    
+    /**
+     * @brief 设置色温
+     * @param ct 色温值 [2800-7500]K
+     */
+    VideoError setColorTemperature(unsigned int ct);
+    VideoError getColorTemperature(unsigned int& ct) const;
+    
+    /**
+     * @brief 锁定/解锁自动白平衡
+     */
+    VideoError lockAWB(bool lock);
+    
+    // ========================================================================
+    // 图像质量控制
+    // ========================================================================
+    
+    /**
+     * @brief 设置亮度
+     * @param level 亮度等级 [0-255]，128为默认值
+     */
+    VideoError setBrightness(unsigned int level);
+    VideoError getBrightness(unsigned int& level) const;
+    
+    /**
+     * @brief 设置对比度
+     * @param level 对比度等级 [0-255]，128为默认值
+     */
+    VideoError setContrast(unsigned int level);
+    VideoError getContrast(unsigned int& level) const;
+    
+    /**
+     * @brief 设置饱和度
+     * @param level 饱和度等级 [0-255]，128为默认值
+     */
+    VideoError setSaturation(unsigned int level);
+    VideoError getSaturation(unsigned int& level) const;
+    
+    /**
+     * @brief 设置色调
+     * @param level 色调等级 [0-255]，128为默认值
+     */
+    VideoError setHue(unsigned int level);
+    VideoError getHue(unsigned int& level) const;
+    
+    /**
+     * @brief 设置锐度
+     * @param level 锐度等级 [0-100]，50为默认值
+     */
+    VideoError setSharpness(unsigned int level);
+    VideoError getSharpness(unsigned int& level) const;
+    
+    // ========================================================================
+    // 高级控制
+    // ========================================================================
+    
+    /**
+     * @brief 设置去雾强度
+     * @param level 去雾强度 [0-255]，0=关闭，255=最强
+     */
+    VideoError setDehazeLevel(unsigned int level);
+    VideoError getDehazeLevel(unsigned int& level) const;
 
 private:
     int camera_id_;
     bool valid_ = false;
+    rk_aiq_sys_ctx_t* aiq_ctx_ = nullptr;  // AIQ系统上下文
 };
 
 /**
@@ -582,6 +698,81 @@ public:
      * @brief 获取当前FPS
      */
     float getCurrentFPS() const;
+    
+    // ========================================================================
+    // ISP参数控制（通过ISPWrapper代理）
+    // ========================================================================
+    
+    /**
+     * @brief 设置曝光模式
+     * @param mode OP_AUTO=自动曝光, OP_MANUAL=手动曝光
+     */
+    VideoError setExposureMode(opMode_t mode);
+    
+    /**
+     * @brief 设置曝光增益范围
+     */
+    VideoError setExpGainRange(float min_gain, float max_gain);
+    
+    /**
+     * @brief 设置曝光时间范围（秒）
+     */
+    VideoError setExpTimeRange(float min_time, float max_time);
+    
+    /**
+     * @brief 锁定/解锁自动曝光
+     */
+    VideoError lockAE(bool lock);
+    
+    /**
+     * @brief 设置白平衡模式
+     */
+    VideoError setWhiteBalanceMode(opMode_t mode);
+    
+    /**
+     * @brief 设置手动白平衡增益
+     */
+    VideoError setWhiteBalanceGain(float r_gain, float b_gain);
+    
+    /**
+     * @brief 设置色温
+     */
+    VideoError setColorTemperature(unsigned int ct);
+    
+    /**
+     * @brief 锁定/解锁自动白平衡
+     */
+    VideoError lockAWB(bool lock);
+    
+    /**
+     * @brief 设置亮度 [0-255]
+     */
+    VideoError setBrightness(unsigned int level);
+    
+    /**
+     * @brief 设置对比度 [0-255]
+     */
+    VideoError setContrast(unsigned int level);
+    
+    /**
+     * @brief 设置饱和度 [0-255]
+     */
+    VideoError setSaturation(unsigned int level);
+    
+    /**
+     * @brief 设置色调 [0-255]
+     */
+    VideoError setHue(unsigned int level);
+    
+    /**
+     * @brief 设置锐度 [0-100]
+     */
+    VideoError setSharpness(unsigned int level);
+    
+    /**
+     * @brief 设置去雾强度 [0-255]
+     */
+    VideoError setDehazeLevel(unsigned int level);
     
     // ========================================================================
     // 统计信息

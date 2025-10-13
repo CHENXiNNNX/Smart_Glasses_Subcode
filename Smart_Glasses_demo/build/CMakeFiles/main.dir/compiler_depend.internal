@@ -605,6 +605,8 @@ CMakeFiles/main.dir/main.cpp.o
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/sys/user.h
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/bits/sigthread.h
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/rkmpi/include/sample_comm.h
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_imgproc.h
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/rkmpi/include/rkaiq/uAPI2/rk_aiq_user_api2_sysctl.h
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/media/sync.h
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/tool/memory/mem_pool.h
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstddef
