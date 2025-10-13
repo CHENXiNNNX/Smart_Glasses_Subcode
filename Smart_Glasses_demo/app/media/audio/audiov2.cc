@@ -19,33 +19,50 @@ using namespace tool::logger;
 // AudioFrame实现
 // ============================================================================
 
-void AudioFrame::release() {
-    if (ref_count.fetch_sub(1, std::memory_order_release) == 1) {
-        std::atomic_thread_fence(std::memory_order_acquire);
-        
-        // 引用计数归零，回收到池
-        if (pool) {
-            pool->deallocate(this);
-        } else {
-            LOG_ERROR("AudioFrame", "Frame has no pool, memory leak!");
-        }
-    }
-}
-
 // ============================================================================
 // AudioMemoryPool::FixedPool实现（无锁固定池）
 // ============================================================================
 
+// FixedPool构造函数 - 支持动态大小
+AudioMemoryPool::FixedPool::FixedPool(size_t block_count) 
+    : actual_block_count(std::min(block_count, MAX_BLOCKS)) {
+    
+    // 初始化位图（所有位为0表示空闲）
+    for (size_t i = 0; i < 8; i++) {
+        allocation_bitmap_[i].store(0, std::memory_order_relaxed);
+    }
+    
+    // 动态分配数据块和帧对象
+    blocks.resize(actual_block_count);
+    frame_objects.resize(actual_block_count);
+    
+    // 初始化帧对象
+    for (size_t i = 0; i < actual_block_count; i++) {
+        frame_objects[i].is_from_fixed_pool = true;
+        frame_objects[i].fixed_pool_index = static_cast<int>(i);
+    }
+    
+    LOG_INFO("AudioBuffer", "Fixed pool created: %zu blocks × %zu bytes = %.2f KB",
+             actual_block_count, BLOCK_SIZE, (actual_block_count * BLOCK_SIZE) / 1024.0);
+}
+
+uint8_t* AudioMemoryPool::FixedPool::getBlockPtr(int index) {
+    if (index < 0 || index >= static_cast<int>(actual_block_count)) {
+        return nullptr;
+    }
+    return blocks[index].data();
+}
+
 int AudioMemoryPool::FixedPool::allocateBlock() {
-    // 遍历8个位图（400块 = 6.25个64位位图，使用7个）
-    int bitmap_count = (BLOCK_COUNT + 63) / 64;  // 向上取整
+    // 遍历位图（根据实际块数计算需要的位图数量）
+    int bitmap_count = (actual_block_count + 63) / 64;  // 向上取整
     
     for (int bitmap_index = 0; bitmap_index < bitmap_count; bitmap_index++) {
         uint64_t bitmap = allocation_bitmap_[bitmap_index].load(std::memory_order_acquire);
         
         // 计算此位图管理的块范围
         int base_index = bitmap_index * 64;
-        int max_blocks = std::min(64, static_cast<int>(BLOCK_COUNT) - base_index);
+        int max_blocks = std::min(64, static_cast<int>(actual_block_count) - base_index);
         
         if (max_blocks <= 0) break;
         
@@ -71,7 +88,7 @@ int AudioMemoryPool::FixedPool::allocateBlock() {
 }
 
 void AudioMemoryPool::FixedPool::deallocateBlock(int index) {
-    if (index < 0 || index >= static_cast<int>(BLOCK_COUNT)) {
+    if (index < 0 || index >= static_cast<int>(actual_block_count)) {
         LOG_ERROR("AudioBuffer", "Invalid block index: %d", index);
         return;
     }
@@ -90,20 +107,15 @@ void AudioMemoryPool::FixedPool::deallocateBlock(int index) {
 // ============================================================================
 
 AudioMemoryPool::AudioMemoryPool(const AudioMemoryPoolConfig& config)
-    : config_(config)
-    , fixed_pool_(std::make_unique<FixedPool>())
-    , dynamic_pool_(nullptr) {
+    : config_(config) {
     
     LOG_INFO("AudioBuffer", "Initializing audio memory pool (2-tier)...");
     LOG_INFO("AudioBuffer", "  Fixed pool: %zu blocks × %zu bytes = %.2f KB",
              config_.fixed_block_count, config_.fixed_block_size,
              (config_.fixed_block_count * config_.fixed_block_size) / 1024.0);
     
-    // 初始化固定池的帧对象
-    for (size_t i = 0; i < FixedPool::BLOCK_COUNT; i++) {
-        fixed_pool_->frame_objects[i].pool = this;
-        fixed_pool_->frame_objects[i].is_from_fixed_pool = true;
-    }
+    // 创建动态大小的固定池
+    fixed_pool_ = std::make_unique<FixedPool>(config_.fixed_block_count);
     
     // 创建动态内存池（第二级）
     if (config_.dynamic_pool_size > 0) {
@@ -168,18 +180,23 @@ AudioFramePtr AudioMemoryPool::allocateFromFixed(size_t size) {
         return nullptr;  // 池满
     }
     
-    // 初始化AudioFrame
+    // 使用对象池中的帧对象
     AudioFrame* frame = &fixed_pool_->frame_objects[block_index];
-    frame->ref_count.store(1, std::memory_order_relaxed);
-    frame->data = fixed_pool_->blocks[block_index];
+    frame->data = fixed_pool_->getBlockPtr(block_index);
     frame->capacity = FixedPool::BLOCK_SIZE;
     frame->size = size;
     frame->timestamp = get_nowus();
     frame->is_from_fixed_pool = true;
-    frame->pool = this;
+    frame->fixed_pool_index = block_index;
     
-    // 创建智能指针（自定义删除器调用release()）
-    return AudioFramePtr(frame, AudioFrameDeleter());
+    // 创建智能指针，使用自定义删除器回收到固定池
+    auto pool_ptr = fixed_pool_.get();
+    return std::shared_ptr<AudioFrame>(frame, [pool_ptr](AudioFrame* f) {
+        if (f && f->is_from_fixed_pool && f->fixed_pool_index >= 0) {
+            pool_ptr->deallocateBlock(f->fixed_pool_index);
+        }
+        // 注意：不delete f，因为它来自对象池
+    });
 }
 
 AudioFramePtr AudioMemoryPool::allocateFromDynamic(size_t size) {
@@ -196,7 +213,7 @@ AudioFramePtr AudioMemoryPool::allocateFromDynamic(size_t size) {
     
     // 使用自定义删除器确保正确释放动态池内存
     auto frame = std::shared_ptr<AudioFrame>(new AudioFrame(), 
-        [this, buffer](AudioFrame* f) {
+        [this](AudioFrame* f) {
             // 先释放动态池内存，再删除AudioFrame对象
             if (f->data && dynamic_pool_) {
                 dynamic_pool_->deallocate(f->data);
@@ -204,37 +221,17 @@ AudioFramePtr AudioMemoryPool::allocateFromDynamic(size_t size) {
             delete f;
         });
     
-    frame->ref_count.store(1, std::memory_order_relaxed);
     frame->data = static_cast<uint8_t*>(buffer);
     frame->capacity = size;
     frame->size = size;
     frame->timestamp = get_nowus();
     frame->is_from_fixed_pool = false;
-    frame->pool = this;
+    frame->fixed_pool_index = -1;
     
     return frame;
 }
 
-void AudioMemoryPool::deallocate(AudioFrame* frame) {
-    if (!frame) {
-        return;
-    }
-    
-    if (frame->is_from_fixed_pool) {
-        // 回收到固定池
-        int block_index = (frame - fixed_pool_->frame_objects);
-        if (block_index >= 0 && block_index < static_cast<int>(FixedPool::BLOCK_COUNT)) {
-            fixed_pool_->deallocateBlock(block_index);
-        } else {
-            LOG_ERROR("AudioBuffer", "Invalid fixed pool frame");
-        }
-    } else if (frame->data && dynamic_pool_) {
-        // 回收到动态池
-        dynamic_pool_->deallocate(frame->data);
-        frame->data = nullptr;
-        // frame对象本身由shared_ptr管理，会自动delete
-    }
-}
+// deallocate函数不再需要，所有清理工作由shared_ptr的deleter负责
 
 void AudioMemoryPool::getStats(Stats& out_stats) const {
     out_stats.fixed_pool_hits.store(stats_.fixed_pool_hits.load());
@@ -310,6 +307,9 @@ public:
     // 重采样器（RAII智能指针）
     SrcStatePtr ai_resampler;         // 48kHz → 16kHz（AI）
     std::vector<int16_t> ai_resample_buffer;  // AI重采样累积缓冲区
+    
+    SrcStatePtr wakeword_resampler;   // 48kHz → 16kHz（唤醒词）
+    std::vector<int16_t> wakeword_resample_buffer;  // 唤醒词重采样累积缓冲区
     
     // 3A算法（RAII智能指针）
     SpeexStatePtr speex_state;
@@ -563,7 +563,17 @@ AudioError AudioSystemV2::initialize(std::shared_ptr<sync_context_t> sync_ctx) {
         LOG_INFO("AudioSystemV2", "  AI resampler: 48kHz → 16kHz");
     }
     
-    // 7. 初始化3A算法
+    // 7. 创建唤醒词重采样器（48kHz → 16kHz）
+    SRC_STATE* wakeword_resampler = src_new(SRC_SINC_FASTEST, 1, &src_error);
+    if (!wakeword_resampler) {
+        LOG_ERROR("AudioSystemV2", "Wakeword resampler create failed: %s", src_strerror(src_error));
+        // 不致命，继续
+    } else {
+        pImpl_->wakeword_resampler.reset(wakeword_resampler);
+        LOG_INFO("AudioSystemV2", "  Wakeword resampler: 48kHz → 16kHz (FASTEST)");
+    }
+    
+    // 8. 初始化3A算法
     if (pImpl_->config.enable_denoise || pImpl_->config.enable_agc) {
         LOG_INFO("AudioSystemV2", "Step 4: Initializing 3A algorithms...");
         
@@ -859,9 +869,62 @@ int AudioSystemV2::Impl::recordCallback(const void* inputBuffer, void* outputBuf
         speex_preprocess_run(impl->speex_state.get(), frame->getData<int16_t>());
     }
     
-    // 唤醒词检测（仅在非AI流式传输时）
-    if (!impl->is_ai_streaming.load() && impl->wakeword_callback) {
-        impl->invokeWakewordCallback(frame->getData<int16_t>(), framesPerBuffer);
+    // 唤醒词检测（仅在非AI流式传输时，需要16kHz音频）
+    if (!impl->is_ai_streaming.load() && impl->wakeword_callback && impl->wakeword_resampler) {
+        // 重采样 48kHz → 16kHz
+        double src_ratio = 16000.0 / 48000.0;  // 1/3
+        SRC_DATA src_data;
+        
+        // 使用预分配的临时缓冲区
+        float* input_float = impl->temp_float_buffer_in.data();
+        float* output_float = impl->temp_float_buffer_out.data();
+        
+        // int16 → float
+        const int16_t* pcm_data = frame->getData<int16_t>();
+        for (size_t i = 0; i < framesPerBuffer; i++) {
+            input_float[i] = static_cast<float>(pcm_data[i]) / 32768.0f;
+        }
+        
+        // 重采样
+        src_data.data_in = input_float;
+        src_data.input_frames = framesPerBuffer;
+        src_data.data_out = output_float;
+        src_data.output_frames = impl->temp_float_buffer_out.size();
+        src_data.src_ratio = src_ratio;
+        src_data.end_of_input = 0;
+        
+        int resample_error = src_process(impl->wakeword_resampler.get(), &src_data);
+        if (resample_error == 0 && src_data.output_frames_gen > 0) {
+            // 缓冲区大小限制
+            const size_t MAX_WAKEWORD_BUFFER_SIZE = 16000;  // 1秒@16kHz
+            
+            // float → int16，添加到累积缓冲区（带溢出保护）
+            for (long i = 0; i < src_data.output_frames_gen; i++) {
+                if (impl->wakeword_resample_buffer.size() >= MAX_WAKEWORD_BUFFER_SIZE) {
+                    LOG_WARN("AudioCallback", "Wakeword resample buffer overflow, dropping samples");
+                    break;
+                }
+                
+                float sample = std::max(-1.0f, std::min(1.0f, output_float[i]));
+                impl->wakeword_resample_buffer.push_back(static_cast<int16_t>(sample * 32767.0f));
+            }
+            
+            // 当累积到320样本（16kHz 20ms）时，传递给唤醒词检测
+            const int TARGET_FRAME_SIZE = 320;  // 16kHz 20ms = 320 samples
+            while (impl->wakeword_resample_buffer.size() >= static_cast<size_t>(TARGET_FRAME_SIZE)) {
+                // 传递给唤醒词检测（16kHz音频）
+                impl->invokeWakewordCallback(
+                    impl->wakeword_resample_buffer.data(), 
+                    TARGET_FRAME_SIZE
+                );
+                
+                // 移除已处理的样本
+                impl->wakeword_resample_buffer.erase(
+                    impl->wakeword_resample_buffer.begin(),
+                    impl->wakeword_resample_buffer.begin() + TARGET_FRAME_SIZE
+                );
+            }
+        }
     }
     
     // 添加到录音队列（零拷贝，智能指针）
@@ -1125,6 +1188,17 @@ AudioError AudioSystemV2::stopRecord() {
     pImpl_->record_stream.reset();  // RAII自动stop和close
     pImpl_->setControlState(AudioControlState::NONE);
     
+    // 清理重采样缓冲区
+    if (!pImpl_->ai_resample_buffer.empty()) {
+        pImpl_->ai_resample_buffer.clear();
+        LOG_INFO("AudioSystemV2", "AI resample buffer cleared safely");
+    }
+    
+    if (!pImpl_->wakeword_resample_buffer.empty()) {
+        pImpl_->wakeword_resample_buffer.clear();
+        LOG_DEBUG("AudioSystemV2", "Wakeword resample buffer cleared");
+    }
+    
     LOG_INFO("AudioSystemV2", "Recording stopped");
     return AudioError::NONE;
 }
@@ -1381,10 +1455,9 @@ AudioError AudioSystemV2::stopAIStream() {
     
     LOG_INFO("AudioSystemV2", "Stopping AI audio stream...");
     
+    // 停止AI流标志，让录音回调不再处理AI数据
     pImpl_->is_ai_streaming.store(false);
     
-    // 清空AI重采样缓冲区
-    pImpl_->ai_resample_buffer.clear();
     
     LOG_INFO("AudioSystemV2", "AI audio stream stopped");
     return AudioError::NONE;

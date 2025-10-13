@@ -148,20 +148,19 @@ struct PaStreamDeleter {
 using PaStreamPtr = std::unique_ptr<PaStream, PaStreamDeleter>;
 
 // ============================================================================
-// 音频帧结构（引用计数 + 零拷贝）
+// 音频帧结构（shared_ptr自动管理生命周期）
 // ============================================================================
 
 /**
- * @brief 音频帧（支持引用计数和零拷贝传输）
+ * @brief 音频帧（通过shared_ptr自动管理生命周期）
  */
 struct AudioFrame {
-    std::atomic<int> ref_count{1};      // 引用计数
     uint8_t* data;                       // 数据指针（指向内存池）
     size_t capacity;                     // 缓冲区容量
     size_t size;                         // 实际数据大小
     uint64_t timestamp;                  // 时间戳（微秒）
     bool is_from_fixed_pool;             // 是否来自固定池
-    AudioMemoryPool* pool;               // 所属内存池（用于回收）
+    int fixed_pool_index;                // 固定池索引（用于释放，-1表示非固定池）
     
     AudioFrame()
         : data(nullptr)
@@ -169,20 +168,8 @@ struct AudioFrame {
         , size(0)
         , timestamp(0)
         , is_from_fixed_pool(false)
-        , pool(nullptr) {
+        , fixed_pool_index(-1) {
     }
-    
-    /**
-     * @brief 增加引用计数
-     */
-    void addRef() {
-        ref_count.fetch_add(1, std::memory_order_relaxed);
-    }
-    
-    /**
-     * @brief 释放引用（引用计数归零时自动回收到池）
-     */
-    void release();
     
     /**
      * @brief 获取数据指针（类型安全）
@@ -201,12 +188,7 @@ struct AudioFrame {
     }
 };
 
-// 智能指针类型（自动管理引用计数）
-struct AudioFrameDeleter {
-    void operator()(AudioFrame* frame) const {
-        if (frame) frame->release();
-    }
-};
+// 智能指针类型（自动管理生命周期）
 using AudioFramePtr = std::shared_ptr<AudioFrame>;
 
 // ============================================================================
@@ -243,15 +225,9 @@ public:
     /**
      * @brief 分配音频帧（自动选择最优策略）
      * @param size 数据大小（字节）
-     * @return 音频帧智能指针
+     * @return 音频帧智能指针（智能指针自动管理生命周期）
      */
     AudioFramePtr allocate(size_t size);
-    
-    /**
-     * @brief 回收音频帧到池
-     * @param frame 音频帧指针
-     */
-    void deallocate(AudioFrame* frame);
     
     /**
      * @brief 获取统计信息
@@ -281,15 +257,20 @@ private:
     // 第一级：固定大小对象池（无锁，快速路径）
     struct FixedPool {
         static constexpr size_t BLOCK_SIZE = 2048;
-        static constexpr size_t BLOCK_COUNT = 400;
+        static constexpr size_t MAX_BLOCKS = 512;  // 最大支持块数（用于位图大小）
         
-        alignas(64) std::atomic<uint64_t> allocation_bitmap_[8];  // 8个64位位图（512块容量，使用400）
-        alignas(64) std::array<uint8_t[BLOCK_SIZE], BLOCK_COUNT> blocks;
+        size_t actual_block_count;  // 实际使用的块数（由配置决定）
         
-        AudioFrame frame_objects[BLOCK_COUNT];  // 帧对象池
+        alignas(64) std::atomic<uint64_t> allocation_bitmap_[8];  // 8个64位位图（最大512块）
+        std::vector<std::array<uint8_t, BLOCK_SIZE>> blocks;     // 动态分配的数据块
+        std::vector<AudioFrame> frame_objects;                   // 动态分配的帧对象
+        
+        explicit FixedPool(size_t block_count);
+        ~FixedPool() = default;
         
         int allocateBlock();
         void deallocateBlock(int index);
+        uint8_t* getBlockPtr(int index);
     };
     
     AudioMemoryPoolConfig config_;

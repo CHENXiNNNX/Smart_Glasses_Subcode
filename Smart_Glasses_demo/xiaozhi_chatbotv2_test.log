@@ -1,0 +1,534 @@
+========================================
+  Smart Glasses Log File
+  Start Time: 2025-10-13 11:26:10
+========================================
+
+[INFO ] [Logger] Logger initialized successfully
+[INFO ] [Logger]   Console: enabled
+[INFO ] [Logger]   File: enabled
+[INFO ] [Logger]   Color: enabled
+[INFO ] [Logger]   Timestamp: disabled
+[INFO ] [Logger]   Thread ID: disabled
+[INFO ] [Logger]   Buffer Size: 8192 messages
+[INFO ] [Logger]   Max File Size: 5.00 MB
+[INFO ] [Test] ========================================
+[INFO ] [Test] ChatbotSystemV2 Test Started
+[INFO ] [Test] ========================================
+[INFO ] [Test] Initializing AudioSystemV2...
+[DEBUG] [AudioSystemV2] Impl created
+[INFO ] [AudioSystemV2] AudioSystemV2 created
+[INFO ] [AudioSystemV2] ========================================
+[INFO ] [AudioSystemV2] Initializing Audio System V2...
+[INFO ] [AudioSystemV2] ========================================
+[INFO ] [AudioSystemV2] Step 1: Creating memory pool...
+[INFO ] [AudioBuffer] Initializing audio memory pool (2-tier)...
+[INFO ] [AudioBuffer]   Fixed pool: 400 blocks × 2048 bytes = 800.00 KB
+[INFO ] [AudioBuffer] Fixed pool created: 400 blocks × 2048 bytes = 800.00 KB
+[INFO ] [AudioBuffer]   Dynamic pool: 2.00 MB (initial)
+[INFO ] [AudioBuffer] Audio memory pool initialized successfully
+[INFO ] [AudioSystemV2] Step 2: Initializing PortAudio...
+[INFO ] [AudioSystemV2]   PortAudio version: PortAudio V19.7.0-devel, revision 147dd722548358763a8b649b3e4b41dfffbcfbb6
+[INFO ] [AudioSystemV2] Step 3: Creating Opus encoders/decoders...
+[INFO ] [AudioSystemV2]   Main encoder: 48kHz, 64kbps
+[INFO ] [AudioSystemV2]   Main decoder: 48kHz
+[INFO ] [AudioSystemV2]   AI encoder: 16kHz, 32kbps
+[INFO ] [AudioSystemV2]   AI resampler: 48kHz → 16kHz
+[INFO ] [AudioSystemV2]   Wakeword resampler: 48kHz → 16kHz (FASTEST)
+[INFO ] [AudioSystemV2] Step 4: Initializing 3A algorithms...
+[INFO ] [AudioSystemV2]   3A: Denoise=ON, AGC=ON
+[INFO ] [AudioSystemV2] ========================================
+[INFO ] [AudioSystemV2] Audio System V2 initialized successfully!
+[INFO ] [AudioSystemV2] ========================================
+[INFO ] [Test] AudioSystemV2 initialized successfully
+[INFO ] [Test] Configuring ChatbotSystemV2...
+[INFO ] [Test] Creating ChatbotSystemV2...
+[DEBUG] [ChatbotV2] Impl created
+[INFO ] [ChatbotV2] ========================================
+[INFO ] [ChatbotV2]   ChatbotSystemV2 Created
+[INFO ] [ChatbotV2] ========================================
+[INFO ] [Test] Setting up callbacks...
+[INFO ] [Test] Callbacks configured
+[INFO ] [Test] Initializing ChatbotSystemV2...
+[INFO ] [ChatbotV2] ========================================
+[INFO ] [ChatbotV2]   Initializing ChatbotSystemV2...
+[INFO ] [ChatbotV2] ========================================
+[INFO ] [ChatbotV2] Step 1: Initializing device info...
+[INFO ] [ChatbotV2]   ✓ Device-Id: 8c:bd:37:36:60:b7
+[INFO ] [ChatbotV2]   ✓ Client-Id: 7a68462b-fadf-4b1d-901c-ac2310c6c89a
+[INFO ] [ChatbotV2] Step 2: Initializing core modules...
+[DEBUG] [ProtocolV2] Impl created
+[INFO ] [ProtocolV2] Protocol Handler V2 created
+[INFO ] [ChatbotV2]   ✓ Protocol Handler V2 created
+[DEBUG] [StateMachineV2] Impl created
+[INFO ] [StateMachineV2] AI State Machine V2 created
+[INFO ] [ChatbotV2]   ✓ State Machine V2 created
+[DEBUG] [MCPV2] Impl created
+[INFO ] [MCPV2] MCP Server V2 created
+[INFO ] [ChatbotV2]   ✓ MCP Server V2 created
+[INFO ] [MCP_ToolV2] ========================================
+[INFO ] [MCP_ToolV2]   Registering All Tools to MCP V2
+[INFO ] [MCP_ToolV2] ========================================
+[INFO ] [MCPV2] ✓ Tool added: self.get_device_status
+[INFO ] [MCPV2] ✓ Tool added: self.get_system_info
+[INFO ] [MCP_ToolV2] Registered 2 system tools
+[INFO ] [MCPV2] ✓ Tool added: self.audio_speaker.set_volume
+[INFO ] [MCPV2] ✓ Tool added: self.audio_speaker.get_volume
+[INFO ] [MCPV2] ✓ Tool added: self.audio_speaker.set_mute
+[INFO ] [MCP_ToolV2] Registered 3 audio tools
+[INFO ] [MCPV2] ✓ Tool added: self.camera.take_photo
+[INFO ] [MCPV2] ✓ Tool added: self.camera.set_brightness
+[INFO ] [MCP_ToolV2] Registered 2 video tools
+[INFO ] [MCPV2] ✓ Tool added: self.network.get_wifi_status
+[INFO ] [MCP_ToolV2] Registered 1 network tools
+[INFO ] [MCP_ToolV2] ========================================
+[INFO ] [MCP_ToolV2]   ✓ Total Tools Registered: 8
+[INFO ] [MCP_ToolV2] ========================================
+[INFO ] [ChatbotV2]   ✓ MCP tools registered: 8
+[DEBUG] [ActivationV2] Impl created
+[DEBUG] [StateMachineV2] Watchdog thread started
+[DEBUG] [ProtocolV2] Message processor thread started
+[INFO ] [ActivationV2] CURL global initialized
+[INFO ] [ActivationV2] Device Activation V2 created
+[INFO ] [ChatbotV2]   ✓ Activation Manager V2 created
+[DEBUG] [WakewordV2] WakewordDetectorV2 created
+[INFO ] [WakewordV2] Initializing...
+[DEBUG] [WakewordV2]   Resource: ./third_party/snowboy/resources/common.res
+[DEBUG] [WakewordV2]   Model: ./third_party/snowboy/resources/models/echo.pmdl
+[DEBUG] [WakewordV2]   Sensitivity: 0.50
+[DEBUG] [WakewordV2]   Audio Gain: 1.00
+[INFO ] [WakewordV2] ✓ Detector created
+[DEBUG] [WakewordV2]   Sample Rate: 16000 Hz
+[DEBUG] [WakewordV2]   Channels: 1
+[DEBUG] [WakewordV2]   Bits/Sample: 16
+[DEBUG] [WakewordV2]   Num Hotwords: 1
+[INFO ] [ChatbotV2]   ✓ Wakeword Detector V2 initialized
+[DEBUG] [ChatbotV2]     Sample rate: 16000 Hz
+[DEBUG] [ChatbotV2]     Channels: 1
+[DEBUG] [ChatbotV2]     Hotwords: 1
+[INFO ] [ChatbotV2] Step 3: Setting up callbacks...
+[INFO ] [ChatbotV2]   ✓ Callbacks configured
+[INFO ] [ChatbotV2] Step 4: Initializing audio integration...
+[DEBUG] [AudioSystemV2] AI audio callback set
+[INFO ] [ChatbotV2]   ✓ AI audio callback set
+[DEBUG] [AudioSystemV2] Wakeword callback set
+[INFO ] [ChatbotV2]   ✓ Wakeword audio callback set
+[INFO ] [ChatbotV2]   ✓ Audio integration complete
+[INFO ] [ChatbotV2] State: UNINITIALIZED → INITIALIZED
+[INFO ] [Test] State changed: 0 → 1
+[INFO ] [ChatbotV2] ========================================
+[INFO ] [ChatbotV2]   ✓ ChatbotSystemV2 Initialized!
+[INFO ] [ChatbotV2] ========================================
+[INFO ] [Test] ChatbotSystemV2 initialized successfully
+[INFO ] [Test] Starting ChatbotSystemV2...
+[INFO ] [ChatbotV2] ========================================
+[INFO ] [ChatbotV2]   Starting ChatbotSystemV2...
+[INFO ] [ChatbotV2] ========================================
+[INFO ] [ChatbotV2] Step 1: Checking activation status...
+[INFO ] [ChatbotV2] State: INITIALIZED → ACTIVATING
+[INFO ] [Test] State changed: 1 → 2
+[DEBUG] [ActivationV2] Checking activation: Device-Id=8c:bd:37:36:60:b7
+[WARN ] [ActivationV2] HTTP request failed: 
+[INFO ] [ActivationV2] Retry 1/3 after 1000ms
+[WARN ] [ActivationV2] HTTP request failed: 
+[INFO ] [ActivationV2] Retry 2/3 after 1000ms
+[WARN ] [ActivationV2] HTTP request failed: 
+[ERROR] [ActivationV2] Activation check failed after 3 retries
+[WARN ] [ChatbotV2] ✗ Device not activated
+[INFO ] [ChatbotV2]   Activation Code: 
+[INFO ] [ChatbotV2]   Please visit: https://xiaozhi.me
+[WARN ] [Test] Device not activated, code: 
+[INFO ] [ChatbotV2]   ⏳ Activation polling started...
+[INFO ] [ChatbotV2] Step 2: Creating WebSocket client...
+[INFO ] [ActivationV2] ========================================
+[INFO ] [ActivationV2]   Device Activation Polling Started
+[INFO ] [ActivationV2] ========================================
+[DEBUG] [ActivationV2] Checking activation: Device-Id=8c:bd:37:36:60:b7
+[DEBUG] [WebSocketV2] Impl created
+[INFO ] [WebSocketV2] WebSocket Client V2 created
+[DEBUG] [WebSocketV2] Binary callback set
+[DEBUG] [WebSocketV2] Text callback set
+[DEBUG] [WebSocketV2] State callback set
+[DEBUG] [WebSocketV2] Error callback set
+[INFO ] [ChatbotV2]   ✓ WebSocket client created
+[INFO ] [ChatbotV2] Step 3: Connecting to AI server...
+[INFO ] [ChatbotV2] State: ACTIVATING → CONNECTING
+[INFO ] [Test] State changed: 2 → 4
+[INFO ] [WebSocketV2] State: DISCONNECTED → CONNECTING
+[INFO ] [ChatbotV2] WebSocket State: DISCONNECTED → CONNECTING
+[DEBUG] [WebSocketV2] Header: Client-Id = 7a68462b-fadf-4b1d-901c-ac2310c6c89a
+[DEBUG] [WebSocketV2] Header: Device-Id = 8c:bd:37:36:60:b7
+[INFO ] [WebSocketV2] Connecting to: wss://api.tenclass.net/xiaozhi/v1/
+[DEBUG] [WebSocketV2] WebSocket thread started
+[WARN ] [ActivationV2] HTTP request failed: 
+[INFO ] [ActivationV2] Retry 1/3 after 1000ms
+[INFO ] [WebSocketV2] State: CONNECTING → CONNECTED
+[INFO ] [ChatbotV2] WebSocket State: CONNECTING → CONNECTED
+[INFO ] [WebSocketV2] ✓ Connection established
+[INFO ] [WebSocketV2] State: CONNECTED → HANDSHAKED
+[INFO ] [ChatbotV2] WebSocket State: CONNECTED → HANDSHAKED
+[INFO ] [ChatbotV2] State: CONNECTING → CONNECTED
+[INFO ] [Test] State changed: 4 → 5
+[INFO ] [WebSocketV2] ✓ Hello message sent, handshake complete
+[DEBUG] [ChatbotV2] ← Text message: 165 bytes
+[INFO ] [ProtocolV2] ← Hello: session=2afa3aaf, audio=24000Hz/1ch/20ms
+[INFO ] [ChatbotV2] ← Hello received
+[DEBUG] [ChatbotV2]   Session ID: 2afa3aaf
+[DEBUG] [ChatbotV2]   Audio: 24000Hz, 1ch, 20ms
+[INFO ] [ProtocolV2] Session ID set: 2afa3aaf
+[INFO ] [StateMachineV2] Event: Hello received
+[INFO ] [ChatbotV2] State: CONNECTED → READY
+[INFO ] [Test] State changed: 5 → 6
+[INFO ] [ChatbotV2]   ✓ WebSocket connected and handshaked!
+[INFO ] [ChatbotV2] State: READY → CONNECTED
+[INFO ] [Test] State changed: 6 → 5
+[INFO ] [ChatbotV2] State: CONNECTED → READY
+[INFO ] [Test] State changed: 5 → 6
+[INFO ] [ChatbotV2] ========================================
+[INFO ] [ChatbotV2]   ✓ ChatbotSystemV2 Ready!
+[INFO ] [ChatbotV2]   ✓ Waiting for wakeword...
+[INFO ] [ChatbotV2] ========================================
+[INFO ] [Test] ChatbotSystemV2 started successfully
+[INFO ] [Test] Starting audio recording...
+[INFO ] [AudioSystemV2] Starting recording...
+[DEBUG] [AudioSystemV2] Control State: 0 → 1
+[INFO ] [AudioSystemV2] Recording started (device: 2, 48000Hz, 1ch)
+[INFO ] [Test] Audio recording started
+[INFO ] [Test] ========================================
+[INFO ] [Test] System Ready!
+[INFO ] [Test] ========================================
+[WARN ] [WakewordV2] Detection errors: 1 (audio quality issue)
+[WARN ] [ActivationV2] HTTP request failed: 
+[INFO ] [ActivationV2] Retry 2/3 after 1000ms
+[WARN ] [ActivationV2] HTTP request failed: 
+[ERROR] [ActivationV2] Activation check failed after 3 retries
+[ERROR] [ActivationV2] Initial check failed: 
+[INFO ] [Test] Manual wakeword trigger
+[INFO ] [ChatbotV2] Manual wakeword trigger
+[INFO ] [StateMachineV2] Event: Wakeword detected!
+[INFO ] [Test] Wakeword detected: 1
+[INFO ] [ChatbotV2] → Auto starting listening after wakeword...
+[INFO ] [AudioSystemV2] Starting AI audio stream...
+[INFO ] [AudioSystemV2] Main State: 0 → 1
+[INFO ] [AudioSystemV2] AI audio stream started
+[INFO ] [StateMachineV2] Event: Listen start
+[INFO ] [StateMachineV2] State: IDLE → LISTENING (event: onListenStart)
+[INFO ] [ChatbotV2] AI State: IDLE → LISTENING
+[INFO ] [ChatbotV2] State: READY → ACTIVE
+[INFO ] [Test] State changed: 6 → 7
+[INFO ] [StateMachineV2] Audio upload: ENABLED
+[DEBUG] [ChatbotV2] ✅ Audio upload ENABLED
+[INFO ] [ChatbotV2] ✓ Listening started automatically
+[INFO ] [Test] User requested quit
+[INFO ] [Test] Cleaning up...
+[INFO ] [AudioSystemV2] Stopping recording...
+[DEBUG] [AudioSystemV2] Control State: 1 → 0
+[INFO ] [AudioSystemV2] AI resample buffer cleared safely
+[DEBUG] [AudioSystemV2] Wakeword resample buffer cleared
+[INFO ] [AudioSystemV2] Recording stopped
+[INFO ] [ChatbotV2] Stopping ChatbotSystemV2...
+[INFO ] [AudioSystemV2] Stopping AI audio stream...
+[INFO ] [AudioSystemV2] AI audio stream stopped
+[INFO ] [WebSocketV2] State: HANDSHAKED → CLOSING
+[INFO ] [ChatbotV2] WebSocket State: HANDSHAKED → CLOSING
+[DEBUG] [WebSocketV2] WebSocket thread stopped
+[INFO ] [WebSocketV2] State: CLOSING → DISCONNECTED
+[INFO ] [ChatbotV2] WebSocket State: CLOSING → DISCONNECTED
+[INFO ] [StateMachineV2] Event: WebSocket closed
+[INFO ] [StateMachineV2] Session ended, returning to IDLE...
+[INFO ] [StateMachineV2] State: LISTENING → IDLE (event: onWebSocketClosed)
+[INFO ] [ChatbotV2] AI State: LISTENING → IDLE
+[INFO ] [StateMachineV2] Audio upload: DISABLED
+[DEBUG] [ChatbotV2] ❌ Audio upload DISABLED
+[INFO ] [ChatbotV2] State: ACTIVE → ACTIVATED
+[INFO ] [Test] State changed: 7 → 3
+[INFO ] [WebSocketV2] Disconnected
+[DEBUG] [ActivationV2] Polling thread stopped
+[INFO ] [StateMachineV2] Reset to IDLE
+[INFO ] [ChatbotV2] State: ACTIVATED → INITIALIZED
+[INFO ] [Test] State changed: 3 → 1
+[INFO ] [ChatbotV2] ✓ ChatbotSystemV2 stopped
+[INFO ] [ChatbotV2] Shutting down ChatbotSystemV2...
+[INFO ] [ChatbotV2] Stopping ChatbotSystemV2...
+[INFO ] [WebSocketV2] Disconnected
+[INFO ] [StateMachineV2] Reset to IDLE
+[INFO ] [ChatbotV2] ✓ ChatbotSystemV2 stopped
+[INFO ] [ChatbotV2] State: INITIALIZED → SHUTDOWN
+[INFO ] [Test] State changed: 1 → 9
+[INFO ] [ChatbotV2] ✓ ChatbotSystemV2 shutdown complete
+[INFO ] [Test] ========================================
+[INFO ] [Test] Final Statistics
+[INFO ] [Test] ========================================
+[INFO ] [ChatbotV2] ========================================
+[INFO ] [ChatbotV2]   ChatbotSystemV2 Statistics
+[INFO ] [ChatbotV2] ========================================
+[INFO ] [ChatbotV2]   Messages sent:       341
+[INFO ] [ChatbotV2]   Messages received:   1
+[INFO ] [ChatbotV2]   Wakeword detected:   1
+[INFO ] [ChatbotV2]   Conversations:       1
+[INFO ] [ChatbotV2]   STT received:        0
+[INFO ] [ChatbotV2]   LLM received:        0
+[INFO ] [ChatbotV2]   TTS received:        0
+[INFO ] [ChatbotV2]   MCP calls:           0
+[INFO ] [ChatbotV2]   Errors:              0
+[INFO ] [ChatbotV2]   System uptime:       0.00 hours
+[INFO ] [ChatbotV2] ========================================
+[INFO ] [ProtocolV2] === Protocol Handler V2 Statistics ===
+[INFO ] [ProtocolV2]   Messages parsed:     1
+[INFO ] [ProtocolV2]   Parse errors:        0
+[INFO ] [ProtocolV2]   Callback exceptions: 0
+[INFO ] [ProtocolV2]   Invalid messages:    0
+[INFO ] [ProtocolV2]   Queue overflows:     0
+[INFO ] [ProtocolV2] Message type breakdown:
+[INFO ] [ProtocolV2]   HELLO: 1
+[INFO ] [ProtocolV2]   STT:   0
+[INFO ] [ProtocolV2]   LLM:   0
+[INFO ] [ProtocolV2]   TTS:   0
+[INFO ] [ProtocolV2]   MCP:   0
+[INFO ] [ProtocolV2]   ERROR: 0
+[INFO ] [ProtocolV2]   Avg parse time: 1158 μs
+[WARN ] [ProtocolV2] Average parse time > 1ms, consider optimization
+[INFO ] [StateMachineV2] === State Machine V2 Statistics ===
+[INFO ] [StateMachineV2]   Total transitions:   2
+[INFO ] [StateMachineV2]   Invalid transitions: 0
+[INFO ] [StateMachineV2]   Callback exceptions: 0
+[INFO ] [StateMachineV2]   State timeouts:      0
+[INFO ] [StateMachineV2] Time spent in each state:
+[INFO ] [StateMachineV2]   IDLE:      6.20 s
+[INFO ] [StateMachineV2]   LISTENING: 7.35 s
+[INFO ] [StateMachineV2]   THINKING:  0.00 s
+[INFO ] [StateMachineV2]   SPEAKING:  0.00 s
+[INFO ] [StateMachineV2]   ERROR:     0.00 s
+[INFO ] [MCPV2] === MCP Server V2 Statistics ===
+[INFO ] [MCPV2]   Initialize requests: 0
+[INFO ] [MCPV2]   Tools/list requests: 0
+[INFO ] [MCPV2]   Tools/call requests: 0
+[INFO ] [MCPV2]     - Success:         0
+[INFO ] [MCPV2]     - Errors:          0
+[INFO ] [MCPV2]   Parse errors:        0
+[INFO ] [MCPV2]   Method not found:    0
+[INFO ] [MCPV2]   Total tools:         8
+[INFO ] [ActivationV2] === Device Activation V2 Statistics ===
+[INFO ] [ActivationV2]   Check count:     2
+[INFO ] [ActivationV2]   Success:         0
+[INFO ] [ActivationV2]   Failed:          2
+[INFO ] [ActivationV2]   Network errors:  6
+[INFO ] [ActivationV2]   Parse errors:    0
+[INFO ] [ActivationV2]   Retry count:     4
+[INFO ] [ActivationV2]   Avg check time:  2252 ms
+[INFO ] [ActivationV2]   Success rate:    0.00%
+[WARN ] [ActivationV2] Low success rate, check network stability
+[INFO ] [WebSocketV2] === WebSocket Client V2 Statistics ===
+[INFO ] [WebSocketV2]   Messages sent:       342
+[INFO ] [WebSocketV2]   Messages received:   1
+[INFO ] [WebSocketV2]   Bytes sent:          21538 (0.02 MB)
+[INFO ] [WebSocketV2]   Bytes received:      165 (0.00 MB)
+[INFO ] [WebSocketV2]   Send errors:         0
+[INFO ] [WebSocketV2]   Connection attempts: 1
+[INFO ] [WebSocketV2]   Connection failures: 0
+[INFO ] [WebSocketV2]   Reconnections:       0
+[INFO ] [WebSocketV2]   Callback exceptions: 0
+[INFO ] [WebSocketV2]   Total uptime:        0.00 hours
+[INFO ] [WebSocketV2]   Connection success rate: 100.00%
+[INFO ] [AudioSystemV2] === Audio System V2 Statistics ===
+[INFO ] [AudioSystemV2]   Frames recorded: 480
+[INFO ] [AudioSystemV2]   Frames played:   0
+[INFO ] [AudioSystemV2]   Frames dropped:  180
+[INFO ] [AudioSystemV2]   Encode count:    340
+[INFO ] [AudioSystemV2]   Decode count:    0
+[INFO ] [AudioBuffer] === Memory Pool Statistics ===
+[INFO ] [AudioBuffer]   Total allocations: 820
+[INFO ] [AudioBuffer]   Fixed pool hits:   820 (100.00%)
+[INFO ] [AudioBuffer]   Dynamic pool hits: 0 (0.00%)
+[INFO ] [AudioBuffer]   Failures:          0
+[INFO ] [ChatbotV2] ChatbotSystemV2 destroying...
+[INFO ] [ChatbotV2] ========================================
+[INFO ] [ChatbotV2]   ChatbotSystemV2 Statistics
+[INFO ] [ChatbotV2] ========================================
+[INFO ] [ChatbotV2]   Messages sent:       341
+[INFO ] [ChatbotV2]   Messages received:   1
+[INFO ] [ChatbotV2]   Wakeword detected:   1
+[INFO ] [ChatbotV2]   Conversations:       1
+[INFO ] [ChatbotV2]   STT received:        0
+[INFO ] [ChatbotV2]   LLM received:        0
+[INFO ] [ChatbotV2]   TTS received:        0
+[INFO ] [ChatbotV2]   MCP calls:           0
+[INFO ] [ChatbotV2]   Errors:              0
+[INFO ] [ChatbotV2]   System uptime:       0.00 hours
+[INFO ] [ChatbotV2] ========================================
+[INFO ] [ProtocolV2] === Protocol Handler V2 Statistics ===
+[INFO ] [ProtocolV2]   Messages parsed:     1
+[INFO ] [ProtocolV2]   Parse errors:        0
+[INFO ] [ProtocolV2]   Callback exceptions: 0
+[INFO ] [ProtocolV2]   Invalid messages:    0
+[INFO ] [ProtocolV2]   Queue overflows:     0
+[INFO ] [ProtocolV2] Message type breakdown:
+[INFO ] [ProtocolV2]   HELLO: 1
+[INFO ] [ProtocolV2]   STT:   0
+[INFO ] [ProtocolV2]   LLM:   0
+[INFO ] [ProtocolV2]   TTS:   0
+[INFO ] [ProtocolV2]   MCP:   0
+[INFO ] [ProtocolV2]   ERROR: 0
+[INFO ] [ProtocolV2]   Avg parse time: 1158 μs
+[WARN ] [ProtocolV2] Average parse time > 1ms, consider optimization
+[INFO ] [StateMachineV2] === State Machine V2 Statistics ===
+[INFO ] [StateMachineV2]   Total transitions:   2
+[INFO ] [StateMachineV2]   Invalid transitions: 0
+[INFO ] [StateMachineV2]   Callback exceptions: 0
+[INFO ] [StateMachineV2]   State timeouts:      0
+[INFO ] [StateMachineV2] Time spent in each state:
+[INFO ] [StateMachineV2]   IDLE:      6.20 s
+[INFO ] [StateMachineV2]   LISTENING: 7.35 s
+[INFO ] [StateMachineV2]   THINKING:  0.00 s
+[INFO ] [StateMachineV2]   SPEAKING:  0.00 s
+[INFO ] [StateMachineV2]   ERROR:     0.00 s
+[INFO ] [MCPV2] === MCP Server V2 Statistics ===
+[INFO ] [MCPV2]   Initialize requests: 0
+[INFO ] [MCPV2]   Tools/list requests: 0
+[INFO ] [MCPV2]   Tools/call requests: 0
+[INFO ] [MCPV2]     - Success:         0
+[INFO ] [MCPV2]     - Errors:          0
+[INFO ] [MCPV2]   Parse errors:        0
+[INFO ] [MCPV2]   Method not found:    0
+[INFO ] [MCPV2]   Total tools:         8
+[INFO ] [ActivationV2] === Device Activation V2 Statistics ===
+[INFO ] [ActivationV2]   Check count:     2
+[INFO ] [ActivationV2]   Success:         0
+[INFO ] [ActivationV2]   Failed:          2
+[INFO ] [ActivationV2]   Network errors:  6
+[INFO ] [ActivationV2]   Parse errors:    0
+[INFO ] [ActivationV2]   Retry count:     4
+[INFO ] [ActivationV2]   Avg check time:  2252 ms
+[INFO ] [ActivationV2]   Success rate:    0.00%
+[WARN ] [ActivationV2] Low success rate, check network stability
+[INFO ] [WebSocketV2] === WebSocket Client V2 Statistics ===
+[INFO ] [WebSocketV2]   Messages sent:       342
+[INFO ] [WebSocketV2]   Messages received:   1
+[INFO ] [WebSocketV2]   Bytes sent:          21538 (0.02 MB)
+[INFO ] [WebSocketV2]   Bytes received:      165 (0.00 MB)
+[INFO ] [WebSocketV2]   Send errors:         0
+[INFO ] [WebSocketV2]   Connection attempts: 1
+[INFO ] [WebSocketV2]   Connection failures: 0
+[INFO ] [WebSocketV2]   Reconnections:       0
+[INFO ] [WebSocketV2]   Callback exceptions: 0
+[INFO ] [WebSocketV2]   Total uptime:        0.00 hours
+[INFO ] [WebSocketV2]   Connection success rate: 100.00%
+[INFO ] [AudioSystemV2] === Audio System V2 Statistics ===
+[INFO ] [AudioSystemV2]   Frames recorded: 480
+[INFO ] [AudioSystemV2]   Frames played:   0
+[INFO ] [AudioSystemV2]   Frames dropped:  180
+[INFO ] [AudioSystemV2]   Encode count:    340
+[INFO ] [AudioSystemV2]   Decode count:    0
+[INFO ] [AudioBuffer] === Memory Pool Statistics ===
+[INFO ] [AudioBuffer]   Total allocations: 820
+[INFO ] [AudioBuffer]   Fixed pool hits:   820 (100.00%)
+[INFO ] [AudioBuffer]   Dynamic pool hits: 0 (0.00%)
+[INFO ] [AudioBuffer]   Failures:          0
+[INFO ] [ChatbotV2] ChatbotSystemV2 destroyed
+[DEBUG] [ChatbotV2] Impl destroying...
+[DEBUG] [ChatbotV2] Impl destroyed
+[INFO ] [WebSocketV2] WebSocket Client V2 destroying...
+[INFO ] [WebSocketV2] === WebSocket Client V2 Statistics ===
+[INFO ] [WebSocketV2]   Messages sent:       342
+[INFO ] [WebSocketV2]   Messages received:   1
+[INFO ] [WebSocketV2]   Bytes sent:          21538 (0.02 MB)
+[INFO ] [WebSocketV2]   Bytes received:      165 (0.00 MB)
+[INFO ] [WebSocketV2]   Send errors:         0
+[INFO ] [WebSocketV2]   Connection attempts: 1
+[INFO ] [WebSocketV2]   Connection failures: 0
+[INFO ] [WebSocketV2]   Reconnections:       0
+[INFO ] [WebSocketV2]   Callback exceptions: 0
+[INFO ] [WebSocketV2]   Total uptime:        0.00 hours
+[INFO ] [WebSocketV2]   Connection success rate: 100.00%
+[INFO ] [WebSocketV2] WebSocket Client V2 destroyed
+[DEBUG] [WebSocketV2] Impl destroying...
+[DEBUG] [WebSocketV2] Impl destroyed
+[DEBUG] [WakewordV2] WakewordDetectorV2 destroying...
+[DEBUG] [WakewordV2] WakewordDetectorV2 destroyed
+[DEBUG] [WakewordV2] Impl destroyed (detector auto-released)
+[INFO ] [ActivationV2] Device Activation V2 destroying...
+[DEBUG] [ActivationV2] Polling thread stopped
+[INFO ] [ActivationV2] === Device Activation V2 Statistics ===
+[INFO ] [ActivationV2]   Check count:     2
+[INFO ] [ActivationV2]   Success:         0
+[INFO ] [ActivationV2]   Failed:          2
+[INFO ] [ActivationV2]   Network errors:  6
+[INFO ] [ActivationV2]   Parse errors:    0
+[INFO ] [ActivationV2]   Retry count:     4
+[INFO ] [ActivationV2]   Avg check time:  2252 ms
+[INFO ] [ActivationV2]   Success rate:    0.00%
+[WARN ] [ActivationV2] Low success rate, check network stability
+[INFO ] [ActivationV2] Device Activation V2 destroyed
+[DEBUG] [ActivationV2] Impl destroying...
+[DEBUG] [ActivationV2] Polling thread stopped
+[DEBUG] [ActivationV2] Impl destroyed
+[INFO ] [MCPV2] MCP Server V2 destroying...
+[INFO ] [MCPV2] === MCP Server V2 Statistics ===
+[INFO ] [MCPV2]   Initialize requests: 0
+[INFO ] [MCPV2]   Tools/list requests: 0
+[INFO ] [MCPV2]   Tools/call requests: 0
+[INFO ] [MCPV2]     - Success:         0
+[INFO ] [MCPV2]     - Errors:          0
+[INFO ] [MCPV2]   Parse errors:        0
+[INFO ] [MCPV2]   Method not found:    0
+[INFO ] [MCPV2]   Total tools:         8
+[INFO ] [MCPV2] MCP Server V2 destroyed
+[DEBUG] [MCPV2] Impl destroyed (tools auto-released by smart pointers)
+[INFO ] [StateMachineV2] AI State Machine V2 destroying...
+[INFO ] [StateMachineV2] === State Machine V2 Statistics ===
+[INFO ] [StateMachineV2]   Total transitions:   2
+[INFO ] [StateMachineV2]   Invalid transitions: 0
+[INFO ] [StateMachineV2]   Callback exceptions: 0
+[INFO ] [StateMachineV2]   State timeouts:      0
+[INFO ] [StateMachineV2] Time spent in each state:
+[INFO ] [StateMachineV2]   IDLE:      6.20 s
+[INFO ] [StateMachineV2]   LISTENING: 7.35 s
+[INFO ] [StateMachineV2]   THINKING:  0.00 s
+[INFO ] [StateMachineV2]   SPEAKING:  0.00 s
+[INFO ] [StateMachineV2]   ERROR:     0.00 s
+[INFO ] [StateMachineV2] AI State Machine V2 destroyed
+[DEBUG] [StateMachineV2] Impl destroying...
+[DEBUG] [StateMachineV2] Watchdog thread stopped
+[DEBUG] [StateMachineV2] Impl destroyed
+[INFO ] [ProtocolV2] Protocol Handler V2 destroying...
+[INFO ] [ProtocolV2] === Protocol Handler V2 Statistics ===
+[INFO ] [ProtocolV2]   Messages parsed:     1
+[INFO ] [ProtocolV2]   Parse errors:        0
+[INFO ] [ProtocolV2]   Callback exceptions: 0
+[INFO ] [ProtocolV2]   Invalid messages:    0
+[INFO ] [ProtocolV2]   Queue overflows:     0
+[INFO ] [ProtocolV2] Message type breakdown:
+[INFO ] [ProtocolV2]   HELLO: 1
+[INFO ] [ProtocolV2]   STT:   0
+[INFO ] [ProtocolV2]   LLM:   0
+[INFO ] [ProtocolV2]   TTS:   0
+[INFO ] [ProtocolV2]   MCP:   0
+[INFO ] [ProtocolV2]   ERROR: 0
+[INFO ] [ProtocolV2]   Avg parse time: 1158 μs
+[WARN ] [ProtocolV2] Average parse time > 1ms, consider optimization
+[INFO ] [ProtocolV2] Protocol Handler V2 destroyed
+[DEBUG] [ProtocolV2] Impl destroying...
+[DEBUG] [ProtocolV2] Message processor thread stopped
+[DEBUG] [ProtocolV2] Impl destroyed
+[INFO ] [AudioSystemV2] Shutting down Audio System V2...
+[DEBUG] [AudioSystemV2] Record queue cleared
+[DEBUG] [AudioSystemV2] Playback queue cleared
+[INFO ] [AudioBuffer] === Memory Pool Statistics ===
+[INFO ] [AudioBuffer]   Total allocations: 820
+[INFO ] [AudioBuffer]   Fixed pool hits:   820 (100.00%)
+[INFO ] [AudioBuffer]   Dynamic pool hits: 0 (0.00%)
+[INFO ] [AudioBuffer]   Failures:          0
+[INFO ] [AudioSystemV2] Audio System V2 shutdown complete
+[INFO ] [AudioSystemV2] AudioSystemV2 destroyed
+[DEBUG] [AudioSystemV2] Impl destroyed
+[INFO ] [AudioBuffer] Destroying audio memory pool...
+[INFO ] [AudioBuffer] === Memory Pool Statistics ===
+[INFO ] [AudioBuffer]   Total allocations: 820
+[INFO ] [AudioBuffer]   Fixed pool hits:   820 (100.00%)
+[INFO ] [AudioBuffer]   Dynamic pool hits: 0 (0.00%)
+[INFO ] [AudioBuffer]   Failures:          0
+[INFO ] [AudioBuffer] Audio memory pool destroyed
+[INFO ] [Logger] Logger shutting down...
+
+========================================
+  Logger Shutdown
+========================================
