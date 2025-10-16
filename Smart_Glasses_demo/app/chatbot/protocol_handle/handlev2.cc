@@ -121,6 +121,7 @@ public:
     
     // 回调函数
     HelloCallback hello_callback;
+    ListenCallback listen_callback;
     STTCallback stt_callback;
     LLMCallback llm_callback;
     TTSCallback tts_callback;
@@ -303,6 +304,9 @@ public:
             case MessageType::HELLO:
                 return handleHelloMessage(j);
                 
+            case MessageType::LISTEN:
+                return handleListenMessage(j);
+                
             case MessageType::STT:
                 return handleSTTMessage(j);
                 
@@ -421,6 +425,51 @@ public:
             
         } catch (const std::exception& e) {
             LOG_ERROR("ProtocolV2", "Failed to handle Hello message: %s", e.what());
+            return false;
+        }
+    }
+    
+    bool handleListenMessage(const json& j) {
+        try {
+            ListenMessage msg;
+            
+            // 提取基本字段
+            msg.session_id = j.value("session_id", "");
+            
+            // 解析监听状态
+            if (j.contains("state") && j["state"].is_string()) {
+                std::string state_str = j["state"];
+                if (state_str == "start") {
+                    msg.state = ListenState::START;
+                } else if (state_str == "stop") {
+                    msg.state = ListenState::STOP;
+                } else {
+                    LOG_WARN("ProtocolV2", "Unknown listen state: %s", state_str.c_str());
+                    msg.state = ListenState::START;
+                }
+            } else {
+                msg.state = ListenState::START;
+            }
+            
+            // 解析监听模式
+            if (j.contains("mode") && j["mode"].is_string()) {
+                std::string mode_str = j["mode"];
+                msg.mode = stringToListenMode(mode_str);
+            } else {
+                msg.mode = ListenMode::AUTO;
+            }
+            
+            // 调用回调
+            invokeListenCallback(msg);
+            
+            LOG_DEBUG("ProtocolV2", "← Listen: state=%s, mode=%s", 
+                     (msg.state == ListenState::START) ? "start" : "stop",
+                     listenModeToString(msg.mode).c_str());
+            
+            return true;
+            
+        } catch (const std::exception& e) {
+            LOG_ERROR("ProtocolV2", "Failed to handle Listen message: %s", e.what());
             return false;
         }
     }
@@ -567,6 +616,19 @@ public:
                 stats.callback_exceptions.fetch_add(1, std::memory_order_relaxed);
             } catch (const std::exception& e) {
                 LOG_ERROR("ProtocolV2", "Hello callback exception: %s", e.what());
+                stats.callback_exceptions.fetch_add(1, std::memory_order_relaxed);
+            }
+        }
+    }
+    
+    void invokeListenCallback(const ListenMessage& msg) {
+        std::lock_guard<std::mutex> lock(callback_mutex);
+        
+        if (listen_callback) {
+            try {
+                listen_callback(msg);
+            } catch (const std::exception& e) {
+                LOG_ERROR("ProtocolV2", "Listen callback exception: %s", e.what());
                 stats.callback_exceptions.fetch_add(1, std::memory_order_relaxed);
             }
         }
@@ -793,6 +855,11 @@ std::string ProtocolHandlerV2::generateListenMessage(ListenState state, ListenMo
 void ProtocolHandlerV2::setHelloCallback(HelloCallback callback) {
     std::lock_guard<std::mutex> lock(pImpl_->callback_mutex);
     pImpl_->hello_callback = callback;
+}
+
+void ProtocolHandlerV2::setListenCallback(ListenCallback callback) {
+    std::lock_guard<std::mutex> lock(pImpl_->callback_mutex);
+    pImpl_->listen_callback = callback;
 }
 
 void ProtocolHandlerV2::setSTTCallback(STTCallback callback) {

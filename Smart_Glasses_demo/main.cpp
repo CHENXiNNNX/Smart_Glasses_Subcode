@@ -98,21 +98,24 @@
      std::cout << "║                    系统状态                             ║\n";
      std::cout << "╚════════════════════════════════════════════════════════╝\n";
      
-     // Chatbot状态
-     std::cout << "📡 Chatbot 状态:\n";
-     std::cout << "   State:         " << static_cast<int>(chatbot.getState()) << "\n";
-     std::cout << "   Ready:         " << (chatbot.isReady() ? "✓" : "✗") << "\n";
-     std::cout << "   Activated:     " << (chatbot.isActivated() ? "✓" : "✗") << "\n";
-     std::cout << "   Connected:     " << (chatbot.isConnected() ? "✓" : "✗") << "\n";
-     std::cout << "   Session ID:    " << chatbot.getSessionId() << "\n";
-     std::cout << "   Device ID:     " << chatbot.getDeviceId() << "\n";
-     std::cout << "   MCP Tools:     " << chatbot.getMCPToolCount() << "\n";
+    // Chatbot状态
+    std::cout << "📡 Chatbot 状态:\n";
+    std::cout << "   State:         " << static_cast<int>(chatbot.getState()) 
+              << " (6=READY, 7=ACTIVE)\n";
+    std::cout << "   Ready:         " << (chatbot.isReady() ? "✓" : "✗") << "\n";
+    std::cout << "   Activated:     " << (chatbot.isActivated() ? "✓" : "✗") << "\n";
+    std::cout << "   Connected:     " << (chatbot.isConnected() ? "✓" : "✗") << "\n";
+    std::cout << "   Session ID:    " << chatbot.getSessionId() << "\n";
+    std::cout << "   Device ID:     " << chatbot.getDeviceId() << "\n";
+    std::cout << "   MCP Tools:     " << chatbot.getMCPToolCount() << "\n";
      
-     // 音频状态
-     std::cout << "\n🔊 Audio 状态:\n";
-     std::cout << "   AI Stream:     " << (audio.isAIStreamActive() ? "✓ Active" : "✗ Inactive") << "\n";
-     std::cout << "   Playing:       " << (audio.isPlaying() ? "✓ Playing" : "✗ Stopped") << "\n";
-     std::cout << "   Recording:     " << (audio.isRecording() ? "✓ Recording" : "✗ Stopped") << "\n";
+    // 音频状态
+    std::cout << "\n🔊 Audio 状态:\n";
+    std::cout << "   Main State:    " << static_cast<int>(audio.getMainState()) 
+              << " (0=NONE, 1=AI, 2=WEBRTC)\n";
+    std::cout << "   AI Stream:     " << (audio.isAIStreamActive() ? "✓ Active" : "✗ Inactive") << "\n";
+    std::cout << "   Playing:       " << (audio.isPlaying() ? "✓ Playing" : "✗ Stopped") << "\n";
+    std::cout << "   Recording:     " << (audio.isRecording() ? "✓ Recording" : "✗ Stopped") << "\n";
      
      std::cout << "════════════════════════════════════════════════════════\n" << std::endl;
  }
@@ -226,7 +229,7 @@
          
          // 激活配置
          chatbot_config.auto_activate = true;
-         chatbot_config.activation_api_url = "https://api.xiaozhi.me/device/activation";
+         chatbot_config.activation_api_url = "https://api.tenclass.net/xiaozhi/ota/";
          chatbot_config.activation_timeout_sec = 300;
          
         // 唤醒词配置

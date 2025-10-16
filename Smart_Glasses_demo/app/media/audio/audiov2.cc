@@ -300,8 +300,9 @@ public:
     std::unique_ptr<AudioMemoryPool> mem_pool;
     
     // 编解码器（RAII智能指针）
-    OpusEncoderPtr main_encoder;      // 48kHz编码器（WebRTC）
-    OpusDecoderPtr main_decoder;      // 48kHz解码器（TTS）
+    OpusEncoderPtr webrtc_encoder;    // 48kHz编码器（WebRTC）
+    OpusDecoderPtr webrtc_decoder;    // 48kHz解码器（WebRTC）
+    OpusDecoderPtr tts_decoder;       // 48kHz解码器（TTS）
     OpusEncoderPtr ai_encoder;        // 16kHz编码器（AI）
     
     // 重采样器（RAII智能指针）
@@ -374,9 +375,10 @@ public:
             LOG_INFO("AudioSystemV2", "Main State: %d → %d", 
                      static_cast<int>(old_state), static_cast<int>(new_state));
             
-            // 捕获预期异常，不捕获系统异常（bad_alloc等），让它们正确传播
-            std::lock_guard<std::mutex> lock(callback_mutex);
-            if (main_state_callback) {
+            // 调用回调（如果设置了）
+            // 注意：使用try_lock避免死锁，如果获取锁失败就跳过回调
+            std::unique_lock<std::mutex> lock(callback_mutex, std::try_to_lock);
+            if (lock.owns_lock() && main_state_callback) {
                 try {
                     main_state_callback(old_state, new_state);
                 } catch (const std::runtime_error& e) {
@@ -386,6 +388,8 @@ public:
                 } catch (const std::exception& e) {
                     LOG_ERROR("AudioSystemV2", "Main state callback exception: %s", e.what());
                 }
+            } else if (!lock.owns_lock()) {
+                LOG_DEBUG("AudioSystemV2", "Callback mutex busy, skipping main state callback");
             }
         }
     }
@@ -397,9 +401,9 @@ public:
             LOG_DEBUG("AudioSystemV2", "Control State: %d → %d",
                      static_cast<int>(old_state), static_cast<int>(new_state));
             
-            // 捕获预期异常，不捕获系统异常（bad_alloc等），让它们正确传播
-            std::lock_guard<std::mutex> lock(callback_mutex);
-            if (control_state_callback) {
+            // 使用try_lock避免死锁
+            std::unique_lock<std::mutex> lock(callback_mutex, std::try_to_lock);
+            if (lock.owns_lock() && control_state_callback) {
                 try {
                     control_state_callback(old_state, new_state);
                 } catch (const std::runtime_error& e) {
@@ -499,79 +503,104 @@ AudioError AudioSystemV2::initialize(std::shared_ptr<sync_context_t> sync_ctx) {
     }
     LOG_INFO("AudioSystemV2", "  PortAudio version: %s", Pa_GetVersionText());
     
-    // 3. 创建Opus编码器（48kHz）
-    LOG_INFO("AudioSystemV2", "Step 3: Creating Opus encoders/decoders...");
+    // 3. 创建所有Opus编解码器和重采样器
+    LOG_INFO("AudioSystemV2", "Step 3: Creating all Opus encoders/decoders and resamplers...");
     int opus_error;
+    int src_error;
+    bool all_initialized = true;
     
-    OpusEncoder* encoder = opus_encoder_create(
+    // 3.1 创建WebRTC编码器（48kHz）
+    OpusEncoder* webrtc_encoder = opus_encoder_create(
         pImpl_->config.sample_rate, 
         pImpl_->config.channels, 
         OPUS_APPLICATION_VOIP, 
         &opus_error
     );
     
-    if (opus_error != OPUS_OK || !encoder) {
-        LOG_ERROR("AudioSystemV2", "Opus encoder create failed: %s", opus_strerror(opus_error));
-        Pa_Terminate();
-        return AudioError::INITIALIZE_FAILED;
+    if (opus_error != OPUS_OK || !webrtc_encoder) {
+        LOG_ERROR("AudioSystemV2", "WebRTC encoder create failed: %s", opus_strerror(opus_error));
+        all_initialized = false;
+    } else {
+        pImpl_->webrtc_encoder.reset(webrtc_encoder);
+        opus_encoder_ctl(pImpl_->webrtc_encoder.get(), OPUS_SET_BITRATE(64000));
+        opus_encoder_ctl(pImpl_->webrtc_encoder.get(), OPUS_SET_VBR(1));
+        opus_encoder_ctl(pImpl_->webrtc_encoder.get(), OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));
+        LOG_INFO("AudioSystemV2", "  ✓ WebRTC encoder: 48kHz, 64kbps");
     }
-    pImpl_->main_encoder.reset(encoder);
     
-    // 配置编码器
-    opus_encoder_ctl(pImpl_->main_encoder.get(), OPUS_SET_BITRATE(64000));
-    opus_encoder_ctl(pImpl_->main_encoder.get(), OPUS_SET_VBR(1));
-    opus_encoder_ctl(pImpl_->main_encoder.get(), OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));
-    LOG_INFO("AudioSystemV2", "  Main encoder: 48kHz, 64kbps");
-    
-    // 4. 创建Opus解码器（48kHz）
-    OpusDecoder* decoder = opus_decoder_create(
+    // 3.2 创建WebRTC解码器（48kHz）
+    OpusDecoder* webrtc_decoder = opus_decoder_create(
         pImpl_->config.sample_rate,
         pImpl_->config.channels,
         &opus_error
     );
     
-    if (opus_error != OPUS_OK || !decoder) {
-        LOG_ERROR("AudioSystemV2", "Opus decoder create failed: %s", opus_strerror(opus_error));
-        pImpl_->main_encoder.reset();
-        Pa_Terminate();
-        return AudioError::INITIALIZE_FAILED;
+    if (opus_error != OPUS_OK || !webrtc_decoder) {
+        LOG_ERROR("AudioSystemV2", "WebRTC decoder create failed: %s", opus_strerror(opus_error));
+        all_initialized = false;
+    } else {
+        pImpl_->webrtc_decoder.reset(webrtc_decoder);
+        LOG_INFO("AudioSystemV2", "  ✓ WebRTC decoder: 48kHz");
     }
-    pImpl_->main_decoder.reset(decoder);
-    LOG_INFO("AudioSystemV2", "  Main decoder: 48kHz");
     
-    // 5. 创建AI编码器（16kHz）
+    // 3.3 创建TTS解码器（48kHz）
+    OpusDecoder* tts_decoder = opus_decoder_create(48000, 1, &opus_error);
+    if (opus_error != OPUS_OK || !tts_decoder) {
+        LOG_ERROR("AudioSystemV2", "TTS decoder create failed: %s", opus_strerror(opus_error));
+        all_initialized = false;
+    } else {
+        pImpl_->tts_decoder.reset(tts_decoder);
+        LOG_INFO("AudioSystemV2", "  ✓ TTS decoder: 48kHz");
+    }
+    
+    // 3.4 创建AI编码器（16kHz）
     OpusEncoder* ai_encoder = opus_encoder_create(16000, 1, OPUS_APPLICATION_VOIP, &opus_error);
     if (opus_error != OPUS_OK || !ai_encoder) {
-        LOG_ERROR("AudioSystemV2", "AI Opus encoder create failed: %s", opus_strerror(opus_error));
-        // 不致命，继续
+        LOG_ERROR("AudioSystemV2", "AI encoder create failed: %s", opus_strerror(opus_error));
+        all_initialized = false;
     } else {
         pImpl_->ai_encoder.reset(ai_encoder);
         opus_encoder_ctl(pImpl_->ai_encoder.get(), OPUS_SET_BITRATE(32000));
         opus_encoder_ctl(pImpl_->ai_encoder.get(), OPUS_SET_VBR(1));
         opus_encoder_ctl(pImpl_->ai_encoder.get(), OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));
-        LOG_INFO("AudioSystemV2", "  AI encoder: 16kHz, 32kbps");
+        LOG_INFO("AudioSystemV2", "  ✓ AI encoder: 16kHz, 32kbps");
     }
     
-    // 6. 创建AI重采样器（48kHz → 16kHz）
-    int src_error;
-    SRC_STATE* resampler = src_new(SRC_SINC_BEST_QUALITY, 1, &src_error);
-    if (!resampler) {
+    // 3.5 创建AI重采样器（48kHz → 16kHz）
+    SRC_STATE* ai_resampler = src_new(SRC_SINC_BEST_QUALITY, 1, &src_error);
+    if (!ai_resampler) {
         LOG_ERROR("AudioSystemV2", "AI resampler create failed: %s", src_strerror(src_error));
-        // 不致命，继续
+        all_initialized = false;
     } else {
-        pImpl_->ai_resampler.reset(resampler);
-        LOG_INFO("AudioSystemV2", "  AI resampler: 48kHz → 16kHz");
+        pImpl_->ai_resampler.reset(ai_resampler);
+        LOG_INFO("AudioSystemV2", "  ✓ AI resampler: 48kHz → 16kHz (BEST_QUALITY)");
     }
     
-    // 7. 创建唤醒词重采样器（48kHz → 16kHz）
+    // 3.6 创建唤醒词重采样器（48kHz → 16kHz）
     SRC_STATE* wakeword_resampler = src_new(SRC_SINC_FASTEST, 1, &src_error);
     if (!wakeword_resampler) {
         LOG_ERROR("AudioSystemV2", "Wakeword resampler create failed: %s", src_strerror(src_error));
-        // 不致命，继续
+        all_initialized = false;
     } else {
         pImpl_->wakeword_resampler.reset(wakeword_resampler);
-        LOG_INFO("AudioSystemV2", "  Wakeword resampler: 48kHz → 16kHz (FASTEST)");
+        LOG_INFO("AudioSystemV2", "  ✓ Wakeword resampler: 48kHz → 16kHz (FASTEST)");
     }
+    
+    // 检查所有组件是否初始化成功
+    if (!all_initialized) {
+        LOG_ERROR("AudioSystemV2", "Some audio components failed to initialize");
+        // 清理已创建的资源
+        pImpl_->webrtc_encoder.reset();
+        pImpl_->webrtc_decoder.reset();
+        pImpl_->tts_decoder.reset();
+        pImpl_->ai_encoder.reset();
+        pImpl_->ai_resampler.reset();
+        pImpl_->wakeword_resampler.reset();
+        Pa_Terminate();
+        return AudioError::INITIALIZE_FAILED;
+    }
+    
+    LOG_INFO("AudioSystemV2", "  ✓ All audio components initialized successfully");
     
     // 8. 初始化3A算法
     if (pImpl_->config.enable_denoise || pImpl_->config.enable_agc) {
@@ -628,8 +657,8 @@ void AudioSystemV2::shutdown() {
     clearPlaybackQueue();
     
     // RAII智能指针会自动释放资源：
-    // - main_encoder, main_decoder, ai_encoder
-    // - ai_resampler
+    // - webrtc_encoder, webrtc_decoder, ai_encoder, tts_decoder
+    // - ai_resampler, wakeword_resampler
     // - speex_state
     // - record_stream, playback_stream
     
@@ -944,12 +973,12 @@ int AudioSystemV2::Impl::recordCallback(const void* inputBuffer, void* outputBuf
     // WebRTC音频发送（48kHz Opus编码）
     if (impl->main_state.load() == AudioMainState::WEBRTC && 
         impl->is_webrtc_streaming.load() &&
-        impl->main_encoder) {
+        impl->webrtc_encoder) {
         
-        // 使用主编码器编码（48kHz）
+        // 使用WebRTC编码器编码（48kHz）
         uint8_t* opus_buffer = impl->temp_opus_buffer.data();
         int encoded_bytes = opus_encode(
-            impl->main_encoder.get(),
+            impl->webrtc_encoder.get(),
             frame->getData<int16_t>(),
             framesPerBuffer,
             opus_buffer,
@@ -982,9 +1011,23 @@ int AudioSystemV2::Impl::recordCallback(const void* inputBuffer, void* outputBuf
     }
     
     // AI音频发送（48kHz → 16kHz → Opus编码）
-    if (impl->main_state.load() == AudioMainState::AI && 
-        impl->is_ai_streaming.load() &&
-        impl->ai_encoder && impl->ai_resampler) {
+    static std::atomic<int> ai_frame_count{0};
+    static std::atomic<uint64_t> last_ai_log_time{0};
+    
+    bool main_state_ok = (impl->main_state.load() == AudioMainState::AI);
+    bool streaming_ok = impl->is_ai_streaming.load();
+    bool encoder_ok = (impl->ai_encoder != nullptr);
+    bool resampler_ok = (impl->ai_resampler != nullptr);
+    
+    if (main_state_ok && streaming_ok && encoder_ok && resampler_ok) {
+        // 每100帧打印一次（约2秒）
+        if (ai_frame_count.fetch_add(1) % 100 == 0) {
+            uint64_t now = get_nowus();
+            if (now - last_ai_log_time.load() > 2000000) {  // 2秒
+                LOG_DEBUG("AudioCallback", "AI audio processing... (frame %d)", ai_frame_count.load());
+                last_ai_log_time.store(now);
+            }
+        }
         
         // 1. 重采样 48kHz → 16kHz
         double src_ratio = 16000.0 / 48000.0;  // 1/3
@@ -1294,8 +1337,8 @@ bool AudioSystemV2::isPlaying() const {
 // ============================================================================
 
 AudioFramePtr AudioSystemV2::encodeOpus(const int16_t* pcm_data, size_t pcm_size) {
-    if (!pImpl_->main_encoder) {
-        LOG_ERROR("AudioSystemV2", "Encoder not initialized");
+    if (!pImpl_->webrtc_encoder) {
+        LOG_ERROR("AudioSystemV2", "WebRTC encoder not initialized");
         return nullptr;
     }
     
@@ -1311,7 +1354,7 @@ AudioFramePtr AudioSystemV2::encodeOpus(const int16_t* pcm_data, size_t pcm_size
     
     // 编码
     int encoded_bytes = opus_encode(
-        pImpl_->main_encoder.get(),
+        pImpl_->webrtc_encoder.get(),
         pcm_data,
         frame_size,
         encoded_frame->data,
@@ -1330,14 +1373,36 @@ AudioFramePtr AudioSystemV2::encodeOpus(const int16_t* pcm_data, size_t pcm_size
 }
 
 AudioFramePtr AudioSystemV2::decodeOpus(const uint8_t* opus_data, size_t opus_size) {
-    if (!pImpl_->main_decoder) {
-        LOG_ERROR("AudioSystemV2", "Decoder not initialized");
+    // 优先使用TTS解码器（48kHz），如果没有则使用主解码器（48kHz）
+    OpusDecoder* decoder = nullptr;
+    int target_sample_rate = 0;
+    
+    if (pImpl_->tts_decoder) {
+        decoder = pImpl_->tts_decoder.get();
+        target_sample_rate = 48000;
+    } else if (pImpl_->webrtc_decoder) {
+        decoder = pImpl_->webrtc_decoder.get();
+        target_sample_rate = pImpl_->config.sample_rate;
+    } else {
+        LOG_ERROR("AudioSystemV2", "No decoder available");
         return nullptr;
     }
     
-    // 计算PCM帧大小
-    int frame_size = pImpl_->config.sample_rate / 1000 * pImpl_->config.frame_duration_ms;
+    // 打印解码器配置（仅第一次）
+    static std::atomic<bool> first_decode{true};
+    if (first_decode.exchange(false)) {
+        LOG_INFO("AudioSystemV2", "🔊 TTS Decoder Config:");
+        LOG_INFO("AudioSystemV2", "  Using: %d Hz decoder", target_sample_rate);
+        LOG_INFO("AudioSystemV2", "  Channels: %d", pImpl_->config.channels);
+        LOG_INFO("AudioSystemV2", "  Frame Duration: %d ms", pImpl_->config.frame_duration_ms);
+    }
+    
+    // 计算PCM帧大小（使用目标采样率）
+    int frame_size = target_sample_rate / 1000 * pImpl_->config.frame_duration_ms;
     size_t pcm_size = frame_size * pImpl_->config.channels * sizeof(int16_t);
+    
+    LOG_DEBUG("AudioSystemV2", "Decoding: opus_size=%zu, expect_pcm_samples=%d", 
+              opus_size, frame_size);
     
     // 分配输出帧
     auto decoded_frame = pImpl_->mem_pool->allocate(pcm_size);
@@ -1348,7 +1413,7 @@ AudioFramePtr AudioSystemV2::decodeOpus(const uint8_t* opus_data, size_t opus_si
     
     // 解码
     int decoded_samples = opus_decode(
-        pImpl_->main_decoder.get(),
+        decoder,
         opus_data,
         opus_size,
         decoded_frame->getData<int16_t>(),
@@ -1357,8 +1422,29 @@ AudioFramePtr AudioSystemV2::decodeOpus(const uint8_t* opus_data, size_t opus_si
     );
     
     if (decoded_samples < 0) {
-        LOG_ERROR("AudioSystemV2", "Opus decode failed: %s", opus_strerror(decoded_samples));
+        LOG_ERROR("AudioSystemV2", "Opus decode failed: %s (opus_size=%zu)", 
+                  opus_strerror(decoded_samples), opus_size);
         return nullptr;
+    }
+    
+    // 检查解码结果
+    if (decoded_samples != frame_size) {
+        LOG_WARN("AudioSystemV2", "Decoded samples mismatch: got %d, expected %d", 
+                 decoded_samples, frame_size);
+    }
+    
+    // 打印PCM样本统计（第一个和最后10个包）
+    static std::atomic<int> decode_count{0};
+    int count = decode_count.fetch_add(1);
+    if (count < 10) {
+        int16_t* pcm = decoded_frame->getData<int16_t>();
+        int16_t max_val = 0, min_val = 0;
+        for (int i = 0; i < decoded_samples; i++) {
+            if (pcm[i] > max_val) max_val = pcm[i];
+            if (pcm[i] < min_val) min_val = pcm[i];
+        }
+        LOG_INFO("AudioSystemV2", "  PCM #%d: samples=%d, range=[%d, %d]", 
+                 count, decoded_samples, min_val, max_val);
     }
     
     decoded_frame->size = decoded_samples * pImpl_->config.channels * sizeof(int16_t);
@@ -1369,8 +1455,8 @@ AudioFramePtr AudioSystemV2::decodeOpus(const uint8_t* opus_data, size_t opus_si
 
 size_t AudioSystemV2::encodeOpusFrames(const int16_t* pcm_data, size_t pcm_size, 
                                        std::vector<AudioFramePtr>& frames) {
-    if (!pImpl_->main_encoder) {
-        LOG_ERROR("AudioSystemV2", "Encoder not initialized");
+    if (!pImpl_->webrtc_encoder) {
+        LOG_ERROR("AudioSystemV2", "WebRTC encoder not initialized");
         return 0;
     }
     
@@ -1397,7 +1483,7 @@ size_t AudioSystemV2::encodeOpusFrames(const int16_t* pcm_data, size_t pcm_size,
         
         // 编码
         int encoded_bytes = opus_encode(
-            pImpl_->main_encoder.get(),
+            pImpl_->webrtc_encoder.get(),
             pcm_data + offset,
             current_frame_size,
             encoded_frame->data,
@@ -1439,10 +1525,22 @@ AudioError AudioSystemV2::startAIStream() {
     LOG_INFO("AudioSystemV2", "Starting AI audio stream...");
     
     // 设置主状态为AI
+    LOG_DEBUG("AudioSystemV2", "  Step 1: Setting main state to AI...");
     setMainState(AudioMainState::AI);
+    LOG_DEBUG("AudioSystemV2", "  Step 1: ✓ Main state set");
     
     // 标记为流式传输
+    LOG_DEBUG("AudioSystemV2", "  Step 2: Setting streaming flag...");
     pImpl_->is_ai_streaming.store(true);
+    LOG_DEBUG("AudioSystemV2", "  Step 2: ✓ Streaming flag set (is_ai_streaming=%d)", 
+              pImpl_->is_ai_streaming.load());
+    
+    // 验证条件
+    LOG_DEBUG("AudioSystemV2", "  Verification:");
+    LOG_DEBUG("AudioSystemV2", "    - main_state: %d", static_cast<int>(pImpl_->main_state.load()));
+    LOG_DEBUG("AudioSystemV2", "    - is_ai_streaming: %d", pImpl_->is_ai_streaming.load());
+    LOG_DEBUG("AudioSystemV2", "    - ai_encoder: %p", pImpl_->ai_encoder.get());
+    LOG_DEBUG("AudioSystemV2", "    - ai_resampler: %p", pImpl_->ai_resampler.get());
     
     LOG_INFO("AudioSystemV2", "AI audio stream started");
     return AudioError::NONE;

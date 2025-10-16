@@ -617,10 +617,42 @@ public:
             return;
         }
         
+        // 打印TTS音频包详细信息
+        static std::atomic<int> tts_packet_count{0};
+        int count = tts_packet_count.fetch_add(1);
+        
+        LOG_INFO("ChatbotV2", "📦 TTS Packet #%d: size=%zu bytes", count, size);
+        
+        // 打印前16字节的十六进制（用于分析Opus格式）
+        if (size > 0) {
+            char hex_buf[128] = {0};
+            int hex_len = 0;
+            for (size_t i = 0; i < std::min(size, (size_t)16); i++) {
+                hex_len += snprintf(hex_buf + hex_len, sizeof(hex_buf) - hex_len, 
+                                   "%02X ", data[i]);
+            }
+            LOG_DEBUG("ChatbotV2", "  Header: %s%s", hex_buf, size > 16 ? "..." : "");
+        }
+        
+        // 跳过16字节头部，只解码Opus数据
+        if (size <= 16) {
+            LOG_WARN("ChatbotV2", "  ✗ TTS packet too small: %zu bytes", size);
+            return;
+        }
+        
+        const uint8_t* opus_data = data + 16;  // 跳过16字节头部
+        size_t opus_size = size - 16;
+        
+        LOG_DEBUG("ChatbotV2", "  Opus data: %zu bytes (after skipping 16-byte header)", opus_size);
+        
         // 解码Opus并添加到播放队列
-        auto pcm_frame = audio_system->decodeOpus(data, size);
+        auto pcm_frame = audio_system->decodeOpus(opus_data, opus_size);
         
         if (pcm_frame) {
+            // 计算PCM样本数：size / sizeof(int16_t)
+            size_t pcm_samples = pcm_frame->size / sizeof(int16_t);
+            LOG_INFO("ChatbotV2", "  ✓ Decoded: %zu PCM samples", pcm_samples);
+            
             // 添加到播放队列
             audio_system->pushPlaybackFrame(pcm_frame);
             
@@ -629,10 +661,12 @@ public:
                 audio_system->startPlayback();
             }
             
+            stats.tts_received.fetch_add(1, std::memory_order_relaxed);
+            
             // 触发用户回调
             invokeTTSCallback(data, size);
         } else {
-            LOG_ERROR("ChatbotV2", "Failed to decode TTS audio");
+            LOG_ERROR("ChatbotV2", "  ✗ Failed to decode TTS audio (size=%zu)", size);
         }
     }
     
@@ -1049,7 +1083,7 @@ ChatbotError ChatbotSystemV2::start() {
     try {
         // 生成Hello消息
         std::string hello_msg = pImpl_->protocol_handler->generateHelloMessage(
-            48000,  // 48kHz
+            16000,  // 16kHz
             1,      // Mono
             20      // 20ms frame
         );

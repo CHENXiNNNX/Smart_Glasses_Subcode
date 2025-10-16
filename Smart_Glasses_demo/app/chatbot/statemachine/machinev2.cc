@@ -123,7 +123,22 @@ public:
             recordTransition(old_state, new_state, now, event, detail);
         }
         
-        // 6. 触发状态变化回调（异常安全）
+        // 6. 根据新状态处理音频上传
+        switch (new_state) {
+            case AIState::LISTENING:
+                // LISTENING状态：启用音频上传
+                setAudioUpload(true);
+                break;
+            case AIState::THINKING:
+            case AIState::SPEAKING:
+            case AIState::IDLE:
+            case AIState::ERROR:
+                // 其他状态：禁用音频上传
+                setAudioUpload(false);
+                break;
+        }
+        
+        // 7. 触发状态变化回调（异常安全）
         invokeStateChangeCallback(old_state, new_state);
         
         return true;

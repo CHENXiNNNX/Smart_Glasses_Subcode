@@ -254,6 +254,11 @@ struct ProtocolConfig {
 using HelloCallback = std::function<void(const HelloMessage& msg)>;
 
 /**
+ * @brief Listen消息回调
+ */
+using ListenCallback = std::function<void(const ListenMessage& msg)>;
+
+/**
  * @brief STT消息回调
  */
 using STTCallback = std::function<void(const STTMessage& msg)>;
@@ -361,6 +366,11 @@ public:
      * @brief 设置Hello消息回调
      */
     void setHelloCallback(HelloCallback callback);
+    
+    /**
+     * @brief 设置Listen消息回调
+     */
+    void setListenCallback(ListenCallback callback);
     
     /**
      * @brief 设置STT消息回调
