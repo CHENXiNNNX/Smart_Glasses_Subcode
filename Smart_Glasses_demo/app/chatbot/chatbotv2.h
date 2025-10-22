@@ -25,7 +25,7 @@
 #include <cstdint>
 
 // 前向声明（避免头文件依赖）
-namespace glasses {
+namespace app {
     namespace media {
         namespace audio {
             class AudioSystemV2;
@@ -35,7 +35,7 @@ namespace glasses {
     }
 }
 
-namespace glasses {
+namespace app {
 namespace chatbot {
 
 // ============================================================================
@@ -238,6 +238,11 @@ public:
      */
     void triggerWakeword();
     
+    /**
+     * @brief 手动触发WebSocket重连
+     */
+    void triggerReconnect();
+    
     // ========================================================================
     // 状态查询
     // ========================================================================
@@ -387,7 +392,7 @@ private:
 };
 
 } // namespace chatbot
-} // namespace glasses
+} // namespace app
 
 #endif // CHATBOTV2_H
 

@@ -15,11 +15,11 @@
 
 using json = nlohmann::json;
 
-namespace glasses {
+namespace app {
 namespace chatbot {
 namespace activation {
 
-using namespace tool::logger;
+using namespace tool::log;
 
 // ============================================================================
 // RAII包装器（智能指针删除器）
@@ -748,5 +748,5 @@ std::string DeviceActivationV2::errorToString(ActivationError error) {
 
 } // namespace activation
 } // namespace chatbot
-} // namespace glasses
+} // namespace app
 

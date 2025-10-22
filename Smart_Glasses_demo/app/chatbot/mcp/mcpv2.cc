@@ -9,11 +9,11 @@
 #include <algorithm>
 #include <stdexcept>
 
-namespace glasses {
+namespace app {
 namespace chatbot {
 namespace mcp {
 
-using namespace tool::logger;
+using namespace tool::log;
 
 // ============================================================================
 // PropertyV2 实现
@@ -721,5 +721,5 @@ std::map<std::string, uint64_t> McpServerV2::getToolUsageStats() const {
 
 } // namespace mcp
 } // namespace chatbot
-} // namespace glasses
+} // namespace app
 

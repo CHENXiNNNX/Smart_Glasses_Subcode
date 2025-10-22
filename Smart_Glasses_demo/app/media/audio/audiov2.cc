@@ -9,11 +9,11 @@
 #include <cstring>
 #include <algorithm>
 
-namespace glasses {
+namespace app {
 namespace media {
 namespace audio {
 
-using namespace tool::logger;
+using namespace tool::log;
 
 // ============================================================================
 // AudioFrame实现
@@ -1400,9 +1400,7 @@ AudioFramePtr AudioSystemV2::decodeOpus(const uint8_t* opus_data, size_t opus_si
     // 计算PCM帧大小（使用目标采样率）
     int frame_size = target_sample_rate / 1000 * pImpl_->config.frame_duration_ms;
     size_t pcm_size = frame_size * pImpl_->config.channels * sizeof(int16_t);
-    
-    LOG_DEBUG("AudioSystemV2", "Decoding: opus_size=%zu, expect_pcm_samples=%d", 
-              opus_size, frame_size);
+
     
     // 分配输出帧
     auto decoded_frame = pImpl_->mem_pool->allocate(pcm_size);
@@ -1699,6 +1697,6 @@ AudioError AudioSystemV2::stopWebRTCMode() {
 
 } // namespace audio
 } // namespace media
-} // namespace glasses
+} // namespace app
 
 

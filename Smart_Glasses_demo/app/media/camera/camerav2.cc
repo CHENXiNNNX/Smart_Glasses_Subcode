@@ -11,11 +11,11 @@
 #include <chrono>
 #include <sys/stat.h>
 
-namespace glasses {
+namespace app {
 namespace media {
 namespace camera {
 
-using namespace glasses::tool::logger;
+using namespace tool::log;
 
 // ============================================================================
 // VideoMemoryPool 实现

@@ -25,7 +25,7 @@
 #include <mutex>
 #include <chrono>
 
-namespace glasses {
+namespace app {
 namespace protocol {
 namespace websocket {
 
@@ -167,6 +167,17 @@ public:
      * @return WebSocketError::NONE 成功
      */
     WebSocketError reconnect();
+    
+    /**
+     * @brief 检查是否应该重连
+     * @return true 应该重连
+     */
+    bool shouldReconnect() const;
+    
+    /**
+     * @brief 处理计划的重连
+     */
+    void processReconnect();
     
     // ========================================================================
     // 消息发送
@@ -355,7 +366,7 @@ inline std::unique_ptr<WebSocketClientV2> createXiaozhiClientV2(
 
 } // namespace websocket
 } // namespace protocol
-} // namespace glasses
+} // namespace app
 
 #endif // WEBSOCKETV2_H
 

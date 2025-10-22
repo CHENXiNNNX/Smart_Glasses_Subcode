@@ -13,8 +13,9 @@
 #include <iostream>
 #include <fstream>
 
-namespace glasses {
+namespace app {
 namespace tool {
+namespace uuid {
 
 // 内部辅助函数：生成随机UUID
 static std::string generateRandomUUID() {
@@ -247,6 +248,7 @@ std::string formatUUID(const std::string& uuid) {
     return ss.str();
 }
 
+} // namespace uuid
 } // namespace tool
-} // namespace glasses
+} // namespace app
 

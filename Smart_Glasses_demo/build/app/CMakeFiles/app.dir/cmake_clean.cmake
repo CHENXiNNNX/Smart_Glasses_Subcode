@@ -23,8 +23,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/app.dir/chatbot/statemachine/machine.cc.o.d"
   "CMakeFiles/app.dir/chatbot/statemachine/machinev2.cc.o"
   "CMakeFiles/app.dir/chatbot/statemachine/machinev2.cc.o.d"
-  "CMakeFiles/app.dir/chatbot/uuid/uuid.cc.o"
-  "CMakeFiles/app.dir/chatbot/uuid/uuid.cc.o.d"
   "CMakeFiles/app.dir/chatbot/wakeword/wakeword.cc.o"
   "CMakeFiles/app.dir/chatbot/wakeword/wakeword.cc.o.d"
   "CMakeFiles/app.dir/chatbot/wakeword/wakewordv2.cc.o"
@@ -67,6 +65,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/app.dir/tool/mcp_tool/mcp_toolv2.cc.o.d"
   "CMakeFiles/app.dir/tool/memory/mem_pool.cc.o"
   "CMakeFiles/app.dir/tool/memory/mem_pool.cc.o.d"
+  "CMakeFiles/app.dir/tool/uuid/uuid.cc.o"
+  "CMakeFiles/app.dir/tool/uuid/uuid.cc.o.d"
   "libapp.a"
   "libapp.pdb"
 )

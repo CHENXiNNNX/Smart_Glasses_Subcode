@@ -11,12 +11,13 @@
 #include <thread>
 #include <condition_variable>
 #include <cstring>
+#include <exception>
 
-namespace glasses {
+namespace app {
 namespace protocol {
 namespace websocket {
 
-using namespace tool::logger;
+using namespace tool::log;
 
 // WebSocket客户端类型定义
 typedef websocketpp::client<websocketpp::config::asio_tls_client> ws_client_type;
@@ -75,6 +76,8 @@ public:
     }
     
     void cleanup() {
+        LOG_DEBUG("WebSocketV2", "Starting cleanup...");
+        
         // 停止所有线程
         should_stop.store(true, std::memory_order_release);
         should_reconnect.store(false, std::memory_order_release);
@@ -84,21 +87,42 @@ public:
         if (client) {
             try {
                 client->stop();
+            } catch (const std::exception& e) {
+                LOG_WARN("WebSocketV2", "Exception during client stop: %s", e.what());
             } catch (...) {
-                LOG_WARN("WebSocketV2", "Exception during client stop");
+                LOG_WARN("WebSocketV2", "Unknown exception during client stop");
             }
         }
         
-        // 等待线程退出
-        if (reconnect_thread && reconnect_thread->joinable()) {
-            reconnect_thread->join();
+        // 等待重连线程退出
+        if (reconnect_thread) {
+            try {
+                if (reconnect_thread->joinable()) {
+                    reconnect_thread->join();
+                }
+            } catch (const std::exception& e) {
+                LOG_WARN("WebSocketV2", "Exception joining reconnect thread: %s", e.what());
+            } catch (...) {
+                LOG_WARN("WebSocketV2", "Unknown exception joining reconnect thread");
+            }
+            reconnect_thread.reset();
         }
-        reconnect_thread.reset();
         
-        if (ws_thread && ws_thread->joinable()) {
-            ws_thread->join();
+        // 等待WebSocket线程退出
+        if (ws_thread) {
+            try {
+                if (ws_thread->joinable()) {
+                    ws_thread->join();
+                }
+            } catch (const std::exception& e) {
+                LOG_WARN("WebSocketV2", "Exception joining WebSocket thread: %s", e.what());
+            } catch (...) {
+                LOG_WARN("WebSocketV2", "Unknown exception joining WebSocket thread");
+            }
+            ws_thread.reset();
         }
-        ws_thread.reset();
+        
+        LOG_DEBUG("WebSocketV2", "Cleanup completed");
     }
     
     // ========================================================================
@@ -237,7 +261,19 @@ public:
     // ========================================================================
     
     WebSocketError connectInternal() {
+        // 检查对象是否正在被销毁
+        if (should_stop.load(std::memory_order_acquire)) {
+            LOG_DEBUG("WebSocketV2", "Object is being destroyed, canceling connect");
+            return WebSocketError::CONNECTION_FAILED;
+        }
+        
         std::lock_guard<std::mutex> lock(mutex);
+        
+        // 再次检查对象是否正在被销毁（在锁内）
+        if (should_stop.load(std::memory_order_acquire)) {
+            LOG_DEBUG("WebSocketV2", "Object is being destroyed, canceling connect (in lock)");
+            return WebSocketError::CONNECTION_FAILED;
+        }
         
         // 检查当前状态
         ConnectionState current = state.load(std::memory_order_acquire);
@@ -246,6 +282,21 @@ public:
             current != ConnectionState::ERROR) {
             LOG_WARN("WebSocketV2", "Already connecting or connected");
             return WebSocketError::ALREADY_CONNECTED;
+        }
+        
+        // 清理旧的WebSocket线程（如果存在）
+        if (ws_thread) {
+            try {
+                if (ws_thread->joinable()) {
+                    LOG_DEBUG("WebSocketV2", "Cleaning up old WebSocket thread");
+                    ws_thread->join();
+                }
+            } catch (const std::exception& e) {
+                LOG_WARN("WebSocketV2", "Exception joining old WebSocket thread: %s", e.what());
+            } catch (...) {
+                LOG_WARN("WebSocketV2", "Unknown exception joining old WebSocket thread");
+            }
+            ws_thread.reset();
         }
         
         setState(ConnectionState::CONNECTING);
@@ -284,7 +335,6 @@ public:
                 
                 if (opcode == websocketpp::frame::opcode::binary) {
                     // 二进制消息（TTS音频）
-                    LOG_DEBUG("WebSocketV2", "← Binary message: %zu bytes", payload.size());
                     invokeBinaryCallback(payload.data(), payload.size());
                 } else {
                     // 文本消息（JSON协议）
@@ -357,6 +407,12 @@ public:
             
             // 添加HTTP headers
             for (const auto& [key, value] : config.headers) {
+                // 检查对象是否仍然有效
+                if (should_stop.load(std::memory_order_acquire)) {
+                    LOG_DEBUG("WebSocketV2", "Object is being destroyed, canceling header setup");
+                    return WebSocketError::CONNECTION_FAILED;
+                }
+                
                 con->append_header(key, value);
                 LOG_DEBUG("WebSocketV2", "Header: %s = %s", key.c_str(), value.c_str());
             }
@@ -365,17 +421,53 @@ public:
             client->connect(con);
             
             // 启动WebSocket线程（智能指针管理）
-            ws_thread = std::make_unique<std::thread>([this]() {
-                LOG_DEBUG("WebSocketV2", "WebSocket thread started");
-                
-                try {
-                    client->run();
-                } catch (const std::exception& e) {
-                    LOG_ERROR("WebSocketV2", "WebSocket thread exception: %s", e.what());
+            try {
+                // 再次检查对象是否仍然有效
+                if (should_stop.load(std::memory_order_acquire)) {
+                    LOG_DEBUG("WebSocketV2", "Object is being destroyed, canceling WebSocket thread creation");
+                    setState(ConnectionState::ERROR);
+                    return WebSocketError::CONNECTION_FAILED;
                 }
                 
-                LOG_DEBUG("WebSocketV2", "WebSocket thread stopped");
-            });
+                ws_thread = std::make_unique<std::thread>([this]() {
+                    // 设置线程异常处理器
+                    std::set_terminate([]() {
+                        LOG_ERROR("WebSocketV2", "WebSocket thread terminated unexpectedly");
+                    });
+                    
+                    try {
+                        LOG_DEBUG("WebSocketV2", "WebSocket thread started");
+                        
+                        // 检查对象是否仍然有效
+                        if (should_stop.load(std::memory_order_acquire)) {
+                            LOG_DEBUG("WebSocketV2", "Object is being destroyed, skipping client run");
+                            return;
+                        }
+                        
+                        // 检查client是否有效
+                        if (!client) {
+                            LOG_ERROR("WebSocketV2", "Client is null, cannot run");
+                            return;
+                        }
+                        
+                        client->run();
+                    } catch (const std::exception& e) {
+                        LOG_ERROR("WebSocketV2", "WebSocket thread exception: %s", e.what());
+                    } catch (...) {
+                        LOG_ERROR("WebSocketV2", "WebSocket thread unknown exception");
+                    }
+                    
+                    LOG_DEBUG("WebSocketV2", "WebSocket thread stopped");
+                });
+            } catch (const std::exception& e) {
+                LOG_ERROR("WebSocketV2", "Failed to create WebSocket thread: %s", e.what());
+                setState(ConnectionState::ERROR);
+                return WebSocketError::CONNECTION_FAILED;
+            } catch (...) {
+                LOG_ERROR("WebSocketV2", "Unknown exception creating WebSocket thread");
+                setState(ConnectionState::ERROR);
+                return WebSocketError::CONNECTION_FAILED;
+            }
             
             LOG_INFO("WebSocketV2", "Connecting to: %s", config.url.c_str());
             return WebSocketError::NONE;
@@ -391,16 +483,26 @@ public:
     void disconnectInternal() {
         std::lock_guard<std::mutex> lock(mutex);
         
+        LOG_DEBUG("WebSocketV2", "Starting disconnect...");
+        
         // 禁用重连
         should_reconnect.store(false, std::memory_order_release);
         should_stop.store(true, std::memory_order_release);
         reconnect_cv.notify_all();
         
         // 停止重连线程
-        if (reconnect_thread && reconnect_thread->joinable()) {
-            reconnect_thread->join();
+        if (reconnect_thread) {
+            try {
+                if (reconnect_thread->joinable()) {
+                    reconnect_thread->join();
+                }
+            } catch (const std::exception& e) {
+                LOG_WARN("WebSocketV2", "Exception joining reconnect thread during disconnect: %s", e.what());
+            } catch (...) {
+                LOG_WARN("WebSocketV2", "Unknown exception joining reconnect thread during disconnect");
+            }
+            reconnect_thread.reset();
         }
-        reconnect_thread.reset();
         
         // 关闭连接
         if (client) {
@@ -420,20 +522,34 @@ public:
                     }
                 } catch (const std::exception& e) {
                     LOG_ERROR("WebSocketV2", "Disconnect exception: %s", e.what());
+                } catch (...) {
+                    LOG_ERROR("WebSocketV2", "Unknown disconnect exception");
                 }
             }
             
             // 停止客户端
             try {
                 client->stop();
-            } catch (...) {}
+            } catch (const std::exception& e) {
+                LOG_WARN("WebSocketV2", "Exception during client stop: %s", e.what());
+            } catch (...) {
+                LOG_WARN("WebSocketV2", "Unknown exception during client stop");
+            }
         }
         
         // 等待WebSocket线程
-        if (ws_thread && ws_thread->joinable()) {
-            ws_thread->join();
+        if (ws_thread) {
+            try {
+                if (ws_thread->joinable()) {
+                    ws_thread->join();
+                }
+            } catch (const std::exception& e) {
+                LOG_WARN("WebSocketV2", "Exception joining WebSocket thread during disconnect: %s", e.what());
+            } catch (...) {
+                LOG_WARN("WebSocketV2", "Unknown exception joining WebSocket thread during disconnect");
+            }
+            ws_thread.reset();
         }
-        ws_thread.reset();
         
         setState(ConnectionState::DISCONNECTED);
         handshaked.store(false, std::memory_order_release);
@@ -550,43 +666,83 @@ public:
         should_reconnect.store(true, std::memory_order_release);
         
         // 停止旧的重连线程
-        if (reconnect_thread && reconnect_thread->joinable()) {
-            reconnect_thread->join();
+        if (reconnect_thread) {
+            try {
+                if (reconnect_thread->joinable()) {
+                    reconnect_thread->join();
+                }
+            } catch (const std::exception& e) {
+                LOG_WARN("WebSocketV2", "Exception joining old reconnect thread: %s", e.what());
+            } catch (...) {
+                LOG_WARN("WebSocketV2", "Unknown exception joining old reconnect thread");
+            }
+            reconnect_thread.reset();
         }
         
         // 创建新的重连线程（智能指针管理）
-        reconnect_thread = std::make_unique<std::thread>([this]() {
-            LOG_INFO("WebSocketV2", "Scheduling reconnect in %dms", config.reconnect_interval_ms);
-            
-            std::unique_lock<std::mutex> lock(reconnect_mutex);
-            
-            // ✅ 可中断的等待
-            bool cancelled = reconnect_cv.wait_for(
-                lock,
-                std::chrono::milliseconds(config.reconnect_interval_ms),
-                [this]() { 
-                    return !should_reconnect.load(std::memory_order_acquire) ||
-                           should_stop.load(std::memory_order_acquire); 
-                }
-            );
-            
-            if (cancelled || should_stop.load(std::memory_order_acquire)) {
-                LOG_DEBUG("WebSocketV2", "Reconnect cancelled");
-                return;
-            }
-            
-            if (should_reconnect.load(std::memory_order_acquire)) {
-                int count = reconnect_count.fetch_add(1, std::memory_order_acq_rel) + 1;
-                stats.reconnections.fetch_add(1, std::memory_order_relaxed);
+        try {
+            reconnect_thread = std::make_unique<std::thread>([this]() {
+                // 设置线程异常处理器
+                std::set_terminate([]() {
+                    LOG_ERROR("WebSocketV2", "Reconnect thread terminated unexpectedly");
+                });
                 
-                LOG_INFO("WebSocketV2", "Attempting to reconnect (attempt #%d)...", count);
-                
-                WebSocketError err = connectInternal();
-                if (err != WebSocketError::NONE) {
-                    LOG_ERROR("WebSocketV2", "Reconnect failed");
+                try {
+                    LOG_INFO("WebSocketV2", "Scheduling reconnect in %dms", config.reconnect_interval_ms);
+                    
+                    std::unique_lock<std::mutex> lock(reconnect_mutex);
+                    
+                    // ✅ 可中断的等待
+                    bool cancelled = reconnect_cv.wait_for(
+                        lock,
+                        std::chrono::milliseconds(config.reconnect_interval_ms),
+                        [this]() { 
+                            try {
+                                return !should_reconnect.load(std::memory_order_acquire) ||
+                                       should_stop.load(std::memory_order_acquire); 
+                            } catch (...) {
+                                LOG_ERROR("WebSocketV2", "Exception in reconnect condition check");
+                                return true; // 异常时取消等待
+                            }
+                        }
+                    );
+                    
+                    if (cancelled || should_stop.load(std::memory_order_acquire)) {
+                        LOG_DEBUG("WebSocketV2", "Reconnect cancelled");
+                        return;
+                    }
+                    
+                    if (should_reconnect.load(std::memory_order_acquire)) {
+                        int count = reconnect_count.fetch_add(1, std::memory_order_acq_rel) + 1;
+                        stats.reconnections.fetch_add(1, std::memory_order_relaxed);
+                        
+                        LOG_INFO("WebSocketV2", "Attempting to reconnect (attempt #%d)...", count);
+                        
+                        // 检查对象是否仍然有效
+                        if (should_stop.load(std::memory_order_acquire)) {
+                            LOG_DEBUG("WebSocketV2", "Object is being destroyed, canceling reconnect");
+                            return;
+                        }
+                        
+                        // 简化的重连逻辑：只设置状态，不直接调用connectInternal
+                        LOG_INFO("WebSocketV2", "Reconnect scheduled, external handler should process");
+                        // 不直接调用connectInternal()，而是让外部处理
+                    }
+                } catch (const std::exception& e) {
+                    LOG_ERROR("WebSocketV2", "Critical exception in reconnect thread: %s", e.what());
+                    should_reconnect.store(false, std::memory_order_release);
+                } catch (...) {
+                    LOG_ERROR("WebSocketV2", "Critical unknown exception in reconnect thread");
+                    should_reconnect.store(false, std::memory_order_release);
                 }
-            }
-        });
+            });
+        } catch (const std::exception& e) {
+            LOG_ERROR("WebSocketV2", "Failed to create reconnect thread: %s", e.what());
+            should_reconnect.store(false, std::memory_order_release);
+        } catch (...) {
+            LOG_ERROR("WebSocketV2", "Unknown exception creating reconnect thread");
+            should_reconnect.store(false, std::memory_order_release);
+        }
     }
     
     // ========================================================================
@@ -630,10 +786,24 @@ WebSocketClientV2::WebSocketClientV2(const WebSocketConfig& config)
 WebSocketClientV2::~WebSocketClientV2() {
     LOG_INFO("WebSocketV2", "WebSocket Client V2 destroying...");
     
-    // 输出统计
-    logStats();
+    try {
+        // 输出统计
+        logStats();
+    } catch (const std::exception& e) {
+        LOG_WARN("WebSocketV2", "Exception during stats logging: %s", e.what());
+    } catch (...) {
+        LOG_WARN("WebSocketV2", "Unknown exception during stats logging");
+    }
     
-    // RAII自动清理
+    try {
+        // RAII自动清理
+        pImpl_.reset();
+    } catch (const std::exception& e) {
+        LOG_WARN("WebSocketV2", "Exception during cleanup: %s", e.what());
+    } catch (...) {
+        LOG_WARN("WebSocketV2", "Unknown exception during cleanup");
+    }
+    
     LOG_INFO("WebSocketV2", "WebSocket Client V2 destroyed");
 }
 
@@ -659,6 +829,19 @@ WebSocketError WebSocketClientV2::reconnect() {
     // 重新连接
     pImpl_->reconnect_count.store(0, std::memory_order_release);
     return connect();
+}
+
+// 添加一个安全的重连检查方法
+bool WebSocketClientV2::shouldReconnect() const {
+    return pImpl_->should_reconnect.load(std::memory_order_acquire);
+}
+
+// 添加一个安全的重连处理方法
+void WebSocketClientV2::processReconnect() {
+    if (shouldReconnect()) {
+        LOG_INFO("WebSocketV2", "Processing scheduled reconnect...");
+        connect();
+    }
 }
 
 // ========================================================================

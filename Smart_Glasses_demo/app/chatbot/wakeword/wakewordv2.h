@@ -25,7 +25,7 @@
 #include <vector>
 #include <cstdint>
 
-namespace glasses {
+namespace app {
 namespace chatbot {
 namespace wakeword {
 
@@ -234,7 +234,7 @@ private:
 
 } // namespace wakeword
 } // namespace chatbot
-} // namespace glasses
+} // namespace app
 
 #endif // WAKEWORDV2_H
 

@@ -31,7 +31,7 @@
 #include "../sync.h"
 #include "../../tool/memory/mem_pool.h"
 
-namespace glasses {
+namespace app {
 namespace media {
 namespace audio {
 
@@ -667,7 +667,7 @@ private:
 
 } // namespace audio
 } // namespace media
-} // namespace glasses
+} // namespace app
 
 #endif // AUDIOV2_H
 

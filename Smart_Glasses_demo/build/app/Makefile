@@ -463,30 +463,6 @@ chatbot/statemachine/machinev2.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/statemachine/machinev2.cc.s
 .PHONY : chatbot/statemachine/machinev2.cc.s
 
-chatbot/uuid/uuid.o: chatbot/uuid/uuid.cc.o
-.PHONY : chatbot/uuid/uuid.o
-
-# target to build an object file
-chatbot/uuid/uuid.cc.o:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/uuid/uuid.cc.o
-.PHONY : chatbot/uuid/uuid.cc.o
-
-chatbot/uuid/uuid.i: chatbot/uuid/uuid.cc.i
-.PHONY : chatbot/uuid/uuid.i
-
-# target to preprocess a source file
-chatbot/uuid/uuid.cc.i:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/uuid/uuid.cc.i
-.PHONY : chatbot/uuid/uuid.cc.i
-
-chatbot/uuid/uuid.s: chatbot/uuid/uuid.cc.s
-.PHONY : chatbot/uuid/uuid.s
-
-# target to generate assembly for a file
-chatbot/uuid/uuid.cc.s:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/uuid/uuid.cc.s
-.PHONY : chatbot/uuid/uuid.cc.s
-
 chatbot/wakeword/wakeword.o: chatbot/wakeword/wakeword.cc.o
 .PHONY : chatbot/wakeword/wakeword.o
 
@@ -991,6 +967,30 @@ tool/memory/mem_pool.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.s
 .PHONY : tool/memory/mem_pool.cc.s
 
+tool/uuid/uuid.o: tool/uuid/uuid.cc.o
+.PHONY : tool/uuid/uuid.o
+
+# target to build an object file
+tool/uuid/uuid.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/uuid/uuid.cc.o
+.PHONY : tool/uuid/uuid.cc.o
+
+tool/uuid/uuid.i: tool/uuid/uuid.cc.i
+.PHONY : tool/uuid/uuid.i
+
+# target to preprocess a source file
+tool/uuid/uuid.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/uuid/uuid.cc.i
+.PHONY : tool/uuid/uuid.cc.i
+
+tool/uuid/uuid.s: tool/uuid/uuid.cc.s
+.PHONY : tool/uuid/uuid.s
+
+# target to generate assembly for a file
+tool/uuid/uuid.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/uuid/uuid.cc.s
+.PHONY : tool/uuid/uuid.cc.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1040,9 +1040,6 @@ help:
 	@echo "... chatbot/statemachine/machinev2.o"
 	@echo "... chatbot/statemachine/machinev2.i"
 	@echo "... chatbot/statemachine/machinev2.s"
-	@echo "... chatbot/uuid/uuid.o"
-	@echo "... chatbot/uuid/uuid.i"
-	@echo "... chatbot/uuid/uuid.s"
 	@echo "... chatbot/wakeword/wakeword.o"
 	@echo "... chatbot/wakeword/wakeword.i"
 	@echo "... chatbot/wakeword/wakeword.s"
@@ -1106,6 +1103,9 @@ help:
 	@echo "... tool/memory/mem_pool.o"
 	@echo "... tool/memory/mem_pool.i"
 	@echo "... tool/memory/mem_pool.s"
+	@echo "... tool/uuid/uuid.o"
+	@echo "... tool/uuid/uuid.i"
+	@echo "... tool/uuid/uuid.s"
 .PHONY : help
 
 

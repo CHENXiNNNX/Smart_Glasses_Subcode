@@ -28,7 +28,7 @@
 #include <unordered_set>
 #include <chrono>
 
-namespace glasses {
+namespace app {
 namespace chatbot {
 namespace statemachine {
 
@@ -402,7 +402,7 @@ private:
 
 } // namespace statemachine
 } // namespace chatbot
-} // namespace glasses
+} // namespace app
 
 #endif // MACHINEV2_H
 

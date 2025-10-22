@@ -15,11 +15,11 @@
 #include <thread>
 #include <condition_variable>
 
-namespace glasses {
+namespace app {
 namespace protocol {
 namespace udp {
 
-using namespace tool::logger;
+using namespace app::tool::log;
 
 // ============================================================================
 // RAII套接字封装

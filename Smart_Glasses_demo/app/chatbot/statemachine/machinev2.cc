@@ -9,11 +9,11 @@
 #include <thread>
 #include <condition_variable>
 
-namespace glasses {
+namespace app {
 namespace chatbot {
 namespace statemachine {
 
-using namespace tool::logger;
+using namespace tool::log;
 
 // ============================================================================
 // AIStateMachineV2::Impl 内部实现（Pimpl惯用法）
@@ -769,5 +769,5 @@ AIState AIStateMachineV2::stringToState(const std::string& str) {
 
 } // namespace statemachine
 } // namespace chatbot
-} // namespace glasses
+} // namespace app
 

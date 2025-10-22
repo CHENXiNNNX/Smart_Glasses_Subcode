@@ -13,9 +13,9 @@
 #include <unistd.h>
 #include <libgen.h>
 
-namespace glasses {
+namespace app {
 namespace tool {
-namespace logger {
+namespace log {
 
 // ============================================================================
 // ANSI 颜色代码
@@ -511,7 +511,7 @@ uint64_t Logger::getCurrentTimestamp() {
     return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
 }
 
-} // namespace logger
+} // namespace log
 } // namespace tool
-} // namespace glasses
+} // namespace app
 

@@ -10,17 +10,18 @@
 #ifndef MCP_TOOLV2_H
 #define MCP_TOOLV2_H
 
-namespace glasses {
+namespace app {
 namespace chatbot {
 namespace mcp {
 
 class McpServerV2;
 
-}}} // namespace glasses::chatbot::mcp
+}}} // namespace app::chatbot::mcp
 
-namespace glasses {
+namespace app {
 namespace tool {
-
+namespace mcp_tool {
+    
 /**
  * @brief MCP工具管理器V2
  * @details 负责向MCP服务器V2注册所有设备工具
@@ -63,8 +64,9 @@ public:
     static int register_network_tools(chatbot::mcp::McpServerV2& mcp_server);
 };
 
+} // namespace mcp_tool
 } // namespace tool
-} // namespace glasses
+} // namespace app
 
 #endif // MCP_TOOLV2_H
 

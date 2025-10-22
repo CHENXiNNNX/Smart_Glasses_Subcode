@@ -18,7 +18,7 @@
 #include "../sync.h"
 #include "../../tool/memory/mem_pool.h"
 
-namespace glasses {
+namespace app {
 namespace media {
 namespace camera {
 
@@ -822,7 +822,7 @@ private:
 
 } // namespace camera
 } // namespace media
-} // namespace glasses
+} // namespace app
 
 #endif // GLASSES_MEDIA_CAMERA_CAMERAV2_H_
 

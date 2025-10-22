@@ -25,7 +25,7 @@
 #include <mutex>
 #include <future>
 
-namespace glasses {
+namespace app {
 namespace chatbot {
 namespace activation {
 
@@ -352,7 +352,7 @@ private:
 
 } // namespace activation
 } // namespace chatbot
-} // namespace glasses
+} // namespace app
 
 #endif // ACTIVATIONV2_H
 

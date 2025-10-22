@@ -31,9 +31,9 @@
 #include <deque>
 #include <chrono>
 
-namespace glasses {
+namespace app {
 namespace chatbot {
-namespace protocol {
+namespace protocol_handle {
 
 // ============================================================================
 // 前向声明
@@ -231,6 +231,10 @@ struct ProtocolConfig {
     int default_channels = 1;
     int default_frame_duration = 20;
     
+    // 协议特性
+    bool enable_aec = false; // 回声消除
+    bool enable_mcp = true; // MCP工具支持
+
     // 性能配置
     size_t message_queue_size = 100;        // 异步队列大小
     size_t message_pool_size = 200;         // 消息池大小
@@ -510,9 +514,9 @@ private:
     std::unique_ptr<Impl> pImpl_;  // ✅ 智能指针管理
 };
 
-} // namespace protocol
+} // namespace protocol_handle
 } // namespace chatbot
-} // namespace glasses
+} // namespace app
 
 #endif // HANDLEV2_H
 

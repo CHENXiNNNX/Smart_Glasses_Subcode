@@ -3,7 +3,7 @@
 #include <sstream>
 #include <iomanip>
 
-using namespace glasses::protocol;
+using namespace app::protocol::webrtc;
 using json = nlohmann::json;
 
 Signaling::Signaling(const std::string& deviceId, const std::string& serverUrl)

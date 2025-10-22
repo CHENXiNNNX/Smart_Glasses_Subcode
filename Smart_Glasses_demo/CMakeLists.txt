@@ -128,8 +128,8 @@ add_custom_command(
             ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/snowboy/resources/common.res
             ${OUTPUT_PATH}/third_party/snowboy/resources/common.res
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/snowboy/resources/models/echo.pmdl
-            ${OUTPUT_PATH}/third_party/snowboy/resources/models/echo.pmdl
+            ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/snowboy/resources/models/xiaozhi.pmdl
+            ${OUTPUT_PATH}/third_party/snowboy/resources/models/xiaozhi.pmdl
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/audio/waked.pcm
             ${OUTPUT_PATH}/third_party/audio/waked.pcm

@@ -10,8 +10,9 @@
 #include <string>
 #include <vector>
 
-namespace glasses {
+namespace app {
 namespace tool {
+namespace mac {
 
 /**
  * @brief 获取无线网卡的MAC地址
@@ -51,8 +52,9 @@ std::vector<std::string> getAllNetworkInterfaces();
  */
 std::string formatMacAddress(const std::string& mac);
 
+} // namespace mac
 } // namespace tool
-} // namespace glasses
+} // namespace app
 
 #endif // MAC_H
 

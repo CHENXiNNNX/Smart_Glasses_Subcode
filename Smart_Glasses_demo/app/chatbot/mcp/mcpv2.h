@@ -30,7 +30,7 @@
 #include <cstdint>
 #include <nlohmann/json.hpp>
 
-namespace glasses {
+namespace app {
 namespace chatbot {
 namespace mcp {
 
@@ -371,13 +371,13 @@ private:
 
 } // namespace mcp
 } // namespace chatbot
-} // namespace glasses
+} // namespace app
 
 // ============================================================================
 // 模板实现
 // ============================================================================
 
-namespace glasses {
+namespace app {
 namespace chatbot {
 namespace mcp {
 
@@ -409,7 +409,7 @@ void PropertyV2::set_value(const T& value) {
 
 } // namespace mcp
 } // namespace chatbot
-} // namespace glasses
+} // namespace app
 
 #endif // MCPV2_H
 

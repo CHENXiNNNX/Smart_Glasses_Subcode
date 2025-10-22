@@ -10,9 +10,9 @@
 #include <cstdarg>
 #include <cstring>  // 用于 strcmp 函数
 
-namespace glasses {
+namespace app {
 namespace tool {
-namespace logger {
+namespace log {
 
 // ============================================================================
 // 日志级别
@@ -262,43 +262,43 @@ private:
  */
 #define USER_LOG(level, tag, format, ...) \
     do { \
-        glasses::tool::logger::LogLevel log_level; \
+        app::tool::log::LogLevel log_level; \
         if (strcmp(level, "DEBUG") == 0) { \
-            log_level = glasses::tool::logger::LogLevel::DEBUG; \
+            log_level = app::tool::log::LogLevel::DEBUG; \
         } else if (strcmp(level, "INFO") == 0) { \
-            log_level = glasses::tool::logger::LogLevel::INFO; \
+            log_level = app::tool::log::LogLevel::INFO; \
         } else if (strcmp(level, "WARN") == 0) { \
-            log_level = glasses::tool::logger::LogLevel::WARN; \
+            log_level = app::tool::log::LogLevel::WARN; \
         } else if (strcmp(level, "ERROR") == 0) { \
-            log_level = glasses::tool::logger::LogLevel::ERROR; \
+            log_level = app::tool::log::LogLevel::ERROR; \
         } else { \
-            log_level = glasses::tool::logger::LogLevel::INFO; \
+            log_level = app::tool::log::LogLevel::INFO; \
         } \
-        glasses::tool::logger::Logger::getInstance().log(log_level, tag, format, ##__VA_ARGS__); \
+        app::tool::log::Logger::getInstance().log(log_level, tag, format, ##__VA_ARGS__); \
     } while(0)
 
 /**
  * @brief 快捷日志宏
  */
 #define LOG_DEBUG(tag, format, ...) \
-    glasses::tool::logger::Logger::getInstance().log( \
-        glasses::tool::logger::LogLevel::DEBUG, tag, format, ##__VA_ARGS__)
+    app::tool::log::Logger::getInstance().log( \
+        app::tool::log::LogLevel::DEBUG, tag, format, ##__VA_ARGS__)
 
 #define LOG_INFO(tag, format, ...) \
-    glasses::tool::logger::Logger::getInstance().log( \
-        glasses::tool::logger::LogLevel::INFO, tag, format, ##__VA_ARGS__)
+    app::tool::log::Logger::getInstance().log( \
+        app::tool::log::LogLevel::INFO, tag, format, ##__VA_ARGS__)
 
 #define LOG_WARN(tag, format, ...) \
-    glasses::tool::logger::Logger::getInstance().log( \
-        glasses::tool::logger::LogLevel::WARN, tag, format, ##__VA_ARGS__)
+    app::tool::log::Logger::getInstance().log( \
+        app::tool::log::LogLevel::WARN, tag, format, ##__VA_ARGS__)
 
 #define LOG_ERROR(tag, format, ...) \
-    glasses::tool::logger::Logger::getInstance().log( \
-        glasses::tool::logger::LogLevel::ERROR, tag, format, ##__VA_ARGS__)
+    app::tool::log::Logger::getInstance().log( \
+        app::tool::log::LogLevel::ERROR, tag, format, ##__VA_ARGS__)
 
-} // namespace logger
+} // namespace log
 } // namespace tool
-} // namespace glasses
+} // namespace app
 
 #endif // LOG_H
 

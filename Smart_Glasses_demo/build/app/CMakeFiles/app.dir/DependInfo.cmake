@@ -20,7 +20,6 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/protocol_handle/handlev2.cc" "app/CMakeFiles/app.dir/chatbot/protocol_handle/handlev2.cc.o" "gcc" "app/CMakeFiles/app.dir/chatbot/protocol_handle/handlev2.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/statemachine/machine.cc" "app/CMakeFiles/app.dir/chatbot/statemachine/machine.cc.o" "gcc" "app/CMakeFiles/app.dir/chatbot/statemachine/machine.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/statemachine/machinev2.cc" "app/CMakeFiles/app.dir/chatbot/statemachine/machinev2.cc.o" "gcc" "app/CMakeFiles/app.dir/chatbot/statemachine/machinev2.cc.o.d"
-  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/uuid/uuid.cc" "app/CMakeFiles/app.dir/chatbot/uuid/uuid.cc.o" "gcc" "app/CMakeFiles/app.dir/chatbot/uuid/uuid.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/wakeword/wakeword.cc" "app/CMakeFiles/app.dir/chatbot/wakeword/wakeword.cc.o" "gcc" "app/CMakeFiles/app.dir/chatbot/wakeword/wakeword.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/wakeword/wakewordv2.cc" "app/CMakeFiles/app.dir/chatbot/wakeword/wakewordv2.cc.o" "gcc" "app/CMakeFiles/app.dir/chatbot/wakeword/wakewordv2.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/media/audio/audio.cc" "app/CMakeFiles/app.dir/media/audio/audio.cc.o" "gcc" "app/CMakeFiles/app.dir/media/audio/audio.cc.o.d"
@@ -42,6 +41,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/tool/mcp_tool/mcp_tool.cc" "app/CMakeFiles/app.dir/tool/mcp_tool/mcp_tool.cc.o" "gcc" "app/CMakeFiles/app.dir/tool/mcp_tool/mcp_tool.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/tool/mcp_tool/mcp_toolv2.cc" "app/CMakeFiles/app.dir/tool/mcp_tool/mcp_toolv2.cc.o" "gcc" "app/CMakeFiles/app.dir/tool/mcp_tool/mcp_toolv2.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/tool/memory/mem_pool.cc" "app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o" "gcc" "app/CMakeFiles/app.dir/tool/memory/mem_pool.cc.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/tool/uuid/uuid.cc" "app/CMakeFiles/app.dir/tool/uuid/uuid.cc.o" "gcc" "app/CMakeFiles/app.dir/tool/uuid/uuid.cc.o.d"
   )
 
 # Targets to which this target links.

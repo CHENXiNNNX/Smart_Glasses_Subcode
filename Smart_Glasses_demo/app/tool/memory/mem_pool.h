@@ -8,7 +8,7 @@
 #include <vector>
 #include <memory>
 
-namespace glasses {
+namespace app {
 namespace tool {
 namespace memory {
 
@@ -144,6 +144,6 @@ private:
 
 } // namespace memory
 } // namespace tool
-} // namespace glasses
+} // namespace app
 
 #endif // MEM_POOL_H

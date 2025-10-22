@@ -12,11 +12,11 @@
 
 using json = nlohmann::json;
 
-namespace glasses {
+namespace app {
 namespace chatbot {
-namespace protocol {
+namespace protocol_handle {
 
-using namespace tool::logger;
+using namespace tool::log;
 
 // ============================================================================
 // 静态哈希表（O(1)查找优化）
@@ -827,11 +827,13 @@ std::string ProtocolHandlerV2::generateHelloMessage(int sample_rate,
     json j;
     j["type"] = "hello";
     j["version"] = pImpl_->config.protocol_version;
-    j["transport"] = "websocket";
-    j["audio_params"]["format"] = pImpl_->config.default_audio_format;
-    j["audio_params"]["sample_rate"] = sample_rate;
-    j["audio_params"]["channels"] = channels;
-    j["audio_params"]["frame_duration"] = frame_duration;
+    j["transport"] = "websocket"; // 传输协议
+    j["features"]["aec"] = pImpl_->config.enable_aec;  // 回声消除
+    j["features"]["mcp"] = pImpl_->config.enable_mcp;  // MCP工具支持
+    j["audio_params"]["format"] = pImpl_->config.default_audio_format; // 音频格式
+    j["audio_params"]["sample_rate"] = sample_rate; // 采样率
+    j["audio_params"]["channels"] = channels; // 通道数
+    j["audio_params"]["frame_duration"] = frame_duration; // 帧时长
     
     return j.dump();
 }
@@ -1040,7 +1042,7 @@ void ProtocolHandlerV2::logStats() const {
 // 静态工具函数实现（已在类内联实现）
 // ========================================================================
 
-} // namespace protocol
+} // namespace protocol_handle
 } // namespace chatbot
-} // namespace glasses
+} // namespace app
 

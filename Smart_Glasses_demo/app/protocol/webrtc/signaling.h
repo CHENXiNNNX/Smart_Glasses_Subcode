@@ -8,8 +8,9 @@
 #include <rtc/rtc.hpp>
 #include <nlohmann/json.hpp>
 
-namespace glasses {
+namespace app {
 namespace protocol {
+namespace webrtc {
 
 // WebSocket连接状态枚举
 enum class ConnectionStatus {
@@ -167,7 +168,8 @@ private:
     ErrorCallback errorCallback_;
 };
 
+} // namespace webrtc
 } // namespace protocol
-} // namespace glasses
+} // namespace app
 
 #endif // SIGNALING_H

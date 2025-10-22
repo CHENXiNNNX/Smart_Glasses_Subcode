@@ -24,9 +24,10 @@
 #include "../../media/media_config.h"
 #include "../../tool/memory/mem_pool.h"
 
-namespace glasses {
+namespace app {
 namespace protocol {
-
+namespace webrtc {
+    
 // 前向声明
 class Signaling;
 
@@ -387,7 +388,8 @@ private:
     void onRembReceived(unsigned int bitrate);
 };
 
+} // namespace webrtc
 } // namespace protocol
-} // namespace glasses
+} // namespace app
 
 #endif // WEBRTC_V2_H

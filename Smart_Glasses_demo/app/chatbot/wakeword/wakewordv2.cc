@@ -15,11 +15,11 @@
      #include "../../../3rdparty/snowboy/include/snowboy-detect-c-wrapper.h"
  }
  
- namespace glasses {
+ namespace app {
  namespace chatbot {
  namespace wakeword {
  
- using namespace tool::logger;
+ using namespace tool::log;
  
  // ============================================================================
  // RAII封装Snowboy检测器
@@ -493,6 +493,6 @@
  
  } // namespace wakeword
  } // namespace chatbot
- } // namespace glasses
+ } // namespace app
  
  

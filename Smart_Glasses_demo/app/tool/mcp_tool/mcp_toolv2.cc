@@ -7,11 +7,12 @@
 #include "../../chatbot/mcp/mcpv2.h"
 #include "../log/log.h"
 
-namespace glasses {
+namespace app {
 namespace tool {
+namespace mcp_tool {
 
 using namespace chatbot::mcp;
-using namespace tool::logger;
+using namespace tool::log;
 
 // ============================================================================
 // 系统工具注册
@@ -265,6 +266,7 @@ int McpToolManagerV2::register_all_tools(McpServerV2& mcp_server) {
     return total;
 }
 
+} // namespace mcp_tool
 } // namespace tool
-} // namespace glasses
+} // namespace app
 

@@ -10,8 +10,9 @@
 
 #include <string>
 
-namespace glasses {
+namespace app {
 namespace tool {
+namespace uuid {
 
 // 默认配置文件路径
 const std::string DEFAULT_CONFIG_FILE = "./system_para.conf";
@@ -102,8 +103,9 @@ std::string readUUIDFromConfig(const std::string& config_file);
  */
 bool writeUUIDToConfig(const std::string& uuid, const std::string& config_file);
 
+} // namespace uuid
 } // namespace tool
-} // namespace glasses
+} // namespace app
 
 #endif // UUID_H
 

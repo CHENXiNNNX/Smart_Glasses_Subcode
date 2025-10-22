@@ -12,8 +12,9 @@
 #include <cstring>
 #include <cctype>
 
-namespace glasses {
+namespace app {
 namespace tool {
+namespace mac {
 
 /**
  * @brief 检查接口名称是否为无线网卡
@@ -218,6 +219,7 @@ std::string formatMacAddress(const std::string& mac) {
     return formatted;
 }
 
+} // namespace mac
 } // namespace tool
-} // namespace glasses
+} // namespace app
 

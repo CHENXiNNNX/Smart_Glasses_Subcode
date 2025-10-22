@@ -3,7 +3,7 @@
 #include <cstring>
 #include <iostream>
 
-namespace glasses {
+namespace app {
 namespace tool {
 namespace memory {
 
@@ -291,4 +291,4 @@ size_t MemoryPool::getHeaderSize() const {
 
 } // namespace memory
 } // namespace tool
-} // namespace glasses
+} // namespace app

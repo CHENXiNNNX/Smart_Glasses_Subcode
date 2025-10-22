@@ -25,7 +25,7 @@
 #include <atomic>
 #include <mutex>
 
-namespace glasses {
+namespace app {
 namespace protocol {
 namespace udp {
 
