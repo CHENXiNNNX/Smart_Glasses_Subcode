@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/app.dir/app.c.o"
-  "CMakeFiles/app.dir/app.c.o.d"
+  "CMakeFiles/app.dir/app.cpp.o"
+  "CMakeFiles/app.dir/app.cpp.o.d"
   "CMakeFiles/app.dir/battery/battery.cc.o"
   "CMakeFiles/app.dir/battery/battery.cc.o.d"
   "CMakeFiles/app.dir/chatbot/activation/activation.cc.o"
@@ -72,6 +72,6 @@ file(REMOVE_RECURSE
 )
 
 # Per-language clean rules from dependency scanning.
-foreach(lang C CXX)
+foreach(lang CXX)
   include(CMakeFiles/app.dir/cmake_clean_${lang}.cmake OPTIONAL)
 endforeach()

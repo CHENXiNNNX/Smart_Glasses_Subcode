@@ -175,29 +175,29 @@ app/fast:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/build
 .PHONY : app/fast
 
-app.o: app.c.o
+app.o: app.cpp.o
 .PHONY : app.o
 
 # target to build an object file
-app.c.o:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/app.c.o
-.PHONY : app.c.o
+app.cpp.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/app.cpp.o
+.PHONY : app.cpp.o
 
-app.i: app.c.i
+app.i: app.cpp.i
 .PHONY : app.i
 
 # target to preprocess a source file
-app.c.i:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/app.c.i
-.PHONY : app.c.i
+app.cpp.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/app.cpp.i
+.PHONY : app.cpp.i
 
-app.s: app.c.s
+app.s: app.cpp.s
 .PHONY : app.s
 
 # target to generate assembly for a file
-app.c.s:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/app.c.s
-.PHONY : app.c.s
+app.cpp.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/app.cpp.s
+.PHONY : app.cpp.s
 
 battery/battery.o: battery/battery.cc.o
 .PHONY : battery/battery.o

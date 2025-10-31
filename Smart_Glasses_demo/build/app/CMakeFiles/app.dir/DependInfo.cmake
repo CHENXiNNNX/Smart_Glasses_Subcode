@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/app.c" "app/CMakeFiles/app.dir/app.c.o" "gcc" "app/CMakeFiles/app.dir/app.c.o.d"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/app.cpp" "app/CMakeFiles/app.dir/app.cpp.o" "gcc" "app/CMakeFiles/app.dir/app.cpp.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/battery/battery.cc" "app/CMakeFiles/app.dir/battery/battery.cc.o" "gcc" "app/CMakeFiles/app.dir/battery/battery.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/activation/activation.cc" "app/CMakeFiles/app.dir/chatbot/activation/activation.cc.o" "gcc" "app/CMakeFiles/app.dir/chatbot/activation/activation.cc.o.d"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/activation/activationv2.cc" "app/CMakeFiles/app.dir/chatbot/activation/activationv2.cc.o" "gcc" "app/CMakeFiles/app.dir/chatbot/activation/activationv2.cc.o.d"
