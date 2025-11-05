@@ -247,30 +247,6 @@ chatbot/activation/activation.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/activation/activation.cc.s
 .PHONY : chatbot/activation/activation.cc.s
 
-chatbot/activation/activationv2.o: chatbot/activation/activationv2.cc.o
-.PHONY : chatbot/activation/activationv2.o
-
-# target to build an object file
-chatbot/activation/activationv2.cc.o:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/activation/activationv2.cc.o
-.PHONY : chatbot/activation/activationv2.cc.o
-
-chatbot/activation/activationv2.i: chatbot/activation/activationv2.cc.i
-.PHONY : chatbot/activation/activationv2.i
-
-# target to preprocess a source file
-chatbot/activation/activationv2.cc.i:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/activation/activationv2.cc.i
-.PHONY : chatbot/activation/activationv2.cc.i
-
-chatbot/activation/activationv2.s: chatbot/activation/activationv2.cc.s
-.PHONY : chatbot/activation/activationv2.s
-
-# target to generate assembly for a file
-chatbot/activation/activationv2.cc.s:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/activation/activationv2.cc.s
-.PHONY : chatbot/activation/activationv2.cc.s
-
 chatbot/chatbot.o: chatbot/chatbot.cc.o
 .PHONY : chatbot/chatbot.o
 
@@ -294,30 +270,6 @@ chatbot/chatbot.s: chatbot/chatbot.cc.s
 chatbot/chatbot.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/chatbot.cc.s
 .PHONY : chatbot/chatbot.cc.s
-
-chatbot/chatbotv2.o: chatbot/chatbotv2.cc.o
-.PHONY : chatbot/chatbotv2.o
-
-# target to build an object file
-chatbot/chatbotv2.cc.o:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/chatbotv2.cc.o
-.PHONY : chatbot/chatbotv2.cc.o
-
-chatbot/chatbotv2.i: chatbot/chatbotv2.cc.i
-.PHONY : chatbot/chatbotv2.i
-
-# target to preprocess a source file
-chatbot/chatbotv2.cc.i:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/chatbotv2.cc.i
-.PHONY : chatbot/chatbotv2.cc.i
-
-chatbot/chatbotv2.s: chatbot/chatbotv2.cc.s
-.PHONY : chatbot/chatbotv2.s
-
-# target to generate assembly for a file
-chatbot/chatbotv2.cc.s:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/chatbotv2.cc.s
-.PHONY : chatbot/chatbotv2.cc.s
 
 chatbot/mcp/mcp.o: chatbot/mcp/mcp.cc.o
 .PHONY : chatbot/mcp/mcp.o
@@ -343,30 +295,6 @@ chatbot/mcp/mcp.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/mcp/mcp.cc.s
 .PHONY : chatbot/mcp/mcp.cc.s
 
-chatbot/mcp/mcpv2.o: chatbot/mcp/mcpv2.cc.o
-.PHONY : chatbot/mcp/mcpv2.o
-
-# target to build an object file
-chatbot/mcp/mcpv2.cc.o:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/mcp/mcpv2.cc.o
-.PHONY : chatbot/mcp/mcpv2.cc.o
-
-chatbot/mcp/mcpv2.i: chatbot/mcp/mcpv2.cc.i
-.PHONY : chatbot/mcp/mcpv2.i
-
-# target to preprocess a source file
-chatbot/mcp/mcpv2.cc.i:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/mcp/mcpv2.cc.i
-.PHONY : chatbot/mcp/mcpv2.cc.i
-
-chatbot/mcp/mcpv2.s: chatbot/mcp/mcpv2.cc.s
-.PHONY : chatbot/mcp/mcpv2.s
-
-# target to generate assembly for a file
-chatbot/mcp/mcpv2.cc.s:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/mcp/mcpv2.cc.s
-.PHONY : chatbot/mcp/mcpv2.cc.s
-
 chatbot/protocol_handle/handle.o: chatbot/protocol_handle/handle.cc.o
 .PHONY : chatbot/protocol_handle/handle.o
 
@@ -390,30 +318,6 @@ chatbot/protocol_handle/handle.s: chatbot/protocol_handle/handle.cc.s
 chatbot/protocol_handle/handle.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.s
 .PHONY : chatbot/protocol_handle/handle.cc.s
-
-chatbot/protocol_handle/handlev2.o: chatbot/protocol_handle/handlev2.cc.o
-.PHONY : chatbot/protocol_handle/handlev2.o
-
-# target to build an object file
-chatbot/protocol_handle/handlev2.cc.o:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/protocol_handle/handlev2.cc.o
-.PHONY : chatbot/protocol_handle/handlev2.cc.o
-
-chatbot/protocol_handle/handlev2.i: chatbot/protocol_handle/handlev2.cc.i
-.PHONY : chatbot/protocol_handle/handlev2.i
-
-# target to preprocess a source file
-chatbot/protocol_handle/handlev2.cc.i:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/protocol_handle/handlev2.cc.i
-.PHONY : chatbot/protocol_handle/handlev2.cc.i
-
-chatbot/protocol_handle/handlev2.s: chatbot/protocol_handle/handlev2.cc.s
-.PHONY : chatbot/protocol_handle/handlev2.s
-
-# target to generate assembly for a file
-chatbot/protocol_handle/handlev2.cc.s:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/protocol_handle/handlev2.cc.s
-.PHONY : chatbot/protocol_handle/handlev2.cc.s
 
 chatbot/statemachine/machine.o: chatbot/statemachine/machine.cc.o
 .PHONY : chatbot/statemachine/machine.o
@@ -439,30 +343,6 @@ chatbot/statemachine/machine.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/statemachine/machine.cc.s
 .PHONY : chatbot/statemachine/machine.cc.s
 
-chatbot/statemachine/machinev2.o: chatbot/statemachine/machinev2.cc.o
-.PHONY : chatbot/statemachine/machinev2.o
-
-# target to build an object file
-chatbot/statemachine/machinev2.cc.o:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/statemachine/machinev2.cc.o
-.PHONY : chatbot/statemachine/machinev2.cc.o
-
-chatbot/statemachine/machinev2.i: chatbot/statemachine/machinev2.cc.i
-.PHONY : chatbot/statemachine/machinev2.i
-
-# target to preprocess a source file
-chatbot/statemachine/machinev2.cc.i:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/statemachine/machinev2.cc.i
-.PHONY : chatbot/statemachine/machinev2.cc.i
-
-chatbot/statemachine/machinev2.s: chatbot/statemachine/machinev2.cc.s
-.PHONY : chatbot/statemachine/machinev2.s
-
-# target to generate assembly for a file
-chatbot/statemachine/machinev2.cc.s:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/statemachine/machinev2.cc.s
-.PHONY : chatbot/statemachine/machinev2.cc.s
-
 chatbot/wakeword/wakeword.o: chatbot/wakeword/wakeword.cc.o
 .PHONY : chatbot/wakeword/wakeword.o
 
@@ -486,30 +366,6 @@ chatbot/wakeword/wakeword.s: chatbot/wakeword/wakeword.cc.s
 chatbot/wakeword/wakeword.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/wakeword/wakeword.cc.s
 .PHONY : chatbot/wakeword/wakeword.cc.s
-
-chatbot/wakeword/wakewordv2.o: chatbot/wakeword/wakewordv2.cc.o
-.PHONY : chatbot/wakeword/wakewordv2.o
-
-# target to build an object file
-chatbot/wakeword/wakewordv2.cc.o:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/wakeword/wakewordv2.cc.o
-.PHONY : chatbot/wakeword/wakewordv2.cc.o
-
-chatbot/wakeword/wakewordv2.i: chatbot/wakeword/wakewordv2.cc.i
-.PHONY : chatbot/wakeword/wakewordv2.i
-
-# target to preprocess a source file
-chatbot/wakeword/wakewordv2.cc.i:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/wakeword/wakewordv2.cc.i
-.PHONY : chatbot/wakeword/wakewordv2.cc.i
-
-chatbot/wakeword/wakewordv2.s: chatbot/wakeword/wakewordv2.cc.s
-.PHONY : chatbot/wakeword/wakewordv2.s
-
-# target to generate assembly for a file
-chatbot/wakeword/wakewordv2.cc.s:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/wakeword/wakewordv2.cc.s
-.PHONY : chatbot/wakeword/wakewordv2.cc.s
 
 media/audio/audio.o: media/audio/audio.cc.o
 .PHONY : media/audio/audio.o
@@ -654,6 +510,102 @@ media/sync.s: media/sync.cc.s
 media/sync.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/media/sync.cc.s
 .PHONY : media/sync.cc.s
+
+network/bluetooth/bluetooth.o: network/bluetooth/bluetooth.cc.o
+.PHONY : network/bluetooth/bluetooth.o
+
+# target to build an object file
+network/bluetooth/bluetooth.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/network/bluetooth/bluetooth.cc.o
+.PHONY : network/bluetooth/bluetooth.cc.o
+
+network/bluetooth/bluetooth.i: network/bluetooth/bluetooth.cc.i
+.PHONY : network/bluetooth/bluetooth.i
+
+# target to preprocess a source file
+network/bluetooth/bluetooth.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/network/bluetooth/bluetooth.cc.i
+.PHONY : network/bluetooth/bluetooth.cc.i
+
+network/bluetooth/bluetooth.s: network/bluetooth/bluetooth.cc.s
+.PHONY : network/bluetooth/bluetooth.s
+
+# target to generate assembly for a file
+network/bluetooth/bluetooth.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/network/bluetooth/bluetooth.cc.s
+.PHONY : network/bluetooth/bluetooth.cc.s
+
+network/lte/lte.o: network/lte/lte.cc.o
+.PHONY : network/lte/lte.o
+
+# target to build an object file
+network/lte/lte.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/network/lte/lte.cc.o
+.PHONY : network/lte/lte.cc.o
+
+network/lte/lte.i: network/lte/lte.cc.i
+.PHONY : network/lte/lte.i
+
+# target to preprocess a source file
+network/lte/lte.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/network/lte/lte.cc.i
+.PHONY : network/lte/lte.cc.i
+
+network/lte/lte.s: network/lte/lte.cc.s
+.PHONY : network/lte/lte.s
+
+# target to generate assembly for a file
+network/lte/lte.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/network/lte/lte.cc.s
+.PHONY : network/lte/lte.cc.s
+
+network/network.o: network/network.cc.o
+.PHONY : network/network.o
+
+# target to build an object file
+network/network.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/network/network.cc.o
+.PHONY : network/network.cc.o
+
+network/network.i: network/network.cc.i
+.PHONY : network/network.i
+
+# target to preprocess a source file
+network/network.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/network/network.cc.i
+.PHONY : network/network.cc.i
+
+network/network.s: network/network.cc.s
+.PHONY : network/network.s
+
+# target to generate assembly for a file
+network/network.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/network/network.cc.s
+.PHONY : network/network.cc.s
+
+network/wifi/wifi.o: network/wifi/wifi.cc.o
+.PHONY : network/wifi/wifi.o
+
+# target to build an object file
+network/wifi/wifi.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/network/wifi/wifi.cc.o
+.PHONY : network/wifi/wifi.cc.o
+
+network/wifi/wifi.i: network/wifi/wifi.cc.i
+.PHONY : network/wifi/wifi.i
+
+# target to preprocess a source file
+network/wifi/wifi.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/network/wifi/wifi.cc.i
+.PHONY : network/wifi/wifi.cc.i
+
+network/wifi/wifi.s: network/wifi/wifi.cc.s
+.PHONY : network/wifi/wifi.s
+
+# target to generate assembly for a file
+network/wifi/wifi.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/network/wifi/wifi.cc.s
+.PHONY : network/wifi/wifi.cc.s
 
 protocol/http/http.o: protocol/http/http.cc.o
 .PHONY : protocol/http/http.o
@@ -919,30 +871,6 @@ tool/mcp_tool/mcp_tool.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/mcp_tool/mcp_tool.cc.s
 .PHONY : tool/mcp_tool/mcp_tool.cc.s
 
-tool/mcp_tool/mcp_toolv2.o: tool/mcp_tool/mcp_toolv2.cc.o
-.PHONY : tool/mcp_tool/mcp_toolv2.o
-
-# target to build an object file
-tool/mcp_tool/mcp_toolv2.cc.o:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/mcp_tool/mcp_toolv2.cc.o
-.PHONY : tool/mcp_tool/mcp_toolv2.cc.o
-
-tool/mcp_tool/mcp_toolv2.i: tool/mcp_tool/mcp_toolv2.cc.i
-.PHONY : tool/mcp_tool/mcp_toolv2.i
-
-# target to preprocess a source file
-tool/mcp_tool/mcp_toolv2.cc.i:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/mcp_tool/mcp_toolv2.cc.i
-.PHONY : tool/mcp_tool/mcp_toolv2.cc.i
-
-tool/mcp_tool/mcp_toolv2.s: tool/mcp_tool/mcp_toolv2.cc.s
-.PHONY : tool/mcp_tool/mcp_toolv2.s
-
-# target to generate assembly for a file
-tool/mcp_tool/mcp_toolv2.cc.s:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/tool/mcp_tool/mcp_toolv2.cc.s
-.PHONY : tool/mcp_tool/mcp_toolv2.cc.s
-
 tool/memory/mem_pool.o: tool/memory/mem_pool.cc.o
 .PHONY : tool/memory/mem_pool.o
 
@@ -1013,39 +941,21 @@ help:
 	@echo "... chatbot/activation/activation.o"
 	@echo "... chatbot/activation/activation.i"
 	@echo "... chatbot/activation/activation.s"
-	@echo "... chatbot/activation/activationv2.o"
-	@echo "... chatbot/activation/activationv2.i"
-	@echo "... chatbot/activation/activationv2.s"
 	@echo "... chatbot/chatbot.o"
 	@echo "... chatbot/chatbot.i"
 	@echo "... chatbot/chatbot.s"
-	@echo "... chatbot/chatbotv2.o"
-	@echo "... chatbot/chatbotv2.i"
-	@echo "... chatbot/chatbotv2.s"
 	@echo "... chatbot/mcp/mcp.o"
 	@echo "... chatbot/mcp/mcp.i"
 	@echo "... chatbot/mcp/mcp.s"
-	@echo "... chatbot/mcp/mcpv2.o"
-	@echo "... chatbot/mcp/mcpv2.i"
-	@echo "... chatbot/mcp/mcpv2.s"
 	@echo "... chatbot/protocol_handle/handle.o"
 	@echo "... chatbot/protocol_handle/handle.i"
 	@echo "... chatbot/protocol_handle/handle.s"
-	@echo "... chatbot/protocol_handle/handlev2.o"
-	@echo "... chatbot/protocol_handle/handlev2.i"
-	@echo "... chatbot/protocol_handle/handlev2.s"
 	@echo "... chatbot/statemachine/machine.o"
 	@echo "... chatbot/statemachine/machine.i"
 	@echo "... chatbot/statemachine/machine.s"
-	@echo "... chatbot/statemachine/machinev2.o"
-	@echo "... chatbot/statemachine/machinev2.i"
-	@echo "... chatbot/statemachine/machinev2.s"
 	@echo "... chatbot/wakeword/wakeword.o"
 	@echo "... chatbot/wakeword/wakeword.i"
 	@echo "... chatbot/wakeword/wakeword.s"
-	@echo "... chatbot/wakeword/wakewordv2.o"
-	@echo "... chatbot/wakeword/wakewordv2.i"
-	@echo "... chatbot/wakeword/wakewordv2.s"
 	@echo "... media/audio/audio.o"
 	@echo "... media/audio/audio.i"
 	@echo "... media/audio/audio.s"
@@ -1064,6 +974,18 @@ help:
 	@echo "... media/sync.o"
 	@echo "... media/sync.i"
 	@echo "... media/sync.s"
+	@echo "... network/bluetooth/bluetooth.o"
+	@echo "... network/bluetooth/bluetooth.i"
+	@echo "... network/bluetooth/bluetooth.s"
+	@echo "... network/lte/lte.o"
+	@echo "... network/lte/lte.i"
+	@echo "... network/lte/lte.s"
+	@echo "... network/network.o"
+	@echo "... network/network.i"
+	@echo "... network/network.s"
+	@echo "... network/wifi/wifi.o"
+	@echo "... network/wifi/wifi.i"
+	@echo "... network/wifi/wifi.s"
 	@echo "... protocol/http/http.o"
 	@echo "... protocol/http/http.i"
 	@echo "... protocol/http/http.s"
@@ -1097,9 +1019,6 @@ help:
 	@echo "... tool/mcp_tool/mcp_tool.o"
 	@echo "... tool/mcp_tool/mcp_tool.i"
 	@echo "... tool/mcp_tool/mcp_tool.s"
-	@echo "... tool/mcp_tool/mcp_toolv2.o"
-	@echo "... tool/mcp_tool/mcp_toolv2.i"
-	@echo "... tool/mcp_tool/mcp_toolv2.s"
 	@echo "... tool/memory/mem_pool.o"
 	@echo "... tool/memory/mem_pool.i"
 	@echo "... tool/memory/mem_pool.s"
