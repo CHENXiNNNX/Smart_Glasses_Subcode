@@ -38,6 +38,7 @@ target_include_directories(app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/chatbot
     ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/activation
     ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/mcp
+    ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/mcp/mcp_tool
     ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/protocol_handle
     ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/statemachine
     ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/uuid
@@ -45,9 +46,12 @@ target_include_directories(app PUBLIC
     # media headers
     ${CMAKE_CURRENT_SOURCE_DIR}/media
     ${CMAKE_CURRENT_SOURCE_DIR}/media/audio
-    ${CMAKE_CURRENT_SOURCE_DIR}/media/audio/test
     ${CMAKE_CURRENT_SOURCE_DIR}/media/camera
-    ${CMAKE_CURRENT_SOURCE_DIR}/media/camera/test
+    # network headers
+    ${CMAKE_CURRENT_SOURCE_DIR}/network
+    ${CMAKE_CURRENT_SOURCE_DIR}/network/bluetooth
+    ${CMAKE_CURRENT_SOURCE_DIR}/network/lte
+    ${CMAKE_CURRENT_SOURCE_DIR}/network/wifi
     # protocol headers
     ${CMAKE_CURRENT_SOURCE_DIR}/protocol
     ${CMAKE_CURRENT_SOURCE_DIR}/protocol/rtsp
@@ -60,17 +64,17 @@ target_include_directories(app PUBLIC
     # libdatachannel headers
     ${PROJECT_SOURCE_DIR}/libdatachannel/include
     ${PROJECT_SOURCE_DIR}/libdatachannel/deps/json/single_include
-    # rkmpi headers
-    ${PROJECT_SOURCE_DIR}/rkmpi/include
-    ${PROJECT_SOURCE_DIR}/rkmpi/include/rknn
-    ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq
-    ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq/uAPI2
-    ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq/common
-    ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq/xcore
-    ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq/algos
-    ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq/iq_parser
-    ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq/iq_parser_v2
-    ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq/smartIr
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/rockit/out/include
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/isp/out/include
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/isp/out/include/rkaiq
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/isp/out/include/rkaiq/uAPI2
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/isp/out/include/rkaiq/common
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/isp/out/include/rkaiq/xcore
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/isp/out/include/rkaiq/algos
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/isp/out/include/rkaiq/iq_parser
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/isp/out/include/rkaiq/iq_parser_v2
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/samples/example/common
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/samples/example/common/isp3.x
 
 )
 

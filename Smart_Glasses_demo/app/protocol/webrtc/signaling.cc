@@ -1,24 +1,39 @@
-#include "signaling.h"
-#include <iostream>
+/**
+ * @file signaling.cc
+ * @brief WebRTC信令客户端实现
+ */
+
+#include "signaling.hpp"
+#include "../../tool/log/log.hpp"
+#include "../../../common/common.hpp"
+
 #include <sstream>
 #include <iomanip>
 
-using namespace app::protocol::webrtc;
+using namespace app::tool::log;
 using json = nlohmann::json;
 
-Signaling::Signaling(const std::string& deviceId, const std::string& serverUrl)
-    : deviceId_(deviceId)
-    , serverUrl_(serverUrl)
-    , status_(ConnectionStatus::DISCONNECTED)
-    , ws_(nullptr) {
+namespace app {
+namespace protocol {
+namespace webrtc {
+
+// ============================================================================
+// Signaling 实现
+// ============================================================================
+
+Signaling::Signaling(const SignalingConfig& config)
+    : config_(config)
+    , status_(SignalingStatus::DISCONNECTED)
+    , roomInfo_() {
     
     // 初始化房间信息
-    roomInfo_.roomId = extractRoomId(deviceId);
+    roomInfo_.roomId = extractRoomId(config_.deviceId);
     roomInfo_.num = 0;
     roomInfo_.roomStatus = "close";
     
-    std::cout << "[Signaling] 初始化信令客户端: " << deviceId_ << std::endl;
-    std::cout << "[Signaling] 房间ID: " << roomInfo_.roomId << std::endl;
+    LOG_INFO("Signaling", "信令客户端初始化: deviceId=%s, serverUrl=%s", 
+             config_.deviceId.c_str(), config_.serverUrl.c_str());
+    LOG_DEBUG("Signaling", "房间ID: %s", roomInfo_.roomId.c_str());
 }
 
 Signaling::~Signaling() {
@@ -26,100 +41,108 @@ Signaling::~Signaling() {
 }
 
 bool Signaling::connect() {
-    if (status_ != ConnectionStatus::DISCONNECTED) {
-        std::cout << "[Signaling] 客户端已连接或正在连接中" << std::endl;
+    SignalingStatus current = status_.load(std::memory_order_acquire);
+    if (current != SignalingStatus::DISCONNECTED) {
+        LOG_WARN("Signaling", "已经在连接或已连接");
         return false;
     }
-
+    
     try {
-        setStatus(ConnectionStatus::CONNECTING);
+        setStatus(SignalingStatus::CONNECTING);
         
-        // 创建WebSocket连接
-        ws_ = std::make_shared<rtc::WebSocket>();
+        // 创建WebSocket客户端配置
+        websocket::WebSocketConfig wsConfig;
+        wsConfig.url = config_.serverUrl;
+        wsConfig.auto_reconnect = config_.auto_reconnect;
+        wsConfig.reconnect_interval_ms = config_.reconnect_interval_ms;
+        wsConfig.max_reconnect_attempts = config_.max_reconnect_attempts;
+        wsConfig.verify_ssl = false;  // 信令服务器通常不需要SSL验证
         
-        // 设置连接成功回调
-        ws_->onOpen([this]() {
-            std::cout << "[Signaling] WebSocket连接成功" << std::endl;
-            setStatus(ConnectionStatus::CONNECTED);
+        // 创建WebSocket客户端
+        ws_client_ = std::make_unique<websocket::WebSocketClient>(wsConfig);
+        
+        // 设置回调
+        ws_client_->setTextCallback([this](const char* data, size_t size) -> bool {
+            handleWebSocketMessage(data, size);
+            return true;
         });
-
-        // 设置消息接收回调
-        ws_->onMessage([this](auto data) {
-            if (std::holds_alternative<std::string>(data)) {
-                std::string message = std::get<std::string>(data);
-                handleMessage(message);
-            }
+        
+        ws_client_->setStateCallback([this](websocket::ConnectionState oldState, 
+                                            websocket::ConnectionState newState) {
+            handleWebSocketState(oldState, newState);
         });
-
-        // 设置连接关闭回调
-        ws_->onClosed([this]() {
-            std::cout << "[Signaling] WebSocket连接已关闭" << std::endl;
-            setStatus(ConnectionStatus::DISCONNECTED);
-            peerDeviceId_.clear();
-            role_.clear();
-            
-            // 重置房间信息
-            roomInfo_.num = 0;
-            roomInfo_.roomStatus = "close";
+        
+        ws_client_->setErrorCallback([this](websocket::WebSocketError error, 
+                                            const std::string& message) {
+            handleWebSocketError(error, message);
         });
-
-        // 设置错误回调
-        ws_->onError([this](std::string error) {
-            std::cout << "[Signaling] WebSocket错误: " << error << std::endl;
-            setStatus(ConnectionStatus::DISCONNECTED);
-            if (errorCallback_) {
-                errorCallback_(ErrorCode::SERVER_ERROR, error);
-            }
-        });
-
+        
         // 连接到服务器
-        ws_->open(serverUrl_);
+        websocket::WebSocketError err = ws_client_->connect();
+        if (err != websocket::WebSocketError::NONE) {
+            LOG_ERROR("Signaling", "WebSocket连接失败");
+            setStatus(SignalingStatus::DISCONNECTED);
+            return false;
+        }
         
         return true;
         
     } catch (const std::exception& e) {
-        std::cout << "[Signaling] WebSocket连接失败: " << e.what() << std::endl;
-        setStatus(ConnectionStatus::DISCONNECTED);
+        LOG_ERROR("Signaling", "连接异常: %s", e.what());
+        setStatus(SignalingStatus::DISCONNECTED);
         return false;
     }
 }
 
 void Signaling::disconnect() {
-    if (ws_ && ws_->readyState() != rtc::WebSocket::State::Closed) {
-        // 发送离开房间消息
-        if (status_ == ConnectionStatus::JOINED || status_ == ConnectionStatus::PAIRED) {
-            leaveRoom();
-        }
-        
-        ws_->close();
+    SignalingStatus current = status_.load(std::memory_order_acquire);
+    if (current == SignalingStatus::DISCONNECTED) {
+        return;
     }
     
-    setStatus(ConnectionStatus::DISCONNECTED);
-    peerDeviceId_.clear();
-    role_.clear();
+    // 如果已加入房间，先离开
+    if (current == SignalingStatus::JOINED || current == SignalingStatus::PAIRED) {
+        leaveRoom();
+    }
     
-    // 重置房间信息
-    roomInfo_.num = 0;
-    roomInfo_.roomStatus = "close";
+    // 断开WebSocket连接
+    if (ws_client_) {
+        ws_client_->disconnect();
+        ws_client_.reset();
+    }
+    
+    setStatus(SignalingStatus::DISCONNECTED);
+    
+    // 清理状态
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        peerDeviceId_.clear();
+        role_.clear();
+        roomInfo_.num = 0;
+        roomInfo_.roomStatus = "close";
+    }
+    
+    LOG_INFO("Signaling", "已断开连接");
 }
 
 bool Signaling::joinRoom() {
-    if (status_ != ConnectionStatus::CONNECTED) {
-        std::cout << "[Signaling] 未连接到服务器，无法加入房间" << std::endl;
+    SignalingStatus current = status_.load(std::memory_order_acquire);
+    if (current != SignalingStatus::CONNECTED) {
+        LOG_WARN("Signaling", "未连接到服务器，无法加入房间");
         return false;
     }
-
+    
     json message = {
         {"type", "join"},
-        {"device_id", deviceId_},
-        {"from", deviceId_},
+        {"device_id", config_.deviceId},
+        {"from", config_.deviceId},
         {"to", "server"},
         {"time", getCurrentTimestamp()}
     };
-
+    
     if (sendMessage(message)) {
-        std::cout << "[Signaling] 发送加入房间消息" << std::endl;
-        setStatus(ConnectionStatus::JOINED);
+        LOG_INFO("Signaling", "发送加入房间消息");
+        setStatus(SignalingStatus::JOINED);
         return true;
     }
     
@@ -127,23 +150,52 @@ bool Signaling::joinRoom() {
 }
 
 bool Signaling::leaveRoom() {
-    if (status_ == ConnectionStatus::DISCONNECTED) {
+    SignalingStatus current = status_.load(std::memory_order_acquire);
+    if (current == SignalingStatus::DISCONNECTED) {
         return false;
     }
-
+    
     json message = {
         {"type", "leave"},
-        {"device_id", deviceId_},
-        {"from", deviceId_},
+        {"device_id", config_.deviceId},
+        {"from", config_.deviceId},
         {"to", "server"},
         {"time", getCurrentTimestamp()}
     };
-
+    
     if (sendMessage(message)) {
-        std::cout << "[Signaling] 发送离开房间消息" << std::endl;
-        setStatus(ConnectionStatus::CONNECTED);
-        peerDeviceId_.clear();
-        role_.clear();
+        LOG_INFO("Signaling", "发送离开房间消息");
+        setStatus(SignalingStatus::CONNECTED);
+        
+        // 清理配对信息
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            peerDeviceId_.clear();
+            role_.clear();
+        }
+        
+        return true;
+    }
+    
+    return false;
+}
+
+bool Signaling::requestRoomInfo() {
+    SignalingStatus current = status_.load(std::memory_order_acquire);
+    if (current == SignalingStatus::DISCONNECTED) {
+        return false;
+    }
+    
+    json message = {
+        {"type", "get_room_info"},
+        {"device_id", config_.deviceId},
+        {"from", config_.deviceId},
+        {"to", "server"},
+        {"time", getCurrentTimestamp()}
+    };
+    
+    if (sendMessage(message)) {
+        LOG_DEBUG("Signaling", "发送房间信息请求");
         return true;
     }
     
@@ -151,22 +203,23 @@ bool Signaling::leaveRoom() {
 }
 
 bool Signaling::sendOffer(const std::string& sdp, const std::string& targetDeviceId) {
-    if (status_ != ConnectionStatus::PAIRED) {
-        std::cout << "[Signaling] 未配对，无法发送Offer" << std::endl;
+    SignalingStatus current = status_.load(std::memory_order_acquire);
+    if (current != SignalingStatus::PAIRED) {
+        LOG_WARN("Signaling", "未配对，无法发送Offer");
         return false;
     }
-
+    
     json message = {
         {"type", "offer"},
-        {"device_id", deviceId_},
-        {"from", deviceId_},
+        {"device_id", config_.deviceId},
+        {"from", config_.deviceId},
         {"to", targetDeviceId},
         {"data", {{"sdp", sdp}}},
         {"time", getCurrentTimestamp()}
     };
-
+    
     if (sendMessage(message)) {
-        std::cout << "[Signaling] 发送SDP Offer" << std::endl;
+        LOG_INFO("Signaling", "发送SDP Offer到: %s", targetDeviceId.c_str());
         return true;
     }
     
@@ -174,22 +227,23 @@ bool Signaling::sendOffer(const std::string& sdp, const std::string& targetDevic
 }
 
 bool Signaling::sendAnswer(const std::string& sdp, const std::string& targetDeviceId) {
-    if (status_ != ConnectionStatus::PAIRED) {
-        std::cout << "[Signaling] 未配对，无法发送Answer" << std::endl;
+    SignalingStatus current = status_.load(std::memory_order_acquire);
+    if (current != SignalingStatus::PAIRED) {
+        LOG_WARN("Signaling", "未配对，无法发送Answer");
         return false;
     }
-
+    
     json message = {
         {"type", "answer"},
-        {"device_id", deviceId_},
-        {"from", deviceId_},
+        {"device_id", config_.deviceId},
+        {"from", config_.deviceId},
         {"to", targetDeviceId},
         {"data", {{"sdp", sdp}}},
         {"time", getCurrentTimestamp()}
     };
-
+    
     if (sendMessage(message)) {
-        std::cout << "[Signaling] 发送SDP Answer" << std::endl;
+        LOG_INFO("Signaling", "发送SDP Answer到: %s", targetDeviceId.c_str());
         return true;
     }
     
@@ -197,26 +251,69 @@ bool Signaling::sendAnswer(const std::string& sdp, const std::string& targetDevi
 }
 
 bool Signaling::sendIceCandidate(const std::string& candidate, const std::string& targetDeviceId) {
-    if (status_ != ConnectionStatus::PAIRED) {
-        std::cout << "[Signaling] 未配对，无法发送ICE候选" << std::endl;
+    SignalingStatus current = status_.load(std::memory_order_acquire);
+    if (current != SignalingStatus::PAIRED) {
+        LOG_WARN("Signaling", "未配对，无法发送ICE候选");
         return false;
     }
-
+    
     json message = {
         {"type", "ice"},
-        {"device_id", deviceId_},
-        {"from", deviceId_},
+        {"device_id", config_.deviceId},
+        {"from", config_.deviceId},
         {"to", targetDeviceId},
         {"data", {{"candidate", candidate}}},
         {"time", getCurrentTimestamp()}
     };
-
+    
     if (sendMessage(message)) {
-        std::cout << "[Signaling] 发送ICE候选" << std::endl;
+        LOG_DEBUG("Signaling", "发送ICE候选到: %s", targetDeviceId.c_str());
         return true;
     }
     
     return false;
+}
+
+void Signaling::handleWebSocketMessage(const char* data, size_t size) {
+    try {
+        std::string message(data, size);
+        handleMessage(message);
+    } catch (const std::exception& e) {
+        LOG_ERROR("Signaling", "处理WebSocket消息异常: %s", e.what());
+    }
+}
+
+void Signaling::handleWebSocketState(websocket::ConnectionState /*oldState*/, 
+                                     websocket::ConnectionState newState) {
+    if (newState == websocket::ConnectionState::CONNECTED) {
+        setStatus(SignalingStatus::CONNECTED);
+    } else if (newState == websocket::ConnectionState::DISCONNECTED ||
+               newState == websocket::ConnectionState::CLOSED ||
+               newState == websocket::ConnectionState::ERROR) {
+        setStatus(SignalingStatus::DISCONNECTED);
+    }
+}
+
+void Signaling::handleWebSocketError(websocket::WebSocketError error, 
+                                     const std::string& message) {
+    SignalingError sigError = SignalingError::CONNECTION_FAILED;
+    
+    switch (error) {
+        case websocket::WebSocketError::CONNECTION_FAILED:
+            sigError = SignalingError::CONNECTION_FAILED;
+            break;
+        case websocket::WebSocketError::SEND_FAILED:
+            sigError = SignalingError::SEND_FAILED;
+            break;
+        case websocket::WebSocketError::TIMEOUT:
+            sigError = SignalingError::CONNECTION_TIMEOUT;
+            break;
+        default:
+            sigError = SignalingError::SERVER_ERROR;
+            break;
+    }
+    
+    invokeErrorCallback(sigError, message);
 }
 
 void Signaling::handleMessage(const std::string& message) {
@@ -225,13 +322,14 @@ void Signaling::handleMessage(const std::string& message) {
         
         // 验证消息基本字段
         if (!msg.contains("type") || !msg.contains("from") || !msg.contains("to")) {
-            std::cout << "[Signaling] 收到格式错误的消息" << std::endl;
+            LOG_WARN("Signaling", "收到格式错误的消息");
             return;
         }
-
-        std::string type = msg["type"];
-        std::cout << "[Signaling] 收到消息: " << type << " from " << msg["from"].get<std::string>() << std::endl;
-
+        
+        std::string type = msg["type"].get<std::string>();
+        LOG_DEBUG("Signaling", "收到消息: type=%s, from=%s", 
+                 type.c_str(), msg["from"].get<std::string>().c_str());
+        
         // 根据消息类型分发处理
         if (type == "role") {
             handleRoleMessage(msg);
@@ -246,144 +344,186 @@ void Signaling::handleMessage(const std::string& message) {
         } else if (type == "error") {
             handleErrorMessage(msg);
         } else {
-            std::cout << "[Signaling] 收到未知消息类型: " << type << std::endl;
+            LOG_WARN("Signaling", "收到未知消息类型: %s", type.c_str());
         }
         
+    } catch (const json::parse_error& e) {
+        LOG_ERROR("Signaling", "JSON解析失败: %s", e.what());
+        LOG_DEBUG("Signaling", "原始消息: %s", message.c_str());
     } catch (const std::exception& e) {
-        std::cout << "[Signaling] 解析消息失败: " << e.what() << std::endl;
-        std::cout << "[Signaling] 原始消息: " << message << std::endl;
+        LOG_ERROR("Signaling", "处理消息异常: %s", e.what());
     }
 }
 
 void Signaling::handleRoleMessage(const json& msg) {
     if (!msg.contains("data")) {
-        std::cout << "[Signaling] 角色消息缺少data字段" << std::endl;
+        LOG_WARN("Signaling", "角色消息缺少data字段");
         return;
     }
-
+    
     auto data = msg["data"];
+    
+    std::string peerId;
+    std::string role;
+    
     if (data.contains("peer_device_id")) {
-        peerDeviceId_ = data["peer_device_id"].get<std::string>();
+        peerId = data["peer_device_id"].get<std::string>();
     }
     
     if (data.contains("role")) {
-        role_ = data["role"].get<std::string>();
+        role = data["role"].get<std::string>();
     }
-
-    setStatus(ConnectionStatus::PAIRED);
     
-    std::cout << "[Signaling] 配对成功 - 对端设备: " << peerDeviceId_ 
-              << ", 角色: " << role_ << std::endl;
-
-    // 通知WebRTC管理器可以开始工作
-    if (webrtcReadyCallback_) {
-        webrtcReadyCallback_(role_, peerDeviceId_);
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        peerDeviceId_ = peerId;
+        role_ = role;
     }
+    
+    setStatus(SignalingStatus::PAIRED);
+    
+    LOG_INFO("Signaling", "配对成功 - 对端设备: %s, 角色: %s", 
+             peerId.c_str(), role.c_str());
+    
+    // 通知WebRTC管理器可以开始工作
+    invokeWebRTCReadyCallback(role, peerId);
 }
 
 void Signaling::handleOfferMessage(const json& msg) {
-    std::cout << "[Signaling] 收到SDP Offer，转发给WebRTC管理器" << std::endl;
+    LOG_INFO("Signaling", "收到SDP Offer，转发给WebRTC管理器");
     
+    std::lock_guard<std::mutex> lock(callback_mutex_);
     if (offerCallback_) {
-        offerCallback_(msg);
+        try {
+            offerCallback_(msg);
+        } catch (const std::exception& e) {
+            LOG_ERROR("Signaling", "Offer回调异常: %s", e.what());
+        }
     }
 }
 
 void Signaling::handleAnswerMessage(const json& msg) {
-    std::cout << "[Signaling] 收到SDP Answer，转发给WebRTC管理器" << std::endl;
+    LOG_INFO("Signaling", "收到SDP Answer，转发给WebRTC管理器");
     
+    std::lock_guard<std::mutex> lock(callback_mutex_);
     if (answerCallback_) {
-        answerCallback_(msg);
+        try {
+            answerCallback_(msg);
+        } catch (const std::exception& e) {
+            LOG_ERROR("Signaling", "Answer回调异常: %s", e.what());
+        }
     }
 }
 
 void Signaling::handleIceMessage(const json& msg) {
-    std::cout << "[Signaling] 收到ICE候选，转发给WebRTC管理器" << std::endl;
+    LOG_DEBUG("Signaling", "收到ICE候选，转发给WebRTC管理器");
     
+    std::lock_guard<std::mutex> lock(callback_mutex_);
     if (iceCandidateCallback_) {
-        iceCandidateCallback_(msg);
+        try {
+            iceCandidateCallback_(msg);
+        } catch (const std::exception& e) {
+            LOG_ERROR("Signaling", "ICE回调异常: %s", e.what());
+        }
     }
 }
 
 void Signaling::handleInfoMessage(const json& msg) {
     if (!msg.contains("data")) {
-        std::cout << "[Signaling] 房间信息消息缺少data字段" << std::endl;
+        LOG_WARN("Signaling", "房间信息消息缺少data字段");
         return;
     }
-
-    auto data = msg["data"];
     
-    // 更新房间信息
+    auto data = msg["data"];
+    RoomInfo info;
+    
     if (data.contains("room_id")) {
-        roomInfo_.roomId = data["room_id"].get<std::string>();
+        info.roomId = data["room_id"].get<std::string>();
     }
     
     if (data.contains("num")) {
-        roomInfo_.num = data["num"].get<int>();
+        info.num = data["num"].get<int>();
     }
     
     if (data.contains("room_status")) {
-        roomInfo_.roomStatus = data["room_status"].get<std::string>();
+        info.roomStatus = data["room_status"].get<std::string>();
     }
-
-    std::cout << "[Signaling] 房间信息更新 - 房间ID: " << roomInfo_.roomId 
-              << ", 人数: " << roomInfo_.num 
-              << ", 状态: " << roomInfo_.roomStatus << std::endl;
-
+    
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        roomInfo_ = info;
+    }
+    
+    LOG_INFO("Signaling", "房间信息更新 - 房间ID: %s, 人数: %d, 状态: %s", 
+             info.roomId.c_str(), info.num, info.roomStatus.c_str());
+    
     // 根据房间信息更新连接状态
-    if (roomInfo_.roomStatus == "open" && roomInfo_.num == 2) {
+    if (info.roomStatus == "open" && info.num == 2) {
         // 房间已配对，但如果当前状态还不是PAIRED，说明还在等待角色分配
-        if (status_ == ConnectionStatus::JOINED) {
-            std::cout << "[Signaling] 房间已配对，等待角色分配..." << std::endl;
+        SignalingStatus current = status_.load(std::memory_order_acquire);
+        if (current == SignalingStatus::JOINED) {
+            LOG_DEBUG("Signaling", "房间已配对，等待角色分配...");
         }
-    } else if (roomInfo_.roomStatus == "close") {
+    } else if (info.roomStatus == "close") {
         // 房间关闭或只有一个人
-        if (status_ == ConnectionStatus::PAIRED) {
-            std::cout << "[Signaling] 房间状态变为关闭，重置为已加入状态" << std::endl;
-            setStatus(ConnectionStatus::JOINED);
-            peerDeviceId_.clear();
-            role_.clear();
+        SignalingStatus current = status_.load(std::memory_order_acquire);
+        if (current == SignalingStatus::PAIRED) {
+            LOG_INFO("Signaling", "房间状态变为关闭，重置为已加入状态");
+            setStatus(SignalingStatus::JOINED);
+            
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                peerDeviceId_.clear();
+                role_.clear();
+            }
         }
     }
-
+    
     // 触发房间信息变动回调
-    if (roomInfoCallback_) {
-        roomInfoCallback_(roomInfo_);
-    }
+    invokeRoomInfoCallback(info);
 }
 
 void Signaling::handleErrorMessage(const json& msg) {
     if (!msg.contains("data")) {
-        std::cout << "[Signaling] 错误消息缺少data字段" << std::endl;
+        LOG_WARN("Signaling", "错误消息缺少data字段");
         return;
     }
-
+    
     auto data = msg["data"];
     int errorCode = data.value("error_code", 1007);
     std::string errorMessage = data.value("error_message", "未知错误");
-
-    std::cout << "[Signaling] 服务器错误 [" << errorCode << "]: " << errorMessage << std::endl;
-
-    if (errorCallback_) {
-        errorCallback_(static_cast<ErrorCode>(errorCode), errorMessage);
-    }
-
+    
+    LOG_ERROR("Signaling", "服务器错误 [%d]: %s", errorCode, errorMessage.c_str());
+    
+    SignalingError error = static_cast<SignalingError>(errorCode);
+    invokeErrorCallback(error, errorMessage);
+    
     // 根据错误类型调整状态
     switch (errorCode) {
         case 1001: // 房间已满
         case 1002: // 房间不存在
         case 1005: // 连接超时
-            if (status_ == ConnectionStatus::JOINED || status_ == ConnectionStatus::PAIRED) {
-                setStatus(ConnectionStatus::CONNECTED);
-                peerDeviceId_.clear();
-                role_.clear();
+            {
+                SignalingStatus current = status_.load(std::memory_order_acquire);
+                if (current == SignalingStatus::JOINED || current == SignalingStatus::PAIRED) {
+                    setStatus(SignalingStatus::CONNECTED);
+                    
+                    std::lock_guard<std::mutex> lock(mutex_);
+                    peerDeviceId_.clear();
+                    role_.clear();
+                }
             }
             break;
         case 1006: // 对端已离线
-            if (status_ == ConnectionStatus::PAIRED) {
-                setStatus(ConnectionStatus::JOINED);
-                peerDeviceId_.clear();
-                role_.clear();
+            {
+                SignalingStatus current = status_.load(std::memory_order_acquire);
+                if (current == SignalingStatus::PAIRED) {
+                    setStatus(SignalingStatus::JOINED);
+                    
+                    std::lock_guard<std::mutex> lock(mutex_);
+                    peerDeviceId_.clear();
+                    role_.clear();
+                }
             }
             break;
         default:
@@ -391,41 +531,42 @@ void Signaling::handleErrorMessage(const json& msg) {
     }
 }
 
-bool Signaling::sendMessage(const json& message) {
-    if (!ws_ || ws_->readyState() != rtc::WebSocket::State::Open) {
-        std::cout << "[Signaling] WebSocket未连接，无法发送消息" << std::endl;
+bool Signaling::sendMessage(const nlohmann::json& message) {
+    if (!ws_client_ || !ws_client_->isConnected()) {
+        LOG_WARN("Signaling", "WebSocket未连接，无法发送消息");
         return false;
     }
-
+    
     try {
         std::string messageStr = message.dump();
-        ws_->send(messageStr);
+        websocket::WebSocketError err = ws_client_->sendText(messageStr);
+        
+        if (err != websocket::WebSocketError::NONE) {
+            LOG_ERROR("Signaling", "发送消息失败");
+            return false;
+        }
+        
         return true;
     } catch (const std::exception& e) {
-        std::cout << "[Signaling] 发送消息失败: " << e.what() << std::endl;
+        LOG_ERROR("Signaling", "发送消息异常: %s", e.what());
         return false;
     }
 }
 
-void Signaling::setStatus(ConnectionStatus newStatus) {
-    if (status_ != newStatus) {
-        ConnectionStatus oldStatus = status_;
-        status_ = newStatus;
+void Signaling::setStatus(SignalingStatus newStatus) {
+    SignalingStatus oldStatus = status_.exchange(newStatus, std::memory_order_acq_rel);
+    
+    if (oldStatus != newStatus) {
+        LOG_INFO("Signaling", "状态变更: %s → %s",
+                statusToString(oldStatus).c_str(),
+                statusToString(newStatus).c_str());
         
-        std::cout << "[Signaling] 状态变更: " << static_cast<int>(oldStatus) 
-                  << " -> " << static_cast<int>(newStatus) << std::endl;
-
-        if (statusCallback_) {
-            statusCallback_(newStatus);
-        }
+        invokeStatusCallback(newStatus);
     }
 }
 
 uint64_t Signaling::getCurrentTimestamp() const {
-    auto now = std::chrono::system_clock::now();
-    auto duration = now.time_since_epoch();
-    auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(duration);
-    return microseconds.count();
+    return get_nowus();
 }
 
 std::string Signaling::extractRoomId(const std::string& deviceId) const {
@@ -438,3 +579,79 @@ std::string Signaling::extractRoomId(const std::string& deviceId) const {
     }
     return deviceId; // 如果格式不正确，返回原始ID
 }
+
+void Signaling::invokeStatusCallback(SignalingStatus status) {
+    std::lock_guard<std::mutex> lock(callback_mutex_);
+    if (statusCallback_) {
+        try {
+            statusCallback_(status);
+        } catch (const std::exception& e) {
+            LOG_ERROR("Signaling", "状态回调异常: %s", e.what());
+        }
+    }
+}
+
+void Signaling::invokeErrorCallback(SignalingError error, const std::string& message) {
+    std::lock_guard<std::mutex> lock(callback_mutex_);
+    if (errorCallback_) {
+        try {
+            errorCallback_(error, message);
+        } catch (const std::exception& e) {
+            LOG_ERROR("Signaling", "错误回调异常: %s", e.what());
+        }
+    }
+}
+
+void Signaling::invokeWebRTCReadyCallback(const std::string& role, const std::string& peerDeviceId) {
+    std::lock_guard<std::mutex> lock(callback_mutex_);
+    if (webrtcReadyCallback_) {
+        try {
+            webrtcReadyCallback_(role, peerDeviceId);
+        } catch (const std::exception& e) {
+            LOG_ERROR("Signaling", "WebRTC就绪回调异常: %s", e.what());
+        }
+    }
+}
+
+void Signaling::invokeRoomInfoCallback(const RoomInfo& info) {
+    std::lock_guard<std::mutex> lock(callback_mutex_);
+    if (roomInfoCallback_) {
+        try {
+            roomInfoCallback_(info);
+        } catch (const std::exception& e) {
+            LOG_ERROR("Signaling", "房间信息回调异常: %s", e.what());
+        }
+    }
+}
+
+std::string Signaling::statusToString(SignalingStatus status) {
+    switch (status) {
+        case SignalingStatus::DISCONNECTED: return "DISCONNECTED";
+        case SignalingStatus::CONNECTING:   return "CONNECTING";
+        case SignalingStatus::CONNECTED:    return "CONNECTED";
+        case SignalingStatus::JOINED:       return "JOINED";
+        case SignalingStatus::PAIRED:       return "PAIRED";
+        default:                            return "UNKNOWN";
+    }
+}
+
+std::string Signaling::errorToString(SignalingError error) {
+    switch (error) {
+        case SignalingError::NONE:                  return "NONE";
+        case SignalingError::ROOM_FULL:             return "ROOM_FULL";
+        case SignalingError::ROOM_NOT_EXISTS:       return "ROOM_NOT_EXISTS";
+        case SignalingError::MESSAGE_FORMAT_ERROR:  return "MESSAGE_FORMAT_ERROR";
+        case SignalingError::DEVICE_ID_ERROR:       return "DEVICE_ID_ERROR";
+        case SignalingError::CONNECTION_TIMEOUT:    return "CONNECTION_TIMEOUT";
+        case SignalingError::PEER_OFFLINE:          return "PEER_OFFLINE";
+        case SignalingError::SERVER_ERROR:          return "SERVER_ERROR";
+        case SignalingError::CONNECTION_FAILED:     return "CONNECTION_FAILED";
+        case SignalingError::SEND_FAILED:           return "SEND_FAILED";
+        default:                                    return "UNKNOWN";
+    }
+}
+
+} // namespace webrtc
+} // namespace protocol
+} // namespace app
+

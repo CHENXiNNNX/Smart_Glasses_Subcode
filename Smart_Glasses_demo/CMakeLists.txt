@@ -5,12 +5,34 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/toolchain.cmake" CACHE FILEPATH "Default toolchain file for ARM builds")
     message(STATUS "Using ARM toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
 endif()
-# 设置交叉编译环境下 pkg-config 使用的路径
-set(ENV{PKG_CONFIG_PATH} "${CMAKE_SYSROOT}/usr/lib/pkgconfig")
+
 message(STATUS "Building for ARM architecture - Smart Glasses")
 
 # 工程名称
 project(SmartGlasses)
+
+# 设置交叉编译链的pkg-config路径和环境变量
+set(SDK_PATH "/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk")
+set(CROSS_PKG_CONFIG "${SDK_PATH}/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/bin/pkg-config")
+
+# 检查交叉编译链的pkg-config是否存在
+if(EXISTS ${CROSS_PKG_CONFIG})
+    set(PKG_CONFIG_EXECUTABLE ${CROSS_PKG_CONFIG} CACHE FILEPATH "Path to cross-compilation pkg-config")
+    message(STATUS "Using cross-compilation pkg-config: ${CROSS_PKG_CONFIG}")
+else()
+    message(WARNING "Cross-compilation pkg-config not found at ${CROSS_PKG_CONFIG}, using system pkg-config")
+endif()
+
+# 设置pkg-config环境变量
+if(CMAKE_SYSROOT)
+    set(ENV{PKG_CONFIG_PATH} "${CMAKE_SYSROOT}/usr/lib/pkgconfig")
+    set(ENV{PKG_CONFIG_SYSROOT_DIR} "${CMAKE_SYSROOT}")
+    set(ENV{PKG_CONFIG_LIBDIR} "${CMAKE_SYSROOT}/usr/lib/pkgconfig")
+    message(STATUS "PKG_CONFIG_PATH set to: ${CMAKE_SYSROOT}/usr/lib/pkgconfig")
+    message(STATUS "PKG_CONFIG_SYSROOT_DIR set to: ${CMAKE_SYSROOT}")
+else()
+    message(WARNING "CMAKE_SYSROOT is not set! PKG_CONFIG_PATH may not work correctly.")
+endif()
 
 # Options
 option(BUILD_SHARED_LIBS "Build shared library" OFF) # 默认构建静态库
@@ -150,41 +172,78 @@ target_link_libraries(main ${LIBTURBOJPEG})
 target_include_directories(main PRIVATE ${LIBRKNNRT_INCLUDES})
 target_link_libraries(main ${LIBRKNNRT})
 
-# rga配置
-target_include_directories(main PRIVATE ${LIBRGA_INCLUDES})
-target_link_libraries(main ${LIBRGA})
+# 设置SDK中的rkmpi和rkaiq路径
+set(SDK_MEDIA_PATH ${SDK_PATH}/media)
+set(ROCKIT_ROOT ${SDK_MEDIA_PATH}/rockit/out)
+set(RKAIQ_ROOT ${SDK_MEDIA_PATH}/isp/out)
+set(RGA_ROOT ${SDK_MEDIA_PATH}/rga/release_rga_rv1106_arm-rockchip830-linux-uclibcgnueabihf)
+set(MPP_ROOT ${SDK_MEDIA_PATH}/mpp/release_mpp_rv1106_arm-rockchip830-linux-uclibcgnueabihf)
+set(IVA_ROOT ${SDK_MEDIA_PATH}/iva/out)
+set(SAMPLES_ROOT ${SDK_MEDIA_PATH}/samples/example/common)
+set(SAMPLE_COMM_LIB ${SAMPLES_ROOT}/lib)
 
-# 设置rkmpi路径
-set(RKMPI_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/rkmpi)
-set(RKMPI_INC  ${RKMPI_ROOT}/include)
-set(RKMPI_LIB  ${RKMPI_ROOT}/lib)
+# Rockit 库
+set(ROCKIT_INC ${ROCKIT_ROOT}/include)
+set(ROCKIT_LIB ${ROCKIT_ROOT}/lib)
 
-target_link_directories(main PRIVATE ${RKMPI_LIB})
+# RKAIQ 库
+set(RKAIQ_INC ${RKAIQ_ROOT}/include)
+set(RKAIQ_LIB ${RKAIQ_ROOT}/lib)
+
+# RGA 库
+set(RGA_INC ${RGA_ROOT}/include)
+set(RGA_LIB ${RGA_ROOT}/lib)
+
+# MPP 库
+set(MPP_INC ${MPP_ROOT}/include)
+set(MPP_LIB ${MPP_ROOT}/lib)
+
+# IVA 库
+set(IVA_INC ${IVA_ROOT}/include)
+set(IVA_LIB ${IVA_ROOT}/lib)
+
+target_link_directories(main PRIVATE 
+    ${ROCKIT_LIB}
+    ${RKAIQ_LIB}
+    ${RGA_LIB}              # RGA库（rockit库依赖）
+    ${MPP_LIB}              # MPP库
+    ${IVA_LIB}              # IVA库
+    ${SAMPLE_COMM_LIB}      # Sample comm库
+)
 
 set(CMAKE_EXE_LINKER_FLAGS
-    "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath-link,${RKMPI_LIB}:${CMAKE_SYSROOT}/usr/lib"
+    "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath-link,${ROCKIT_LIB}:${RKAIQ_LIB}:${RGA_LIB}:${MPP_LIB}:${IVA_LIB}:${SAMPLE_COMM_LIB}:${CMAKE_SYSROOT}/usr/lib"
 )
 
 target_include_directories(main PRIVATE
-    ${RKMPI_INC}
-    ${RKMPI_INC}/rknn
-    ${RKMPI_INC}/rkaiq
-    ${RKMPI_INC}/rkaiq/uAPI2
-    ${RKMPI_INC}/rkaiq/common
-    ${RKMPI_INC}/rkaiq/xcore
-    ${RKMPI_INC}/rkaiq/algos
-    ${RKMPI_INC}/rkaiq/iq_parser
-    ${RKMPI_INC}/rkaiq/iq_parser_v2
-    ${RKMPI_INC}/rkaiq/smartIr
+    # Rockit MPI 头文件
+    ${ROCKIT_INC}
+    # RKAIQ 头文件
+    ${RKAIQ_INC}
+    ${RKAIQ_INC}/rkaiq/uAPI2
+    ${RKAIQ_INC}/rkaiq/common
+    ${RKAIQ_INC}/rkaiq/xcore
+    ${RKAIQ_INC}/rkaiq/algos
+    ${RKAIQ_INC}/rkaiq/iq_parser
+    ${RKAIQ_INC}/rkaiq/iq_parser_v2
+    # RGA 头文件
+    ${RGA_INC}
+    # MPP 头文件
+    ${MPP_INC}
+    # IVA 头文件
+    ${IVA_INC}
+    # Sample comm 头文件
+    ${SAMPLES_ROOT}
+    ${SAMPLES_ROOT}/isp3.x      # Sample comm ISP 3.x 头文件
 )
 
 target_link_libraries(main
-    rockiva
-    sample_comm
-    rockit_full
-    rockchip_mpp
-    rkaiq
-    rtsp
+    rockit_full          
+    rkaiq                 
+    rga                   
+    rockchip_mpp         
+    rockiva               
+    sample_comm          
     pthread
     dl
     m

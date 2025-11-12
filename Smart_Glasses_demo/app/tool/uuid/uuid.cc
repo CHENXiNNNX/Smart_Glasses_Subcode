@@ -4,7 +4,7 @@
  * @details 支持UUID持久化存储，确保UUID不重复生成
  */
 
-#include "uuid.h"
+#include "uuid.hpp"
 #include <random>
 #include <sstream>
 #include <iomanip>

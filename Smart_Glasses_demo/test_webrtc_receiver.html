@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC 音频接收测试页面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .config-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .config-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover:not(:disabled) {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .status-section {
+            margin-top: 20px;
+        }
+        
+        .status-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .status-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .status-value {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .status-connected {
+            color: #27ae60;
+        }
+        
+        .status-disconnected {
+            color: #e74c3c;
+        }
+        
+        .status-connecting {
+            color: #f39c12;
+        }
+        
+        .log-section {
+            margin-top: 20px;
+        }
+        
+        .log-container {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        
+        .log-info {
+            color: #4ec9b0;
+        }
+        
+        .log-success {
+            color: #4ec9b0;
+        }
+        
+        .log-error {
+            color: #f48771;
+        }
+        
+        .log-warn {
+            color: #dcdcaa;
+        }
+        
+        .log-debug {
+            color: #9cdcfe;
+        }
+        
+        .audio-visualizer {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .audio-visualizer h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .audio-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #e74c3c;
+            margin-right: 10px;
+            animation: pulse 2s infinite;
+        }
+        
+        .audio-indicator.active {
+            background: #27ae60;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎧 WebRTC 音频接收测试页面</h1>
+            <p>用于测试从眼镜设备接收音频流</p>
+        </div>
+        
+        <div class="content">
+            <!-- 配置区域 -->
+            <div class="config-section">
+                <h2>⚙️ 连接配置</h2>
+                <div class="form-group">
+                    <label>信令服务器地址:</label>
+                    <input type="text" id="serverUrl" value="ws://192.168.50.184:8000" placeholder="ws://ip:port">
+                </div>
+                <div class="form-group">
+                    <label>设备ID (App端):</label>
+                    <input type="text" id="deviceId" value="app_123456" placeholder="app_123456">
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" id="connectBtn" onclick="connectSignaling()">连接信令服务器</button>
+                    <button class="btn-success" id="joinBtn" onclick="joinRoom()" disabled>加入房间</button>
+                    <button class="btn-danger" id="disconnectBtn" onclick="disconnect()" disabled>断开连接</button>
+                </div>
+            </div>
+            
+            <!-- 状态显示区域 -->
+            <div class="status-section">
+                <div class="status-card">
+                    <h3>📊 连接状态</h3>
+                    <div class="status-item">
+                        <span class="status-label">信令状态:</span>
+                        <span class="status-value" id="signalingStatus">未连接</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">WebRTC状态:</span>
+                        <span class="status-value" id="webrtcStatus">未初始化</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">ICE连接状态:</span>
+                        <span class="status-value" id="iceStatus">未连接</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">房间信息:</span>
+                        <span class="status-value" id="roomInfo">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">对端设备ID:</span>
+                        <span class="status-value" id="peerDeviceId">-</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 音频可视化区域 -->
+            <div class="audio-visualizer">
+                <h3>🔊 音频接收状态</h3>
+                <div>
+                    <span class="audio-indicator" id="audioIndicator"></span>
+                    <span id="audioStatus">等待音频流...</span>
+                </div>
+            </div>
+            
+            <!-- 日志区域 -->
+            <div class="log-section">
+                <h2>📝 日志输出</h2>
+                <div class="log-container" id="logContainer"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 全局变量
+        let ws = null;
+        let peerConnection = null;
+        let localAudioStream = null;
+        let remoteAudio = null;
+        let deviceId = 'app_123456';
+        let peerDeviceId = null;
+        let roomId = null;
+        let isAnswerer = false;
+        let pendingIceCandidates = [];  // 缓存待处理的ICE候选
+        let remoteDescriptionSet = false;  // 标记是否已设置远程描述
+        let audioMid = '0';  // 音频轨道的 mid，默认是 '0'
+        let audioMLineIndex = 0;  // 音频轨道的 m-line 索引
+        
+        // STUN服务器配置
+        const rtcConfig = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' }
+            ]
+        };
+        
+        // 日志函数
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        // 更新状态显示
+        function updateStatus(elementId, value, className = '') {
+            const element = document.getElementById(elementId);
+            element.textContent = value;
+            if (className) {
+                element.className = `status-value ${className}`;
+            }
+        }
+        
+        // 获取当前时间戳（微秒）
+        function getCurrentTimestamp() {
+            return Math.floor(Date.now() * 1000);
+        }
+        
+        // 发送WebSocket消息
+        function sendMessage(message) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                message.time = getCurrentTimestamp();
+                const messageStr = JSON.stringify(message);
+                log(`发送消息: ${message.type}`, 'debug');
+                ws.send(messageStr);
+                return true;
+            } else {
+                log('WebSocket未连接，无法发送消息', 'error');
+                return false;
+            }
+        }
+        
+        // 连接信令服务器
+        function connectSignaling() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            deviceId = document.getElementById('deviceId').value;
+            
+            if (!serverUrl || !deviceId) {
+                log('请填写服务器地址和设备ID', 'error');
+                return;
+            }
+            
+            // 提取房间ID（下划线后的部分）
+            const parts = deviceId.split('_');
+            if (parts.length < 2) {
+                log('设备ID格式错误，应为 app_xxx 格式', 'error');
+                return;
+            }
+            roomId = parts[parts.length - 1];
+            
+            log(`正在连接信令服务器: ${serverUrl}`, 'info');
+            updateStatus('signalingStatus', '连接中...', 'status-connecting');
+            
+            ws = new WebSocket(serverUrl);
+            
+            ws.onopen = () => {
+                log('WebSocket连接成功', 'success');
+                updateStatus('signalingStatus', '已连接', 'status-connected');
+                document.getElementById('connectBtn').disabled = true;
+                document.getElementById('joinBtn').disabled = false;
+                document.getElementById('disconnectBtn').disabled = false;
+            };
+            
+            ws.onmessage = (event) => {
+                try {
+                    const message = JSON.parse(event.data);
+                    handleSignalingMessage(message);
+                } catch (e) {
+                    log(`解析消息失败: ${e.message}`, 'error');
+                }
+            };
+            
+            ws.onerror = (error) => {
+                log(`WebSocket错误: ${error}`, 'error');
+                updateStatus('signalingStatus', '连接错误', 'status-disconnected');
+            };
+            
+            ws.onclose = () => {
+                log('WebSocket连接关闭', 'warn');
+                updateStatus('signalingStatus', '已断开', 'status-disconnected');
+                document.getElementById('connectBtn').disabled = false;
+                document.getElementById('joinBtn').disabled = true;
+                document.getElementById('disconnectBtn').disabled = true;
+            };
+        }
+        
+        // 加入房间
+        function joinRoom() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                log('WebSocket未连接', 'error');
+                return;
+            }
+            
+            const joinMessage = {
+                type: 'join',
+                device_id: deviceId,
+                from: deviceId,
+                to: 'server'
+            };
+            
+            log(`加入房间: ${roomId}`, 'info');
+            sendMessage(joinMessage);
+        }
+        
+        // 处理信令消息
+        function handleSignalingMessage(message) {
+            log(`收到消息: type=${message.type}, from=${message.from}`, 'debug');
+            
+            switch (message.type) {
+                case 'role':
+                    handleRoleMessage(message);
+                    break;
+                case 'offer':
+                    handleOfferMessage(message);
+                    break;
+                case 'answer':
+                    handleAnswerMessage(message);
+                    break;
+                case 'ice':
+                    handleIceMessage(message);
+                    break;
+                case 'info':
+                    handleInfoMessage(message);
+                    break;
+                case 'error':
+                    handleErrorMessage(message);
+                    break;
+                default:
+                    log(`未知消息类型: ${message.type}`, 'warn');
+            }
+        }
+        
+        // 处理角色消息
+        function handleRoleMessage(message) {
+            if (message.data && message.data.peer_device_id) {
+                peerDeviceId = message.data.peer_device_id;
+                updateStatus('peerDeviceId', peerDeviceId);
+                log(`配对成功，对端设备ID: ${peerDeviceId}`, 'success');
+                
+                // 根据角色决定是否创建PeerConnection
+                // 如果是answerer，等待接收offer
+                if (message.data.role === 'answerer') {
+                    isAnswerer = true;
+                    log('角色: Answerer (等待接收Offer)', 'info');
+                    createPeerConnection();
+                } else {
+                    isAnswerer = false;
+                    log('角色: Offerer (等待创建Offer)', 'info');
+                }
+            }
+        }
+        
+        // 处理房间信息消息
+        function handleInfoMessage(message) {
+            if (message.data) {
+                const roomInfo = `房间ID: ${message.data.room_id || '-'}, 人数: ${message.data.num || 0}, 状态: ${message.data.room_status || '-'}`;
+                updateStatus('roomInfo', roomInfo);
+                log(`房间信息更新: ${roomInfo}`, 'info');
+            }
+        }
+        
+        // 处理错误消息
+        function handleErrorMessage(message) {
+            if (message.data) {
+                log(`服务器错误 [${message.data.error_code}]: ${message.data.error_message}`, 'error');
+            }
+        }
+        
+        // 创建PeerConnection
+        function createPeerConnection() {
+            log('创建PeerConnection...', 'info');
+            
+            peerConnection = new RTCPeerConnection(rtcConfig);
+            
+            // ICE候选回调
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    const candidateStr = event.candidate.candidate;
+                    log(`本地ICE候选: ${candidateStr}`, 'debug');
+                    
+                    const iceMessage = {
+                        type: 'ice',
+                        device_id: deviceId,
+                        from: deviceId,
+                        to: peerDeviceId,
+                        data: { candidate: candidateStr }
+                    };
+                    sendMessage(iceMessage);
+                }
+            };
+            
+            // ICE连接状态变化
+            peerConnection.oniceconnectionstatechange = () => {
+                const state = peerConnection.iceConnectionState;
+                log(`ICE连接状态: ${state}`, 'info');
+                updateStatus('iceStatus', state);
+                
+                if (state === 'connected' || state === 'completed') {
+                    updateStatus('iceStatus', state, 'status-connected');
+                    updateStatus('webrtcStatus', '已连接', 'status-connected');
+                } else if (state === 'failed' || state === 'disconnected') {
+                    updateStatus('iceStatus', state, 'status-disconnected');
+                    updateStatus('webrtcStatus', '连接失败', 'status-disconnected');
+                }
+            };
+            
+            // PeerConnection状态变化
+            peerConnection.onconnectionstatechange = () => {
+                const state = peerConnection.connectionState;
+                log(`PeerConnection状态: ${state}`, 'info');
+                
+                if (state === 'connected') {
+                    updateStatus('webrtcStatus', '已连接', 'status-connected');
+                } else if (state === 'failed' || state === 'disconnected') {
+                    updateStatus('webrtcStatus', state, 'status-disconnected');
+                }
+            };
+            
+            // 接收远程音频轨道
+            peerConnection.ontrack = (event) => {
+                log('收到远程音频轨道', 'success');
+                const audioTrack = event.track;
+                const audioStream = event.streams[0];
+                
+                if (audioTrack.kind === 'audio') {
+                    // 创建audio元素播放音频
+                    if (!remoteAudio) {
+                        remoteAudio = document.createElement('audio');
+                        remoteAudio.autoplay = true;
+                        remoteAudio.controls = true;
+                        remoteAudio.style.width = '100%';
+                        remoteAudio.style.marginTop = '10px';
+                        document.querySelector('.audio-visualizer').appendChild(remoteAudio);
+                    }
+                    
+                    remoteAudio.srcObject = audioStream;
+                    document.getElementById('audioIndicator').classList.add('active');
+                    document.getElementById('audioStatus').textContent = '正在接收音频流...';
+                    log('音频播放已启动', 'success');
+                }
+            };
+            
+            // 接收DataChannel（如果有）
+            peerConnection.ondatachannel = (event) => {
+                const channel = event.channel;
+                log(`收到DataChannel: ${channel.label}`, 'info');
+                
+                channel.onmessage = (event) => {
+                    log(`DataChannel消息: ${event.data}`, 'info');
+                };
+                
+                channel.onopen = () => {
+                    log('DataChannel已打开', 'success');
+                };
+            };
+            
+            log('PeerConnection创建成功', 'success');
+        }
+        
+        // 处理Offer消息
+        function handleOfferMessage(message) {
+            if (!peerConnection) {
+                log('PeerConnection未创建，先创建...', 'warn');
+                createPeerConnection();
+            }
+            
+            if (!message.data || !message.data.sdp) {
+                log('Offer消息格式错误，缺少SDP', 'error');
+                return;
+            }
+            
+            log('收到Offer，设置远程描述...', 'info');
+            
+            const offer = new RTCSessionDescription({
+                type: 'offer',
+                sdp: message.data.sdp
+            });
+            
+            peerConnection.setRemoteDescription(offer)
+                .then(() => {
+                    log('设置远程Offer成功', 'success');
+                    remoteDescriptionSet = true;
+                    
+                    // 从 SDP 中解析音频轨道的 mid 和 m-line 索引
+                    parseSdpForAudioInfo(message.data.sdp);
+                    
+                    // 处理之前缓存的ICE候选
+                    processPendingIceCandidates();
+                    
+                    return peerConnection.createAnswer();
+                })
+                .then((answer) => {
+                    log('创建Answer成功', 'success');
+                    return peerConnection.setLocalDescription(answer);
+                })
+                .then(() => {
+                    log('设置本地Answer成功', 'success');
+                    const answerMessage = {
+                        type: 'answer',
+                        device_id: deviceId,
+                        from: deviceId,
+                        to: peerDeviceId,
+                        data: { sdp: peerConnection.localDescription.sdp }
+                    };
+                    sendMessage(answerMessage);
+                    log('发送Answer到对端', 'info');
+                })
+                .catch((error) => {
+                    log(`处理Offer失败: ${error.message}`, 'error');
+                });
+        }
+        
+        // 从 SDP 中解析音频轨道的 mid 和 m-line 索引
+        function parseSdpForAudioInfo(sdp) {
+            const lines = sdp.split('\n');
+            let mLineIndex = -1;
+            let currentMid = null;
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                // 查找 m=audio 行
+                if (line.startsWith('m=audio')) {
+                    mLineIndex++;
+                    currentMid = null;
+                    
+                    // 查找对应的 a=mid: 行
+                    for (let j = i + 1; j < lines.length; j++) {
+                        const nextLine = lines[j].trim();
+                        if (nextLine.startsWith('m=')) {
+                            break;  // 遇到下一个 m= 行，停止查找
+                        }
+                        if (nextLine.startsWith('a=mid:')) {
+                            currentMid = nextLine.substring(6).trim();
+                            break;
+                        }
+                    }
+                    
+                    // 如果找到了 mid，保存它
+                    if (currentMid) {
+                        audioMid = currentMid;
+                        audioMLineIndex = mLineIndex;
+                        log(`从SDP解析音频信息: mid=${audioMid}, mLineIndex=${audioMLineIndex}`, 'info');
+                        return;
+                    }
+                }
+            }
+            
+            // 如果没有找到 mid，使用默认值
+            log(`未在SDP中找到音频mid，使用默认值: mid=${audioMid}, mLineIndex=${audioMLineIndex}`, 'warn');
+        }
+        
+        // 处理缓存的ICE候选
+        function processPendingIceCandidates() {
+            if (pendingIceCandidates.length === 0) {
+                return;
+            }
+            
+            log(`处理 ${pendingIceCandidates.length} 个缓存的ICE候选`, 'info');
+            
+            pendingIceCandidates.forEach((candidateStr) => {
+                addIceCandidate(candidateStr);
+            });
+            
+            pendingIceCandidates = [];
+        }
+        
+        // 添加ICE候选（统一处理函数）
+        function addIceCandidate(candidateStr) {
+            if (!peerConnection) {
+                log('PeerConnection未创建，无法添加ICE候选', 'error');
+                return;
+            }
+            
+            // 如果远程描述未设置，缓存候选
+            if (!remoteDescriptionSet) {
+                log('远程描述未设置，缓存ICE候选', 'debug');
+                pendingIceCandidates.push(candidateStr);
+                return;
+            }
+            
+            // 处理SDP格式的候选字符串（去掉 a= 前缀）
+            let processedCandidate = candidateStr.trim();
+            if (processedCandidate.startsWith('a=')) {
+                processedCandidate = processedCandidate.substring(2).trim();
+            }
+            
+            // 验证候选字符串格式
+            if (!processedCandidate.startsWith('candidate:')) {
+                log(`ICE候选格式错误，应以 candidate: 开头: ${processedCandidate}`, 'error');
+                return;
+            }
+            
+            try {
+                // 解析 candidate 字符串，提取 component-id
+                // 格式: candidate:1 1 UDP 2122317823 172.32.0.93 44288 typ host
+                const parts = processedCandidate.split(' ');
+                let componentId = 1;  // 默认值
+                
+                if (parts.length >= 2) {
+                    componentId = parseInt(parts[1]) || 1;
+                }
+                
+                // 创建 RTCIceCandidate，必须指定 sdpMid 或 sdpMLineIndex
+                // 优先使用从 SDP 解析出的 mid
+                const candidate = new RTCIceCandidate({
+                    candidate: processedCandidate,
+                    sdpMid: audioMid,  // 使用从 SDP 解析的 mid
+                    sdpMLineIndex: audioMLineIndex  // 使用从 SDP 解析的 m-line 索引
+                });
+                
+                peerConnection.addIceCandidate(candidate)
+                    .then(() => {
+                        log(`添加远程ICE候选成功: ${processedCandidate.substring(0, 60)}...`, 'debug');
+                    })
+                    .catch((error) => {
+                        log(`添加ICE候选失败: ${error.message}`, 'error');
+                        log(`候选字符串: ${processedCandidate}`, 'error');
+                        log(`使用的 mid: ${audioMid}, mLineIndex: ${audioMLineIndex}`, 'error');
+                        
+                        // 如果失败，尝试只使用 sdpMLineIndex（不使用 sdpMid）
+                        try {
+                            const candidate2 = new RTCIceCandidate({
+                                candidate: processedCandidate,
+                                sdpMLineIndex: audioMLineIndex
+                            });
+                            
+                            peerConnection.addIceCandidate(candidate2)
+                                .then(() => {
+                                    log(`添加远程ICE候选成功(重试，仅使用mLineIndex): ${processedCandidate.substring(0, 60)}...`, 'debug');
+                                })
+                                .catch((error2) => {
+                                    log(`重试添加ICE候选仍然失败: ${error2.message}`, 'error');
+                                });
+                        } catch (e) {
+                            log(`重试解析失败: ${e.message}`, 'error');
+                        }
+                    });
+            } catch (error) {
+                log(`解析ICE候选失败: ${error.message}`, 'error');
+                log(`候选字符串: ${processedCandidate}`, 'error');
+            }
+        }
+        
+        // 处理Answer消息（通常不会收到，因为我们是Answerer）
+        function handleAnswerMessage(message) {
+            log('收到Answer消息（作为Answerer不应收到）', 'warn');
+        }
+        
+        // 处理ICE候选消息
+        function handleIceMessage(message) {
+            if (!message.data || !message.data.candidate) {
+                log('ICE消息格式错误，缺少candidate', 'error');
+                log(`完整消息: ${JSON.stringify(message)}`, 'error');
+                return;
+            }
+            
+            const candidateStr = message.data.candidate;
+            log(`收到远程ICE候选 (长度: ${candidateStr.length}): ${candidateStr}`, 'debug');
+            
+            addIceCandidate(candidateStr);
+        }
+        
+        // 断开连接
+        function disconnect() {
+            log('断开连接...', 'info');
+            
+            if (remoteAudio) {
+                remoteAudio.srcObject = null;
+                remoteAudio.remove();
+                remoteAudio = null;
+            }
+            
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+            
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+            
+            // 重置状态
+            pendingIceCandidates = [];
+            remoteDescriptionSet = false;
+            peerDeviceId = null;
+            audioMid = '0';
+            audioMLineIndex = 0;
+            
+            updateStatus('signalingStatus', '已断开', 'status-disconnected');
+            updateStatus('webrtcStatus', '未初始化', 'status-disconnected');
+            updateStatus('iceStatus', '未连接', 'status-disconnected');
+            updateStatus('roomInfo', '-');
+            updateStatus('peerDeviceId', '-');
+            document.getElementById('audioIndicator').classList.remove('active');
+            document.getElementById('audioStatus').textContent = '等待音频流...';
+            
+            document.getElementById('connectBtn').disabled = false;
+            document.getElementById('joinBtn').disabled = true;
+            document.getElementById('disconnectBtn').disabled = true;
+        }
+        
+        // 页面加载完成
+        window.onload = () => {
+            log('页面加载完成，准备连接', 'info');
+        };
+    </script>
+</body>
+</html>
+

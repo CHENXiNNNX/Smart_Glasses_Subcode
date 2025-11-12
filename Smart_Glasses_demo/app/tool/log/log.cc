@@ -3,7 +3,7 @@
  * @brief 异步日志管理系统实现
  */
 
-#include "log.h"
+#include "log.hpp"
 #include <cstdio>
 #include <cstring>
 #include <ctime>

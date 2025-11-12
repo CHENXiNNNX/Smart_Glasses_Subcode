@@ -21,17 +21,17 @@ target_include_directories(common PUBLIC
     # libdatachannel headers
     ${PROJECT_SOURCE_DIR}/libdatachannel/include
     ${PROJECT_SOURCE_DIR}/libdatachannel/deps/json/single_include
-    # rkmpi headers
-    ${PROJECT_SOURCE_DIR}/rkmpi/include
-    ${PROJECT_SOURCE_DIR}/rkmpi/include/rknn
-    ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq
-    ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq/uAPI2
-    ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq/common
-    ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq/xcore
-    ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq/algos
-    ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq/iq_parser
-    ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq/iq_parser_v2
-    ${PROJECT_SOURCE_DIR}/rkmpi/include/rkaiq/smartIr
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/rockit/out/include
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/isp/out/include
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/isp/out/include/rkaiq
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/isp/out/include/rkaiq/uAPI2
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/isp/out/include/rkaiq/common
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/isp/out/include/rkaiq/xcore
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/isp/out/include/rkaiq/algos
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/isp/out/include/rkaiq/iq_parser
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/isp/out/include/rkaiq/iq_parser_v2
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/samples/example/common
+    ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/samples/example/common/isp3.x
 
 )
 
