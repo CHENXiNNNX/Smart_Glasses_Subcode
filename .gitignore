@@ -2,6 +2,10 @@
 Smart_Glasses_demo/build/
 Smart_Glasses_demo/bin/
 
-# 或者使用通配符匹配所有 build 和 bin 目录
-# */build/
-# */bin/
+# 开发工具缓存目录
+Smart_Glasses_demo/.cache/
+.cache/
+
+# clangd 索引文件
+*.idx
+
