@@ -16,12 +16,12 @@ set(CMAKE_TARGET_LINKED_INFO_FILES
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/utils/CMakeFiles/utils.dir/DependInfo.cmake"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/common/CMakeFiles/common.dir/DependInfo.cmake"
   "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app/CMakeFiles/app.dir/DependInfo.cmake"
-  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/CMakeFiles/datachannel-static.dir/DependInfo.cmake"
-  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/DependInfo.cmake"
-  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/DependInfo.cmake"
-  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/DependInfo.cmake"
-  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/DependInfo.cmake"
-  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/3rdparty/snowboy/CMakeFiles/snowboy.dir/DependInfo.cmake"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/third_party/libdatachannel/CMakeFiles/datachannel-static.dir/DependInfo.cmake"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/DependInfo.cmake"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/DependInfo.cmake"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/DependInfo.cmake"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/DependInfo.cmake"
+  "/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/third_party/snowboy/CMakeFiles/snowboy.dir/DependInfo.cmake"
   )
 
 # Fortran module output directory.

@@ -95,39 +95,39 @@ main_EXTERNAL_OBJECTS =
 ../bin/main: utils/libutils.a
 ../bin/main: common/libcommon.a
 ../bin/main: app/libapp.a
-../bin/main: libdatachannel/libdatachannel-static.a
-../bin/main: 3rdparty/snowboy/libsnowboy-detect-c-wrapper.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_core.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_features2d.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_highgui.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_imgproc.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_photo.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_video.a
-../bin/main: ../3rdparty/jpeg_turbo/lib_uclibc/libturbojpeg.a
-../bin/main: ../3rdparty/rknpu2/Linux/armhf-uclibc/librknnmrt.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_features2d.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_highgui.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_photo.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_video.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_imgproc.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_core.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_features2d.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_highgui.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_photo.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_video.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_imgproc.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_core.a
-../bin/main: libdatachannel/deps/usrsctp/usrsctplib/libusrsctp.a
-../bin/main: libdatachannel/deps/libsrtp/libsrtp2.a
+../bin/main: third_party/libdatachannel/libdatachannel-static.a
+../bin/main: third_party/snowboy/libsnowboy-detect-c-wrapper.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_core.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_features2d.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_highgui.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_imgproc.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_photo.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_video.a
+../bin/main: ../third_party/jpeg_turbo/lib_uclibc/libturbojpeg.a
+../bin/main: ../third_party/rknpu2/Linux/armhf-uclibc/librknnmrt.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_features2d.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_highgui.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_photo.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_video.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_imgproc.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_core.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_features2d.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_highgui.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_photo.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_video.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_imgproc.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_core.a
+../bin/main: third_party/libdatachannel/deps/usrsctp/usrsctplib/libusrsctp.a
+../bin/main: third_party/libdatachannel/deps/libsrtp/libsrtp2.a
 ../bin/main: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
 ../bin/main: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libssl.so
 ../bin/main: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
-../bin/main: libdatachannel/deps/libjuice/libjuice-static.a
-../bin/main: 3rdparty/snowboy/libsnowboy.a
-../bin/main: ../3rdparty/snowboy/lib/rpi/libsnowboy-detect.a
+../bin/main: third_party/libdatachannel/deps/libjuice/libjuice-static.a
+../bin/main: third_party/snowboy/libsnowboy.a
+../bin/main: ../third_party/snowboy/lib/rpi/libsnowboy-detect.a
 ../bin/main: /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libopenblas.so
-../bin/main: ../opencv_rv1106_410/lib/libopencv_imgproc.a
-../bin/main: ../opencv_rv1106_410/lib/libopencv_core.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_imgproc.a
+../bin/main: ../third_party/opencv_rv1106_410/lib/libopencv_core.a
 ../bin/main: CMakeFiles/main.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable ../bin/main"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/main.dir/link.txt --verbose=$(VERBOSE)
@@ -141,9 +141,9 @@ main_EXTERNAL_OBJECTS =
 	/usr/bin/cmake -E make_directory /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/bin/third_party/snowboy/resources
 	/usr/bin/cmake -E make_directory /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/bin/third_party/snowboy/resources/models
 	/usr/bin/cmake -E make_directory /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/bin/third_party/audio
-	/usr/bin/cmake -E copy_if_different /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/3rdparty/snowboy/resources/common.res /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/bin/third_party/snowboy/resources/common.res
-	/usr/bin/cmake -E copy_if_different /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/3rdparty/snowboy/resources/models/xiaozhi.pmdl /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/bin/third_party/snowboy/resources/models/xiaozhi.pmdl
-	/usr/bin/cmake -E copy_if_different /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/3rdparty/audio/waked.pcm /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/bin/third_party/audio/waked.pcm
+	/usr/bin/cmake -E copy_if_different /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/snowboy/resources/common.res /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/bin/third_party/snowboy/resources/common.res
+	/usr/bin/cmake -E copy_if_different /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/snowboy/resources/models/xiaozhi.pmdl /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/bin/third_party/snowboy/resources/models/xiaozhi.pmdl
+	/usr/bin/cmake -E copy_if_different /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/audio/waked.pcm /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/bin/third_party/audio/waked.pcm
 
 # Rule to build all files generated by this target.
 CMakeFiles/main.dir/build: ../bin/main

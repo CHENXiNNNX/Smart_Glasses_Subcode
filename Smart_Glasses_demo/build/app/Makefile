@@ -319,53 +319,53 @@ chatbot/mcp/mcp_tool/mcp_tool.cc.s:
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/mcp/mcp_tool/mcp_tool.cc.s
 .PHONY : chatbot/mcp/mcp_tool/mcp_tool.cc.s
 
-chatbot/protocol_handle/handle.o: chatbot/protocol_handle/handle.cc.o
-.PHONY : chatbot/protocol_handle/handle.o
+chatbot/protocol_handle/protocol_handle.o: chatbot/protocol_handle/protocol_handle.cc.o
+.PHONY : chatbot/protocol_handle/protocol_handle.o
 
 # target to build an object file
-chatbot/protocol_handle/handle.cc.o:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.o
-.PHONY : chatbot/protocol_handle/handle.cc.o
+chatbot/protocol_handle/protocol_handle.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/protocol_handle/protocol_handle.cc.o
+.PHONY : chatbot/protocol_handle/protocol_handle.cc.o
 
-chatbot/protocol_handle/handle.i: chatbot/protocol_handle/handle.cc.i
-.PHONY : chatbot/protocol_handle/handle.i
+chatbot/protocol_handle/protocol_handle.i: chatbot/protocol_handle/protocol_handle.cc.i
+.PHONY : chatbot/protocol_handle/protocol_handle.i
 
 # target to preprocess a source file
-chatbot/protocol_handle/handle.cc.i:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.i
-.PHONY : chatbot/protocol_handle/handle.cc.i
+chatbot/protocol_handle/protocol_handle.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/protocol_handle/protocol_handle.cc.i
+.PHONY : chatbot/protocol_handle/protocol_handle.cc.i
 
-chatbot/protocol_handle/handle.s: chatbot/protocol_handle/handle.cc.s
-.PHONY : chatbot/protocol_handle/handle.s
+chatbot/protocol_handle/protocol_handle.s: chatbot/protocol_handle/protocol_handle.cc.s
+.PHONY : chatbot/protocol_handle/protocol_handle.s
 
 # target to generate assembly for a file
-chatbot/protocol_handle/handle.cc.s:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.s
-.PHONY : chatbot/protocol_handle/handle.cc.s
+chatbot/protocol_handle/protocol_handle.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/protocol_handle/protocol_handle.cc.s
+.PHONY : chatbot/protocol_handle/protocol_handle.cc.s
 
-chatbot/statemachine/machine.o: chatbot/statemachine/machine.cc.o
-.PHONY : chatbot/statemachine/machine.o
+chatbot/statemachine/statemachine.o: chatbot/statemachine/statemachine.cc.o
+.PHONY : chatbot/statemachine/statemachine.o
 
 # target to build an object file
-chatbot/statemachine/machine.cc.o:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/statemachine/machine.cc.o
-.PHONY : chatbot/statemachine/machine.cc.o
+chatbot/statemachine/statemachine.cc.o:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/statemachine/statemachine.cc.o
+.PHONY : chatbot/statemachine/statemachine.cc.o
 
-chatbot/statemachine/machine.i: chatbot/statemachine/machine.cc.i
-.PHONY : chatbot/statemachine/machine.i
+chatbot/statemachine/statemachine.i: chatbot/statemachine/statemachine.cc.i
+.PHONY : chatbot/statemachine/statemachine.i
 
 # target to preprocess a source file
-chatbot/statemachine/machine.cc.i:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/statemachine/machine.cc.i
-.PHONY : chatbot/statemachine/machine.cc.i
+chatbot/statemachine/statemachine.cc.i:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/statemachine/statemachine.cc.i
+.PHONY : chatbot/statemachine/statemachine.cc.i
 
-chatbot/statemachine/machine.s: chatbot/statemachine/machine.cc.s
-.PHONY : chatbot/statemachine/machine.s
+chatbot/statemachine/statemachine.s: chatbot/statemachine/statemachine.cc.s
+.PHONY : chatbot/statemachine/statemachine.s
 
 # target to generate assembly for a file
-chatbot/statemachine/machine.cc.s:
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/statemachine/machine.cc.s
-.PHONY : chatbot/statemachine/machine.cc.s
+chatbot/statemachine/statemachine.cc.s:
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build && $(MAKE) $(MAKESILENT) -f app/CMakeFiles/app.dir/build.make app/CMakeFiles/app.dir/chatbot/statemachine/statemachine.cc.s
+.PHONY : chatbot/statemachine/statemachine.cc.s
 
 chatbot/wakeword/wakeword.o: chatbot/wakeword/wakeword.cc.o
 .PHONY : chatbot/wakeword/wakeword.o
@@ -806,12 +806,12 @@ help:
 	@echo "... chatbot/mcp/mcp_tool/mcp_tool.o"
 	@echo "... chatbot/mcp/mcp_tool/mcp_tool.i"
 	@echo "... chatbot/mcp/mcp_tool/mcp_tool.s"
-	@echo "... chatbot/protocol_handle/handle.o"
-	@echo "... chatbot/protocol_handle/handle.i"
-	@echo "... chatbot/protocol_handle/handle.s"
-	@echo "... chatbot/statemachine/machine.o"
-	@echo "... chatbot/statemachine/machine.i"
-	@echo "... chatbot/statemachine/machine.s"
+	@echo "... chatbot/protocol_handle/protocol_handle.o"
+	@echo "... chatbot/protocol_handle/protocol_handle.i"
+	@echo "... chatbot/protocol_handle/protocol_handle.s"
+	@echo "... chatbot/statemachine/statemachine.o"
+	@echo "... chatbot/statemachine/statemachine.i"
+	@echo "... chatbot/statemachine/statemachine.s"
 	@echo "... chatbot/wakeword/wakeword.o"
 	@echo "... chatbot/wakeword/wakeword.i"
 	@echo "... chatbot/wakeword/wakeword.s"

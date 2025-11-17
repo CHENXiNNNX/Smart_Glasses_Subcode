@@ -195,68 +195,68 @@ app/CMakeFiles/app.dir/protocol/webrtc/webrtc.cc.o: \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/atomic \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstring \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/string.h \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/rtc.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/rtc.h \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/version.h \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/rtc.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/rtc.h \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/version.h \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/lib/gcc/arm-rockchip830-linux-uclibcgnueabihf/8.3.0/include/stdbool.h \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/common.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/utils.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/common.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/utils.hpp \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstddef \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/variant \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/global.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/global.hpp \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/future \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/atomic_futex.h \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/datachannel.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/channel.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/reliability.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/peerconnection.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/candidate.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/configuration.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/description.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/datachannel.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/channel.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/reliability.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/peerconnection.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/candidate.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/configuration.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/description.hpp \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/map \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_tree.h \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_map.h \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_multimap.h \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/track.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/mediahandler.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/message.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/frameinfo.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/iceudpmuxlistener.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/websocket.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/websocketserver.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/av1rtppacketizer.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/nalunit.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/track.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/mediahandler.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/message.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/frameinfo.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/iceudpmuxlistener.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/websocket.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/websocketserver.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/av1rtppacketizer.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/nalunit.hpp \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cassert \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include/assert.h \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/rtppacketizer.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/rtppacketizationconfig.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/dependencydescriptor.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/rtppacketizer.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/rtppacketizationconfig.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/dependencydescriptor.hpp \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bitset \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/rtp.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/h264rtppacketizer.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/h264rtpdepacketizer.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/rtpdepacketizer.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/rtp.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/h264rtppacketizer.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/h264rtpdepacketizer.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/rtpdepacketizer.hpp \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/set \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_set.h \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_multiset.h \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/h265rtppacketizer.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/h265nalunit.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/h265rtpdepacketizer.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/plihandler.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/rembhandler.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/pacinghandler.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/rtcpnackresponder.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/rtcpreceivingsession.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/rtcpsrreporter.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/track.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/rtp.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/rtcpnackresponder.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/rtppacketizer.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/rembhandler.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/include/rtc/global.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/h265rtppacketizer.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/h265nalunit.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/h265rtpdepacketizer.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/plihandler.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/rembhandler.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/pacinghandler.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/rtcpnackresponder.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/rtcpreceivingsession.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/rtcpsrreporter.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/track.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/rtp.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/rtcpnackresponder.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/rtppacketizer.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/rembhandler.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/include/rtc/global.hpp \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/signaling.hpp \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/../websocket/websocket.hpp \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/deps/json/single_include/nlohmann/json.hpp \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/deps/json/single_include/nlohmann/json.hpp \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/algorithm \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/iterator \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stream_iterator.h \
@@ -316,7 +316,7 @@ app/CMakeFiles/app.dir/protocol/webrtc/webrtc.cc.o: \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/bits/stl_numeric.h \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/iomanip \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/any \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/../../media/media_config.h \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/../../media/media_config.hpp \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/../../media/sync.hpp \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/../../tool/memory/mem_pool.hpp \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/protocol/webrtc/../../tool/log/log.hpp \

@@ -236,7 +236,7 @@ snowboy: cmake_check_build_system
 
 # fast build rule for target.
 snowboy/fast:
-	$(MAKE) $(MAKESILENT) -f 3rdparty/snowboy/CMakeFiles/snowboy.dir/build.make 3rdparty/snowboy/CMakeFiles/snowboy.dir/build
+	$(MAKE) $(MAKESILENT) -f third_party/snowboy/CMakeFiles/snowboy.dir/build.make third_party/snowboy/CMakeFiles/snowboy.dir/build
 .PHONY : snowboy/fast
 
 #=============================================================================
@@ -249,7 +249,7 @@ snowboy-detect-c-wrapper: cmake_check_build_system
 
 # fast build rule for target.
 snowboy-detect-c-wrapper/fast:
-	$(MAKE) $(MAKESILENT) -f 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/build.make 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/build
+	$(MAKE) $(MAKESILENT) -f third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/build.make third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/build
 .PHONY : snowboy-detect-c-wrapper/fast
 
 #=============================================================================
@@ -262,7 +262,7 @@ datachannel: cmake_check_build_system
 
 # fast build rule for target.
 datachannel/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/CMakeFiles/datachannel.dir/build.make libdatachannel/CMakeFiles/datachannel.dir/build
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/CMakeFiles/datachannel.dir/build.make third_party/libdatachannel/CMakeFiles/datachannel.dir/build
 .PHONY : datachannel/fast
 
 #=============================================================================
@@ -275,7 +275,7 @@ datachannel-static: cmake_check_build_system
 
 # fast build rule for target.
 datachannel-static/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/CMakeFiles/datachannel-static.dir/build.make libdatachannel/CMakeFiles/datachannel-static.dir/build
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/CMakeFiles/datachannel-static.dir/build.make third_party/libdatachannel/CMakeFiles/datachannel-static.dir/build
 .PHONY : datachannel-static/fast
 
 #=============================================================================
@@ -288,7 +288,7 @@ usrsctp: cmake_check_build_system
 
 # fast build rule for target.
 usrsctp/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/build.make libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/build
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/build.make third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/build
 .PHONY : usrsctp/fast
 
 #=============================================================================
@@ -301,7 +301,7 @@ srtp2: cmake_check_build_system
 
 # fast build rule for target.
 srtp2/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/build
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/build
 .PHONY : srtp2/fast
 
 #=============================================================================
@@ -314,7 +314,7 @@ rtp_decoder: cmake_check_build_system
 
 # fast build rule for target.
 rtp_decoder/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/build
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/build
 .PHONY : rtp_decoder/fast
 
 #=============================================================================
@@ -327,7 +327,7 @@ datatypes_driver: cmake_check_build_system
 
 # fast build rule for target.
 datatypes_driver/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/build
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/build
 .PHONY : datatypes_driver/fast
 
 #=============================================================================
@@ -340,7 +340,7 @@ cipher_driver: cmake_check_build_system
 
 # fast build rule for target.
 cipher_driver/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/build
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/build
 .PHONY : cipher_driver/fast
 
 #=============================================================================
@@ -353,7 +353,7 @@ kernel_driver: cmake_check_build_system
 
 # fast build rule for target.
 kernel_driver/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/build
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/build
 .PHONY : kernel_driver/fast
 
 #=============================================================================
@@ -366,7 +366,7 @@ rdbx_driver: cmake_check_build_system
 
 # fast build rule for target.
 rdbx_driver/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/build
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/build
 .PHONY : rdbx_driver/fast
 
 #=============================================================================
@@ -379,7 +379,7 @@ replay_driver: cmake_check_build_system
 
 # fast build rule for target.
 replay_driver/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/build
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/build
 .PHONY : replay_driver/fast
 
 #=============================================================================
@@ -392,7 +392,7 @@ roc_driver: cmake_check_build_system
 
 # fast build rule for target.
 roc_driver/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/build
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/build
 .PHONY : roc_driver/fast
 
 #=============================================================================
@@ -405,7 +405,7 @@ srtp_driver: cmake_check_build_system
 
 # fast build rule for target.
 srtp_driver/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/build
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/build
 .PHONY : srtp_driver/fast
 
 #=============================================================================
@@ -418,7 +418,7 @@ test_srtp: cmake_check_build_system
 
 # fast build rule for target.
 test_srtp/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/build
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/build
 .PHONY : test_srtp/fast
 
 #=============================================================================
@@ -431,7 +431,7 @@ rtpw: cmake_check_build_system
 
 # fast build rule for target.
 rtpw/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/build
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/build
 .PHONY : rtpw/fast
 
 #=============================================================================
@@ -444,7 +444,7 @@ juice: cmake_check_build_system
 
 # fast build rule for target.
 juice/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libjuice/CMakeFiles/juice.dir/build.make libdatachannel/deps/libjuice/CMakeFiles/juice.dir/build
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/build.make third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/build
 .PHONY : juice/fast
 
 #=============================================================================
@@ -457,7 +457,7 @@ juice-static: cmake_check_build_system
 
 # fast build rule for target.
 juice-static/fast:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/build.make libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/build
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/build.make third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/build
 .PHONY : juice-static/fast
 
 main.o: main.cpp.o

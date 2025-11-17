@@ -67,16 +67,16 @@ all: CMakeFiles/main.dir/all
 all: utils/all
 all: common/all
 all: app/all
-all: 3rdparty/all
-all: libdatachannel/all
+all: third_party/all
+all: third_party/libdatachannel/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
 preinstall: utils/preinstall
 preinstall: common/preinstall
 preinstall: app/preinstall
-preinstall: 3rdparty/preinstall
-preinstall: libdatachannel/preinstall
+preinstall: third_party/preinstall
+preinstall: third_party/libdatachannel/preinstall
 .PHONY : preinstall
 
 # The main recursive "clean" target.
@@ -85,41 +85,9 @@ clean: CMakeFiles/clean-all.dir/clean
 clean: utils/clean
 clean: common/clean
 clean: app/clean
-clean: 3rdparty/clean
-clean: libdatachannel/clean
+clean: third_party/clean
+clean: third_party/libdatachannel/clean
 .PHONY : clean
-
-#=============================================================================
-# Directory level rules for directory 3rdparty
-
-# Recursive "all" directory target.
-3rdparty/all: 3rdparty/snowboy/all
-.PHONY : 3rdparty/all
-
-# Recursive "preinstall" directory target.
-3rdparty/preinstall: 3rdparty/snowboy/preinstall
-.PHONY : 3rdparty/preinstall
-
-# Recursive "clean" directory target.
-3rdparty/clean: 3rdparty/snowboy/clean
-.PHONY : 3rdparty/clean
-
-#=============================================================================
-# Directory level rules for directory 3rdparty/snowboy
-
-# Recursive "all" directory target.
-3rdparty/snowboy/all: 3rdparty/snowboy/CMakeFiles/snowboy.dir/all
-3rdparty/snowboy/all: 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/all
-.PHONY : 3rdparty/snowboy/all
-
-# Recursive "preinstall" directory target.
-3rdparty/snowboy/preinstall:
-.PHONY : 3rdparty/snowboy/preinstall
-
-# Recursive "clean" directory target.
-3rdparty/snowboy/clean: 3rdparty/snowboy/CMakeFiles/snowboy.dir/clean
-3rdparty/snowboy/clean: 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/clean
-.PHONY : 3rdparty/snowboy/clean
 
 #=============================================================================
 # Directory level rules for directory app
@@ -152,120 +120,152 @@ common/clean: common/CMakeFiles/common.dir/clean
 .PHONY : common/clean
 
 #=============================================================================
-# Directory level rules for directory libdatachannel
+# Directory level rules for directory third_party
 
 # Recursive "all" directory target.
-libdatachannel/all: libdatachannel/CMakeFiles/datachannel.dir/all
-.PHONY : libdatachannel/all
+third_party/all: third_party/snowboy/all
+.PHONY : third_party/all
 
 # Recursive "preinstall" directory target.
-libdatachannel/preinstall:
-.PHONY : libdatachannel/preinstall
+third_party/preinstall: third_party/snowboy/preinstall
+.PHONY : third_party/preinstall
 
 # Recursive "clean" directory target.
-libdatachannel/clean: libdatachannel/CMakeFiles/datachannel.dir/clean
-libdatachannel/clean: libdatachannel/CMakeFiles/datachannel-static.dir/clean
-libdatachannel/clean: libdatachannel/deps/plog/clean
-libdatachannel/clean: libdatachannel/deps/usrsctp/clean
-libdatachannel/clean: libdatachannel/deps/libsrtp/clean
-libdatachannel/clean: libdatachannel/deps/libjuice/clean
-.PHONY : libdatachannel/clean
+third_party/clean: third_party/snowboy/clean
+.PHONY : third_party/clean
 
 #=============================================================================
-# Directory level rules for directory libdatachannel/deps/libjuice
+# Directory level rules for directory third_party/libdatachannel
 
 # Recursive "all" directory target.
-libdatachannel/deps/libjuice/all: libdatachannel/deps/libjuice/CMakeFiles/juice.dir/all
-.PHONY : libdatachannel/deps/libjuice/all
+third_party/libdatachannel/all: third_party/libdatachannel/CMakeFiles/datachannel.dir/all
+.PHONY : third_party/libdatachannel/all
 
 # Recursive "preinstall" directory target.
-libdatachannel/deps/libjuice/preinstall:
-.PHONY : libdatachannel/deps/libjuice/preinstall
+third_party/libdatachannel/preinstall:
+.PHONY : third_party/libdatachannel/preinstall
 
 # Recursive "clean" directory target.
-libdatachannel/deps/libjuice/clean: libdatachannel/deps/libjuice/CMakeFiles/juice.dir/clean
-libdatachannel/deps/libjuice/clean: libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/clean
-.PHONY : libdatachannel/deps/libjuice/clean
+third_party/libdatachannel/clean: third_party/libdatachannel/CMakeFiles/datachannel.dir/clean
+third_party/libdatachannel/clean: third_party/libdatachannel/CMakeFiles/datachannel-static.dir/clean
+third_party/libdatachannel/clean: third_party/libdatachannel/deps/plog/clean
+third_party/libdatachannel/clean: third_party/libdatachannel/deps/usrsctp/clean
+third_party/libdatachannel/clean: third_party/libdatachannel/deps/libsrtp/clean
+third_party/libdatachannel/clean: third_party/libdatachannel/deps/libjuice/clean
+.PHONY : third_party/libdatachannel/clean
 
 #=============================================================================
-# Directory level rules for directory libdatachannel/deps/libsrtp
+# Directory level rules for directory third_party/libdatachannel/deps/libjuice
 
 # Recursive "all" directory target.
-libdatachannel/deps/libsrtp/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
-libdatachannel/deps/libsrtp/all: libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/all
-libdatachannel/deps/libsrtp/all: libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/all
-libdatachannel/deps/libsrtp/all: libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/all
-libdatachannel/deps/libsrtp/all: libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/all
-libdatachannel/deps/libsrtp/all: libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/all
-libdatachannel/deps/libsrtp/all: libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/all
-libdatachannel/deps/libsrtp/all: libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/all
-libdatachannel/deps/libsrtp/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/all
-libdatachannel/deps/libsrtp/all: libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/all
-libdatachannel/deps/libsrtp/all: libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/all
-.PHONY : libdatachannel/deps/libsrtp/all
+third_party/libdatachannel/deps/libjuice/all: third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/all
+.PHONY : third_party/libdatachannel/deps/libjuice/all
 
 # Recursive "preinstall" directory target.
-libdatachannel/deps/libsrtp/preinstall:
-.PHONY : libdatachannel/deps/libsrtp/preinstall
+third_party/libdatachannel/deps/libjuice/preinstall:
+.PHONY : third_party/libdatachannel/deps/libjuice/preinstall
 
 # Recursive "clean" directory target.
-libdatachannel/deps/libsrtp/clean: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/clean
-libdatachannel/deps/libsrtp/clean: libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/clean
-libdatachannel/deps/libsrtp/clean: libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/clean
-libdatachannel/deps/libsrtp/clean: libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/clean
-libdatachannel/deps/libsrtp/clean: libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/clean
-libdatachannel/deps/libsrtp/clean: libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/clean
-libdatachannel/deps/libsrtp/clean: libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/clean
-libdatachannel/deps/libsrtp/clean: libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/clean
-libdatachannel/deps/libsrtp/clean: libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/clean
-libdatachannel/deps/libsrtp/clean: libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/clean
-libdatachannel/deps/libsrtp/clean: libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/clean
-.PHONY : libdatachannel/deps/libsrtp/clean
+third_party/libdatachannel/deps/libjuice/clean: third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/clean
+third_party/libdatachannel/deps/libjuice/clean: third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/clean
+.PHONY : third_party/libdatachannel/deps/libjuice/clean
 
 #=============================================================================
-# Directory level rules for directory libdatachannel/deps/plog
+# Directory level rules for directory third_party/libdatachannel/deps/libsrtp
 
 # Recursive "all" directory target.
-libdatachannel/deps/plog/all:
-.PHONY : libdatachannel/deps/plog/all
+third_party/libdatachannel/deps/libsrtp/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
+third_party/libdatachannel/deps/libsrtp/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/all
+third_party/libdatachannel/deps/libsrtp/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/all
+third_party/libdatachannel/deps/libsrtp/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/all
+third_party/libdatachannel/deps/libsrtp/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/all
+third_party/libdatachannel/deps/libsrtp/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/all
+third_party/libdatachannel/deps/libsrtp/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/all
+third_party/libdatachannel/deps/libsrtp/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/all
+third_party/libdatachannel/deps/libsrtp/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/all
+third_party/libdatachannel/deps/libsrtp/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/all
+third_party/libdatachannel/deps/libsrtp/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/all
+.PHONY : third_party/libdatachannel/deps/libsrtp/all
 
 # Recursive "preinstall" directory target.
-libdatachannel/deps/plog/preinstall:
-.PHONY : libdatachannel/deps/plog/preinstall
+third_party/libdatachannel/deps/libsrtp/preinstall:
+.PHONY : third_party/libdatachannel/deps/libsrtp/preinstall
 
 # Recursive "clean" directory target.
-libdatachannel/deps/plog/clean:
-.PHONY : libdatachannel/deps/plog/clean
+third_party/libdatachannel/deps/libsrtp/clean: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/clean
+third_party/libdatachannel/deps/libsrtp/clean: third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/clean
+third_party/libdatachannel/deps/libsrtp/clean: third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/clean
+third_party/libdatachannel/deps/libsrtp/clean: third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/clean
+third_party/libdatachannel/deps/libsrtp/clean: third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/clean
+third_party/libdatachannel/deps/libsrtp/clean: third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/clean
+third_party/libdatachannel/deps/libsrtp/clean: third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/clean
+third_party/libdatachannel/deps/libsrtp/clean: third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/clean
+third_party/libdatachannel/deps/libsrtp/clean: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/clean
+third_party/libdatachannel/deps/libsrtp/clean: third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/clean
+third_party/libdatachannel/deps/libsrtp/clean: third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/clean
+.PHONY : third_party/libdatachannel/deps/libsrtp/clean
 
 #=============================================================================
-# Directory level rules for directory libdatachannel/deps/usrsctp
+# Directory level rules for directory third_party/libdatachannel/deps/plog
 
 # Recursive "all" directory target.
-libdatachannel/deps/usrsctp/all: libdatachannel/deps/usrsctp/usrsctplib/all
-.PHONY : libdatachannel/deps/usrsctp/all
+third_party/libdatachannel/deps/plog/all:
+.PHONY : third_party/libdatachannel/deps/plog/all
 
 # Recursive "preinstall" directory target.
-libdatachannel/deps/usrsctp/preinstall: libdatachannel/deps/usrsctp/usrsctplib/preinstall
-.PHONY : libdatachannel/deps/usrsctp/preinstall
+third_party/libdatachannel/deps/plog/preinstall:
+.PHONY : third_party/libdatachannel/deps/plog/preinstall
 
 # Recursive "clean" directory target.
-libdatachannel/deps/usrsctp/clean: libdatachannel/deps/usrsctp/usrsctplib/clean
-.PHONY : libdatachannel/deps/usrsctp/clean
+third_party/libdatachannel/deps/plog/clean:
+.PHONY : third_party/libdatachannel/deps/plog/clean
 
 #=============================================================================
-# Directory level rules for directory libdatachannel/deps/usrsctp/usrsctplib
+# Directory level rules for directory third_party/libdatachannel/deps/usrsctp
 
 # Recursive "all" directory target.
-libdatachannel/deps/usrsctp/usrsctplib/all: libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
-.PHONY : libdatachannel/deps/usrsctp/usrsctplib/all
+third_party/libdatachannel/deps/usrsctp/all: third_party/libdatachannel/deps/usrsctp/usrsctplib/all
+.PHONY : third_party/libdatachannel/deps/usrsctp/all
 
 # Recursive "preinstall" directory target.
-libdatachannel/deps/usrsctp/usrsctplib/preinstall:
-.PHONY : libdatachannel/deps/usrsctp/usrsctplib/preinstall
+third_party/libdatachannel/deps/usrsctp/preinstall: third_party/libdatachannel/deps/usrsctp/usrsctplib/preinstall
+.PHONY : third_party/libdatachannel/deps/usrsctp/preinstall
 
 # Recursive "clean" directory target.
-libdatachannel/deps/usrsctp/usrsctplib/clean: libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/clean
-.PHONY : libdatachannel/deps/usrsctp/usrsctplib/clean
+third_party/libdatachannel/deps/usrsctp/clean: third_party/libdatachannel/deps/usrsctp/usrsctplib/clean
+.PHONY : third_party/libdatachannel/deps/usrsctp/clean
+
+#=============================================================================
+# Directory level rules for directory third_party/libdatachannel/deps/usrsctp/usrsctplib
+
+# Recursive "all" directory target.
+third_party/libdatachannel/deps/usrsctp/usrsctplib/all: third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
+.PHONY : third_party/libdatachannel/deps/usrsctp/usrsctplib/all
+
+# Recursive "preinstall" directory target.
+third_party/libdatachannel/deps/usrsctp/usrsctplib/preinstall:
+.PHONY : third_party/libdatachannel/deps/usrsctp/usrsctplib/preinstall
+
+# Recursive "clean" directory target.
+third_party/libdatachannel/deps/usrsctp/usrsctplib/clean: third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/clean
+.PHONY : third_party/libdatachannel/deps/usrsctp/usrsctplib/clean
+
+#=============================================================================
+# Directory level rules for directory third_party/snowboy
+
+# Recursive "all" directory target.
+third_party/snowboy/all: third_party/snowboy/CMakeFiles/snowboy.dir/all
+third_party/snowboy/all: third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/all
+.PHONY : third_party/snowboy/all
+
+# Recursive "preinstall" directory target.
+third_party/snowboy/preinstall:
+.PHONY : third_party/snowboy/preinstall
+
+# Recursive "clean" directory target.
+third_party/snowboy/clean: third_party/snowboy/CMakeFiles/snowboy.dir/clean
+third_party/snowboy/clean: third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/clean
+.PHONY : third_party/snowboy/clean
 
 #=============================================================================
 # Directory level rules for directory utils
@@ -289,12 +289,12 @@ utils/clean: utils/CMakeFiles/utils.dir/clean
 CMakeFiles/main.dir/all: utils/CMakeFiles/utils.dir/all
 CMakeFiles/main.dir/all: common/CMakeFiles/common.dir/all
 CMakeFiles/main.dir/all: app/CMakeFiles/app.dir/all
-CMakeFiles/main.dir/all: 3rdparty/snowboy/CMakeFiles/snowboy.dir/all
-CMakeFiles/main.dir/all: 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/all
-CMakeFiles/main.dir/all: libdatachannel/CMakeFiles/datachannel-static.dir/all
-CMakeFiles/main.dir/all: libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
-CMakeFiles/main.dir/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
-CMakeFiles/main.dir/all: libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/all
+CMakeFiles/main.dir/all: third_party/snowboy/CMakeFiles/snowboy.dir/all
+CMakeFiles/main.dir/all: third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/all
+CMakeFiles/main.dir/all: third_party/libdatachannel/CMakeFiles/datachannel-static.dir/all
+CMakeFiles/main.dir/all: third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
+CMakeFiles/main.dir/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
+CMakeFiles/main.dir/all: third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num= "Built target main"
@@ -421,476 +421,476 @@ app/CMakeFiles/app.dir/clean:
 .PHONY : app/CMakeFiles/app.dir/clean
 
 #=============================================================================
-# Target rules for target 3rdparty/snowboy/CMakeFiles/snowboy.dir
+# Target rules for target third_party/snowboy/CMakeFiles/snowboy.dir
 
 # All Build rule for target.
-3rdparty/snowboy/CMakeFiles/snowboy.dir/all:
-	$(MAKE) $(MAKESILENT) -f 3rdparty/snowboy/CMakeFiles/snowboy.dir/build.make 3rdparty/snowboy/CMakeFiles/snowboy.dir/depend
-	$(MAKE) $(MAKESILENT) -f 3rdparty/snowboy/CMakeFiles/snowboy.dir/build.make 3rdparty/snowboy/CMakeFiles/snowboy.dir/build
+third_party/snowboy/CMakeFiles/snowboy.dir/all:
+	$(MAKE) $(MAKESILENT) -f third_party/snowboy/CMakeFiles/snowboy.dir/build.make third_party/snowboy/CMakeFiles/snowboy.dir/depend
+	$(MAKE) $(MAKESILENT) -f third_party/snowboy/CMakeFiles/snowboy.dir/build.make third_party/snowboy/CMakeFiles/snowboy.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=81 "Built target snowboy"
-.PHONY : 3rdparty/snowboy/CMakeFiles/snowboy.dir/all
+.PHONY : third_party/snowboy/CMakeFiles/snowboy.dir/all
 
 # Build rule for subdir invocation for target.
-3rdparty/snowboy/CMakeFiles/snowboy.dir/rule: cmake_check_build_system
+third_party/snowboy/CMakeFiles/snowboy.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 1
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 3rdparty/snowboy/CMakeFiles/snowboy.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third_party/snowboy/CMakeFiles/snowboy.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
-.PHONY : 3rdparty/snowboy/CMakeFiles/snowboy.dir/rule
+.PHONY : third_party/snowboy/CMakeFiles/snowboy.dir/rule
 
 # Convenience name for target.
-snowboy: 3rdparty/snowboy/CMakeFiles/snowboy.dir/rule
+snowboy: third_party/snowboy/CMakeFiles/snowboy.dir/rule
 .PHONY : snowboy
 
 # clean rule for target.
-3rdparty/snowboy/CMakeFiles/snowboy.dir/clean:
-	$(MAKE) $(MAKESILENT) -f 3rdparty/snowboy/CMakeFiles/snowboy.dir/build.make 3rdparty/snowboy/CMakeFiles/snowboy.dir/clean
-.PHONY : 3rdparty/snowboy/CMakeFiles/snowboy.dir/clean
+third_party/snowboy/CMakeFiles/snowboy.dir/clean:
+	$(MAKE) $(MAKESILENT) -f third_party/snowboy/CMakeFiles/snowboy.dir/build.make third_party/snowboy/CMakeFiles/snowboy.dir/clean
+.PHONY : third_party/snowboy/CMakeFiles/snowboy.dir/clean
 
 #=============================================================================
-# Target rules for target 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir
+# Target rules for target third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir
 
 # All Build rule for target.
-3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/all: 3rdparty/snowboy/CMakeFiles/snowboy.dir/all
-	$(MAKE) $(MAKESILENT) -f 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/build.make 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/depend
-	$(MAKE) $(MAKESILENT) -f 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/build.make 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/build
+third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/all: third_party/snowboy/CMakeFiles/snowboy.dir/all
+	$(MAKE) $(MAKESILENT) -f third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/build.make third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/depend
+	$(MAKE) $(MAKESILENT) -f third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/build.make third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=82 "Built target snowboy-detect-c-wrapper"
-.PHONY : 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/all
+.PHONY : third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/all
 
 # Build rule for subdir invocation for target.
-3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/rule: cmake_check_build_system
+third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
-.PHONY : 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/rule
+.PHONY : third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/rule
 
 # Convenience name for target.
-snowboy-detect-c-wrapper: 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/rule
+snowboy-detect-c-wrapper: third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/rule
 .PHONY : snowboy-detect-c-wrapper
 
 # clean rule for target.
-3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/clean:
-	$(MAKE) $(MAKESILENT) -f 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/build.make 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/clean
-.PHONY : 3rdparty/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/clean
+third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/clean:
+	$(MAKE) $(MAKESILENT) -f third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/build.make third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/clean
+.PHONY : third_party/snowboy/CMakeFiles/snowboy-detect-c-wrapper.dir/clean
 
 #=============================================================================
-# Target rules for target libdatachannel/CMakeFiles/datachannel.dir
+# Target rules for target third_party/libdatachannel/CMakeFiles/datachannel.dir
 
 # All Build rule for target.
-libdatachannel/CMakeFiles/datachannel.dir/all: libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
-libdatachannel/CMakeFiles/datachannel.dir/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
-libdatachannel/CMakeFiles/datachannel.dir/all: libdatachannel/deps/libjuice/CMakeFiles/juice.dir/all
-	$(MAKE) $(MAKESILENT) -f libdatachannel/CMakeFiles/datachannel.dir/build.make libdatachannel/CMakeFiles/datachannel.dir/depend
-	$(MAKE) $(MAKESILENT) -f libdatachannel/CMakeFiles/datachannel.dir/build.make libdatachannel/CMakeFiles/datachannel.dir/build
+third_party/libdatachannel/CMakeFiles/datachannel.dir/all: third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
+third_party/libdatachannel/CMakeFiles/datachannel.dir/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
+third_party/libdatachannel/CMakeFiles/datachannel.dir/all: third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/all
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/CMakeFiles/datachannel.dir/build.make third_party/libdatachannel/CMakeFiles/datachannel.dir/depend
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/CMakeFiles/datachannel.dir/build.make third_party/libdatachannel/CMakeFiles/datachannel.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33 "Built target datachannel"
-.PHONY : libdatachannel/CMakeFiles/datachannel.dir/all
+.PHONY : third_party/libdatachannel/CMakeFiles/datachannel.dir/all
 
 # Build rule for subdir invocation for target.
-libdatachannel/CMakeFiles/datachannel.dir/rule: cmake_check_build_system
+third_party/libdatachannel/CMakeFiles/datachannel.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 44
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/CMakeFiles/datachannel.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third_party/libdatachannel/CMakeFiles/datachannel.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
-.PHONY : libdatachannel/CMakeFiles/datachannel.dir/rule
+.PHONY : third_party/libdatachannel/CMakeFiles/datachannel.dir/rule
 
 # Convenience name for target.
-datachannel: libdatachannel/CMakeFiles/datachannel.dir/rule
+datachannel: third_party/libdatachannel/CMakeFiles/datachannel.dir/rule
 .PHONY : datachannel
 
 # clean rule for target.
-libdatachannel/CMakeFiles/datachannel.dir/clean:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/CMakeFiles/datachannel.dir/build.make libdatachannel/CMakeFiles/datachannel.dir/clean
-.PHONY : libdatachannel/CMakeFiles/datachannel.dir/clean
+third_party/libdatachannel/CMakeFiles/datachannel.dir/clean:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/CMakeFiles/datachannel.dir/build.make third_party/libdatachannel/CMakeFiles/datachannel.dir/clean
+.PHONY : third_party/libdatachannel/CMakeFiles/datachannel.dir/clean
 
 #=============================================================================
-# Target rules for target libdatachannel/CMakeFiles/datachannel-static.dir
+# Target rules for target third_party/libdatachannel/CMakeFiles/datachannel-static.dir
 
 # All Build rule for target.
-libdatachannel/CMakeFiles/datachannel-static.dir/all: libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
-libdatachannel/CMakeFiles/datachannel-static.dir/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
-libdatachannel/CMakeFiles/datachannel-static.dir/all: libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/all
-	$(MAKE) $(MAKESILENT) -f libdatachannel/CMakeFiles/datachannel-static.dir/build.make libdatachannel/CMakeFiles/datachannel-static.dir/depend
-	$(MAKE) $(MAKESILENT) -f libdatachannel/CMakeFiles/datachannel-static.dir/build.make libdatachannel/CMakeFiles/datachannel-static.dir/build
+third_party/libdatachannel/CMakeFiles/datachannel-static.dir/all: third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
+third_party/libdatachannel/CMakeFiles/datachannel-static.dir/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
+third_party/libdatachannel/CMakeFiles/datachannel-static.dir/all: third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/all
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/CMakeFiles/datachannel-static.dir/build.make third_party/libdatachannel/CMakeFiles/datachannel-static.dir/depend
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/CMakeFiles/datachannel-static.dir/build.make third_party/libdatachannel/CMakeFiles/datachannel-static.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56 "Built target datachannel-static"
-.PHONY : libdatachannel/CMakeFiles/datachannel-static.dir/all
+.PHONY : third_party/libdatachannel/CMakeFiles/datachannel-static.dir/all
 
 # Build rule for subdir invocation for target.
-libdatachannel/CMakeFiles/datachannel-static.dir/rule: cmake_check_build_system
+third_party/libdatachannel/CMakeFiles/datachannel-static.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 46
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/CMakeFiles/datachannel-static.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third_party/libdatachannel/CMakeFiles/datachannel-static.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
-.PHONY : libdatachannel/CMakeFiles/datachannel-static.dir/rule
+.PHONY : third_party/libdatachannel/CMakeFiles/datachannel-static.dir/rule
 
 # Convenience name for target.
-datachannel-static: libdatachannel/CMakeFiles/datachannel-static.dir/rule
+datachannel-static: third_party/libdatachannel/CMakeFiles/datachannel-static.dir/rule
 .PHONY : datachannel-static
 
 # clean rule for target.
-libdatachannel/CMakeFiles/datachannel-static.dir/clean:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/CMakeFiles/datachannel-static.dir/build.make libdatachannel/CMakeFiles/datachannel-static.dir/clean
-.PHONY : libdatachannel/CMakeFiles/datachannel-static.dir/clean
+third_party/libdatachannel/CMakeFiles/datachannel-static.dir/clean:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/CMakeFiles/datachannel-static.dir/build.make third_party/libdatachannel/CMakeFiles/datachannel-static.dir/clean
+.PHONY : third_party/libdatachannel/CMakeFiles/datachannel-static.dir/clean
 
 #=============================================================================
-# Target rules for target libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir
+# Target rules for target third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir
 
 # All Build rule for target.
-libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/build.make libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/depend
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/build.make libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/build
+third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/build.make third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/depend
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/build.make third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=91,92,93,94,95,96,97,98,99 "Built target usrsctp"
-.PHONY : libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
+.PHONY : third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
 
 # Build rule for subdir invocation for target.
-libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/rule: cmake_check_build_system
+third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 9
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
-.PHONY : libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/rule
+.PHONY : third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/rule
 
 # Convenience name for target.
-usrsctp: libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/rule
+usrsctp: third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/rule
 .PHONY : usrsctp
 
 # clean rule for target.
-libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/clean:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/build.make libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/clean
-.PHONY : libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/clean
+third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/clean:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/build.make third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/clean
+.PHONY : third_party/libdatachannel/deps/usrsctp/usrsctplib/CMakeFiles/usrsctp.dir/clean
 
 #=============================================================================
-# Target rules for target libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir
+# Target rules for target third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir
 
 # All Build rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/depend
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/build
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/depend
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=83,84,85,86,87,88 "Built target srtp2"
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
 
 # Build rule for subdir invocation for target.
-libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/rule: cmake_check_build_system
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 6
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/rule
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/rule
 
 # Convenience name for target.
-srtp2: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/rule
+srtp2: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/rule
 .PHONY : srtp2
 
 # clean rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/clean:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/clean
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/clean
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/clean:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/clean
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/clean
 
 #=============================================================================
-# Target rules for target libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir
+# Target rules for target third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir
 
 # All Build rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/depend
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/build
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/depend
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=78 "Built target rtp_decoder"
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/all
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/all
 
 # Build rule for subdir invocation for target.
-libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/rule: cmake_check_build_system
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 7
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/rule
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/rule
 
 # Convenience name for target.
-rtp_decoder: libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/rule
+rtp_decoder: third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/rule
 .PHONY : rtp_decoder
 
 # clean rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/clean:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/clean
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/clean
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/clean:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/clean
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtp_decoder.dir/clean
 
 #=============================================================================
-# Target rules for target libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir
+# Target rules for target third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir
 
 # All Build rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/depend
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/build
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/depend
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=57 "Built target datatypes_driver"
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/all
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/all
 
 # Build rule for subdir invocation for target.
-libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/rule: cmake_check_build_system
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 7
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/rule
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/rule
 
 # Convenience name for target.
-datatypes_driver: libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/rule
+datatypes_driver: third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/rule
 .PHONY : datatypes_driver
 
 # clean rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/clean:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/clean
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/clean
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/clean:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/clean
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/datatypes_driver.dir/clean
 
 #=============================================================================
-# Target rules for target libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir
+# Target rules for target third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir
 
 # All Build rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/depend
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/build
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/depend
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=10 "Built target cipher_driver"
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/all
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/all
 
 # Build rule for subdir invocation for target.
-libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/rule: cmake_check_build_system
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 7
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/rule
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/rule
 
 # Convenience name for target.
-cipher_driver: libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/rule
+cipher_driver: third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/rule
 .PHONY : cipher_driver
 
 # clean rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/clean:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/clean
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/clean
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/clean:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/clean
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/cipher_driver.dir/clean
 
 #=============================================================================
-# Target rules for target libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir
+# Target rules for target third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir
 
 # All Build rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/depend
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/build
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/depend
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=73 "Built target kernel_driver"
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/all
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/all
 
 # Build rule for subdir invocation for target.
-libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/rule: cmake_check_build_system
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 7
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/rule
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/rule
 
 # Convenience name for target.
-kernel_driver: libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/rule
+kernel_driver: third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/rule
 .PHONY : kernel_driver
 
 # clean rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/clean:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/clean
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/clean
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/clean:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/clean
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/kernel_driver.dir/clean
 
 #=============================================================================
-# Target rules for target libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir
+# Target rules for target third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir
 
 # All Build rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/depend
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/build
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/depend
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=74,75 "Built target rdbx_driver"
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/all
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/all
 
 # Build rule for subdir invocation for target.
-libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/rule: cmake_check_build_system
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 8
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/rule
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/rule
 
 # Convenience name for target.
-rdbx_driver: libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/rule
+rdbx_driver: third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/rule
 .PHONY : rdbx_driver
 
 # clean rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/clean:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/clean
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/clean
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/clean:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/clean
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/rdbx_driver.dir/clean
 
 #=============================================================================
-# Target rules for target libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir
+# Target rules for target third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir
 
 # All Build rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/depend
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/build
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/depend
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=76 "Built target replay_driver"
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/all
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/all
 
 # Build rule for subdir invocation for target.
-libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/rule: cmake_check_build_system
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 7
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/rule
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/rule
 
 # Convenience name for target.
-replay_driver: libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/rule
+replay_driver: third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/rule
 .PHONY : replay_driver
 
 # clean rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/clean:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/clean
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/clean
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/clean:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/clean
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/replay_driver.dir/clean
 
 #=============================================================================
-# Target rules for target libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir
+# Target rules for target third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir
 
 # All Build rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/depend
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/build
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/depend
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=77 "Built target roc_driver"
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/all
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/all
 
 # Build rule for subdir invocation for target.
-libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/rule: cmake_check_build_system
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 7
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/rule
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/rule
 
 # Convenience name for target.
-roc_driver: libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/rule
+roc_driver: third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/rule
 .PHONY : roc_driver
 
 # clean rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/clean:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/clean
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/clean
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/clean:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/clean
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/roc_driver.dir/clean
 
 #=============================================================================
-# Target rules for target libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir
+# Target rules for target third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir
 
 # All Build rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/depend
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/build
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/depend
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=89,90 "Built target srtp_driver"
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/all
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/all
 
 # Build rule for subdir invocation for target.
-libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/rule: cmake_check_build_system
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 8
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/rule
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/rule
 
 # Convenience name for target.
-srtp_driver: libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/rule
+srtp_driver: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/rule
 .PHONY : srtp_driver
 
 # clean rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/clean:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/clean
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/clean
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/clean:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/clean
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp_driver.dir/clean
 
 #=============================================================================
-# Target rules for target libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir
+# Target rules for target third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir
 
 # All Build rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/depend
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/build
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/depend
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num= "Built target test_srtp"
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/all
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/all
 
 # Build rule for subdir invocation for target.
-libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/rule: cmake_check_build_system
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 6
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/rule
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/rule
 
 # Convenience name for target.
-test_srtp: libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/rule
+test_srtp: third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/rule
 .PHONY : test_srtp
 
 # clean rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/clean:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/clean
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/clean
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/clean:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/clean
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/test_srtp.dir/clean
 
 #=============================================================================
-# Target rules for target libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir
+# Target rules for target third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir
 
 # All Build rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/all: libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/depend
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/build
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/all: third_party/libdatachannel/deps/libsrtp/CMakeFiles/srtp2.dir/all
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/depend
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=79,80 "Built target rtpw"
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/all
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/all
 
 # Build rule for subdir invocation for target.
-libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/rule: cmake_check_build_system
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 8
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/rule
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/rule
 
 # Convenience name for target.
-rtpw: libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/rule
+rtpw: third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/rule
 .PHONY : rtpw
 
 # clean rule for target.
-libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/clean:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/build.make libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/clean
-.PHONY : libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/clean
+third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/clean:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/build.make third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/clean
+.PHONY : third_party/libdatachannel/deps/libsrtp/CMakeFiles/rtpw.dir/clean
 
 #=============================================================================
-# Target rules for target libdatachannel/deps/libjuice/CMakeFiles/juice.dir
+# Target rules for target third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir
 
 # All Build rule for target.
-libdatachannel/deps/libjuice/CMakeFiles/juice.dir/all:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libjuice/CMakeFiles/juice.dir/build.make libdatachannel/deps/libjuice/CMakeFiles/juice.dir/depend
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libjuice/CMakeFiles/juice.dir/build.make libdatachannel/deps/libjuice/CMakeFiles/juice.dir/build
+third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/all:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/build.make third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/depend
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/build.make third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=58,59,60,61,62,63,64 "Built target juice"
-.PHONY : libdatachannel/deps/libjuice/CMakeFiles/juice.dir/all
+.PHONY : third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/all
 
 # Build rule for subdir invocation for target.
-libdatachannel/deps/libjuice/CMakeFiles/juice.dir/rule: cmake_check_build_system
+third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 7
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/libjuice/CMakeFiles/juice.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
-.PHONY : libdatachannel/deps/libjuice/CMakeFiles/juice.dir/rule
+.PHONY : third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/rule
 
 # Convenience name for target.
-juice: libdatachannel/deps/libjuice/CMakeFiles/juice.dir/rule
+juice: third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/rule
 .PHONY : juice
 
 # clean rule for target.
-libdatachannel/deps/libjuice/CMakeFiles/juice.dir/clean:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libjuice/CMakeFiles/juice.dir/build.make libdatachannel/deps/libjuice/CMakeFiles/juice.dir/clean
-.PHONY : libdatachannel/deps/libjuice/CMakeFiles/juice.dir/clean
+third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/clean:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/build.make third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/clean
+.PHONY : third_party/libdatachannel/deps/libjuice/CMakeFiles/juice.dir/clean
 
 #=============================================================================
-# Target rules for target libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir
+# Target rules for target third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir
 
 # All Build rule for target.
-libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/all:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/build.make libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/depend
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/build.make libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/build
+third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/all:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/build.make third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/depend
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/build.make third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=65,66,67,68,69,70,71,72 "Built target juice-static"
-.PHONY : libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/all
+.PHONY : third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/all
 
 # Build rule for subdir invocation for target.
-libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/rule: cmake_check_build_system
+third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 8
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles 0
-.PHONY : libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/rule
+.PHONY : third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/rule
 
 # Convenience name for target.
-juice-static: libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/rule
+juice-static: third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/rule
 .PHONY : juice-static
 
 # clean rule for target.
-libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/clean:
-	$(MAKE) $(MAKESILENT) -f libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/build.make libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/clean
-.PHONY : libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/clean
+third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/clean:
+	$(MAKE) $(MAKESILENT) -f third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/build.make third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/clean
+.PHONY : third_party/libdatachannel/deps/libjuice/CMakeFiles/juice-static.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

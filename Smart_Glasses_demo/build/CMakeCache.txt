@@ -374,6 +374,9 @@ OPENSSL_SSL_LIBRARY:FILEPATH=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/s
 //The directory containing a CMake configuration file for OpenBLAS.
 OpenBLAS_DIR:PATH=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib32/cmake/openblas
 
+//The directory containing a CMake configuration file for OpenCV.
+OpenCV_DIR:PATH=OpenCV_DIR-NOTFOUND
+
 //Path to a file.
 PCAP_INCLUDE_DIR_TEMP:PATH=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include
 
@@ -417,13 +420,13 @@ SmartGlasses_IS_TOP_LEVEL:STATIC=ON
 SmartGlasses_SOURCE_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo
 
 //Value Computed by CMake
-SnowboyLib_BINARY_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/3rdparty/snowboy
+SnowboyLib_BINARY_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/third_party/snowboy
 
 //Value Computed by CMake
 SnowboyLib_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
-SnowboyLib_SOURCE_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/3rdparty/snowboy
+SnowboyLib_SOURCE_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/snowboy
 
 //Use GnuTLS instead of OpenSSL
 USE_GNUTLS:BOOL=OFF
@@ -459,37 +462,37 @@ WARNINGS_AS_ERRORS:BOOL=OFF
 WEBSOCKETPP_DIR:PATH=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib32/cmake/websocketpp
 
 //Dependencies for the target
-app_LIB_DEPENDS:STATIC=general;opencv_core;general;opencv_features2d;general;opencv_highgui;general;opencv_imgproc;general;opencv_photo;general;opencv_video;general;samplerate;general;speexdsp;
+app_LIB_DEPENDS:STATIC=general;opencv_core;general;opencv_features2d;general;opencv_highgui;general;opencv_imgproc;general;opencv_photo;general;opencv_video;general;speexdsp;
 
 //Dependencies for the target
 common_LIB_DEPENDS:STATIC=general;opencv_core;general;opencv_features2d;general;opencv_highgui;general;opencv_imgproc;general;opencv_photo;general;opencv_video;
 
 //Value Computed by CMake
-libdatachannel_BINARY_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel
+libdatachannel_BINARY_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/third_party/libdatachannel
 
 //Value Computed by CMake
 libdatachannel_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
-libdatachannel_SOURCE_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel
+libdatachannel_SOURCE_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel
 
 //Value Computed by CMake
-libjuice_BINARY_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/deps/libjuice
+libjuice_BINARY_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/third_party/libdatachannel/deps/libjuice
 
 //Value Computed by CMake
 libjuice_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
-libjuice_SOURCE_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/deps/libjuice
+libjuice_SOURCE_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/deps/libjuice
 
 //Value Computed by CMake
-libsrtp2_BINARY_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/deps/libsrtp
+libsrtp2_BINARY_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/third_party/libdatachannel/deps/libsrtp
 
 //Value Computed by CMake
 libsrtp2_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
-libsrtp2_SOURCE_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/deps/libsrtp
+libsrtp2_SOURCE_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/deps/libsrtp
 
 //Path to a library.
 pkgcfg_lib_CURL_crypto:FILEPATH=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so
@@ -528,22 +531,22 @@ pkgcfg_lib__OPENSSL_crypto:FILEPATH=/home/irex/WorkSpace/Smart_Glasses/SDK/rv110
 pkgcfg_lib__OPENSSL_ssl:FILEPATH=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libssl.so
 
 //Value Computed by CMake
-plog_BINARY_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/deps/plog
+plog_BINARY_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/third_party/libdatachannel/deps/plog
 
 //Value Computed by CMake
 plog_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
-plog_SOURCE_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/deps/plog
+plog_SOURCE_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/deps/plog
 
 //Value Computed by CMake
-rknn_model_zoo_3rdparty_libs_BINARY_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/3rdparty
+rknn_model_zoo_3rdparty_libs_BINARY_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/third_party
 
 //Value Computed by CMake
 rknn_model_zoo_3rdparty_libs_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
-rknn_model_zoo_3rdparty_libs_SOURCE_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/3rdparty
+rknn_model_zoo_3rdparty_libs_SOURCE_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party
 
 //Compile in clang fuzzing mode
 sctp_build_fuzzer:BOOL=OFF
@@ -579,16 +582,16 @@ sctp_werror:BOOL=OFF
 snowboy-detect-c-wrapper_LIB_DEPENDS:STATIC=general;snowboy;
 
 //Dependencies for the target
-snowboy_LIB_DEPENDS:STATIC=general;/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/3rdparty/snowboy/lib/rpi/libsnowboy-detect.a;general;/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libopenblas.so;general;/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libopenblas.so;
+snowboy_LIB_DEPENDS:STATIC=general;/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/snowboy/lib/rpi/libsnowboy-detect.a;general;/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libopenblas.so;general;/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libopenblas.so;
 
 //Value Computed by CMake
-usrsctplib_BINARY_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/libdatachannel/deps/usrsctp
+usrsctplib_BINARY_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/third_party/libdatachannel/deps/usrsctp
 
 //Value Computed by CMake
 usrsctplib_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
-usrsctplib_SOURCE_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/libdatachannel/deps/usrsctp
+usrsctplib_SOURCE_DIR:STATIC=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/libdatachannel/deps/usrsctp
 
 
 ########################
@@ -806,7 +809,7 @@ CURL_libcurl_LIBDIR:INTERNAL=
 CURL_libcurl_PREFIX:INTERNAL=
 CURL_libcurl_VERSION:INTERNAL=
 //Details about finding OpenCV
-FIND_PACKAGE_MESSAGE_DETAILS_OpenCV:INTERNAL=[/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/opencv_rv1106_410][v4.10.0()]
+FIND_PACKAGE_MESSAGE_DETAILS_OpenCV:INTERNAL=[/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/third_party/opencv_rv1106_410][v4.10.0()]
 //Details about finding OpenSSL
 FIND_PACKAGE_MESSAGE_DETAILS_OpenSSL:INTERNAL=[/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib/libcrypto.so][/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include][c ][v1.1.1v()]
 //Details about finding PCAP

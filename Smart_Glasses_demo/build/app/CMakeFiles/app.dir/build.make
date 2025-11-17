@@ -153,33 +153,33 @@ app/CMakeFiles/app.dir/chatbot/mcp/mcp_tool/mcp_tool.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/app.dir/chatbot/mcp/mcp_tool/mcp_tool.cc.s"
 	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/mcp/mcp_tool/mcp_tool.cc -o CMakeFiles/app.dir/chatbot/mcp/mcp_tool/mcp_tool.cc.s
 
-app/CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.o: app/CMakeFiles/app.dir/flags.make
-app/CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.o: ../app/chatbot/protocol_handle/handle.cc
-app/CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.o: app/CMakeFiles/app.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object app/CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.o"
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT app/CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.o -MF CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.o.d -o CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/protocol_handle/handle.cc
+app/CMakeFiles/app.dir/chatbot/protocol_handle/protocol_handle.cc.o: app/CMakeFiles/app.dir/flags.make
+app/CMakeFiles/app.dir/chatbot/protocol_handle/protocol_handle.cc.o: ../app/chatbot/protocol_handle/protocol_handle.cc
+app/CMakeFiles/app.dir/chatbot/protocol_handle/protocol_handle.cc.o: app/CMakeFiles/app.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object app/CMakeFiles/app.dir/chatbot/protocol_handle/protocol_handle.cc.o"
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT app/CMakeFiles/app.dir/chatbot/protocol_handle/protocol_handle.cc.o -MF CMakeFiles/app.dir/chatbot/protocol_handle/protocol_handle.cc.o.d -o CMakeFiles/app.dir/chatbot/protocol_handle/protocol_handle.cc.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/protocol_handle/protocol_handle.cc
 
-app/CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.i"
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/protocol_handle/handle.cc > CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.i
+app/CMakeFiles/app.dir/chatbot/protocol_handle/protocol_handle.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/app.dir/chatbot/protocol_handle/protocol_handle.cc.i"
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/protocol_handle/protocol_handle.cc > CMakeFiles/app.dir/chatbot/protocol_handle/protocol_handle.cc.i
 
-app/CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.s"
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/protocol_handle/handle.cc -o CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.s
+app/CMakeFiles/app.dir/chatbot/protocol_handle/protocol_handle.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/app.dir/chatbot/protocol_handle/protocol_handle.cc.s"
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/protocol_handle/protocol_handle.cc -o CMakeFiles/app.dir/chatbot/protocol_handle/protocol_handle.cc.s
 
-app/CMakeFiles/app.dir/chatbot/statemachine/machine.cc.o: app/CMakeFiles/app.dir/flags.make
-app/CMakeFiles/app.dir/chatbot/statemachine/machine.cc.o: ../app/chatbot/statemachine/machine.cc
-app/CMakeFiles/app.dir/chatbot/statemachine/machine.cc.o: app/CMakeFiles/app.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object app/CMakeFiles/app.dir/chatbot/statemachine/machine.cc.o"
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT app/CMakeFiles/app.dir/chatbot/statemachine/machine.cc.o -MF CMakeFiles/app.dir/chatbot/statemachine/machine.cc.o.d -o CMakeFiles/app.dir/chatbot/statemachine/machine.cc.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/statemachine/machine.cc
+app/CMakeFiles/app.dir/chatbot/statemachine/statemachine.cc.o: app/CMakeFiles/app.dir/flags.make
+app/CMakeFiles/app.dir/chatbot/statemachine/statemachine.cc.o: ../app/chatbot/statemachine/statemachine.cc
+app/CMakeFiles/app.dir/chatbot/statemachine/statemachine.cc.o: app/CMakeFiles/app.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object app/CMakeFiles/app.dir/chatbot/statemachine/statemachine.cc.o"
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT app/CMakeFiles/app.dir/chatbot/statemachine/statemachine.cc.o -MF CMakeFiles/app.dir/chatbot/statemachine/statemachine.cc.o.d -o CMakeFiles/app.dir/chatbot/statemachine/statemachine.cc.o -c /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/statemachine/statemachine.cc
 
-app/CMakeFiles/app.dir/chatbot/statemachine/machine.cc.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/app.dir/chatbot/statemachine/machine.cc.i"
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/statemachine/machine.cc > CMakeFiles/app.dir/chatbot/statemachine/machine.cc.i
+app/CMakeFiles/app.dir/chatbot/statemachine/statemachine.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/app.dir/chatbot/statemachine/statemachine.cc.i"
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/statemachine/statemachine.cc > CMakeFiles/app.dir/chatbot/statemachine/statemachine.cc.i
 
-app/CMakeFiles/app.dir/chatbot/statemachine/machine.cc.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/app.dir/chatbot/statemachine/machine.cc.s"
-	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/statemachine/machine.cc -o CMakeFiles/app.dir/chatbot/statemachine/machine.cc.s
+app/CMakeFiles/app.dir/chatbot/statemachine/statemachine.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/app.dir/chatbot/statemachine/statemachine.cc.s"
+	cd /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/build/app && /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-g++ --sysroot=/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/arm-buildroot-linux-uclibcgnueabihf/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/chatbot/statemachine/statemachine.cc -o CMakeFiles/app.dir/chatbot/statemachine/statemachine.cc.s
 
 app/CMakeFiles/app.dir/chatbot/wakeword/wakeword.cc.o: app/CMakeFiles/app.dir/flags.make
 app/CMakeFiles/app.dir/chatbot/wakeword/wakeword.cc.o: ../app/chatbot/wakeword/wakeword.cc
@@ -427,8 +427,8 @@ app_OBJECTS = \
 "CMakeFiles/app.dir/chatbot/chatbot.cc.o" \
 "CMakeFiles/app.dir/chatbot/mcp/mcp.cc.o" \
 "CMakeFiles/app.dir/chatbot/mcp/mcp_tool/mcp_tool.cc.o" \
-"CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.o" \
-"CMakeFiles/app.dir/chatbot/statemachine/machine.cc.o" \
+"CMakeFiles/app.dir/chatbot/protocol_handle/protocol_handle.cc.o" \
+"CMakeFiles/app.dir/chatbot/statemachine/statemachine.cc.o" \
 "CMakeFiles/app.dir/chatbot/wakeword/wakeword.cc.o" \
 "CMakeFiles/app.dir/media/audio/audio.cc.o" \
 "CMakeFiles/app.dir/media/camera/camera.cc.o" \
@@ -456,8 +456,8 @@ app/libapp.a: app/CMakeFiles/app.dir/chatbot/activation/activation.cc.o
 app/libapp.a: app/CMakeFiles/app.dir/chatbot/chatbot.cc.o
 app/libapp.a: app/CMakeFiles/app.dir/chatbot/mcp/mcp.cc.o
 app/libapp.a: app/CMakeFiles/app.dir/chatbot/mcp/mcp_tool/mcp_tool.cc.o
-app/libapp.a: app/CMakeFiles/app.dir/chatbot/protocol_handle/handle.cc.o
-app/libapp.a: app/CMakeFiles/app.dir/chatbot/statemachine/machine.cc.o
+app/libapp.a: app/CMakeFiles/app.dir/chatbot/protocol_handle/protocol_handle.cc.o
+app/libapp.a: app/CMakeFiles/app.dir/chatbot/statemachine/statemachine.cc.o
 app/libapp.a: app/CMakeFiles/app.dir/chatbot/wakeword/wakeword.cc.o
 app/libapp.a: app/CMakeFiles/app.dir/media/audio/audio.cc.o
 app/libapp.a: app/CMakeFiles/app.dir/media/camera/camera.cc.o

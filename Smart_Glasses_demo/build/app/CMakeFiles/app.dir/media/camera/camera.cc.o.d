@@ -612,5 +612,5 @@ app/CMakeFiles/app.dir/media/camera/camera.cc.o: \
  /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/media/camera/../../tool/log/log.hpp \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstdarg \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/cstring \
- /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/media/camera/../media_config.h \
+ /home/irex/WorkSpace/Smart_Glasses/Demo/Smart_Glasses_demo/app/media/camera/../media_config.hpp \
  /home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/include/c++/8.3.0/algorithm
