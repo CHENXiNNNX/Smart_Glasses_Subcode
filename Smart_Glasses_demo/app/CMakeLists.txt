@@ -13,7 +13,7 @@ file(GLOB_RECURSE APP_SOURCES
 add_library(app STATIC ${APP_SOURCES})
 
 # opencv 依赖
-set(OpenCV_DIR "${PROJECT_SOURCE_DIR}/opencv_rv1106_410/lib/cmake/opencv4")
+set(OpenCV_DIR "${PROJECT_SOURCE_DIR}/third_party/opencv_rv1106_410/lib/cmake/opencv4")
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 target_link_libraries(app ${OpenCV_LIBS})
@@ -62,8 +62,8 @@ target_include_directories(app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/tool/mac
     ${CMAKE_CURRENT_SOURCE_DIR}/tool/memory
     # libdatachannel headers
-    ${PROJECT_SOURCE_DIR}/libdatachannel/include
-    ${PROJECT_SOURCE_DIR}/libdatachannel/deps/json/single_include
+    ${PROJECT_SOURCE_DIR}/third_party/libdatachannel/include
+    ${PROJECT_SOURCE_DIR}/third_party/libdatachannel/deps/json/single_include
     ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/rockit/out/include
     ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/isp/out/include
     ${PROJECT_SOURCE_DIR}/../../SDK/rv1106-sdk/media/isp/out/include/rkaiq

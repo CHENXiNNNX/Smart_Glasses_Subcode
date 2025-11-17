@@ -1,0 +1,122 @@
+# clang-tidy 配置文件
+# 用于检查代码风格和命名规范
+
+# 启用检查项
+Checks: >
+  readability-*,
+  -readability-uppercase-literal-suffix,
+  -readability-identifier-length,
+  -readability-redundant-access-specifiers,
+  -readability-implicit-bool-conversion,
+  -readability-convert-member-functions-to-static,
+  misc-*,
+  -misc-non-private-member-variables-in-classes,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  -modernize-use-default-member-init,
+  -modernize-use-nodiscard,
+  -modernize-concat-nested-namespaces,
+  -modernize-avoid-c-arrays,
+  -modernize-return-braced-init-list,
+  performance-*,
+  cppcoreguidelines-*,
+  -cppcoreguidelines-macro-usage,
+  -cppcoreguidelines-special-member-functions,
+  -cppcoreguidelines-avoid-c-arrays,
+  -cppcoreguidelines-pro-type-vararg,
+  -cppcoreguidelines-pro-type-member-init,
+  -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -cppcoreguidelines-narrowing-conversions,
+  bugprone-*,
+  -bugprone-narrowing-conversions,
+  -bugprone-easily-swappable-parameters
+
+# 禁用某些检查（避免与项目规范冲突）
+WarningsAsErrors: ''
+
+# 命名规范检查配置
+CheckOptions:
+  # 变量命名：下划线命名法（snake_case）
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+  - key: readability-identifier-naming.VariableIgnoredRegexp
+    value: '^(dir|entry|c|i|j|k)$'  # 允许标准库类型和循环计数器
+  
+  # 函数命名：驼峰命名法
+  - key: readability-identifier-naming.FunctionCase
+    value: camelBack
+  - key: readability-identifier-naming.FunctionIgnoredRegexp
+    value: '^(main|s_.*)$'  # 允许 main 函数和静态函数 s_ 前缀
+  
+  # 静态函数命名：下划线命名法 + s_ 前缀
+  - key: readability-identifier-naming.StaticFunctionCase
+    value: lower_case
+  
+  # 常量命名：全大写+下划线（UPPER_SNAKE_CASE）
+  - key: readability-identifier-naming.ConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.ConstantMemberCase
+    value: UPPER_CASE
+  
+  # 宏定义：全大写+下划线
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE
+  
+  # 类型定义：下划线命名法 + _t 后缀
+  - key: readability-identifier-naming.TypedefCase
+    value: lower_case
+  - key: readability-identifier-naming.TypedefIgnoredRegexp
+    value: '.*_t$'
+  
+  # 类名：驼峰命名法，首字母大写（PascalCase）
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  
+  # 结构体：驼峰命名法（PascalCase）
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  
+  # 枚举：驼峰命名法（PascalCase）
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+  
+  # 枚举值：全大写+下划线
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
+  
+  # 全局变量：下划线命名法 + g_ 前缀
+  - key: readability-identifier-naming.GlobalVariableCase
+    value: lower_case
+  - key: readability-identifier-naming.GlobalVariableIgnoredRegexp
+    value: '^g_.*'
+  
+  # 静态变量：下划线命名法 + s_ 前缀
+  - key: readability-identifier-naming.StaticVariableCase
+    value: lower_case
+  - key: readability-identifier-naming.StaticVariableIgnoredRegexp
+    value: '^s_.*'
+  
+  # 成员变量：下划线后缀
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
+  - key: readability-identifier-naming.MemberIgnoredRegexp
+    value: '.*_$'  # 允许下划线后缀
+  
+  # 参数命名：下划线命名法
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  
+  # 命名空间：小写+下划线
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case
+  
+  # 魔法数字检查
+  - key: readability-magic-numbers.IgnoredNumbers
+    value: '0,1,2,3,4,5,6,7,8,9,10,16,32,64,100,256,512,1024,4096,8192'
+  - key: readability-magic-numbers.IgnorePowersOf2Integer
+    value: true
+
+# 头文件过滤器
+HeaderFilterRegex: '.*'
+

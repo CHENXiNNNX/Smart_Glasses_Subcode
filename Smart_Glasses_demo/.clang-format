@@ -1,0 +1,39 @@
+# 基于 LLVM 默认风格，后续选项逐条覆盖
+BasedOnStyle: LLVM
+
+# 设置缩进与制表符策略
+IndentWidth: 4              # 每级缩进 4 个空格
+TabWidth: 4                 # Tab 视作 4 个空格宽度
+UseTab: Never               # 始终使用空格，不生成实际制表符
+
+# 大括号与短语句拆分
+BreakBeforeBraces: Allman   # 大括号置于新行（Allman 风格）
+AllowShortFunctionsOnASingleLine: Empty  # 仅允许空函数体保持单行
+AllowShortIfStatementsOnASingleLine: Never  # if 语句强制换行
+AllowShortLoopsOnASingleLine: False         # 循环体强制换行
+
+# 行宽和指针对齐
+ColumnLimit: 100            # 最大行宽 100 列
+PointerAlignment: Left      # 指针星号靠左，紧随类型
+
+# 括号与空格处理
+SpaceBeforeParens: ControlStatements  # 控制语句前留空格，函数调用无空格
+SpacesInParentheses: false            # 括号内不留空格
+SpacesInAngles: false                 # 模板尖括号内不留空格
+
+# 对齐策略
+AlignOperands: Align                  # 跨行运算符对齐
+AlignConsecutiveAssignments: Consecutive    # 连续赋值对齐等号
+AlignConsecutiveDeclarations: Consecutive   # 连续声明按列对齐
+
+# 命名空间与访问控制缩进
+NamespaceIndentation: All           # 命名空间内部整体缩进
+AccessModifierOffset: -4            # public/private 等左移 4 个空格
+
+# include 排序与分组
+SortIncludes: false                 # 不自动排序头文件
+IncludeBlocks: Preserve             # 保留 header 分组空行
+
+# 其它
+DerivePointerAlignment: false       # 不从现有代码推导星号位置
+

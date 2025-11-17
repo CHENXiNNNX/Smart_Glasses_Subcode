@@ -1,3 +1,7 @@
-./Smart_Glasses_demo/bin
-./Smart_Glasses_demo/build
+# 构建输出目录
+Smart_Glasses_demo/build/
+Smart_Glasses_demo/bin/
 
+# 或者使用通配符匹配所有 build 和 bin 目录
+# */build/
+# */bin/

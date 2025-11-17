@@ -67,8 +67,8 @@ set(OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 add_subdirectory(utils)          # 公共工具模块
 add_subdirectory(common)         # 通用组件模块
 add_subdirectory(app)            # 应用核心模块
-add_subdirectory(3rdparty)       # 第三方库模块
-add_subdirectory(libdatachannel) # WebRTC网络通信库
+add_subdirectory(third_party)    # 第三方库模块
+add_subdirectory(third_party/libdatachannel) # WebRTC网络通信库
 
 # 定义主程序源文件
 set(MAIN_SOURCES main.cpp)
@@ -147,19 +147,19 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_PATH}/third_party/snowboy/resources/models
     COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_PATH}/third_party/audio
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/snowboy/resources/common.res
+            ${CMAKE_CURRENT_SOURCE_DIR}/third_party/snowboy/resources/common.res
             ${OUTPUT_PATH}/third_party/snowboy/resources/common.res
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/snowboy/resources/models/xiaozhi.pmdl
+            ${CMAKE_CURRENT_SOURCE_DIR}/third_party/snowboy/resources/models/xiaozhi.pmdl
             ${OUTPUT_PATH}/third_party/snowboy/resources/models/xiaozhi.pmdl
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/audio/waked.pcm
+            ${CMAKE_CURRENT_SOURCE_DIR}/third_party/audio/waked.pcm
             ${OUTPUT_PATH}/third_party/audio/waked.pcm
     COMMENT "Copying AI Chat necessary resource files to executable output directory"
 )
 
 # opencv配置
-set(OpenCV_DIR "${CMAKE_CURRENT_SOURCE_DIR}/opencv_rv1106_410/lib/cmake/opencv4")
+set(OpenCV_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/opencv_rv1106_410/lib/cmake/opencv4")
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 target_link_libraries(main ${OpenCV_LIBS})
@@ -252,7 +252,7 @@ target_link_libraries(main
 # ================== JSON 库配置 ==================
 # 使用 libdatachannel 自带的 json 库
 target_include_directories(main PRIVATE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/libdatachannel/deps/json/single_include
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libdatachannel/deps/json/single_include
 )
 
 # ================== libdatachannel WebRTC 配置 ==================
