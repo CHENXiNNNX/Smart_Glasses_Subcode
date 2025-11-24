@@ -191,7 +191,7 @@ typedef struct {
 	const char *bindAddress; // libjuice only, NULL means any
 	rtcCertificateType certificateType;
 	rtcTransportPolicy iceTransportPolicy;
-	bool enableIceTcp;    // libnice only
+	bool enableIceTcp;
 	bool enableIceUdpMux; // libjuice only
 	bool disableAutoNegotiation;
 	bool forceMediaTransport;
@@ -352,6 +352,14 @@ typedef struct {
 	uint8_t playoutDelayId;
 	uint16_t playoutDelayMin;
 	uint16_t playoutDelayMax;
+
+	uint8_t colorSpaceId;
+	uint8_t colorChromaSitingHorz;
+	uint8_t colorChromaSitingVert;
+	uint8_t colorRange;
+	uint8_t colorPrimaries;
+	uint8_t colorTransfer;
+	uint8_t colorMatrix;
 } rtcPacketizerInit;
 
 // Deprecated, do not use

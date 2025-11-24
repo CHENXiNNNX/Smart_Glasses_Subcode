@@ -106,7 +106,7 @@ Arguments:
   - `bindAddress` (optional): if non-NULL, bind only to the given local address (ignored with libnice as ICE backend)
   - `certificateType` (optional): certificate type, either `RTC_CERTIFICATE_ECDSA` or `RTC_CERTIFICATE_RSA` (0 or `RTC_CERTIFICATE_DEFAULT` if default)
   - `iceTransportPolicy` (optional): ICE transport policy, if set to `RTC_TRANSPORT_POLICY_RELAY`, the PeerConnection will emit only relayed candidates (0 or `RTC_TRANSPORT_POLICY_ALL` if default)
-  - `enableIceTcp`: if true, generate TCP candidates for ICE (ignored with libjuice as ICE backend)
+  - `enableIceTcp`: if true, generate TCP candidates for ICE
   - `enableIceUdpMux`: if true, connections are multiplexed on the same UDP port (should be combined with `portRangeBegin` and `portRangeEnd`, ignored with libnice as ICE backend)
   - `disableAutoNegotiation`: if true, the user is responsible for calling `rtcSetLocalDescription` after creating a Data Channel and after setting the remote description
   - `forceMediaTransport`: if true, the connection allocates the SRTP media transport even if no tracks are present (necessary to add tracks during later renegotiation)
@@ -872,6 +872,7 @@ int rtcCreateWebSocketEx(const char *url, const rtcWsConfiguration *config)
 
 typedef struct {
 	bool disableTlsVerification;
+	const char *proxyServer;
 	const char **protocols;
 	int protocolsCount;
 	int connectionTimeoutMs;
@@ -887,6 +888,7 @@ Arguments:
 - `url`: a null-terminated string representing the fully-qualified URL to open.
 - `config`: a structure with the following parameters:
   - `disableTlsVerification`: if true, don't verify the TLS certificate, else try to verify it if possible
+  - `proxyServer` (optional): address of proxy server as string, only non-authenticated HTTP for now (NULL if unused)
   - `protocols` (optional): an array of pointers on null-terminated protocol names (NULL if unused)
   - `protocolsCount` (optional): number of URLs in the array pointed by `protocols` (0 if unused)
   - `connectionTimeoutMs` (optional): connection timeout in milliseconds (0 if default, < 0 if disabled)

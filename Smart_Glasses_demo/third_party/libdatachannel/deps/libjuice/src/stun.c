@@ -1049,6 +1049,7 @@ int stun_read_value_mapped_address(const void *data, size_t size, addr_record_t 
 		}
 		JLOG_VERBOSE("Reading IPv4 address");
 		mapped->len = sizeof(struct sockaddr_in);
+		mapped->socktype = SOCK_DGRAM;
 		struct sockaddr_in *sin = (struct sockaddr_in *)&mapped->addr;
 		sin->sin_family = AF_INET;
 		sin->sin_port = value->port ^ *((uint16_t *)mask);
@@ -1065,6 +1066,7 @@ int stun_read_value_mapped_address(const void *data, size_t size, addr_record_t 
 		}
 		JLOG_VERBOSE("Reading IPv6 address");
 		mapped->len = sizeof(struct sockaddr_in6);
+		mapped->socktype = SOCK_DGRAM;
 		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&mapped->addr;
 		sin6->sin6_family = AF_INET6;
 		sin6->sin6_port = value->port ^ *((uint16_t *)mask);
@@ -1247,4 +1249,8 @@ JUICE_EXPORT int _juice_stun_read(void *data, size_t size, stun_message_t *msg) 
 JUICE_EXPORT bool _juice_stun_check_integrity(void *buf, size_t size, const stun_message_t *msg,
                                               const char *password) {
 	return stun_check_integrity(buf, size, msg, password);
+}
+
+JUICE_EXPORT int _juice_stun_write(void *buf, size_t size, const stun_message_t *msg, const char *password) {
+	return stun_write(buf, size, msg, password);
 }

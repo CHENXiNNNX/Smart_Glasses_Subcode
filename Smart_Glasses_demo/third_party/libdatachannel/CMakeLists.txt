@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.13)
 project(libdatachannel
-	VERSION 0.23.2
+	VERSION 0.24.0
 	LANGUAGES CXX)
 set(PROJECT_DESCRIPTION "C/C++ WebRTC network library featuring Data Channels, Media Transport, and WebSockets")
 
 include(GNUInstallDirs)
 
 # Options
-option(BUILD_SHARED_LIBS "Build shared library" OFF)
+option(BUILD_SHARED_LIBS "Build shared library" ON)
 option(BUILD_SHARED_DEPS_LIBS "Build submodules as shared libraries" OFF)
 option(USE_GNUTLS "Use GnuTLS instead of OpenSSL" OFF)
 option(USE_MBEDTLS "Use Mbed TLS instead of OpenSSL" OFF)
@@ -466,7 +466,7 @@ else()
 	target_compile_definitions(datachannel PRIVATE USE_NICE=0)
 	target_compile_definitions(datachannel-static PRIVATE USE_NICE=0)
 	if(USE_SYSTEM_JUICE)
-		find_package(LibJuice REQUIRED)
+		find_package(LibJuice 1.7.0 REQUIRED)
 		target_compile_definitions(datachannel PRIVATE RTC_SYSTEM_JUICE=1)
 		target_compile_definitions(datachannel-static PRIVATE RTC_SYSTEM_JUICE=1)
 		target_link_libraries(datachannel PRIVATE LibJuice::LibJuice)
@@ -515,9 +515,9 @@ install(TARGETS datachannel EXPORT LibDataChannelTargets
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-if(MSVC)
-	install(FILES $<TARGET_PDB_FILE:datachannel>
-    DESTINATION ${CMAKE_INSTALL_BINDIR} OPTIONAL)
+if(MSVC AND BUILD_SHARED_LIBS)
+    install(FILES $<TARGET_PDB_FILE:datachannel>
+        DESTINATION ${CMAKE_INSTALL_BINDIR} OPTIONAL)
 endif()
 
 install(FILES ${LIBDATACHANNEL_HEADERS}
