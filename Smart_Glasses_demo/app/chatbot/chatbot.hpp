@@ -7,14 +7,23 @@
 #include <atomic>
 #include <cstdint>
 
-#include <../media/audio/audio.hpp>
-#include <../network/wifi/wifi.hpp>
-#include <../tool/memory/mem_pool.hpp>
 #include "activation/activation.hpp"
 #include "wakeword/wakeword.hpp"
 #include "mcp/mcp.hpp"
 #include "protocol_handle/protocol_handle.hpp"
-#include <../protocol/websocket/websocket.hpp>
+#include "../protocol/websocket/websocket.hpp"
+
+// 前向声明（避免循环依赖）
+namespace app {
+namespace media {
+namespace audio {
+class AudioSystem;
+}
+namespace camera {
+class VideoSystem;
+}
+}
+}
 
 namespace app
 {
@@ -23,14 +32,16 @@ namespace app
 
         /**
          * @brief Chatbot系统状态
+         * 
+         * 状态转换流程：
+         * UNINITIALIZED -> INITIALIZING -> ACTIVATING -> ACTIVATED -> READY 
+         *   -> CONNECTING -> LISTENING -> SPEAKING -> READY (循环)
+         *   -> ERROR (任何阶段) / CLOSED (关闭时)
          */
         enum class ChatbotState
         {
             UNINITIALIZED = 0,   // 未初始化（初始状态）
-            INITIALIZING,        // 正在初始化（硬件+WiFi管理器）
-            NETWORK_CHECKING,    // 检查网络连接（检测WiFi是否已连接）
-            NETWORK_CONFIGURING, // 网络配置中（扫描+连接WiFi，如果未连接）
-            NETWORK_CONNECTED,   // 网络已连接（WiFi连接成功）
+            INITIALIZING,        // 正在初始化（激活管理器、MCP、唤醒词检测器）
             ACTIVATING,          // 激活中（检查激活状态+轮询）
             ACTIVATED,           // 已激活（设备激活成功）
             READY,               // 就绪（等待唤醒词，可以开始AI对话）
@@ -52,15 +63,7 @@ namespace app
             // 初始化阶段错误
             // ============================================================
             INITIALIZATION_FAILED, // 初始化失败
-            AUDIO_SYSTEM_ERROR,    // 音频系统错误
-            WIFI_MANAGER_ERROR,    // WiFi管理器错误
-
-            // ============================================================
-            // 网络阶段错误
-            // ============================================================
-            NETWORK_ERROR,    // 网络错误（WiFi连接/配置失败）
-            INVALID_PASSWORD, // 无效的密码
-            NETWORK_TIMEOUT,  // 网络超时
+            AUDIO_SYSTEM_ERROR,    // 音频系统错误（未设置或操作失败）
 
             // ============================================================
             // 激活阶段错误
@@ -77,8 +80,7 @@ namespace app
             // ============================================================
             // 运行时错误
             // ============================================================
-            CONNECTION_FAILED,    // AI服务器连接失败
-            NETWORK_DISCONNECTED, // 网络断开
+            CONNECTION_FAILED, // AI服务器连接失败
 
             // ============================================================
             // 通用错误
@@ -94,13 +96,6 @@ namespace app
          */
         struct ChatbotConfig
         {
-            // ============================================================
-            // 音频配置
-            // ============================================================
-            int sample_rate       = 48000; // 采样率
-            int channels          = 1;     // 声道数
-            int frame_duration_ms = 20;    // 帧时长（毫秒）
-
             // ============================================================
             // 服务器配置
             // ============================================================
@@ -146,24 +141,20 @@ namespace app
             ChatbotConfig config_;
 
             // 核心模块（智能指针管理）
-            std::unique_ptr<app::media::audio::AudioSystem>                 audio_system_;
-            std::unique_ptr<app::network::wifi::WifiManager>                wifi_manager_;
             std::unique_ptr<activation::DeviceActivation>                   activation_manager_;
             std::unique_ptr<mcp::McpServer>                                 mcp_server_;
             std::unique_ptr<app::chatbot::protocol_handle::ProtocolHandler> protocol_handler_;
             std::unique_ptr<app::protocol::websocket::WebSocketClient>      ws_client_;
             std::unique_ptr<wakeword::WakewordDetector>                     wakeword_detector_;
 
+            // 外部注入的音频系统（不由 ChatbotSystem 管理生命周期）
+            app::media::audio::AudioSystem* audio_system_{nullptr};
+
+            // 外部注入的视频系统（不由 ChatbotSystem 管理生命周期）
+            app::media::camera::VideoSystem* video_system_{nullptr};
+
             // 状态
             std::atomic<ChatbotState> state_{ChatbotState::UNINITIALIZED};
-
-            // 初始化和释放接口
-            ChatbotError initializeAudio();   // 初始化音频系统
-            ChatbotError deinitializeAudio(); // 释放音频系统
-
-            // WiFi管理器初始化和释放
-            ChatbotError initializeWiFi();   // 初始化wifi系统
-            ChatbotError deinitializeWiFi(); // 释放wifi系统
 
             // 激活管理
             ChatbotError getDeviceId(); // 初始化设备信息（如果配置为空则自动获取）
@@ -201,13 +192,11 @@ namespace app
             ChatbotError open();
             void         close();
 
-            // 网络管理
-            ChatbotError initializeNetwork();  // 初始化网络(initializeWiFi将在这里调用)
-            ChatbotError checkNetwork();       // 检查网络连接情况
-            ChatbotError connectNetwork();     // 连接网络
-            ChatbotError disconnectNetwork();  // 断开网络
-            ChatbotError searchSavedNetwork(); // 查询已保存的网络信息
-            ChatbotError forgetNetwork(const std::string& ssid); // 忘记已保存的网络
+            // 设置外部音频系统（必须在 open() 之前调用）
+            void setAudioSystem(app::media::audio::AudioSystem* audio_system);
+
+            // 设置外部视频系统（必须在 open() 之前调用）
+            void setVideoSystem(app::media::camera::VideoSystem* video_system);
 
             // 状态查询
             ChatbotState getState() const;
@@ -229,12 +218,6 @@ namespace app
                 return "UNINITIALIZED";
             case ChatbotState::INITIALIZING:
                 return "INITIALIZING";
-            case ChatbotState::NETWORK_CHECKING:
-                return "NETWORK_CHECKING";
-            case ChatbotState::NETWORK_CONFIGURING:
-                return "NETWORK_CONFIGURING";
-            case ChatbotState::NETWORK_CONNECTED:
-                return "NETWORK_CONNECTED";
             case ChatbotState::ACTIVATING:
                 return "ACTIVATING";
             case ChatbotState::ACTIVATED:
@@ -269,14 +252,6 @@ namespace app
                 return "INITIALIZATION_FAILED";
             case ChatbotError::AUDIO_SYSTEM_ERROR:
                 return "AUDIO_SYSTEM_ERROR";
-            case ChatbotError::WIFI_MANAGER_ERROR:
-                return "WIFI_MANAGER_ERROR";
-            case ChatbotError::NETWORK_ERROR:
-                return "NETWORK_ERROR";
-            case ChatbotError::INVALID_PASSWORD:
-                return "INVALID_PASSWORD";
-            case ChatbotError::NETWORK_TIMEOUT:
-                return "NETWORK_TIMEOUT";
             case ChatbotError::ACTIVATION_FAILED:
                 return "ACTIVATION_FAILED";
             case ChatbotError::PROTOCOL_ERROR:
@@ -287,8 +262,6 @@ namespace app
                 return "MCP_ERROR";
             case ChatbotError::CONNECTION_FAILED:
                 return "CONNECTION_FAILED";
-            case ChatbotError::NETWORK_DISCONNECTED:
-                return "NETWORK_DISCONNECTED";
             case ChatbotError::INVALID_STATE:
                 return "INVALID_STATE";
             case ChatbotError::TIMEOUT:

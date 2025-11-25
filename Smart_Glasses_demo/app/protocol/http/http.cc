@@ -7,6 +7,7 @@
 #include "../../tool/log/log.hpp"
 #include <curl/curl.h>
 #include <cstring>
+#include <ctime>
 #include <mutex>
 
 namespace app
@@ -238,6 +239,112 @@ namespace app
                 str->append(static_cast<char*>(contents), total_size);
 
                 return total_size;
+            }
+
+            HttpResponse HttpClient::postMultipart(
+                const std::string& url, const std::map<std::string, std::string>& form_fields,
+                const std::string& file_field_name, const void* file_data, size_t file_size,
+                const std::string& file_name, const std::string& file_content_type,
+                const std::map<std::string, std::string>& headers, int timeout_ms, bool verify_ssl)
+            {
+                HttpResponse response;
+                response.success     = false;
+                response.status_code = 0;
+
+                if (!curl_)
+                {
+                    response.error_message = "CURL未初始化";
+                    return response;
+                }
+
+                // 生成multipart边界
+                std::string boundary = "----SmartGlassesBoundary";
+                boundary += std::to_string(time(nullptr));
+
+                // 构建multipart/form-data请求体
+                std::string multipart_data;
+
+                // 添加文本字段
+                for (const auto& [key, value] : form_fields)
+                {
+                    multipart_data += "--" + boundary + "\r\n";
+                    multipart_data += "Content-Disposition: form-data; name=\"" + key + "\"\r\n";
+                    multipart_data += "\r\n";
+                    multipart_data += value + "\r\n";
+                }
+
+                // 添加文件字段
+                multipart_data += "--" + boundary + "\r\n";
+                multipart_data += "Content-Disposition: form-data; name=\"" + file_field_name +
+                                  "\"; filename=\"" + file_name + "\"\r\n";
+                multipart_data += "Content-Type: " + file_content_type + "\r\n";
+                multipart_data += "\r\n";
+
+                // 添加文件数据
+                multipart_data.append(static_cast<const char*>(file_data), file_size);
+                multipart_data += "\r\n";
+
+                // 添加结束边界
+                multipart_data += "--" + boundary + "--\r\n";
+
+                // 构建HTTP头部
+                curl_slist* raw_headers = nullptr;
+
+                // 添加Content-Type头部
+                std::string content_type_header = "Content-Type: multipart/form-data; boundary=" + boundary;
+                raw_headers                     = curl_slist_append(raw_headers, content_type_header.c_str());
+
+                // 添加额外的头部
+                for (const auto& [key, value] : headers)
+                {
+                    std::string header = key + ": " + value;
+                    raw_headers       = curl_slist_append(raw_headers, header.c_str());
+                }
+
+                CurlSlistPtr headers_ptr(raw_headers);
+
+                // 设置CURL选项
+                curl_easy_setopt(curl_.get(), CURLOPT_URL, url.c_str());
+                curl_easy_setopt(curl_.get(), CURLOPT_POSTFIELDS, multipart_data.c_str());
+                curl_easy_setopt(curl_.get(), CURLOPT_POSTFIELDSIZE, static_cast<long>(multipart_data.size()));
+                curl_easy_setopt(curl_.get(), CURLOPT_HTTPHEADER, raw_headers);
+                curl_easy_setopt(curl_.get(), CURLOPT_WRITEFUNCTION, writeCallback);
+                curl_easy_setopt(curl_.get(), CURLOPT_WRITEDATA, &response.body);
+                curl_easy_setopt(curl_.get(), CURLOPT_SSL_VERIFYPEER, verify_ssl ? 1L : 0L);
+                curl_easy_setopt(curl_.get(), CURLOPT_SSL_VERIFYHOST, verify_ssl ? 2L : 0L);
+                curl_easy_setopt(curl_.get(), CURLOPT_TIMEOUT_MS, static_cast<long>(timeout_ms));
+                curl_easy_setopt(curl_.get(), CURLOPT_CONNECTTIMEOUT_MS,
+                                 static_cast<long>(timeout_ms / HTTP_CONNECT_TIMEOUT_FACTOR));
+
+                // 设置User-Agent
+                curl_easy_setopt(curl_.get(), CURLOPT_USERAGENT, "SmartGlasses/1.0");
+
+                // 执行请求
+                CURLcode result_code = curl_easy_perform(curl_.get());
+
+                if (result_code != CURLE_OK)
+                {
+                    response.error_message = curl_easy_strerror(result_code);
+                    LOG_ERROR(LOG_TAG, "Multipart POST请求失败: %s (URL: %s)", response.error_message.c_str(),
+                              url.c_str());
+                    return response;
+                }
+
+                // 获取HTTP状态码
+                long http_code = 0;
+                curl_easy_getinfo(curl_.get(), CURLINFO_RESPONSE_CODE, &http_code);
+                response.status_code = static_cast<int>(http_code);
+
+                // 判断成功（2xx状态码）
+                response.success =
+                    (http_code >= HTTP_SUCCESS_LOWER_BOUND && http_code < HTTP_SUCCESS_UPPER_BOUND);
+
+                if (!response.success)
+                {
+                    LOG_WARN(LOG_TAG, "HTTP Multipart POST失败: status=%ld, url=%s", http_code, url.c_str());
+                }
+
+                return response;
             }
 
         } // namespace http

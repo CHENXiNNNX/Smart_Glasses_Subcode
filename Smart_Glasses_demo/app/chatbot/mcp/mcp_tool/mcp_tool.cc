@@ -6,8 +6,11 @@
 #include "mcp_tool.hpp"
 #include "../mcp.hpp"
 #include "../../../tool/log/log.hpp"
+#include "../../../media/audio/audio.hpp"
+#include "../../../media/camera/camera.hpp"
 
 #include <string>
+#include <exception>
 
 using namespace app::tool::log;
 
@@ -19,20 +22,6 @@ namespace app
         {
             namespace mcp_tool
             {
-                namespace
-                {
-                    constexpr int    DEFAULT_BATTERY_PERCENT       = 85;
-                    constexpr double PLACEHOLDER_CPU_USAGE_PERCENT = 45.5;
-                    constexpr double PLACEHOLDER_MEMORY_USAGE      = 60.2;
-                    constexpr double PLACEHOLDER_TEMPERATURE_C     = 42.0;
-                    constexpr int    DEFAULT_VOLUME_VALUE          = 50;
-                    constexpr int    VOLUME_PERCENT_MIN            = 0;
-                    constexpr int    VOLUME_PERCENT_MAX            = 100;
-                    constexpr int    BRIGHTNESS_DEFAULT_VALUE      = 128;
-                    constexpr int    BRIGHTNESS_MIN_VALUE          = 0;
-                    constexpr int    BRIGHTNESS_MAX_VALUE          = 255;
-                    constexpr int    SIGNAL_STRENGTH_SAMPLE_DBM    = -45;
-                } // namespace
 
                 // ============================================================================
                 // 系统工具注册
@@ -40,64 +29,11 @@ namespace app
 
                 int McpToolManager::registerSystemTools(McpServer& mcp_server)
                 {
+                    (void)mcp_server; // 暂未实现
                     int count = 0;
 
-                    // ========================================================================
-                    // 工具1：获取设备状态
-                    // ========================================================================
-                    {
-                        auto err = mcp_server.add_tool(
-                            "self.get_device_status",
-                            "获取Smart_Glasses设备的实时状态信息，包括版本、网络状态、电量等",
-                            mcp::PropertyList(),
-                            [](const mcp::PropertyList& props [[maybe_unused]]) -> mcp::ReturnValue
-                            {
-                                LOG_DEBUG("MCP_Tool", "获取设备状态");
-
-                                // TODO: 实现真实的设备状态获取
-                                mcp::json status;
-                                status["device"]  = "Smart_Glasses";
-                                status["version"] = "2.0.0";
-                                status["status"]  = "active";
-                                status["network"] = "connected";
-                                status["battery"] = DEFAULT_BATTERY_PERCENT; // 占位值
-
-                                return status;
-                            });
-
-                        if (err == mcp::McpError::NONE)
-                        {
-                            count++;
-                        }
-                    }
-
-                    // ========================================================================
-                    // 工具2：获取系统信息
-                    // ========================================================================
-                    {
-                        auto err = mcp_server.add_tool(
-                            "self.get_system_info", "获取系统信息，包括CPU、内存、温度等",
-                            mcp::PropertyList(),
-                            [](const mcp::PropertyList& props [[maybe_unused]]) -> mcp::ReturnValue
-                            {
-                                LOG_DEBUG("MCP_Tool", "获取系统信息");
-
-                                mcp::json info;
-                                info["cpu_usage"] =
-                                    PLACEHOLDER_CPU_USAGE_PERCENT; // TODO: 获取真实CPU使用率
-                                info["memory_usage"] =
-                                    PLACEHOLDER_MEMORY_USAGE; // TODO: 获取真实内存使用率
-                                info["temperature"] =
-                                    PLACEHOLDER_TEMPERATURE_C; // TODO: 获取真实温度
-
-                                return info;
-                            });
-
-                        if (err == mcp::McpError::NONE)
-                        {
-                            count++;
-                        }
-                    }
+                    // TODO: 等待真实的系统信息接口实现后再注册工具
+                    // 如：获取设备状态、CPU使用率、内存使用率、温度等
 
                     LOG_INFO("MCP_Tool", "已注册 %d 个系统工具", count);
                     return count;
@@ -107,29 +43,39 @@ namespace app
                 // 音频工具注册
                 // ============================================================================
 
-                int McpToolManager::registerAudioTools(McpServer& mcp_server)
+                int McpToolManager::registerAudioTools(McpServer& mcp_server,
+                                                       app::media::audio::AudioSystem* audio_system)
                 {
                     int count = 0;
 
+                    if (!audio_system)
+                    {
+                        LOG_WARN("MCP_Tool", "音频系统指针为空，跳过音频工具注册");
+                        return count;
+                    }
+
                     // ========================================================================
-                    // 工具1：设置音量
+                    // 工具：设置音量
                     // ========================================================================
                     {
                         auto err = mcp_server.add_tool(
                             "self.audio_speaker.set_volume",
-                            "设置音频扬声器音量（0-100）。如果当前音量未知，应先调用get_volume获取",
-                            mcp::PropertyList(
-                                {mcp::Property("volume", mcp::PropertyType::Integer,
-                                               VOLUME_PERCENT_MIN, VOLUME_PERCENT_MAX)}),
-                            [](const mcp::PropertyList& props) -> mcp::ReturnValue
+                            "Set the current audio volume to a specific value within the range of 0 to 100. When I say to set the volume to a certain value, this MCP tool will be invoked for the setting.",
+                            mcp::PropertyList({mcp::Property("volume", mcp::PropertyType::Integer,
+                                                             50, 0, 100)}),
+                            [audio_system](const mcp::PropertyList& props) -> mcp::ReturnValue
                             {
                                 int volume = props["volume"].value<int>();
-                                LOG_INFO("MCP_Tool", "设置音量为 %d", volume);
+                                LOG_INFO("MCP_Tool", "设置音量为 %d%%", volume);
 
-                                // TODO: 实现音量设置
-                                // AudioSystem::getInstance().setOutputVolume(volume / 100.0f);
+                                // 设置音量
+                                audio_system->setOutputVolume(volume);
 
-                                return std::string("音量已设置为 " + std::to_string(volume));
+                                mcp::json result;
+                                result["success"] = true;
+                                result["volume"]  = volume;
+                                result["message"] = "音量已设置为 " + std::to_string(volume) + "%";
+                                return result;
                             });
 
                         if (err == mcp::McpError::NONE)
@@ -139,43 +85,25 @@ namespace app
                     }
 
                     // ========================================================================
-                    // 工具2：获取音量
+                    // 工具：获取音量
                     // ========================================================================
                     {
                         auto err = mcp_server.add_tool(
-                            "self.audio_speaker.get_volume", "获取当前音频扬声器音量（0-100）",
+                            "self.audio_speaker.get_volume",
+                            "Obtain the specific numerical value of the current audio volume. That is, when I say the statement related to obtaining the current volume, this mcp tool will be called to check it.）",
                             mcp::PropertyList(),
-                            [](const mcp::PropertyList& props [[maybe_unused]]) -> mcp::ReturnValue
+                            [audio_system](const mcp::PropertyList& props [[maybe_unused]])
+                                -> mcp::ReturnValue
                             {
-                                // TODO: 实现音量获取
-                                // float volume = AudioSystem::getInstance().getOutputVolume();
-                                int volume = DEFAULT_VOLUME_VALUE; // 占位值
+                                // 获取当前音量
+                                int volume = audio_system->getOutputVolume();
+                                LOG_DEBUG("MCP_Tool", "当前音量: %d%%", volume);
 
-                                LOG_DEBUG("MCP_Tool", "当前音量: %d", volume);
-                                return volume;
-                            });
-
-                        if (err == mcp::McpError::NONE)
-                        {
-                            count++;
-                        }
-                    }
-
-                    // ========================================================================
-                    // 工具3：静音控制
-                    // ========================================================================
-                    {
-                        auto err = mcp_server.add_tool(
-                            "self.audio_speaker.set_mute", "设置音频静音状态",
-                            mcp::PropertyList({mcp::Property("mute", mcp::PropertyType::Boolean)}),
-                            [](const mcp::PropertyList& props) -> mcp::ReturnValue
-                            {
-                                bool mute = props["mute"].value<bool>();
-                                LOG_INFO("MCP_Tool", "设置静音为 %s", mute ? "true" : "false");
-
-                                // TODO: 实现静音控制
-
-                                return std::string(mute ? "已静音" : "已取消静音");
+                                mcp::json result;
+                                result["success"] = true;
+                                result["volume"]  = volume;
+                                result["message"] = "当前音量: " + std::to_string(volume) + "%";
+                                return result;
                             });
 
                         if (err == mcp::McpError::NONE)
@@ -192,51 +120,64 @@ namespace app
                 // 视频工具注册
                 // ============================================================================
 
-                int McpToolManager::registerVideoTools(McpServer& mcp_server)
+                int McpToolManager::registerVideoTools(McpServer& mcp_server,
+                                                        app::media::camera::VideoSystem* video_system)
                 {
                     int count = 0;
 
-                    // ========================================================================
-                    // 工具1：拍照
-                    // ========================================================================
+                    if (!video_system)
                     {
-                        auto err = mcp_server.add_tool(
-                            "self.camera.take_photo", "拍摄一张照片并保存到本地存储",
-                            mcp::PropertyList(),
-                            [](const mcp::PropertyList& props [[maybe_unused]]) -> mcp::ReturnValue
-                            {
-                                LOG_INFO("MCP_Tool", "拍照");
-
-                                // TODO: 实现拍照功能
-                                // VideoSystem::getInstance().takePhoto();
-
-                                return std::string("照片已保存");
-                            });
-
-                        if (err == mcp::McpError::NONE)
-                        {
-                            count++;
-                        }
+                        LOG_WARN("MCP_Tool", "视频系统指针为空，跳过视频工具注册");
+                        return count;
                     }
 
                     // ========================================================================
-                    // 工具2：设置亮度
+                    // 工具：拍照并解释图像
                     // ========================================================================
                     {
                         auto err = mcp_server.add_tool(
-                            "self.camera.set_brightness", "设置摄像头亮度（0-255）",
-                            mcp::PropertyList({mcp::Property(
-                                "brightness", mcp::PropertyType::Integer, BRIGHTNESS_DEFAULT_VALUE,
-                                BRIGHTNESS_MIN_VALUE, BRIGHTNESS_MAX_VALUE)}),
-                            [](const mcp::PropertyList& props) -> mcp::ReturnValue
+                            "self.camera.take_photo",
+                            "Take a photo and explain it using AI. Use this tool after the user asks you to see something or analyze an image.\n"
+                            "Args:\n"
+                            "  `question`: The question that you want to ask about the photo.\n"
+                            "Return:\n"
+                            "  A JSON object that provides the photo analysis result.",
+                            mcp::PropertyList({mcp::Property("question", mcp::PropertyType::String)}),
+                            [video_system](const mcp::PropertyList& props) -> mcp::ReturnValue
                             {
-                                int brightness = props["brightness"].value<int>();
-                                LOG_INFO("MCP_Tool", "设置亮度为 %d", brightness);
+                                std::string question = props["question"].value<std::string>();
+                                LOG_INFO("MCP_Tool", "拍照并解释图像，问题: %s", question.c_str());
 
-                                // TODO: 实现亮度设置
-                                // VideoSystem::getInstance().setBrightness(brightness);
+                                try
+                                {
+                                    // 调用图像解释功能
+                                    std::string result = video_system->explainImage(question);
+                                    LOG_INFO("MCP_Tool", "图像解释完成，结果长度: %zu", result.size());
 
-                                return std::string("亮度已设置为 " + std::to_string(brightness));
+                                    // 尝试解析JSON响应
+                                    mcp::json result_json;
+                                    try
+                                    {
+                                        result_json = mcp::json::parse(result);
+                                    }
+                                    catch (const std::exception& e)
+                                    {
+                                        // 如果解析失败，将原始响应作为字符串返回
+                                        LOG_WARN("MCP_Tool", "无法解析JSON响应，返回原始字符串: %s", e.what());
+                                        result_json["success"] = true;
+                                        result_json["raw_response"] = result;
+                                    }
+
+                                    return result_json;
+                                }
+                                catch (const std::exception& e)
+                                {
+                                    LOG_ERROR("MCP_Tool", "图像解释失败: %s", e.what());
+                                    mcp::json error_result;
+                                    error_result["success"] = false;
+                                    error_result["message"] = std::string("图像解释失败: ") + e.what();
+                                    return error_result;
+                                }
                             });
 
                         if (err == mcp::McpError::NONE)
@@ -255,32 +196,12 @@ namespace app
 
                 int McpToolManager::registerNetworkTools(McpServer& mcp_server)
                 {
+                    (void)mcp_server; // 暂未实现
                     int count = 0;
 
-                    // ========================================================================
-                    // 工具1：获取WiFi状态
-                    // ========================================================================
-                    {
-                        auto err = mcp_server.add_tool(
-                            "self.network.get_wifi_status", "获取WiFi连接状态和信号强度",
-                            mcp::PropertyList(),
-                            [](const mcp::PropertyList& props [[maybe_unused]]) -> mcp::ReturnValue
-                            {
-                                LOG_DEBUG("MCP_Tool", "获取WiFi状态");
-
-                                mcp::json status;
-                                status["connected"]       = true;
-                                status["ssid"]            = "SmartGlasses_AP";
-                                status["signal_strength"] = SIGNAL_STRENGTH_SAMPLE_DBM; // dBm
-
-                                return status;
-                            });
-
-                        if (err == mcp::McpError::NONE)
-                        {
-                            count++;
-                        }
-                    }
+                    // TODO: 等待网络系统接口暴露后再注册工具
+                    // 如：获取WiFi状态、信号强度、切换网络等
+                    // 需要 App 类将 wifi_manager_ 注入到 MCP 工具中
 
                     LOG_INFO("MCP_Tool", "已注册 %d 个网络工具", count);
                     return count;
@@ -290,21 +211,30 @@ namespace app
                 // 注册所有工具
                 // ============================================================================
 
-                int McpToolManager::registerAllTools(McpServer& mcp_server)
+                int McpToolManager::registerAllTools(McpServer& mcp_server,
+                                                      app::media::audio::AudioSystem* audio_system,
+                                                      app::media::camera::VideoSystem* video_system)
                 {
                     LOG_INFO("MCP_Tool", "========================================");
-                    LOG_INFO("MCP_Tool", "  注册所有工具到MCP服务器");
+                    LOG_INFO("MCP_Tool", "  开始注册MCP工具...");
                     LOG_INFO("MCP_Tool", "========================================");
 
                     int total = 0;
 
                     total += registerSystemTools(mcp_server);
-                    total += registerAudioTools(mcp_server);
-                    total += registerVideoTools(mcp_server);
+                    total += registerAudioTools(mcp_server, audio_system);
+                    total += registerVideoTools(mcp_server, video_system);
                     total += registerNetworkTools(mcp_server);
 
                     LOG_INFO("MCP_Tool", "========================================");
-                    LOG_INFO("MCP_Tool", "  ✓ 工具注册总数: %d", total);
+                    if (total == 0)
+                    {
+                        LOG_INFO("MCP_Tool", "  暂无可用工具（等待实现）");
+                    }
+                    else
+                    {
+                        LOG_INFO("MCP_Tool", "  工具注册总数: %d", total);
+                    }
                     LOG_INFO("MCP_Tool", "========================================");
 
                     return total;

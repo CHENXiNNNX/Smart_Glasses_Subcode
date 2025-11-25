@@ -290,7 +290,7 @@ namespace app
                         int bits_per_sample = detector_->getBitsPerSample();
                         int num_hotwords    = detector_->getNumHotwords();
 
-                        LOG_INFO(config_.log_prefix.c_str(), "✓ Detector created");
+                        LOG_INFO(config_.log_prefix.c_str(), " Detector created");
                         LOG_DEBUG(config_.log_prefix.c_str(), "  Sample Rate: %d Hz", sample_rate);
                         LOG_DEBUG(config_.log_prefix.c_str(), "  Channels: %d", num_channels);
                         LOG_DEBUG(config_.log_prefix.c_str(), "  Bits/Sample: %d", bits_per_sample);
@@ -365,7 +365,7 @@ namespace app
                     // 处理检测结果
                     if (result > 0)
                     {
-                        LOG_INFO(config_.log_prefix.c_str(), "✓ Hotword %d detected!", result);
+                        LOG_INFO(config_.log_prefix.c_str(), " Hotword %d detected!", result);
                         invokeWakewordCallback(wakeword_result, result);
                     }
                     else if (result == static_cast<int>(WakewordResult::SILENCE))

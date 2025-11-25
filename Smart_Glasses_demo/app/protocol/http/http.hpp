@@ -126,6 +126,28 @@ namespace app
                                  const std::map<std::string, std::string>& headers, int timeout_ms,
                                  bool verify_ssl);
 
+                /**
+                 * @brief HTTP POST multipart/form-data 请求（用于文件上传）
+                 * @param url 请求URL
+                 * @param form_fields 表单字段（键值对，文本字段）
+                 * @param file_field_name 文件字段名称（默认为"file"）
+                 * @param file_data 文件数据指针
+                 * @param file_size 文件数据大小
+                 * @param file_name 文件名（默认为"upload.bin"）
+                 * @param file_content_type 文件Content-Type（默认为"application/octet-stream"）
+                 * @param headers 额外的HTTP请求头（键值对）
+                 * @param timeout_ms 超时时间（毫秒）
+                 * @param verify_ssl 是否验证SSL证书
+                 * @return HTTP响应
+                 */
+                HttpResponse postMultipart(
+                    const std::string& url, const std::map<std::string, std::string>& form_fields,
+                    const std::string& file_field_name, const void* file_data, size_t file_size,
+                    const std::string& file_name = "upload.bin",
+                    const std::string& file_content_type = "application/octet-stream",
+                    const std::map<std::string, std::string>& headers = {}, int timeout_ms = 10000,
+                    bool verify_ssl = true);
+
                 // 禁止拷贝和赋值
                 HttpClient(const HttpClient&)            = delete;
                 HttpClient& operator=(const HttpClient&) = delete;

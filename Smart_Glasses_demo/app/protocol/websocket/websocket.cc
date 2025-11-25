@@ -407,7 +407,7 @@ namespace app
                                     {
                                         if (config.enable_detailed_logging)
                                         {
-                                            LOG_DEBUG("WebSocket", "← 文本消息: %s",
+                                            LOG_DEBUG("WebSocket", "<- 文本消息: %s",
                                                       payload.c_str());
                                         }
                                         invokeTextCallback(payload.data(), payload.size());
@@ -419,7 +419,7 @@ namespace app
                                 {
                                     connection_handle = hdl;
                                     setState(ConnectionState::CONNECTED);
-                                    LOG_INFO("WebSocket", "✓ 连接已建立");
+                                    LOG_INFO("WebSocket", " 连接已建立");
 
                                     if (!config.hello_message.empty())
                                     {
@@ -428,7 +428,7 @@ namespace app
                                         {
                                             handshaked.store(true, std::memory_order_release);
                                             setState(ConnectionState::HANDSHAKED);
-                                            LOG_INFO("WebSocket", "✓ Hello消息已发送，握手完成");
+                                            LOG_INFO("WebSocket", " Hello消息已发送，握手完成");
                                         }
                                         else
                                         {
@@ -545,7 +545,7 @@ namespace app
                                     {
                                         if (config.enable_detailed_logging)
                                         {
-                                            LOG_DEBUG("WebSocket", "← 文本消息: %s",
+                                            LOG_DEBUG("WebSocket", "<- 文本消息: %s",
                                                       payload.c_str());
                                         }
                                         invokeTextCallback(payload.data(), payload.size());
@@ -557,7 +557,7 @@ namespace app
                                 {
                                     connection_handle = hdl;
                                     setState(ConnectionState::CONNECTED);
-                                    LOG_INFO("WebSocket", "✓ 连接已建立");
+                                    LOG_INFO("WebSocket", " 连接已建立");
 
                                     if (!config.hello_message.empty())
                                     {
@@ -566,7 +566,7 @@ namespace app
                                         {
                                             handshaked.store(true, std::memory_order_release);
                                             setState(ConnectionState::HANDSHAKED);
-                                            LOG_INFO("WebSocket", "✓ Hello消息已发送，握手完成");
+                                            LOG_INFO("WebSocket", " Hello消息已发送，握手完成");
                                         }
                                         else
                                         {

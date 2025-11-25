@@ -10,6 +10,22 @@
 #ifndef MCP_TOOL_HPP
 #define MCP_TOOL_HPP
 
+// 前向声明
+namespace app
+{
+    namespace media
+    {
+        namespace audio
+        {
+            class AudioSystem;
+        }
+        namespace camera
+        {
+            class VideoSystem;
+        }
+    }
+}
+
 namespace app
 {
     namespace chatbot
@@ -32,9 +48,13 @@ namespace app
                     /**
                      * @brief 注册所有工具到MCP服务器
                      * @param mcp_server MCP服务器实例
+                     * @param audio_system 音频系统指针（可选）
+                     * @param video_system 视频系统指针（可选）
                      * @return 成功注册的工具数量
                      */
-                    static int registerAllTools(McpServer& mcp_server);
+                    static int registerAllTools(McpServer& mcp_server, 
+                                               app::media::audio::AudioSystem* audio_system = nullptr,
+                                               app::media::camera::VideoSystem* video_system = nullptr);
 
                     /**
                      * @brief 注册系统工具
@@ -46,16 +66,20 @@ namespace app
                     /**
                      * @brief 注册音频工具
                      * @param mcp_server MCP服务器实例
+                     * @param audio_system 音频系统指针（必需）
                      * @return 注册的工具数量
                      */
-                    static int registerAudioTools(McpServer& mcp_server);
+                    static int registerAudioTools(McpServer& mcp_server,
+                                                 app::media::audio::AudioSystem* audio_system);
 
                     /**
                      * @brief 注册视频工具
                      * @param mcp_server MCP服务器实例
+                     * @param video_system 视频系统指针（可选）
                      * @return 注册的工具数量
                      */
-                    static int registerVideoTools(McpServer& mcp_server);
+                    static int registerVideoTools(McpServer& mcp_server,
+                                                 app::media::camera::VideoSystem* video_system = nullptr);
 
                     /**
                      * @brief 注册网络工具

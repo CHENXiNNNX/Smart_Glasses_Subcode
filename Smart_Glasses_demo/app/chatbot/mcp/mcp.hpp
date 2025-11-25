@@ -360,6 +360,23 @@ namespace app
                 std::string handle_message(const std::string& mcp_payload_str);
 
                 // ========================================================================
+                // Vision配置回调
+                // ========================================================================
+
+                /**
+                 * @brief Vision配置回调函数类型
+                 * @param url AI解析服务器URL
+                 * @param token 认证令牌（可选）
+                 */
+                using VisionConfigCallback = std::function<void(const std::string& url, const std::string& token)>;
+
+                /**
+                 * @brief 设置Vision配置回调
+                 * @param callback 回调函数，当解析到服务器下发的vision配置时调用
+                 */
+                void setVisionConfigCallback(VisionConfigCallback callback);
+
+                // ========================================================================
                 // 统计信息
                 // ========================================================================
 

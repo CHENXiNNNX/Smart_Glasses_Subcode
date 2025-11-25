@@ -254,7 +254,7 @@ namespace app
 
                             if (result.isActivated())
                             {
-                                LOG_INFO(LOG_TAG, "✓ 设备已激活");
+                                LOG_INFO(LOG_TAG, " 设备已激活");
                                 polling_status.store(ActivationStatus::ACTIVATED,
                                                      std::memory_order_release);
                                 saveLastResult(result);
@@ -319,7 +319,7 @@ namespace app
                                 if (result.isActivated())
                                 {
                                     LOG_INFO(LOG_TAG, "========================================");
-                                    LOG_INFO(LOG_TAG, "  ✓ 设备激活成功！");
+                                    LOG_INFO(LOG_TAG, "   设备激活成功！");
                                     LOG_INFO(LOG_TAG, "========================================");
 
                                     polling_status.store(ActivationStatus::ACTIVATED,

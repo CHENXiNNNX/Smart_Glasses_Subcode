@@ -2,17 +2,16 @@
 #include "../tool/log/log.hpp"
 #include "../tool/mac/mac.hpp"
 #include "../tool/uuid/uuid.hpp"
+#include "../media/audio/audio.hpp"
+#include "../media/camera/camera.hpp"
 #include "mcp/mcp_tool/mcp_tool.hpp"
 #include "activation/activation.hpp"
 #include "../protocol/websocket/websocket.hpp"
 
 #include <thread>
-
 #include <chrono>
 
 using namespace app::tool::log;
-namespace audio           = app::media::audio;
-namespace wifi            = app::network::wifi;
 namespace activation      = app::chatbot::activation;
 namespace mcp             = app::chatbot::mcp;
 namespace mcp_tool        = app::chatbot::mcp::mcp_tool;
@@ -36,288 +35,16 @@ namespace app
             LOG_INFO("Chatbot", "ChatbotSystem destroyed");
         }
 
-        // 初始化音频系统
-        ChatbotError ChatbotSystem::initializeAudio()
+        // 设置外部音频系统
+        void ChatbotSystem::setAudioSystem(app::media::audio::AudioSystem* audio_system)
         {
-            // 创建音频配置
-            audio::AudioConfig audio_config;
-            audio_config.sample_rate       = config_.sample_rate;
-            audio_config.channels          = config_.channels;
-            audio_config.frame_duration_ms = config_.frame_duration_ms;
-
-            // 创建音频系统
-            audio_system_ = std::make_unique<audio::AudioSystem>(audio_config);
-
-            // 初始化音频系统
-            audio::AudioError audio_err = audio_system_->initialize();
-            if (audio_err != audio::AudioError::NONE)
-            {
-                LOG_ERROR("Chatbot", "  音频系统初始化失败");
-                audio_system_.reset();
-                state_.store(ChatbotState::ERROR);
-                return ChatbotError::AUDIO_SYSTEM_ERROR;
-            }
-            LOG_INFO("Chatbot", "  音频系统初始化成功");
-
-            // 启动录音
-            audio_err = audio_system_->startRecord();
-            if (audio_err != audio::AudioError::NONE)
-            {
-                LOG_ERROR("Chatbot", "启动录音失败");
-                return ChatbotError::AUDIO_SYSTEM_ERROR;
-            }
-
-            return ChatbotError::NONE;
+            audio_system_ = audio_system;
         }
 
-        // 释放音频系统
-        ChatbotError ChatbotSystem::deinitializeAudio()
+        // 设置外部视频系统
+        void ChatbotSystem::setVideoSystem(app::media::camera::VideoSystem* video_system)
         {
-            if (!audio_system_)
-            {
-                return ChatbotError::NONE;
-            }
-
-            // 停止录音（如果正在录音）
-            if (audio_system_->isRecording())
-            {
-                audio_system_->stopRecord();
-            }
-
-            // 关闭音频系统
-            audio_system_->shutdown();
-            audio_system_.reset();
-
-            return ChatbotError::NONE;
-        }
-
-        // 初始化WiFi管理器
-        ChatbotError ChatbotSystem::initializeWiFi()
-        {
-            // 创建WiFi配置
-            wifi::WifiConfig wifi_config;
-            wifi_config.auto_connect_on_init = true; // 自动连接已保存的WiFi
-
-            // 创建WiFi管理器
-            wifi_manager_ = std::make_unique<wifi::WifiManager>(wifi_config);
-
-            // 初始化WiFi管理器
-            wifi::WifiError wifi_err = wifi_manager_->initialize();
-            if (wifi_err != wifi::WifiError::NONE)
-            {
-                LOG_ERROR("Chatbot", "  WiFi管理器初始化失败");
-                wifi_manager_.reset();
-                state_.store(ChatbotState::ERROR);
-                return ChatbotError::WIFI_MANAGER_ERROR;
-            }
-            LOG_INFO("Chatbot", "  WiFi管理器初始化成功");
-            return ChatbotError::NONE;
-        }
-
-        // 释放WiFi管理器
-        ChatbotError ChatbotSystem::deinitializeWiFi()
-        {
-            if (wifi_manager_)
-            {
-                wifi_manager_->shutdown();
-                wifi_manager_.reset();
-            }
-            return ChatbotError::NONE;
-        }
-
-        ChatbotError ChatbotSystem::checkNetwork()
-        {
-            if (!wifi_manager_)
-            {
-                LOG_ERROR("Chatbot", "WiFi管理器未初始化");
-                return ChatbotError::WIFI_MANAGER_ERROR;
-            }
-
-            // 检查WiFi是否已连接
-            if (wifi_manager_->isConnected())
-            {
-                std::string ssid = wifi_manager_->getCurrentSSID();
-                std::string ip   = wifi_manager_->getIPAddress();
-                LOG_INFO("Chatbot", "WiFi已连接: %s (IP: %s)", ssid.c_str(), ip.c_str());
-                state_.store(ChatbotState::NETWORK_CONNECTED);
-                return ChatbotError::NONE;
-            }
-
-            LOG_INFO("Chatbot", "WiFi未连接");
-            return ChatbotError::NETWORK_ERROR;
-        }
-
-        ChatbotError ChatbotSystem::connectNetwork()
-        {
-            if (!wifi_manager_)
-            {
-                LOG_ERROR("Chatbot", "WiFi管理器未初始化");
-                return ChatbotError::WIFI_MANAGER_ERROR;
-            }
-
-            state_.store(ChatbotState::NETWORK_CONFIGURING);
-
-            // 先尝试连接已保存的WiFi
-            LOG_INFO("Chatbot", "尝试连接已保存的WiFi...");
-            wifi::WifiError wifi_err = wifi_manager_->connectSavedNetwork();
-            if (wifi_err == wifi::WifiError::NONE)
-            {
-                std::string ssid = wifi_manager_->getCurrentSSID();
-                std::string ip   = wifi_manager_->getIPAddress();
-                LOG_INFO("Chatbot", "  已保存WiFi连接成功: %s (IP: %s)", ssid.c_str(), ip.c_str());
-                state_.store(ChatbotState::NETWORK_CONNECTED);
-                return ChatbotError::NONE;
-            }
-
-            // 连接已保存WiFi失败，返回错误
-            LOG_WARN("Chatbot", "已保存WiFi连接失败");
-            state_.store(ChatbotState::ERROR);
-            return ChatbotError::NETWORK_ERROR;
-        }
-
-        ChatbotError ChatbotSystem::disconnectNetwork()
-        {
-            if (!wifi_manager_)
-            {
-                LOG_ERROR("Chatbot", "WiFi管理器未初始化");
-                return ChatbotError::WIFI_MANAGER_ERROR;
-            }
-
-            if (!wifi_manager_->isConnected())
-            {
-                LOG_INFO("Chatbot", "WiFi未连接");
-                return ChatbotError::NONE;
-            }
-            wifi::WifiError wifi_err = wifi_manager_->disconnect();
-            if (wifi_err != wifi::WifiError::NONE)
-            {
-                LOG_ERROR("Chatbot", "WiFi断开失败");
-                return ChatbotError::NETWORK_ERROR;
-            }
-            LOG_INFO("Chatbot", "WiFi已断开");
-            state_.store(ChatbotState::NETWORK_CHECKING);
-            return ChatbotError::NONE;
-        }
-
-        // 初始化网络（检测+配网，阻塞直到成功）
-        ChatbotError ChatbotSystem::initializeNetwork()
-        {
-            // 初始化wifi系统
-            initializeWiFi();
-
-            // 检查WiFi连接状态
-            state_.store(ChatbotState::NETWORK_CHECKING);
-            ChatbotError err = checkNetwork();
-            if (err == ChatbotError::NONE)
-            {
-                // 已连接，直接返回成功
-                return ChatbotError::NONE;
-            }
-
-            // 未连接，进入配网流程（阻塞直到成功）
-            LOG_INFO("Chatbot", "进入配网流程...");
-
-            // 阻塞循环，直到连接成功
-            while (true)
-            {
-                err = connectNetwork();
-                if (err == ChatbotError::NONE)
-                {
-                    // 连接成功
-                    return ChatbotError::NONE;
-                }
-
-                // 连接失败，等待后重试
-                LOG_WARN("Chatbot", "WiFi连接失败，10秒后重试...");
-                std::this_thread::sleep_for(std::chrono::seconds(10));
-            }
-        }
-
-        ChatbotError ChatbotSystem::searchSavedNetwork()
-        {
-            if (!wifi_manager_)
-            {
-                LOG_ERROR("Chatbot", "WiFi管理器未初始化");
-                return ChatbotError::WIFI_MANAGER_ERROR;
-            }
-
-            // 获取已保存的网络列表
-            std::vector<wifi::SavedNetworkInfo> saved = wifi_manager_->getSavedNetworks();
-
-            if (saved.empty())
-            {
-                LOG_INFO("Chatbot", "没有已保存的WiFi网络");
-                return ChatbotError::NONE;
-            }
-
-            LOG_INFO("Chatbot", "找到 %zu 个已保存的WiFi网络:", saved.size());
-
-            // 输出每个网络的详细信息
-            for (size_t i = 0; i < saved.size(); ++i)
-            {
-                const auto& net = saved[i];
-                LOG_INFO("Chatbot", "  [%zu] SSID: %s", i + 1, net.ssid.c_str());
-                LOG_INFO("Chatbot", "       网络ID: %d", net.network_id);
-
-                if (net.is_current)
-                {
-                    LOG_INFO("Chatbot", "       状态: 当前连接");
-                }
-                else
-                {
-                    LOG_INFO("Chatbot", "       状态: 未连接");
-                }
-
-                if (net.is_enabled_auto)
-                {
-                    LOG_INFO("Chatbot", "       自动连接: 启用");
-                }
-                else
-                {
-                    LOG_INFO("Chatbot", "       自动连接: 禁用");
-                }
-
-                if (net.priority > 0)
-                {
-                    LOG_INFO("Chatbot", "       优先级: %d", net.priority);
-                }
-            }
-
-            return ChatbotError::NONE;
-        }
-
-        ChatbotError ChatbotSystem::forgetNetwork(const std::string& ssid)
-        {
-            if (!wifi_manager_)
-            {
-                LOG_ERROR("Chatbot", "WiFi管理器未初始化");
-                return ChatbotError::WIFI_MANAGER_ERROR;
-            }
-
-            if (ssid.empty())
-            {
-                LOG_ERROR("Chatbot", "SSID不能为空");
-                return ChatbotError::NETWORK_ERROR;
-            }
-
-            // 检查网络是否已保存
-            if (!wifi_manager_->isNetworkSaved(ssid))
-            {
-                LOG_WARN("Chatbot", "WiFi \"%s\" 未在已保存列表中", ssid.c_str());
-                return ChatbotError::NETWORK_ERROR;
-            }
-
-            // 执行删除
-            wifi::WifiError err = wifi_manager_->forgetNetwork(ssid);
-            if (err != wifi::WifiError::NONE)
-            {
-                LOG_ERROR("Chatbot", "删除WiFi \"%s\" 失败: %d", ssid.c_str(),
-                          static_cast<int>(err));
-                return ChatbotError::NETWORK_ERROR;
-            }
-
-            LOG_INFO("Chatbot", "WiFi \"%s\" 已删除", ssid.c_str());
-            return ChatbotError::NONE;
+            video_system_ = video_system;
         }
 
         ChatbotError ChatbotSystem::getDeviceId()
@@ -468,8 +195,18 @@ namespace app
                 // 创建MCP服务器
                 mcp_server_ = std::make_unique<mcp::McpServer>(mcp_cfg);
 
+                // 设置vision配置回调
+                if (video_system_)
+                {
+                    mcp_server_->setVisionConfigCallback(
+                        [this](const std::string& url, const std::string& token)
+                        {
+                            video_system_->setExplainUrl(url, token);
+                        });
+                }
+
                 // 注册所有MCP工具
-                int tool_count = mcp_tool::McpToolManager::registerAllTools(*mcp_server_);
+                int tool_count = mcp_tool::McpToolManager::registerAllTools(*mcp_server_, audio_system_, video_system_);
                 LOG_INFO("Chatbot", "MCP工具注册完成，共注册 %d 个工具", tool_count);
 
                 return ChatbotError::NONE;
@@ -576,8 +313,8 @@ namespace app
                         // TTS开始：确保播放已启动
                         if (audio_system_ && !audio_system_->isPlaying())
                         {
-                            audio::AudioError err = audio_system_->startPlayback();
-                            if (err != audio::AudioError::NONE)
+                            app::media::audio::AudioError err = audio_system_->startPlayback();
+                            if (err != app::media::audio::AudioError::NONE)
                             {
                                 LOG_ERROR("Chatbot", "启动播放失败: %d", static_cast<int>(err));
                             }
@@ -593,8 +330,8 @@ namespace app
                             // 确保AI音频流正在运行
                             if (!audio_system_->isAIStreamActive())
                             {
-                                audio::AudioError err = audio_system_->startAIStream();
-                                if (err != audio::AudioError::NONE)
+                                app::media::audio::AudioError err = audio_system_->startAIStream();
+                                if (err != app::media::audio::AudioError::NONE)
                                 {
                                     LOG_ERROR("Chatbot", "启动AI音频流失败: %d",
                                               static_cast<int>(err));
@@ -850,7 +587,7 @@ namespace app
                     size_t opus_size = size - 16;
 
                     // 解码Opus音频数据
-                    audio::AudioFramePtr frame = audio_system_->decodeOpus(opus_data, opus_size);
+                    app::media::audio::AudioFramePtr frame = audio_system_->decodeOpus(opus_data, opus_size);
 
                     if (!frame)
                     {
@@ -864,8 +601,8 @@ namespace app
                     // 如果播放未启动，自动启动播放
                     if (!audio_system_->isPlaying())
                     {
-                        audio::AudioError err = audio_system_->startPlayback();
-                        if (err != audio::AudioError::NONE)
+                        app::media::audio::AudioError err = audio_system_->startPlayback();
+                        if (err != app::media::audio::AudioError::NONE)
                         {
                             LOG_ERROR("Chatbot", "启动播放失败: %d", static_cast<int>(err));
                         }
@@ -1101,8 +838,8 @@ namespace app
                             audio_system_)
                         {
                             // 启动AI音频流
-                            audio::AudioError audio_err = audio_system_->startAIStream();
-                            if (audio_err != audio::AudioError::NONE)
+                            app::media::audio::AudioError audio_err = audio_system_->startAIStream();
+                            if (audio_err != app::media::audio::AudioError::NONE)
                             {
                                 LOG_ERROR("Chatbot", "启动AI音频流失败: %d",
                                           static_cast<int>(audio_err));
@@ -1171,7 +908,7 @@ namespace app
             // 设置AI音频流回调，当AI音频流激活时，将Opus编码后的音频帧发送到服务器
             // 注意：WebSocket可能在此时还未初始化，回调中会检查WebSocket状态
             audio_system_->setAIAudioCallback(
-                [this](audio::AudioFramePtr frame)
+                [this](app::media::audio::AudioFramePtr frame)
                 {
                     if (!frame || !frame->data || frame->size == 0)
                     {
@@ -1209,25 +946,18 @@ namespace app
         // 初始化ChatbotSystem
         ChatbotError ChatbotSystem::open()
         {
+            // 检查音频系统是否已设置
+            if (!audio_system_)
+            {
+                LOG_ERROR("Chatbot", "音频系统未设置，请先调用 setAudioSystem()");
+                return ChatbotError::AUDIO_SYSTEM_ERROR;
+            }
+
             // 设置状态为初始化中
             state_.store(ChatbotState::INITIALIZING);
 
-            // 初始化音频
-            ChatbotError err = initializeAudio();
-            if (err != ChatbotError::NONE)
-            {
-                return err;
-            }
-
-            // 初始化网络
-            err = initializeNetwork();
-            if (err != ChatbotError::NONE)
-            {
-                return err;
-            }
-
             // 初始化激活管理器
-            err = initializeActivation();
+            ChatbotError err = initializeActivation();
             if (err != ChatbotError::NONE)
             {
                 return err;
@@ -1272,8 +1002,9 @@ namespace app
             deinitializeWebSocket();  // 关闭WebSocket客户端
             deinitializeMCP();        // 关闭MCP服务器
             deinitializeActivation(); // 关闭激活管理器
-            deinitializeWiFi();       // 关闭WiFi管理器
-            deinitializeAudio();      // 关闭音频系统
+
+            // 音频系统由外部管理，这里不释放
+            audio_system_ = nullptr;
 
             LOG_INFO("Chatbot", "ChatbotSystem已关闭");
         }

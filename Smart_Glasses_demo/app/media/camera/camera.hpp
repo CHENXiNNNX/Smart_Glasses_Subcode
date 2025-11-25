@@ -1,3 +1,20 @@
+/**
+ * @file camera.hpp
+ * @brief 视频系统 - 现代C++实现
+ * @details 特性：
+ *          - RAII资源管理
+ *          - 智能指针（无裸指针）
+ *          - 三级内存池（固定池+动态池+DMA池）
+ *          - 线程安全
+ *          - 状态机管理
+ *          - 硬件加速（RKMPI）
+ *          - ISP参数动态调整
+ *          - WebRTC推流支持
+ *
+ * @author Smart_Glasses Team
+ * @date 2025-01-29
+ */
+
 #ifndef CAMERA_H_
 #define CAMERA_H_
 
@@ -1076,6 +1093,27 @@ namespace app
                  * @brief 获取当前FPS
                  */
                 float getCurrentFPS() const;
+
+                // ========================================================================
+                // AI图像解析功能
+                // ========================================================================
+
+                /**
+                 * @brief 设置AI解析服务器URL和认证令牌
+                 * @param url AI服务器URL
+                 * @param token 认证令牌（可选）
+                 */
+                void setExplainUrl(const std::string& url, const std::string& token = "");
+
+                /**
+                 * @brief 将当前图像发送到AI服务器进行分析
+                 * @param question 要向AI提出的问题
+                 * @return JSON格式的响应字符串
+                 * @note 调用此函数前必须先调用setExplainUrl()设置服务器URL
+                 * @note 函数会先拍照获取JPEG图像，然后上传到服务器
+                 * @warning 此函数会阻塞直到服务器响应返回
+                 */
+                std::string explainImage(const std::string& question);
 
                 // ========================================================================
                 // ISP参数控制（通过ISPWrapper代理）

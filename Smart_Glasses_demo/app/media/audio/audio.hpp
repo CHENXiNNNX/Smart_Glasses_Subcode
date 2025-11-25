@@ -383,7 +383,7 @@ namespace app
                 int frame_duration_ms = 20;    // 帧时长（毫秒）
 
                 // 音量控制
-                float output_volume = 1.0f; // 输出音量（0.0-2.0）
+                int output_volume = 50; // 输出音量（0-100，50为正常音量，100为最大增益）
 
                 // 3A算法配置
                 bool enable_denoise  = true;  // 降噪
@@ -666,14 +666,15 @@ namespace app
 
                 /**
                  * @brief 设置输出音量
-                 * @param volume 音量（0.0-2.0），1.0为原始音量
+                 * @param volume 音量百分比（0-100），50为正常音量，100为最大增益
                  */
-                void setOutputVolume(float volume);
+                void setOutputVolume(int volume);
 
                 /**
                  * @brief 获取输出音量
+                 * @return 音量百分比（0-100）
                  */
-                float getOutputVolume() const;
+                int getOutputVolume() const;
 
                 // ========================================================================
                 // 统计信息

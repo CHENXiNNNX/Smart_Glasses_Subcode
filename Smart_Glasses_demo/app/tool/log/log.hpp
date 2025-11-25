@@ -123,8 +123,9 @@ namespace app
 
                 /**
                  * @brief 关闭日志系统
+                 * @return true-成功, false-失败
                  */
-                void shutdown();
+                bool shutdown();
 
                 /**
                  * @brief 写入日志（格式化）

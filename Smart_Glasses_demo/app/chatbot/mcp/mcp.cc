@@ -297,6 +297,9 @@ namespace app
                 // 统计信息
                 McpServer::Stats stats;
 
+                // Vision配置回调
+                McpServer::VisionConfigCallback vision_config_callback_;
+
                 explicit Impl(McpConfig cfg) : config(std::move(cfg))
                 {
                     LOG_DEBUG("MCP", "Impl创建");
@@ -329,6 +332,83 @@ namespace app
                         return nullptr;
                     }
                     return it->second.get();
+                }
+
+                /**
+                 * @brief 解析服务器响应，提取vision配置
+                 * @param response 服务器响应JSON对象
+                 */
+                void parseServerResponse(const json& response)
+                {
+                    try
+                    {
+                        // 检查是否有result字段
+                        if (!response.contains("result") || !response["result"].is_object())
+                        {
+                            return;
+                        }
+
+                        const json& result = response["result"];
+
+                        // 检查是否有capabilities字段
+                        if (!result.contains("capabilities") || !result["capabilities"].is_object())
+                        {
+                            return;
+                        }
+
+                        const json& capabilities = result["capabilities"];
+
+                        // 检查是否有vision字段
+                        if (!capabilities.contains("vision") || !capabilities["vision"].is_object())
+                        {
+                            LOG_DEBUG("MCP", "服务器响应中未包含vision配置");
+                            return;
+                        }
+
+                        const json& vision = capabilities["vision"];
+
+                        // 提取url字段（必需）
+                        if (!vision.contains("url") || !vision["url"].is_string())
+                        {
+                            LOG_WARN("MCP", "vision配置中缺少url字段");
+                            return;
+                        }
+
+                        std::string url = vision["url"].get<std::string>();
+                        if (url.empty())
+                        {
+                            LOG_WARN("MCP", "vision配置中的url为空");
+                            return;
+                        }
+
+                        // 提取token字段（可选）
+                        std::string token;
+                        if (vision.contains("token") && vision["token"].is_string())
+                        {
+                            token = vision["token"].get<std::string>();
+                        }
+
+                        LOG_INFO("MCP", "解析到vision配置: url=%s, token=%s", url.c_str(),
+                                 token.empty() ? "(空)" : "***");
+
+                        // 调用回调函数
+                        if (vision_config_callback_)
+                        {
+                            vision_config_callback_(url, token);
+                        }
+                        else
+                        {
+                            LOG_WARN("MCP", "vision配置回调未设置，无法应用配置");
+                        }
+                    }
+                    catch (const json::exception& e)
+                    {
+                        LOG_ERROR("MCP", "解析服务器响应失败: %s", e.what());
+                    }
+                    catch (const std::exception& e)
+                    {
+                        LOG_ERROR("MCP", "解析服务器响应异常: %s", e.what());
+                    }
                 }
 
                 static std::optional<std::string> assignPropertyValue(Property&   property,
@@ -486,6 +566,14 @@ namespace app
                             return "";
                         }
 
+                        // 检查是否是服务器响应（包含result字段）
+                        if (mcp_payload.contains("result") && mcp_payload["result"].is_object())
+                        {
+                            parseServerResponse(mcp_payload);
+                            // 响应消息通常不需要回复，返回空字符串
+                            return "";
+                        }
+
                         if (!mcp_payload.contains("method") || !mcp_payload["method"].is_string())
                         {
                             LOG_ERROR("MCP", "缺少或无效的'method'字段");
@@ -511,7 +599,7 @@ namespace app
                         int  id     = mcp_payload["id"];
                         json params = mcp_payload.value("params", json::object());
 
-                        LOG_DEBUG("MCP", "← MCP请求: method=%s, id=%d", method.c_str(), id);
+                        LOG_DEBUG("MCP", "<- MCP请求: method=%s, id=%d", method.c_str(), id);
 
                         if (method == "initialize")
                         {
@@ -545,13 +633,33 @@ namespace app
 
                 std::string handleInitialize(int id, const json& params)
                 {
-                    LOG_INFO("MCP", "→ Initialize请求");
+                    LOG_INFO("MCP", "-> Initialize请求");
                     stats.initialize_requests.fetch_add(1, std::memory_order_relaxed);
 
                     // 解析客户端能力
-                    if (params.contains("capabilities"))
+                    if (params.contains("capabilities") && params["capabilities"].is_object())
                     {
-                        LOG_DEBUG("MCP", "客户端能力: %s", params["capabilities"].dump().c_str());
+                        const json& capabilities = params["capabilities"];
+                        LOG_DEBUG("MCP", "客户端能力: %s", capabilities.dump().c_str());
+
+                        // 解析vision配置
+                        if (capabilities.contains("vision") && capabilities["vision"].is_object())
+                        {
+                            const json& vision = capabilities["vision"];
+                            if (vision.contains("url") && vision["url"].is_string())
+                            {
+                                std::string url = vision["url"].get<std::string>();
+                                std::string token;
+                                if (vision.contains("token") && vision["token"].is_string())
+                                {
+                                    token = vision["token"].get<std::string>();
+                                }
+                                if (vision_config_callback_)
+                                {
+                                    vision_config_callback_(url, token);
+                                }
+                            }
+                        }
                     }
 
                     // 构建响应
@@ -561,13 +669,13 @@ namespace app
                     result["serverInfo"]      = json::object(
                              {{"name", config.server_name}, {"version", config.server_version}});
 
-                    LOG_INFO("MCP", "✓ Initialize成功");
+                    LOG_INFO("MCP", " Initialize成功");
                     return replyResult(id, result);
                 }
 
                 std::string handleToolsList(int id, const json& params)
                 {
-                    LOG_DEBUG("MCP", "→ Tools/list请求");
+                    LOG_DEBUG("MCP", "-> Tools/list请求");
                     stats.tools_list_requests.fetch_add(1, std::memory_order_relaxed);
 
                     std::string cursor = params.value("cursor", "");
@@ -628,7 +736,7 @@ namespace app
                             return replyError(id, *parse_error);
                         }
 
-                        LOG_INFO("MCP", "→ 调用工具: %s", tool_name.c_str());
+                        LOG_INFO("MCP", "-> 调用工具: %s", tool_name.c_str());
 
                         McpTool* tool = findToolByName(tool_name);
                         if (tool == nullptr)
@@ -787,6 +895,16 @@ namespace app
                     pImpl_->stats.parse_errors.fetch_add(1, std::memory_order_relaxed);
                     return "";
                 }
+            }
+
+            // ========================================================================
+            // Vision配置回调
+            // ========================================================================
+
+            void McpServer::setVisionConfigCallback(VisionConfigCallback callback)
+            {
+                pImpl_->vision_config_callback_ = std::move(callback);
+                LOG_INFO("MCP", "Vision配置回调已设置");
             }
 
             // ========================================================================

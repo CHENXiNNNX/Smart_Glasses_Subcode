@@ -158,11 +158,11 @@ namespace app
                 return true;
             }
 
-            void Logger::shutdown()
+            bool Logger::shutdown()
             {
                 if (!initialized_.load())
                 {
-                    return;
+                    return true; // 已经关闭，返回成功
                 }
 
                 log(LogLevel::INFO, "Logger", "Logger shutting down...");
@@ -177,16 +177,22 @@ namespace app
                 }
 
                 // 关闭日志文件
+                bool success = true;
                 if (log_file_)
                 {
                     fprintf(log_file_, "\n========================================\n");
                     fprintf(log_file_, "  Logger Shutdown\n");
                     fprintf(log_file_, "========================================\n");
-                    fclose(log_file_);
+                    if (fclose(log_file_) != 0)
+                    {
+                        fprintf(stderr, "[Logger] Failed to close log file\n");
+                        success = false;
+                    }
                     log_file_ = nullptr;
                 }
 
                 initialized_ = false;
+                return success;
             }
 
             void Logger::log(LogLevel level, const char* tag, const char* format, ...)
