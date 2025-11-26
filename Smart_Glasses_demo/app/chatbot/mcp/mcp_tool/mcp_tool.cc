@@ -8,9 +8,12 @@
 #include "../../../tool/log/log.hpp"
 #include "../../../media/audio/audio.hpp"
 #include "../../../media/camera/camera.hpp"
+#include "../../../network/wifi/wifi.hpp"
 
 #include <string>
 #include <exception>
+#include <thread>
+#include <chrono>
 
 using namespace app::tool::log;
 
@@ -186,6 +189,290 @@ namespace app
                         }
                     }
 
+                    // ========================================================================
+                    // 工具：拍照并保存到本地
+                    // ========================================================================
+                    {
+                        auto err = mcp_server.add_tool(
+                            "self.camera.save_photo",
+                            "Take a photo and save it to local storage. The photo will be saved as a JPEG file.\n"
+                            "Args:\n"
+                            "  `filename` (optional): The filename to save the photo. If not provided, a filename will be auto-generated.\n"
+                            "Return:\n"
+                            "  A JSON object containing the saved file path and status.",
+                            mcp::PropertyList({mcp::Property("filename", mcp::PropertyType::String, std::string(""))}),
+                            [video_system](const mcp::PropertyList& props) -> mcp::ReturnValue
+                            {
+                                std::string filename = props["filename"].value<std::string>();
+                                LOG_INFO("MCP_Tool", "拍照并保存，文件名: %s", filename.empty() ? "(自动生成)" : filename.c_str());
+
+                                // 检查是否正在拍照
+                                if (video_system->isPhotoCapturing())
+                                {
+                                    LOG_WARN("MCP_Tool", "正在拍照中，请稍候...");
+                                    mcp::json result;
+                                    result["success"] = false;
+                                    result["message"] = "正在拍照中，请稍候再试";
+                                    return result;
+                                }
+
+                                // 确保流已启动（拍照需要流处理线程）
+                                if (!video_system->isStreaming())
+                                {
+                                    LOG_INFO("MCP_Tool", "启动视频流以支持拍照...");
+                                    app::media::camera::VideoError stream_err = video_system->startStream();
+                                    if (stream_err != app::media::camera::VideoError::NONE)
+                                    {
+                                        LOG_ERROR("MCP_Tool", "启动视频流失败，错误码: %d", static_cast<int>(stream_err));
+                                        mcp::json result;
+                                        result["success"] = false;
+                                        result["message"] = "启动视频流失败，错误码: " + std::to_string(static_cast<int>(stream_err));
+                                        return result;
+                                    }
+                                    // 等待流稳定
+                                    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+                                }
+
+                                // 设置主状态为PHOTO（这样流处理线程才会处理拍照帧）
+                                app::media::camera::VideoMainState old_state = video_system->getMainState();
+                                app::media::camera::VideoError state_err = video_system->setMainState(app::media::camera::VideoMainState::PHOTO);
+                                if (state_err != app::media::camera::VideoError::NONE)
+                                {
+                                    LOG_ERROR("MCP_Tool", "设置主状态失败，错误码: %d", static_cast<int>(state_err));
+                                    mcp::json result;
+                                    result["success"] = false;
+                                    result["message"] = "设置主状态失败";
+                                    return result;
+                                }
+
+                                // 调用拍照功能
+                                app::media::camera::VideoError photo_err = video_system->takePhoto(filename, true);
+                                if (photo_err != app::media::camera::VideoError::NONE)
+                                {
+                                    // 恢复主状态
+                                    video_system->setMainState(old_state);
+                                    LOG_ERROR("MCP_Tool", "拍照失败，错误码: %d", static_cast<int>(photo_err));
+                                    mcp::json result;
+                                    result["success"] = false;
+                                    result["message"] = "拍照失败，错误码: " + std::to_string(static_cast<int>(photo_err));
+                                    return result;
+                                }
+
+                                // 等待拍照完成（最多等待5秒）
+                                const int max_wait_ms = 5000;
+                                const int check_interval_ms = 100;
+                                int waited_ms = 0;
+
+                                while (video_system->isPhotoCapturing() && waited_ms < max_wait_ms)
+                                {
+                                    std::this_thread::sleep_for(std::chrono::milliseconds(check_interval_ms));
+                                    waited_ms += check_interval_ms;
+                                }
+
+                                // 恢复主状态
+                                video_system->setMainState(old_state);
+
+                                if (video_system->isPhotoCapturing())
+                                {
+                                    LOG_ERROR("MCP_Tool", "拍照超时");
+                                    mcp::json result;
+                                    result["success"] = false;
+                                    result["message"] = "拍照超时";
+                                    return result;
+                                }
+
+                                // 构建返回结果
+                                mcp::json result;
+                                result["success"] = true;
+
+                                if (!filename.empty())
+                                {
+                                    // 如果指定了文件名，返回完整路径
+                                    result["filename"] = filename;
+                                    result["filepath"] = filename;
+                                    result["message"]  = "照片已保存: " + filename;
+                                }
+                                else
+                                {
+                                    // 文件名自动生成，返回保存目录信息
+                                    result["filename"] = "auto_generated";
+                                    result["filepath"] = "/root/picture/photo_*.jpg";
+                                    result["message"]  = "照片已保存到 /root/picture/ 目录";
+                                }
+
+                                LOG_INFO("MCP_Tool", "拍照完成: %s", result["message"].get<std::string>().c_str());
+                                return result;
+                            });
+
+                        if (err == mcp::McpError::NONE)
+                        {
+                            count++;
+                        }
+                    }
+
+                    // ========================================================================
+                    // 工具：开始录像
+                    // ========================================================================
+                    {
+                        auto err = mcp_server.add_tool(
+                            "self.camera.start_record",
+                            "Start recording video and save it to local storage. The video will be saved as an H.264 file.\n"
+                            "Args:\n"
+                            "  `filename` (optional): The filename to save the video. If not provided, a filename will be auto-generated.\n"
+                            "  `duration_sec` (optional): Recording duration in seconds. If 0 or not provided, recording will continue until manually stopped.\n"
+                            "Return:\n"
+                            "  A JSON object containing the recording status and file path.",
+                            mcp::PropertyList({
+                                mcp::Property("filename", mcp::PropertyType::String, std::string("")),
+                                mcp::Property("duration_sec", mcp::PropertyType::Integer, 0, 0, 3600)
+                            }),
+                            [video_system](const mcp::PropertyList& props) -> mcp::ReturnValue
+                            {
+                                std::string filename    = props["filename"].value<std::string>();
+                                int         duration_sec = props["duration_sec"].value<int>();
+                                LOG_INFO("MCP_Tool", "开始录像，文件名: %s, 时长: %d秒", 
+                                         filename.empty() ? "(自动生成)" : filename.c_str(), duration_sec);
+
+                                // 检查是否正在录像
+                                if (video_system->isRecording())
+                                {
+                                    LOG_WARN("MCP_Tool", "正在录像中...");
+                                    mcp::json result;
+                                    result["success"] = false;
+                                    result["message"] = "正在录像中，请先停止当前录像";
+                                    return result;
+                                }
+
+                                // 确保流已启动（录像需要流处理线程）
+                                if (!video_system->isStreaming())
+                                {
+                                    LOG_INFO("MCP_Tool", "启动视频流以支持录像...");
+                                    app::media::camera::VideoError stream_err = video_system->startStream();
+                                    if (stream_err != app::media::camera::VideoError::NONE)
+                                    {
+                                        LOG_ERROR("MCP_Tool", "启动视频流失败，错误码: %d", static_cast<int>(stream_err));
+                                        mcp::json result;
+                                        result["success"] = false;
+                                        result["message"] = "启动视频流失败，错误码: " + std::to_string(static_cast<int>(stream_err));
+                                        return result;
+                                    }
+                                    // 等待流稳定
+                                    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+                                }
+
+                                // 设置主状态为RECORD（这样流处理线程才会处理录像帧）
+                                app::media::camera::VideoMainState old_state = video_system->getMainState();
+                                app::media::camera::VideoError state_err = video_system->setMainState(app::media::camera::VideoMainState::RECORD);
+                                if (state_err != app::media::camera::VideoError::NONE)
+                                {
+                                    LOG_ERROR("MCP_Tool", "设置主状态失败，错误码: %d", static_cast<int>(state_err));
+                                    mcp::json result;
+                                    result["success"] = false;
+                                    result["message"] = "设置主状态失败";
+                                    return result;
+                                }
+
+                                // 调用开始录像功能
+                                app::media::camera::VideoError record_err = video_system->startRecord(filename, duration_sec);
+                                if (record_err != app::media::camera::VideoError::NONE)
+                                {
+                                    // 恢复主状态
+                                    video_system->setMainState(old_state);
+                                    LOG_ERROR("MCP_Tool", "开始录像失败，错误码: %d", static_cast<int>(record_err));
+                                    mcp::json result;
+                                    result["success"] = false;
+                                    result["message"] = "开始录像失败，错误码: " + std::to_string(static_cast<int>(record_err));
+                                    return result;
+                                }
+
+                                // 构建返回结果
+                                mcp::json result;
+                                result["success"] = true;
+                                result["recording"] = true;
+                                if (!filename.empty())
+                                {
+                                    result["filename"] = filename;
+                                    result["filepath"] = filename;
+                                    result["message"]  = "录像已开始: " + filename;
+                                }
+                                else
+                                {
+                                    result["filename"] = "auto_generated";
+                                    result["filepath"] = "/root/video/record_*.h264";
+                                    result["message"]  = "录像已开始（文件名自动生成）";
+                                }
+                                if (duration_sec > 0)
+                                {
+                                    result["duration_sec"] = duration_sec;
+                                    result["message"]      = result["message"].get<std::string>() + "，时长: " + std::to_string(duration_sec) + "秒";
+                                }
+                                else
+                                {
+                                    result["duration_sec"] = 0;
+                                    result["message"]      = result["message"].get<std::string>() + "（手动停止）";
+                                }
+
+                                LOG_INFO("MCP_Tool", "录像已开始: %s", result["message"].get<std::string>().c_str());
+                                return result;
+                            });
+
+                        if (err == mcp::McpError::NONE)
+                        {
+                            count++;
+                        }
+                    }
+
+                    // ========================================================================
+                    // 工具：停止录像
+                    // ========================================================================
+                    {
+                        auto err = mcp_server.add_tool(
+                            "self.camera.stop_record",
+                            "Stop the current video recording. The recorded video will be saved to local storage.",
+                            mcp::PropertyList(),
+                            [video_system](const mcp::PropertyList& props [[maybe_unused]]) -> mcp::ReturnValue
+                            {
+                                LOG_INFO("MCP_Tool", "停止录像");
+
+                                // 检查是否正在录像
+                                if (!video_system->isRecording())
+                                {
+                                    LOG_WARN("MCP_Tool", "当前没有正在进行的录像");
+                                    mcp::json result;
+                                    result["success"] = false;
+                                    result["message"] = "当前没有正在进行的录像";
+                                    return result;
+                                }
+
+                                // 停止录像
+                                app::media::camera::VideoError record_err = video_system->stopRecord();
+                                if (record_err != app::media::camera::VideoError::NONE)
+                                {
+                                    LOG_ERROR("MCP_Tool", "停止录像失败，错误码: %d", static_cast<int>(record_err));
+                                    mcp::json result;
+                                    result["success"] = false;
+                                    result["message"] = "停止录像失败，错误码: " + std::to_string(static_cast<int>(record_err));
+                                    return result;
+                                }
+
+                                // 恢复主状态为NONE
+                                video_system->setMainState(app::media::camera::VideoMainState::NONE);
+
+                                mcp::json result;
+                                result["success"]  = true;
+                                result["recording"] = false;
+                                result["message"]   = "录像已停止";
+
+                                LOG_INFO("MCP_Tool", "录像已停止");
+                                return result;
+                            });
+
+                        if (err == mcp::McpError::NONE)
+                        {
+                            count++;
+                        }
+                    }
+
                     LOG_INFO("MCP_Tool", "已注册 %d 个视频工具", count);
                     return count;
                 }
@@ -194,14 +481,68 @@ namespace app
                 // 网络工具注册
                 // ============================================================================
 
-                int McpToolManager::registerNetworkTools(McpServer& mcp_server)
+                int McpToolManager::registerNetworkTools(McpServer& mcp_server,
+                                                          app::network::wifi::WifiManager* wifi_manager)
                 {
-                    (void)mcp_server; // 暂未实现
                     int count = 0;
 
-                    // TODO: 等待网络系统接口暴露后再注册工具
-                    // 如：获取WiFi状态、信号强度、切换网络等
-                    // 需要 App 类将 wifi_manager_ 注入到 MCP 工具中
+                    if (!wifi_manager)
+                    {
+                        LOG_WARN("MCP_Tool", "WiFi管理器指针为空，跳过网络工具注册");
+                        return count;
+                    }
+
+                    // ========================================================================
+                    // 工具：获取WiFi信号强度
+                    // ========================================================================
+                    {
+                        auto err = mcp_server.add_tool(
+                            "self.network.get_wifi_signal_strength",
+                            "Obtain the connection status of Wi-Fi, including the Wi-Fi name and signal strength",
+                            mcp::PropertyList(),
+                            [wifi_manager](const mcp::PropertyList& props [[maybe_unused]]) -> mcp::ReturnValue
+                            {
+                                // 获取连接信息（包含信号强度）
+                                app::network::wifi::WifiConnectionInfo info;
+                                bool connected = wifi_manager->getConnectionInfo(info);
+
+                                mcp::json result;
+                                result["connected"] = connected;
+
+                                if (connected)
+                                {
+                                    // 已连接，返回信号强度和SSID
+                                    int signal_strength = wifi_manager->getSignalStrength();
+                                    std::string ssid    = wifi_manager->getCurrentSSID();
+
+                                    result["success"]        = true;
+                                    result["signal_strength"] = signal_strength;
+                                    result["ssid"]           = ssid;
+                                    result["message"]        = "WiFi信号强度: " + std::to_string(signal_strength) +
+                                                               "% (网络: " + ssid + ")";
+
+                                    LOG_INFO("MCP_Tool", "WiFi信号强度查询: SSID=%s, 信号强度=%d%%", ssid.c_str(),
+                                             signal_strength);
+                                }
+                                else
+                                {
+                                    // 未连接
+                                    result["success"]        = false;
+                                    result["signal_strength"] = 0;
+                                    result["ssid"]           = "";
+                                    result["message"]        = "WiFi未连接，无法获取信号强度";
+
+                                    LOG_INFO("MCP_Tool", "WiFi信号强度查询: 未连接");
+                                }
+
+                                return result;
+                            });
+
+                        if (err == mcp::McpError::NONE)
+                        {
+                            count++;
+                        }
+                    }
 
                     LOG_INFO("MCP_Tool", "已注册 %d 个网络工具", count);
                     return count;
@@ -213,7 +554,8 @@ namespace app
 
                 int McpToolManager::registerAllTools(McpServer& mcp_server,
                                                       app::media::audio::AudioSystem* audio_system,
-                                                      app::media::camera::VideoSystem* video_system)
+                                                      app::media::camera::VideoSystem* video_system,
+                                                      app::network::wifi::WifiManager* wifi_manager)
                 {
                     LOG_INFO("MCP_Tool", "========================================");
                     LOG_INFO("MCP_Tool", "  开始注册MCP工具...");
@@ -224,7 +566,7 @@ namespace app
                     total += registerSystemTools(mcp_server);
                     total += registerAudioTools(mcp_server, audio_system);
                     total += registerVideoTools(mcp_server, video_system);
-                    total += registerNetworkTools(mcp_server);
+                    total += registerNetworkTools(mcp_server, wifi_manager);
 
                     LOG_INFO("MCP_Tool", "========================================");
                     if (total == 0)

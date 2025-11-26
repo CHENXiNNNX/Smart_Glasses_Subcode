@@ -23,6 +23,11 @@ namespace camera {
 class VideoSystem;
 }
 }
+namespace network {
+namespace wifi {
+class WifiManager;
+}
+}
 }
 
 namespace app
@@ -153,6 +158,9 @@ namespace app
             // 外部注入的视频系统（不由 ChatbotSystem 管理生命周期）
             app::media::camera::VideoSystem* video_system_{nullptr};
 
+            // 外部注入的WiFi管理器（不由 ChatbotSystem 管理生命周期）
+            app::network::wifi::WifiManager* wifi_manager_{nullptr};
+
             // 状态
             std::atomic<ChatbotState> state_{ChatbotState::UNINITIALIZED};
 
@@ -197,6 +205,9 @@ namespace app
 
             // 设置外部视频系统（必须在 open() 之前调用）
             void setVideoSystem(app::media::camera::VideoSystem* video_system);
+
+            // 设置外部WiFi管理器（必须在 open() 之前调用）
+            void setWifiManager(app::network::wifi::WifiManager* wifi_manager);
 
             // 状态查询
             ChatbotState getState() const;

@@ -496,7 +496,7 @@ namespace app
 
                     if (dma_pool_ && dma_hits > 0)
                     {
-                        LOG_INFO("VideoMemoryPool", "DMA零拷贝优化已激活");
+                        LOG_INFO("VideoMemoryPool", "DMA零拷贝已激活");
                     }
 
                     LOG_INFO("VideoMemoryPool", "总体命中率: %.2f%%", total_hit_rate);

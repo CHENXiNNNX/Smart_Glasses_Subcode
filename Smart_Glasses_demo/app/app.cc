@@ -364,6 +364,11 @@ bool App::initChatbot() {
         chatbot_system_->setVideoSystem(video_system_.get());
     }
     
+    // 注入WiFi管理器（必须在 open() 之前）
+    if (wifi_manager_) {
+        chatbot_system_->setWifiManager(wifi_manager_.get());
+    }
+    
     // 打开聊天机器人系统
     chatbot::ChatbotError chatbot_err = chatbot_system_->open();
     if (chatbot_err != chatbot::ChatbotError::NONE) {

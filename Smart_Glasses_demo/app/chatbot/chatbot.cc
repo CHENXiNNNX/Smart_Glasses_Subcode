@@ -47,6 +47,12 @@ namespace app
             video_system_ = video_system;
         }
 
+        // 设置外部WiFi管理器
+        void ChatbotSystem::setWifiManager(app::network::wifi::WifiManager* wifi_manager)
+        {
+            wifi_manager_ = wifi_manager;
+        }
+
         ChatbotError ChatbotSystem::getDeviceId()
         {
             // 获取设备ID（MAC地址），如果配置为空则自动获取
@@ -206,7 +212,7 @@ namespace app
                 }
 
                 // 注册所有MCP工具
-                int tool_count = mcp_tool::McpToolManager::registerAllTools(*mcp_server_, audio_system_, video_system_);
+                int tool_count = mcp_tool::McpToolManager::registerAllTools(*mcp_server_, audio_system_, video_system_, wifi_manager_);
                 LOG_INFO("Chatbot", "MCP工具注册完成，共注册 %d 个工具", tool_count);
 
                 return ChatbotError::NONE;

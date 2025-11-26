@@ -24,6 +24,13 @@ namespace app
             class VideoSystem;
         }
     }
+    namespace network
+    {
+        namespace wifi
+        {
+            class WifiManager;
+        }
+    }
 }
 
 namespace app
@@ -50,11 +57,13 @@ namespace app
                      * @param mcp_server MCP服务器实例
                      * @param audio_system 音频系统指针（可选）
                      * @param video_system 视频系统指针（可选）
+                     * @param wifi_manager WiFi管理器指针（可选）
                      * @return 成功注册的工具数量
                      */
                     static int registerAllTools(McpServer& mcp_server, 
                                                app::media::audio::AudioSystem* audio_system = nullptr,
-                                               app::media::camera::VideoSystem* video_system = nullptr);
+                                               app::media::camera::VideoSystem* video_system = nullptr,
+                                               app::network::wifi::WifiManager* wifi_manager = nullptr);
 
                     /**
                      * @brief 注册系统工具
@@ -84,9 +93,11 @@ namespace app
                     /**
                      * @brief 注册网络工具
                      * @param mcp_server MCP服务器实例
+                     * @param wifi_manager WiFi管理器指针（可选）
                      * @return 注册的工具数量
                      */
-                    static int registerNetworkTools(McpServer& mcp_server);
+                    static int registerNetworkTools(McpServer& mcp_server,
+                                                    app::network::wifi::WifiManager* wifi_manager = nullptr);
                 };
 
             } // namespace mcp_tool
