@@ -1,18 +1,7 @@
 /**
  * @file camera.hpp
- * @brief 视频系统 - 现代C++实现
- * @details 特性：
- *          - RAII资源管理
- *          - 智能指针（无裸指针）
- *          - 三级内存池（固定池+动态池+DMA池）
- *          - 线程安全
- *          - 状态机管理
- *          - 硬件加速（RKMPI）
- *          - ISP参数动态调整
- *          - WebRTC推流支持
- *
- * @author Smart_Glasses Team
- * @date 2025-01-29
+ * @brief 视频系统
+ * @details 实现视频采集、编码、拍照、录像等功能
  */
 
 #ifndef CAMERA_H_
@@ -447,7 +436,7 @@ namespace app
                 size_t fixed_pool_size      = 200;              // 固定池块数
                 size_t fixed_block_size     = 256 * 1024;       // 固定池块大小
                 size_t dynamic_pool_size    = 10 * 1024 * 1024; // 动态池大小
-                bool   enable_dma_zero_copy = true;             // 默认开启DMA零拷贝
+                bool   enable_dma_zero_copy = true;
             };
 
             // ============================================================================
@@ -468,10 +457,9 @@ namespace app
                 bool   is_dma_buffer = false;   // 是否为DMA缓冲区
                 MB_BLK dma_mb_blk    = nullptr; // RKMPI MediaBuffer句柄（DMA时使用）
 
-                // 删除器函数（用于智能指针）
+                // 删除器函数
                 std::function<void(int)> deleter;
 
-                // 禁用拷贝，只允许移动
                 VideoFrame()                             = default;
                 VideoFrame(const VideoFrame&)            = delete;
                 VideoFrame& operator=(const VideoFrame&) = delete;
@@ -482,7 +470,7 @@ namespace app
             using VideoFramePtr = std::shared_ptr<VideoFrame>;
 
             // ============================================================================
-            // 三级视频内存池
+            // 视频内存池
             // ============================================================================
 
             class VideoMemoryPool
@@ -517,7 +505,7 @@ namespace app
                 /**
                  * @brief 分配视频帧
                  * @param size 需要分配的大小
-                 * @return 视频帧智能指针（失败返回nullptr）
+                 * @return 视频帧指针（失败返回nullptr）
                  */
                 VideoFramePtr allocate(size_t size);
 
@@ -537,7 +525,7 @@ namespace app
                 void logStats() const;
 
             private:
-                // 第一级：固定大小对象池（小帧：JPEG、IDR帧）
+                // 固定大小对象池
                 struct FixedPool
                 {
                     static constexpr size_t MAX_BLOCKS        = 512; // 最大支持512块
@@ -562,10 +550,10 @@ namespace app
                     uint8_t* getBlockPtr(int index) const;
                 };
 
-                // 第二级：动态内存池（大帧：H.264/H.265 P帧）
+                // 动态内存池
                 std::unique_ptr<tool::memory::MemoryPool> dynamic_pool_;
 
-                // 第三级：DMA零拷贝内存池
+                // DMA内存池
                 struct DMAPool
                 {
                     static constexpr size_t MAX_DMA_BLOCKS = 32; // 最大DMA块数
@@ -580,7 +568,7 @@ namespace app
 
                     std::array<DMABlock, MAX_DMA_BLOCKS> blocks;
                     std::mutex                           mutex;      // 保护DMA块分配
-                    size_t                               block_size; // 统一的DMA块大小
+                    size_t                               block_size;
 
                     explicit DMAPool(size_t dma_block_size);
                     ~DMAPool();
@@ -596,7 +584,7 @@ namespace app
             };
 
             // ============================================================================
-            // RAII资源包装器
+            // 资源包装器
             // ============================================================================
 
             /**
@@ -685,35 +673,35 @@ namespace app
 
                 /**
                  * @brief 设置亮度
-                 * @param level 亮度等级 [0-255]，128为默认值
+                 * @param level 亮度等级 [0-255]
                  */
                 VideoError setBrightness(unsigned int level);
                 VideoError getBrightness(unsigned int& level) const;
 
                 /**
                  * @brief 设置对比度
-                 * @param level 对比度等级 [0-255]，128为默认值
+                 * @param level 对比度等级 [0-255]
                  */
                 VideoError setContrast(unsigned int level);
                 VideoError getContrast(unsigned int& level) const;
 
                 /**
                  * @brief 设置饱和度
-                 * @param level 饱和度等级 [0-255]，128为默认值
+                 * @param level 饱和度等级 [0-255]
                  */
                 VideoError setSaturation(unsigned int level);
                 VideoError getSaturation(unsigned int& level) const;
 
                 /**
                  * @brief 设置色调
-                 * @param level 色调等级 [0-255]，128为默认值
+                 * @param level 色调等级 [0-255]
                  */
                 VideoError setHue(unsigned int level);
                 VideoError getHue(unsigned int& level) const;
 
                 /**
                  * @brief 设置锐度
-                 * @param level 锐度等级 [0-100]，50为默认值
+                 * @param level 锐度等级 [0-100]
                  */
                 VideoError setSharpness(unsigned int level);
                 VideoError getSharpness(unsigned int& level) const;
@@ -801,7 +789,7 @@ namespace app
                 // 获取编码流
                 VideoError getStream(VideoFramePtr& frame, VideoMemoryPool& pool, int timeout_ms);
 
-                // 获取编码流（DMA零拷贝版本）
+                // 获取编码流
                 VideoError getStreamZeroCopy(VideoFramePtr& frame, int timeout_ms);
 
                 // 动态调整编码参数
@@ -881,7 +869,6 @@ namespace app
                  */
                 ~VideoSystem();
 
-                // 禁用拷贝和移动
                 VideoSystem(const VideoSystem&)            = delete;
                 VideoSystem& operator=(const VideoSystem&) = delete;
 
@@ -892,7 +879,6 @@ namespace app
                 /**
                  * @brief 初始化视频系统
                  * @param sync_ctx 时间同步上下文
-                 * @return 错误码
                  */
                 VideoError initialize(std::shared_ptr<sync_context_t> sync_ctx = nullptr);
 
@@ -937,12 +923,8 @@ namespace app
 
                 /**
                  * @brief 拍照（异步）
-                 * @param filename 文件名（可选，默认自动生成）
-                 * @param switch_encoder 是否临时切换到JPEG编码器（从H264切换）
-                 * @return 错误码
-                 *
-                 * 注意：如果switch_encoder=true且当前是H264编码器，
-                 *      拍照完成后需要手动调用restoreH264Encoder()恢复编码器
+                 * @param filename 文件名（可选）
+                 * @param switch_encoder 是否临时切换到JPEG编码器
                  */
                 VideoError takePhoto(const std::string& filename = "", bool switch_encoder = true);
 
@@ -955,10 +937,7 @@ namespace app
                 }
 
                 /**
-                 * @brief 恢复H264编码器（拍照完成后调用）
-                 * @return 错误码
-                 *
-                 * 用法：等待isPhotoCapturing()返回false后调用此方法
+                 * @brief 恢复H264编码器
                  */
                 VideoError restoreH264Encoder();
 
@@ -968,15 +947,13 @@ namespace app
 
                 /**
                  * @brief 开始录像
-                 * @param filename 文件名（可选，默认自动生成）
+                 * @param filename 文件名（可选）
                  * @param duration_sec 录像时长（秒，0表示手动停止）
-                 * @return 错误码
                  */
                 VideoError startRecord(const std::string& filename = "", int duration_sec = 0);
 
                 /**
                  * @brief 停止录像
-                 * @return 错误码
                  */
                 VideoError stopRecord();
 
@@ -998,16 +975,6 @@ namespace app
                 void setWebRTCVideoCallback(WebRTCVideoCallback callback);
 
                 /**
-                 * @brief 启动WebRTC推流
-                 */
-                VideoError startWebRTCStream();
-
-                /**
-                 * @brief 停止WebRTC推流
-                 */
-                VideoError stopWebRTCStream();
-
-                /**
                  * @brief 检查是否正在WebRTC推流
                  */
                 bool isWebRTCStreaming() const
@@ -1015,17 +982,13 @@ namespace app
                     return is_webrtc_streaming_.load();
                 }
 
-                // ========================================================================
-                // 便利函数
-                // ========================================================================
-
                 /**
-                 * @brief 一键启动WebRTC模式（设置模式+启动流+启动推流）
+                 * @brief 启动WebRTC模式
                  */
                 VideoError startWebRTCMode();
 
                 /**
-                 * @brief 一键停止WebRTC模式
+                 * @brief 停止WebRTC模式
                  */
                 VideoError stopWebRTCMode();
 
@@ -1070,18 +1033,10 @@ namespace app
 
                 /**
                  * @brief 设置编码参数
+                 * @param bitrate 码率（kbps），-1表示不修改
+                 * @param gop GOP大小，-1表示不修改
                  */
-                VideoError setEncodingParams(int bitrate, int gop);
-
-                /**
-                 * @brief 设置视频码率（kbps）
-                 */
-                VideoError setBitrate(int bitrate_kbps);
-
-                /**
-                 * @brief 设置视频GOP大小
-                 */
-                VideoError setGOP(int gop);
+                VideoError setEncodingParams(int bitrate = -1, int gop = -1);
 
                 /**
                  * @brief 设置JPEG拍照质量 (1-100)
@@ -1109,14 +1064,11 @@ namespace app
                  * @brief 将当前图像发送到AI服务器进行分析
                  * @param question 要向AI提出的问题
                  * @return JSON格式的响应字符串
-                 * @note 调用此函数前必须先调用setExplainUrl()设置服务器URL
-                 * @note 函数会先拍照获取JPEG图像，然后上传到服务器
-                 * @warning 此函数会阻塞直到服务器响应返回
                  */
                 std::string explainImage(const std::string& question);
 
                 // ========================================================================
-                // ISP参数控制（通过ISPWrapper代理）
+                // ISP参数控制
                 // ========================================================================
 
                 /**

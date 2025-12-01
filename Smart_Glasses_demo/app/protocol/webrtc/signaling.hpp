@@ -1,11 +1,6 @@
 /**
  * @file signaling.hpp
  * @brief WebRTC信令客户端
- * @details 负责WebRTC连接建立前的所有信令通信
- *          - 基于通用WebSocketClient
- *          - 房间管理
- *          - SDP/ICE交换
- *          - 配对管理
  */
 
 #ifndef SIGNALING_HPP

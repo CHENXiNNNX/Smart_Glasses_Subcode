@@ -63,16 +63,16 @@ namespace app
             struct WakewordConfig
             {
                 // 文件路径
-                std::string resource_file; // Snowboy资源文件路径（common.res）
-                std::string model_file;    // 唤醒词模型文件路径（*.umdl或*.pmdl）
+                std::string resource_file; // 资源文件路径
+                std::string model_file;    // 模型文件路径
 
                 // 检测参数
-                float sensitivity = 0.5f; // 灵敏度（0.0-1.0）
+                float sensitivity = 0.5f; // 灵敏度
                 float audio_gain  = 1.0f; // 音频增益
-                bool apply_frontend = false; // 是否应用前端处理（通常设为false，因为已有3A）
+                bool apply_frontend = false; // 是否应用前端处理
 
                 // 音频缓冲
-                size_t max_buffer_size  = 4096;  // 最大缓冲区大小（样本数）
+                size_t max_buffer_size  = 4096;  // 最大缓冲区大小
                 bool   enable_buffering = false; // 是否启用音频缓冲
 
                 // 日志
@@ -104,12 +104,6 @@ namespace app
 
             /**
              * @brief 唤醒词检测器
-             * @details 基于Snowboy的唤醒词检测
-             *          - RAII自动资源管理
-             *          - Pimpl隐藏实现
-             *          - 智能指针，无裸指针
-             *          - 线程安全回调
-             *          - 异常安全保证
              */
             class WakewordDetector
             {
@@ -121,7 +115,7 @@ namespace app
                 explicit WakewordDetector(const WakewordConfig& config = WakewordConfig());
 
                 /**
-                 * @brief 析构函数（RAII自动清理）
+                 * @brief 析构函数
                  */
                 ~WakewordDetector();
 
@@ -162,8 +156,8 @@ namespace app
 
                 /**
                  * @brief 处理音频帧
-                 * @param data 音频数据（int16_t格式，16kHz单声道）
-                 * @param length 数据长度（样本数）
+                 * @param data 音频数据
+                 * @param length 数据长度
                  * @return WakewordResult 检测结果
                  */
                 WakewordResult processAudioFrame(const int16_t* data, int length);
@@ -174,7 +168,7 @@ namespace app
 
                 /**
                  * @brief 设置灵敏度
-                 * @param sensitivity 灵敏度（0.0-1.0，推荐0.5）
+                 * @param sensitivity 灵敏度
                  */
                 void setSensitivity(float sensitivity);
 
@@ -189,13 +183,13 @@ namespace app
                 // ========================================================================
 
                 /**
-                 * @brief 设置唤醒词检测回调（线程安全）
+                 * @brief 设置唤醒词检测回调
                  * @param callback 检测回调函数
                  */
                 void setWakewordCallback(WakewordCallback callback);
 
                 /**
-                 * @brief 设置错误回调（线程安全）
+                 * @brief 设置错误回调
                  * @param callback 错误回调函数
                  */
                 void setErrorCallback(WakewordErrorCallback callback);
@@ -205,17 +199,17 @@ namespace app
                 // ========================================================================
 
                 /**
-                 * @brief 获取采样率（通常为16000 Hz）
+                 * @brief 获取采样率
                  */
                 int getSampleRate() const;
 
                 /**
-                 * @brief 获取声道数（通常为1）
+                 * @brief 获取声道数
                  */
                 int getNumChannels() const;
 
                 /**
-                 * @brief 获取每样本位数（通常为16）
+                 * @brief 获取每样本位数
                  */
                 int getBitsPerSample() const;
 
@@ -229,7 +223,7 @@ namespace app
                 WakewordDetector& operator=(const WakewordDetector&) = delete;
 
             private:
-                class Impl; // Pimpl惯用法
+                class Impl;
                 std::unique_ptr<Impl> pImpl_;
             };
 

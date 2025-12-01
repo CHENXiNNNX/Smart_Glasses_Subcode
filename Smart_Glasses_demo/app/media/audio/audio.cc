@@ -2,13 +2,6 @@
  * @file audio.cc
  * @brief 音频系统实现
  * @details 实现音频采集、播放、编解码、重采样等功能
- *          - 支持48kHz/16kHz双采样率
- *          - Opus编解码（WebRTC/AI/TTS）
- *          - 3A算法（降噪/AGC）
- *          - 两级内存池管理
- *          - 零拷贝传输
- * @author Smart_Glasses Team
- * @date 2025-01-29
  */
 
 #include "audio.hpp"
@@ -29,33 +22,34 @@ namespace app
 
             namespace
             {
-                constexpr double   BYTES_PER_KIB             = 1024.0;
-                constexpr double   BYTES_PER_MIB             = BYTES_PER_KIB * 1024.0;
-                constexpr double   FIXED_POOL_WARN_THRESHOLD = 70.0;
-                constexpr uint64_t FIXED_POOL_MIN_SAMPLES    = 100;
-                constexpr int      MIN_OUTPUT_VOLUME         = 0;    // 最小音量（静音）
-                constexpr int      MAX_OUTPUT_VOLUME         = 100;  // 最大音量（100%）
-                constexpr int      DEFAULT_OUTPUT_VOLUME     = 50;   // 默认音量（50%，对应1.0倍增益）
-                constexpr float    VOLUME_TO_GAIN_FACTOR     = 0.02F; // 音量转增益系数（100 -> 2.0）
-                constexpr double   SAMPLE_RATE_INPUT_HZ      = 48000.0;
-                constexpr double   SAMPLE_RATE_TARGET_HZ     = 16000.0;
-                constexpr double   RESAMPLE_RATIO = SAMPLE_RATE_TARGET_HZ / SAMPLE_RATE_INPUT_HZ;
-                constexpr float    PCM_NORMALIZE_DENOMINATOR   = 32768.0F;
-                constexpr float    PCM_CLAMP_NUMERATOR         = 32767.0F;
-                constexpr float    PCM_CLAMP_MIN               = -1.0F;
-                constexpr float    PCM_CLAMP_MAX               = 1.0F;
-                constexpr size_t   WAKEWORD_BUFFER_MAX_SAMPLES = 16000; // 1秒@16kHz
-                constexpr int      TARGET_FRAME_SAMPLES        = 320;   // 16kHz 20ms
-                constexpr size_t   AI_BUFFER_MAX_SAMPLES       = 16000; // 1秒@16kHz
-                constexpr int      OPUS_TTS_SAMPLE_RATE        = 48000;
-                constexpr int      OPUS_AI_SAMPLE_RATE         = 16000;
-                constexpr size_t   OPUS_MAX_FRAME_BYTES        = 4096;
-                constexpr int      MILLISECONDS_PER_SECOND     = 1000;
-                constexpr int      LOG_SAMPLE_LIMIT            = 10;
-                constexpr size_t   CACHE_LINE_ALIGNMENT        = 64;
-                constexpr double   MEMORY_EXPANSION_FACTOR     = 2.0;
-                constexpr size_t   FLOAT_BUFFER_SAMPLES        = 2048;
-                constexpr int      PCM_STATS_SAMPLE_LIMIT      = 10; // PCM统计打印前N包
+                constexpr const char* LOG_TAG                      = "AUDIO";
+                constexpr double      BYTES_PER_KIB                = 1024.0;
+                constexpr double      BYTES_PER_MIB                = BYTES_PER_KIB * 1024.0;
+                constexpr double      FIXED_POOL_WARN_THRESHOLD    = 70.0;
+                constexpr uint64_t    FIXED_POOL_MIN_SAMPLES       = 100;
+                constexpr int         MIN_OUTPUT_VOLUME            = 0;    // 最小音量（静音）
+                constexpr int         MAX_OUTPUT_VOLUME            = 100;  // 最大音量（100%）
+                constexpr int         DEFAULT_OUTPUT_VOLUME        = 50;   // 默认音量（50%，对应1.0倍增益）
+                constexpr float       VOLUME_TO_GAIN_FACTOR        = 0.02F; // 音量转增益系数（100 -> 2.0）
+                constexpr double      SAMPLE_RATE_INPUT_HZ         = 48000.0;
+                constexpr double      SAMPLE_RATE_TARGET_HZ        = 16000.0;
+                constexpr double      RESAMPLE_RATIO               = SAMPLE_RATE_TARGET_HZ / SAMPLE_RATE_INPUT_HZ;
+                constexpr float       PCM_NORMALIZE_DENOMINATOR    = 32768.0F;
+                constexpr float       PCM_CLAMP_NUMERATOR          = 32767.0F;
+                constexpr float       PCM_CLAMP_MIN                = -1.0F;
+                constexpr float       PCM_CLAMP_MAX                = 1.0F;
+                constexpr size_t      WAKEWORD_BUFFER_MAX_SAMPLES  = 16000; // 1秒@16kHz
+                constexpr int         TARGET_FRAME_SAMPLES         = 320;   // 16kHz 20ms
+                constexpr size_t      AI_BUFFER_MAX_SAMPLES        = 16000; // 1秒@16kHz
+                constexpr int         OPUS_TTS_SAMPLE_RATE         = 48000;
+                constexpr int         OPUS_AI_SAMPLE_RATE          = 16000;
+                constexpr size_t      OPUS_MAX_FRAME_BYTES         = 4096;
+                constexpr int         MILLISECONDS_PER_SECOND      = 1000;
+                constexpr int         LOG_SAMPLE_LIMIT             = 10;
+                constexpr size_t      CACHE_LINE_ALIGNMENT         = 64;
+                constexpr double      MEMORY_EXPANSION_FACTOR      = 2.0;
+                constexpr size_t      FLOAT_BUFFER_SAMPLES         = 2048;
+                constexpr int         PCM_STATS_SAMPLE_LIMIT       = 10; // PCM统计打印前N包
             }                                                        // namespace
 
             // ============================================================================
@@ -88,7 +82,7 @@ namespace app
                     frame_objects[i].fixed_pool_index   = static_cast<int>(i);
                 }
 
-                LOG_INFO("AudioMemoryPool", "固定内存池已创建: %zu 块 × %zu 字节 = %.2f KB",
+                LOG_INFO(LOG_TAG, "固定内存池已创建: %zu 块 × %zu 字节 = %.2f KB",
                          actual_block_count, BLOCK_SIZE,
                          (actual_block_count * BLOCK_SIZE) / BYTES_PER_KIB);
             }
@@ -158,7 +152,7 @@ namespace app
             {
                 if (index < 0 || index >= static_cast<int>(actual_block_count))
                 {
-                    LOG_ERROR("AudioMemoryPool", "无效的块索引: %d", index);
+                    LOG_ERROR(LOG_TAG, "无效的块索引: %d", index);
                     return;
                 }
 
@@ -180,8 +174,8 @@ namespace app
             AudioMemoryPool::AudioMemoryPool(const AudioMemoryPoolConfig& config) : config_(config)
             {
 
-                LOG_INFO("AudioMemoryPool", "初始化音频内存池（两级架构）...");
-                LOG_INFO("AudioMemoryPool", "  固定池: %zu 块 × %zu 字节 = %.2f KB",
+                LOG_INFO(LOG_TAG, "初始化音频内存池（两级架构）...");
+                LOG_INFO(LOG_TAG, "  固定池: %zu 块 × %zu 字节 = %.2f KB",
                          config_.fixed_block_count, config_.fixed_block_size,
                          (config_.fixed_block_count * config_.fixed_block_size) / BYTES_PER_KIB);
 
@@ -195,22 +189,22 @@ namespace app
                         config_.dynamic_pool_size, // initialSize
                         CACHE_LINE_ALIGNMENT,      // alignment
                         MEMORY_EXPANSION_FACTOR);
-                    LOG_INFO("AudioMemoryPool", "  动态池: %.2f MB（初始）",
+                    LOG_INFO(LOG_TAG, "  动态池: %.2f MB（初始）",
                              config_.dynamic_pool_size / BYTES_PER_MIB);
                 }
 
-                LOG_INFO("AudioMemoryPool", "音频内存池初始化成功");
+                LOG_INFO(LOG_TAG, "音频内存池初始化成功");
             }
 
             AudioMemoryPool::~AudioMemoryPool()
             {
-                LOG_INFO("AudioMemoryPool", "销毁音频内存池...");
+                LOG_INFO(LOG_TAG, "销毁音频内存池...");
 
                 // 输出最终统计
                 logStats();
 
                 // 固定池和动态池会自动析构（unique_ptr）
-                LOG_INFO("AudioMemoryPool", "音频内存池已销毁");
+                LOG_INFO(LOG_TAG, "音频内存池已销毁");
             }
 
             AudioFramePtr AudioMemoryPool::allocate(size_t size)
@@ -228,7 +222,7 @@ namespace app
                     }
 
                     // 固定池未命中，回退到动态池
-                    LOG_DEBUG("AudioMemoryPool", "固定池未命中，回退到动态池（大小: %zu）", size);
+                    LOG_DEBUG(LOG_TAG, "固定池未命中，回退到动态池（大小: %zu）", size);
                 }
 
                 // 第二级：动态池（慢速路径）
@@ -241,7 +235,7 @@ namespace app
 
                 // 分配失败
                 stats_.allocation_failures.fetch_add(1, std::memory_order_relaxed);
-                LOG_ERROR("AudioMemoryPool", "内存分配失败: %zu 字节", size);
+                LOG_ERROR(LOG_TAG, "内存分配失败: %zu 字节", size);
                 return nullptr;
             }
 
@@ -268,7 +262,7 @@ namespace app
                 frame->is_from_fixed_pool = true;
                 frame->fixed_pool_index   = block_index;
 
-                // 创建智能指针，使用自定义删除器回收到固定池
+                // 创建智能指针，回收到固定池
                 auto* pool_ptr = fixed_pool_.get();
                 return std::shared_ptr<AudioFrame>(
                     frame,
@@ -286,7 +280,7 @@ namespace app
             {
                 if (!dynamic_pool_)
                 {
-                    LOG_ERROR("AudioMemoryPool", "动态池未初始化");
+                    LOG_ERROR(LOG_TAG, "动态池未初始化");
                     return nullptr;
                 }
 
@@ -346,23 +340,23 @@ namespace app
 
                 if (total == 0)
                 {
-                    LOG_INFO("AudioMemoryPool", "暂无分配统计");
+                    LOG_INFO(LOG_TAG, "暂无分配统计");
                     return;
                 }
 
                 double fixed_rate   = (double)fixed_hits / total * 100.0;
                 double dynamic_rate = (double)dynamic_hits / total * 100.0;
 
-                LOG_INFO("AudioMemoryPool", "=== 内存池统计 ===");
-                LOG_INFO("AudioMemoryPool", "  总分配次数: %llu", total);
-                LOG_INFO("AudioMemoryPool", "  固定池命中:   %llu (%.2f%%)", fixed_hits, fixed_rate);
-                LOG_INFO("AudioMemoryPool", "  动态池命中: %llu (%.2f%%)", dynamic_hits, dynamic_rate);
-                LOG_INFO("AudioMemoryPool", "  分配失败:          %llu", failures);
+                LOG_INFO(LOG_TAG, "=== 内存池统计 ===");
+                LOG_INFO(LOG_TAG, "  总分配次数: %llu", total);
+                LOG_INFO(LOG_TAG, "  固定池命中:   %llu (%.2f%%)", fixed_hits, fixed_rate);
+                LOG_INFO(LOG_TAG, "  动态池命中: %llu (%.2f%%)", dynamic_hits, dynamic_rate);
+                LOG_INFO(LOG_TAG, "  分配失败:          %llu", failures);
 
-                // 只有在命中率 < 70% 时才警告（固定池大小已优化到600）
+                // 命中率低于阈值时警告
                 if (fixed_rate < FIXED_POOL_WARN_THRESHOLD && total > FIXED_POOL_MIN_SAMPLES)
                 {
-                    LOG_WARN("AudioMemoryPool",
+                    LOG_WARN(LOG_TAG,
                              "固定池命中率偏低 (%.2f%%)，建议增加池大小或检查内存泄漏", fixed_rate);
                 }
             }
@@ -395,27 +389,27 @@ namespace app
                 // 内存池
                 std::unique_ptr<AudioMemoryPool> mem_pool;
 
-                // 编解码器（RAII智能指针）
+                // 编解码器
                 OpusEncoderPtr webrtc_encoder; // 48kHz编码器（WebRTC）
                 OpusDecoderPtr webrtc_decoder; // 48kHz解码器（WebRTC）
                 OpusDecoderPtr tts_decoder;    // 48kHz解码器（TTS）
                 OpusEncoderPtr ai_encoder;     // 16kHz编码器（AI）
 
-                // 重采样器（RAII智能指针）
-                SrcStatePtr          ai_resampler;       // 48kHz → 16kHz（AI）
+                // 重采样器
+                SrcStatePtr          ai_resampler;       // 48kHz -> 16kHz（AI）
                 std::vector<int16_t> ai_resample_buffer; // AI重采样累积缓冲区
 
-                SrcStatePtr          wakeword_resampler;       // 48kHz → 16kHz（唤醒词）
+                SrcStatePtr          wakeword_resampler;       // 48kHz -> 16kHz（唤醒词）
                 std::vector<int16_t> wakeword_resample_buffer; // 唤醒词重采样累积缓冲区
 
-                // 3A算法（RAII智能指针）
+                // 3A算法
                 SpeexStatePtr speex_state;
 
-                // PortAudio流（RAII智能指针）
+                // PortAudio流
                 PaStreamPtr record_stream;
                 PaStreamPtr playback_stream;
 
-                // 音频帧队列（零拷贝，使用智能指针）
+                // 音频帧队列
                 std::queue<AudioFramePtr> record_queue;
                 std::queue<AudioFramePtr> playback_queue;
                 std::mutex                record_queue_mutex;
@@ -446,12 +440,12 @@ namespace app
 
                 explicit Impl(const AudioConfig& cfg) : config(cfg)
                 {
-                    LOG_DEBUG("AudioSystem", "Impl已创建");
+                    LOG_DEBUG(LOG_TAG, "Impl已创建");
                 }
 
                 ~Impl()
                 {
-                    LOG_DEBUG("AudioSystem", "Impl已销毁");
+                    LOG_DEBUG(LOG_TAG, "Impl已销毁");
                 }
 
                 // 静态回调函数（C函数指针兼容）
@@ -465,7 +459,97 @@ namespace app
                                             const PaStreamCallbackTimeInfo* time_info,
                                             PaStreamCallbackFlags status_flags, void* user_data);
 
+                // ========================================================================
+                // PortAudio流配置结构
+                // ========================================================================
+                /**
+                 * @brief PortAudio流配置结构
+                 */
+                struct PaStreamConfig
+                {
+                    double               sample_rate;      // 采样率
+                    int                  frame_duration_ms; // 帧时长（毫秒）
+                    PaStreamParameters*  input_params;     // nullptr表示无输入
+                    PaStreamParameters*  output_params;    // nullptr表示无输出
+                    PaStreamCallback*    callback;         // 回调函数
+                    AudioControlState    control_state;    // 控制状态
+                    std::atomic<bool>*   running_flag;     // 运行标志
+                    PaStreamPtr*         stream_ptr;       // 指向stream指针
+                    const char*          direction_name;   // "录音"或"播放"
+                };
+
+                /**
+                 * @brief PortAudio流配置辅助函数
+                 * @param config 流配置参数
+                 * @return AudioError::NONE 成功
+                 */
+                AudioError openAndStartPaStream(const PaStreamConfig& config)
+                {
+                    // 计算每缓冲区的帧数
+                    int frames_per_buffer = config.sample_rate / MILLISECONDS_PER_SECOND *
+                                           config.frame_duration_ms;
+
+                    // 打开流
+                    PaStream* stream = nullptr;
+                    PaError   err    = Pa_OpenStream(&stream, config.input_params, config.output_params,
+                                                   config.sample_rate, frames_per_buffer, paClipOff,
+                                                   config.callback, this);
+
+                    if (err != paNoError)
+                    {
+                        LOG_ERROR(LOG_TAG, "打开%s流失败: %s", config.direction_name,
+                                  Pa_GetErrorText(err));
+                        return AudioError::STREAM_OPEN_FAILED;
+                    }
+
+                    // 启动流
+                    err = Pa_StartStream(stream);
+                    if (err != paNoError)
+                    {
+                        LOG_ERROR(LOG_TAG, "启动%s流失败: %s", config.direction_name,
+                                  Pa_GetErrorText(err));
+                        Pa_CloseStream(stream);
+                        return AudioError::STREAM_START_FAILED;
+                    }
+
+                    // 设置stream指针
+                    config.stream_ptr->reset(stream);
+                    config.running_flag->store(true);
+                    setControlState(config.control_state);
+
+                    return AudioError::NONE;
+                }
+
+                // ========================================================================
+                // 流类型配置结构
+                // ========================================================================
+                struct StreamTypeConfig
+                {
+                    AudioMainState    main_state;
+                    std::atomic<bool>* streaming_flag;
+                    const char*       stream_name;
+                };
+
+                /**
+                 * @brief 获取流类型配置
+                 * @param type 流类型
+                 * @return 流类型配置
+                 */
+                StreamTypeConfig getStreamTypeConfig(StreamType type)
+                {
+                    if (type == StreamType::AI)
+                    {
+                        return {AudioMainState::AI, &is_ai_streaming, "AI"};
+                    }
+                    else // StreamType::WEBRTC
+                    {
+                        return {AudioMainState::WEBRTC, &is_webrtc_streaming, "WebRTC"};
+                    }
+                }
+
+                // ========================================================================
                 // 状态设置（带回调）
+                // ========================================================================
                 void setMainState(AudioMainState new_state)
                 {
                     AudioMainState old_state =
@@ -473,7 +557,7 @@ namespace app
 
                     if (old_state != new_state)
                     {
-                        LOG_INFO("AudioSystem", "主状态: %d → %d", static_cast<int>(old_state),
+                        LOG_INFO(LOG_TAG, "主状态: %d -> %d", static_cast<int>(old_state),
                                  static_cast<int>(new_state));
 
                         // 调用回调（如果设置了）
@@ -487,20 +571,20 @@ namespace app
                             }
                             catch (const std::runtime_error& e)
                             {
-                                LOG_ERROR("AudioSystem", "主状态回调运行时错误: %s", e.what());
+                                LOG_ERROR(LOG_TAG, "主状态回调运行时错误: %s", e.what());
                             }
                             catch (const std::logic_error& e)
                             {
-                                LOG_ERROR("AudioSystem", "主状态回调逻辑错误: %s", e.what());
+                                LOG_ERROR(LOG_TAG, "主状态回调逻辑错误: %s", e.what());
                             }
                             catch (const std::exception& e)
                             {
-                                LOG_ERROR("AudioSystem", "主状态回调异常: %s", e.what());
+                                LOG_ERROR(LOG_TAG, "主状态回调异常: %s", e.what());
                             }
                         }
                         else if (!lock.owns_lock())
                         {
-                            LOG_DEBUG("AudioSystem", "回调互斥锁繁忙，跳过主状态回调");
+                            LOG_DEBUG(LOG_TAG, "回调互斥锁繁忙，跳过主状态回调");
                         }
                     }
                 }
@@ -512,7 +596,7 @@ namespace app
 
                     if (old_state != new_state)
                     {
-                        LOG_DEBUG("AudioSystem", "控制状态: %d → %d", static_cast<int>(old_state),
+                        LOG_DEBUG(LOG_TAG, "控制状态: %d -> %d", static_cast<int>(old_state),
                                   static_cast<int>(new_state));
 
                         // 使用try_lock避免死锁
@@ -525,15 +609,15 @@ namespace app
                             }
                             catch (const std::runtime_error& e)
                             {
-                                LOG_ERROR("AudioSystem", "控制状态回调运行时错误: %s", e.what());
+                                LOG_ERROR(LOG_TAG, "控制状态回调运行时错误: %s", e.what());
                             }
                             catch (const std::logic_error& e)
                             {
-                                LOG_ERROR("AudioSystem", "控制状态回调逻辑错误: %s", e.what());
+                                LOG_ERROR(LOG_TAG, "控制状态回调逻辑错误: %s", e.what());
                             }
                             catch (const std::exception& e)
                             {
-                                LOG_ERROR("AudioSystem", "控制状态回调异常: %s", e.what());
+                                LOG_ERROR(LOG_TAG, "控制状态回调异常: %s", e.what());
                             }
                         }
                     }
@@ -551,15 +635,15 @@ namespace app
                         }
                         catch (const std::runtime_error& e)
                         {
-                            LOG_ERROR("AudioSystem", "AI回调运行时错误: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "AI回调运行时错误: %s", e.what());
                         }
                         catch (const std::logic_error& e)
                         {
-                            LOG_ERROR("AudioSystem", "AI回调逻辑错误: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "AI回调逻辑错误: %s", e.what());
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("AudioSystem", "AI回调异常: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "AI回调异常: %s", e.what());
                         }
                     }
                 }
@@ -575,15 +659,15 @@ namespace app
                         }
                         catch (const std::runtime_error& e)
                         {
-                            LOG_ERROR("AudioSystem", "WebRTC回调运行时错误: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "WebRTC回调运行时错误: %s", e.what());
                         }
                         catch (const std::logic_error& e)
                         {
-                            LOG_ERROR("AudioSystem", "WebRTC回调逻辑错误: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "WebRTC回调逻辑错误: %s", e.what());
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("AudioSystem", "WebRTC回调异常: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "WebRTC回调异常: %s", e.what());
                         }
                     }
                 }
@@ -599,15 +683,15 @@ namespace app
                         }
                         catch (const std::runtime_error& e)
                         {
-                            LOG_ERROR("AudioSystem", "唤醒词回调运行时错误: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "唤醒词回调运行时错误: %s", e.what());
                         }
                         catch (const std::logic_error& e)
                         {
-                            LOG_ERROR("AudioSystem", "唤醒词回调逻辑错误: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "唤醒词回调逻辑错误: %s", e.what());
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("AudioSystem", "唤醒词回调异常: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "唤醒词回调异常: %s", e.what());
                         }
                     }
                 }
@@ -620,26 +704,26 @@ namespace app
             AudioSystem::AudioSystem(const AudioConfig& config)
                 : pImpl_(std::make_unique<Impl>(config))
             {
-                LOG_INFO("AudioSystem", "音频系统已创建");
+                LOG_INFO(LOG_TAG, "音频系统已创建");
             }
 
             AudioSystem::~AudioSystem()
             {
                 shutdown();
-                LOG_INFO("AudioSystem", "音频系统已销毁");
+                LOG_INFO(LOG_TAG, "音频系统已销毁");
             }
 
             AudioError AudioSystem::initialize(std::shared_ptr<sync_context_t> sync_ctx)
             {
                 if (pImpl_->initialized.load())
                 {
-                    LOG_WARN("AudioSystem", "已经初始化过了");
+                    LOG_WARN(LOG_TAG, "已经初始化过了");
                     return AudioError::ALREADY_RUNNING;
                 }
 
-                LOG_INFO("AudioSystem", "========================================");
-                LOG_INFO("AudioSystem", "初始化音频系统...");
-                LOG_INFO("AudioSystem", "========================================");
+                LOG_INFO(LOG_TAG, "========================================");
+                LOG_INFO(LOG_TAG, "初始化音频系统...");
+                LOG_INFO(LOG_TAG, "========================================");
 
                 pImpl_->sync_ctx = std::move(sync_ctx);
 
@@ -651,10 +735,10 @@ namespace app
                 PaError err = Pa_Initialize();
                 if (err != paNoError)
                 {
-                    LOG_ERROR("AudioSystem", "PortAudio初始化失败: %s", Pa_GetErrorText(err));
+                    LOG_ERROR(LOG_TAG, "PortAudio初始化失败: %s", Pa_GetErrorText(err));
                     return AudioError::INITIALIZE_FAILED;
                 }
-                LOG_INFO("AudioSystem", "  PortAudio版本: %s", Pa_GetVersionText());
+                LOG_INFO(LOG_TAG, "  PortAudio版本: %s", Pa_GetVersionText());
 
                 // 创建所有Opus编解码器和重采样器
                 int  opus_error      = 0;
@@ -668,7 +752,7 @@ namespace app
 
                 if (opus_error != OPUS_OK || !webrtc_encoder)
                 {
-                    LOG_ERROR("AudioSystem", "WebRTC编码器创建失败: %s", opus_strerror(opus_error));
+                    LOG_ERROR(LOG_TAG, "WebRTC编码器创建失败: %s", opus_strerror(opus_error));
                     all_initialized = false;
                 }
                 else
@@ -678,7 +762,7 @@ namespace app
                     opus_encoder_ctl(pImpl_->webrtc_encoder.get(), OPUS_SET_VBR(1));
                     opus_encoder_ctl(pImpl_->webrtc_encoder.get(),
                                      OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));
-                    LOG_INFO("AudioSystem", "   WebRTC编码器: 48kHz, 64kbps");
+                    LOG_INFO(LOG_TAG, "   WebRTC编码器: 48kHz, 64kbps");
                 }
 
                 // 创建WebRTC解码器（48kHz）
@@ -687,13 +771,13 @@ namespace app
 
                 if (opus_error != OPUS_OK || !webrtc_decoder)
                 {
-                    LOG_ERROR("AudioSystem", "WebRTC解码器创建失败: %s", opus_strerror(opus_error));
+                    LOG_ERROR(LOG_TAG, "WebRTC解码器创建失败: %s", opus_strerror(opus_error));
                     all_initialized = false;
                 }
                 else
                 {
                     pImpl_->webrtc_decoder.reset(webrtc_decoder);
-                    LOG_INFO("AudioSystem", "   WebRTC解码器: 48kHz");
+                    LOG_INFO(LOG_TAG, "   WebRTC解码器: 48kHz");
                 }
 
                 // 创建TTS解码器（48kHz）
@@ -701,13 +785,13 @@ namespace app
                     opus_decoder_create(OPUS_TTS_SAMPLE_RATE, 1, &opus_error);
                 if (opus_error != OPUS_OK || !tts_decoder)
                 {
-                    LOG_ERROR("AudioSystem", "TTS解码器创建失败: %s", opus_strerror(opus_error));
+                    LOG_ERROR(LOG_TAG, "TTS解码器创建失败: %s", opus_strerror(opus_error));
                     all_initialized = false;
                 }
                 else
                 {
                     pImpl_->tts_decoder.reset(tts_decoder);
-                    LOG_INFO("AudioSystem", "   TTS解码器: 48kHz");
+                    LOG_INFO(LOG_TAG, "   TTS解码器: 48kHz");
                 }
 
                 // 创建AI编码器（16kHz）
@@ -715,7 +799,7 @@ namespace app
                     opus_encoder_create(OPUS_AI_SAMPLE_RATE, 1, OPUS_APPLICATION_VOIP, &opus_error);
                 if (opus_error != OPUS_OK || !ai_encoder)
                 {
-                    LOG_ERROR("AudioSystem", "AI编码器创建失败: %s", opus_strerror(opus_error));
+                    LOG_ERROR(LOG_TAG, "AI编码器创建失败: %s", opus_strerror(opus_error));
                     all_initialized = false;
                 }
                 else
@@ -724,39 +808,39 @@ namespace app
                     opus_encoder_ctl(pImpl_->ai_encoder.get(), OPUS_SET_BITRATE(32000));
                     opus_encoder_ctl(pImpl_->ai_encoder.get(), OPUS_SET_VBR(1));
                     opus_encoder_ctl(pImpl_->ai_encoder.get(), OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));
-                    LOG_INFO("AudioSystem", "   AI编码器: 16kHz, 32kbps");
+                    LOG_INFO(LOG_TAG, "   AI编码器: 16kHz, 32kbps");
                 }
 
-                // 创建AI重采样器（48kHz → 16kHz）
+                // 创建AI重采样器（48kHz -> 16kHz）
                 SRC_STATE* ai_resampler = src_new(SRC_SINC_BEST_QUALITY, 1, &src_error);
                 if (!ai_resampler)
                 {
-                    LOG_ERROR("AudioSystem", "AI重采样器创建失败: %s", src_strerror(src_error));
+                    LOG_ERROR(LOG_TAG, "AI重采样器创建失败: %s", src_strerror(src_error));
                     all_initialized = false;
                 }
                 else
                 {
                     pImpl_->ai_resampler.reset(ai_resampler);
-                    LOG_INFO("AudioSystem", "   AI重采样器: 48kHz → 16kHz（最佳质量）");
+                    LOG_INFO(LOG_TAG, "   AI重采样器: 48kHz -> 16kHz（最佳质量）");
                 }
 
-                // 创建唤醒词重采样器（48kHz → 16kHz）
+                // 创建唤醒词重采样器（48kHz -> 16kHz）
                 SRC_STATE* wakeword_resampler = src_new(SRC_SINC_FASTEST, 1, &src_error);
                 if (!wakeword_resampler)
                 {
-                    LOG_ERROR("AudioSystem", "唤醒词重采样器创建失败: %s", src_strerror(src_error));
+                    LOG_ERROR(LOG_TAG, "唤醒词重采样器创建失败: %s", src_strerror(src_error));
                     all_initialized = false;
                 }
                 else
                 {
                     pImpl_->wakeword_resampler.reset(wakeword_resampler);
-                    LOG_INFO("AudioSystem", "   唤醒词重采样器: 48kHz → 16kHz（最快速度）");
+                    LOG_INFO(LOG_TAG, "   唤醒词重采样器: 48kHz -> 16kHz（最快速度）");
                 }
 
                 // 检查所有组件是否初始化成功
                 if (!all_initialized)
                 {
-                    LOG_ERROR("AudioSystem", "部分音频组件初始化失败");
+                    LOG_ERROR(LOG_TAG, "部分音频组件初始化失败");
                     // 清理已创建的资源
                     pImpl_->webrtc_encoder.reset();
                     pImpl_->webrtc_decoder.reset();
@@ -768,7 +852,7 @@ namespace app
                     return AudioError::INITIALIZE_FAILED;
                 }
 
-                LOG_INFO("AudioSystem", "   所有音频组件初始化成功");
+                LOG_INFO(LOG_TAG, "   所有音频组件初始化成功");
 
                 // 初始化3A算法
                 if (pImpl_->config.enable_denoise || pImpl_->config.enable_agc)
@@ -781,7 +865,7 @@ namespace app
 
                     if (!speex)
                     {
-                        LOG_WARN("AudioSystem", "Speex预处理初始化失败，3A已禁用");
+                        LOG_WARN(LOG_TAG, "Speex预处理初始化失败，3A已禁用");
                     }
                     else
                     {
@@ -800,7 +884,7 @@ namespace app
                             speex_preprocess_ctl(speex, SPEEX_PREPROCESS_SET_AGC_LEVEL, &agc_level);
                         }
 
-                        LOG_INFO("AudioSystem", "  3A: 降噪=%s, AGC=%s", denoise ? "开启" : "关闭",
+                        LOG_INFO(LOG_TAG, "  3A: 降噪=%s, AGC=%s", denoise ? "开启" : "关闭",
                                  agc ? "开启" : "关闭");
                     }
                 }
@@ -808,9 +892,9 @@ namespace app
                 pImpl_->initialized.store(true);
                 pImpl_->output_volume.store(pImpl_->config.output_volume);
 
-                LOG_INFO("AudioSystem", "========================================");
-                LOG_INFO("AudioSystem", "音频系统初始化成功！");
-                LOG_INFO("AudioSystem", "========================================");
+                LOG_INFO(LOG_TAG, "========================================");
+                LOG_INFO(LOG_TAG, "音频系统初始化成功！");
+                LOG_INFO(LOG_TAG, "========================================");
 
                 return AudioError::NONE;
             }
@@ -822,17 +906,17 @@ namespace app
                     return;
                 }
 
-                LOG_INFO("AudioSystem", "关闭音频系统...");
+                LOG_INFO(LOG_TAG, "关闭音频系统...");
 
                 // 停止录音和播放
-                stopRecord();
-                stopPlayback();
+                stopStream(StreamDirection::INPUT);
+                stopStream(StreamDirection::OUTPUT);
 
                 // 清空队列
                 clearRecordQueue();
                 clearPlaybackQueue();
 
-                // RAII智能指针会自动释放资源：
+                // 自动释放资源：
                 // - webrtc_encoder, webrtc_decoder, ai_encoder, tts_decoder
                 // - ai_resampler, wakeword_resampler
                 // - speex_state
@@ -848,7 +932,7 @@ namespace app
                 }
 
                 pImpl_->initialized.store(false);
-                LOG_INFO("AudioSystem", "音频系统关闭完成");
+                LOG_INFO(LOG_TAG, "音频系统关闭完成");
             }
 
             bool AudioSystem::isInitialized() const
@@ -888,7 +972,7 @@ namespace app
 
                 if (old_state != state)
                 {
-                    LOG_DEBUG("AudioSystem", "功能状态: %d → %d", static_cast<int>(old_state),
+                    LOG_DEBUG(LOG_TAG, "功能状态: %d -> %d", static_cast<int>(old_state),
                               static_cast<int>(state));
                 }
 
@@ -910,9 +994,9 @@ namespace app
                 volume = std::clamp(volume, MIN_OUTPUT_VOLUME, MAX_OUTPUT_VOLUME);
                 pImpl_->output_volume.store(volume, std::memory_order_relaxed);
                 
-                // 转换为增益系数（0-100 -> 0.0-2.0）
+                // 应用音量增益
                 float gain = volume * VOLUME_TO_GAIN_FACTOR;
-                LOG_INFO("AudioSystem", "输出音量设置为: %d%% (增益: %.2f)", volume, gain);
+                LOG_INFO(LOG_TAG, "输出音量设置为: %d%% (增益: %.2f)", volume, gain);
             }
 
             int AudioSystem::getOutputVolume() const
@@ -928,21 +1012,21 @@ namespace app
             {
                 std::lock_guard<std::mutex> lock(pImpl_->callback_mutex);
                 pImpl_->ai_audio_callback = std::move(callback);
-                LOG_DEBUG("AudioSystem", "AI音频回调已设置");
+                LOG_DEBUG(LOG_TAG, "AI音频回调已设置");
             }
 
             void AudioSystem::setWebRTCAudioCallback(AudioFrameCallback callback)
             {
                 std::lock_guard<std::mutex> lock(pImpl_->callback_mutex);
                 pImpl_->webrtc_audio_callback = std::move(callback);
-                LOG_DEBUG("AudioSystem", "WebRTC音频回调已设置");
+                LOG_DEBUG(LOG_TAG, "WebRTC音频回调已设置");
             }
 
             void AudioSystem::setWakewordCallback(WakewordCallback callback)
             {
                 std::lock_guard<std::mutex> lock(pImpl_->callback_mutex);
                 pImpl_->wakeword_callback = std::move(callback);
-                LOG_DEBUG("AudioSystem", "唤醒词回调已设置");
+                LOG_DEBUG(LOG_TAG, "唤醒词回调已设置");
             }
 
             void AudioSystem::setMainStateCallback(StateChangeCallback<AudioMainState> callback)
@@ -967,7 +1051,7 @@ namespace app
                 std::lock_guard<std::mutex> lock(pImpl_->record_queue_mutex);
                 std::queue<AudioFramePtr>   empty;
                 std::swap(pImpl_->record_queue, empty);
-                LOG_DEBUG("AudioSystem", "录音队列已清空");
+                LOG_DEBUG(LOG_TAG, "录音队列已清空");
             }
 
             void AudioSystem::clearPlaybackQueue()
@@ -975,7 +1059,7 @@ namespace app
                 std::lock_guard<std::mutex> lock(pImpl_->playback_queue_mutex);
                 std::queue<AudioFramePtr>   empty;
                 std::swap(pImpl_->playback_queue, empty);
-                LOG_DEBUG("AudioSystem", "播放队列已清空");
+                LOG_DEBUG(LOG_TAG, "播放队列已清空");
             }
 
             AudioFramePtr AudioSystem::getRecordedFrame(std::chrono::milliseconds timeout)
@@ -1001,7 +1085,7 @@ namespace app
                     return nullptr;
                 }
 
-                // 取出帧（零拷贝，只移动智能指针）
+                // 取出帧
                 AudioFramePtr frame = std::move(pImpl_->record_queue.front());
                 pImpl_->record_queue.pop();
 
@@ -1022,10 +1106,10 @@ namespace app
                 {
                     pImpl_->playback_queue.pop(); // 丢弃最旧的帧
                     pImpl_->stats.frames_dropped.fetch_add(1);
-                    LOG_WARN("AudioSystem", "播放队列已满，丢弃最旧的帧");
+                    LOG_WARN(LOG_TAG, "播放队列已满，丢弃最旧的帧");
                 }
 
-                // 推送帧（零拷贝，智能指针移动）
+                // 推送帧
                 pImpl_->playback_queue.push(std::move(frame));
             }
 
@@ -1060,17 +1144,17 @@ namespace app
                     pImpl_->mem_pool->resetStats();
                 }
 
-                LOG_INFO("AudioSystem", "统计信息已重置");
+                LOG_INFO(LOG_TAG, "统计信息已重置");
             }
 
             void AudioSystem::logStats() const
             {
-                LOG_INFO("AudioSystem", "=== 音频系统统计 ===");
-                LOG_INFO("AudioSystem", "  已录制帧数: %llu", pImpl_->stats.frames_recorded.load());
-                LOG_INFO("AudioSystem", "  已播放帧数:   %llu", pImpl_->stats.frames_played.load());
-                LOG_INFO("AudioSystem", "  已丢弃帧数:  %llu", pImpl_->stats.frames_dropped.load());
-                LOG_INFO("AudioSystem", "  编码次数:    %llu", pImpl_->stats.encode_count.load());
-                LOG_INFO("AudioSystem", "  解码次数:    %llu", pImpl_->stats.decode_count.load());
+                LOG_INFO(LOG_TAG, "=== 音频系统统计 ===");
+                LOG_INFO(LOG_TAG, "  已录制帧数: %llu", pImpl_->stats.frames_recorded.load());
+                LOG_INFO(LOG_TAG, "  已播放帧数:   %llu", pImpl_->stats.frames_played.load());
+                LOG_INFO(LOG_TAG, "  已丢弃帧数:  %llu", pImpl_->stats.frames_dropped.load());
+                LOG_INFO(LOG_TAG, "  编码次数:    %llu", pImpl_->stats.encode_count.load());
+                LOG_INFO(LOG_TAG, "  解码次数:    %llu", pImpl_->stats.decode_count.load());
 
                 if (pImpl_->mem_pool)
                 {
@@ -1097,15 +1181,15 @@ namespace app
                 size_t      frame_size_bytes =
                     frames_per_buffer * impl->config.channels * sizeof(int16_t);
 
-                //  优化1：从内存池分配（<50ns）
+                // 从内存池分配音频帧
                 auto frame = impl->mem_pool->allocate(frame_size_bytes);
                 if (!frame)
                 {
-                    LOG_ERROR("AudioCallback", "帧分配失败");
+                    LOG_ERROR(LOG_TAG, "帧分配失败");
                     return paContinue;
                 }
 
-                //  优化2：一次拷贝
+                // 拷贝输入数据
                 std::memcpy(frame->data, input, frame_size_bytes);
                 frame->size      = frame_size_bytes;
                 frame->timestamp = get_nowus();
@@ -1116,18 +1200,18 @@ namespace app
                     speex_preprocess_run(impl->speex_state.get(), frame->getData<int16_t>());
                 }
 
-                // 唤醒词检测（仅在非AI流式传输时，需要16kHz音频）
+                // 唤醒词检测（仅在非AI流时进行）
                 if (!impl->is_ai_streaming.load() && impl->wakeword_callback &&
                     impl->wakeword_resampler)
                 {
-                    // 重采样 48kHz → 16kHz
+                    // 重采样 48kHz -> 16kHz
                     SRC_DATA src_data{};
 
                     // 使用预分配的临时缓冲区
                     float* input_float  = impl->temp_float_buffer_in.data();
                     float* output_float = impl->temp_float_buffer_out.data();
 
-                    // int16 → float
+                    // int16 -> float
                     const int16_t* pcm_data = frame->getData<int16_t>();
                     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
                     std::transform(
@@ -1146,13 +1230,13 @@ namespace app
                     int resample_error = src_process(impl->wakeword_resampler.get(), &src_data);
                     if (resample_error == 0 && src_data.output_frames_gen > 0)
                     {
-                        // float → int16，添加到累积缓冲区（带溢出保护）
+                        // float转换为int16，添加到累积缓冲区
                         for (long i = 0; i < src_data.output_frames_gen; i++)
                         {
                             if (impl->wakeword_resample_buffer.size() >=
                                 WAKEWORD_BUFFER_MAX_SAMPLES)
                             {
-                                LOG_WARN("AudioCallback", "唤醒词重采样缓冲区溢出，丢弃样本");
+                                LOG_WARN(LOG_TAG, "唤醒词重采样缓冲区溢出，丢弃样本");
                                 break;
                             }
 
@@ -1163,12 +1247,12 @@ namespace app
                                 static_cast<int16_t>(clamped_sample * PCM_CLAMP_NUMERATOR));
                         }
 
-                        // 当累积到320样本（16kHz 20ms）时，传递给唤醒词检测
-                        const int TARGET_FRAME_SIZE = 320; // 16kHz 20ms = 320 samples
+                        // 累积到目标帧大小时，传递给唤醒词检测
+                        const int TARGET_FRAME_SIZE = 320;
                         while (impl->wakeword_resample_buffer.size() >=
                                static_cast<size_t>(TARGET_FRAME_SIZE))
                         {
-                            // 传递给唤醒词检测（16kHz音频）
+                            // 传递给唤醒词检测
                             impl->invokeWakewordCallback(impl->wakeword_resample_buffer.data(),
                                                          TARGET_FRAME_SIZE);
 
@@ -1180,7 +1264,7 @@ namespace app
                     }
                 }
 
-                // 添加到录音队列（零拷贝，智能指针）
+                // 添加到录音队列
                 {
                     std::lock_guard<std::mutex> lock(impl->record_queue_mutex);
 
@@ -1190,17 +1274,17 @@ namespace app
                         impl->stats.frames_dropped.fetch_add(1);
                     }
 
-                    impl->record_queue.push(frame); // shared_ptr拷贝，引用计数+1
+                    impl->record_queue.push(frame);
                 }
                 impl->record_queue_cv.notify_one();
                 impl->stats.frames_recorded.fetch_add(1);
 
-                // WebRTC音频发送（48kHz Opus编码）
+                // WebRTC音频编码
                 if (impl->main_state.load() == AudioMainState::WEBRTC &&
                     impl->is_webrtc_streaming.load() && impl->webrtc_encoder)
                 {
 
-                    // 使用WebRTC编码器编码（48kHz）
+                    // 使用WebRTC编码器编码
                     uint8_t* opus_buffer = impl->temp_opus_buffer.data();
                     int      encoded_bytes =
                         opus_encode(impl->webrtc_encoder.get(), frame->getData<int16_t>(),
@@ -1233,10 +1317,7 @@ namespace app
                     }
                 }
 
-                // AI音频发送（48kHz → 16kHz → Opus编码）
-                static std::atomic<int>      ai_frame_count{0};
-                static std::atomic<uint64_t> last_ai_log_time{0};
-
+                // AI音频编码
                 bool main_state_ok = (impl->main_state.load() == AudioMainState::AI);
                 bool streaming_ok  = impl->is_ai_streaming.load();
                 bool encoder_ok    = (impl->ai_encoder != nullptr);
@@ -1244,23 +1325,13 @@ namespace app
 
                 if (main_state_ok && streaming_ok && encoder_ok && resampler_ok)
                 {
-                    // 每100帧打印一次（约2秒）
-                    //  if (ai_frame_count.fetch_add(1) % 100 == 0) {
-                    //      uint64_t now = get_nowus();
-                    //      if (now - last_ai_log_time.load() > 2000000) {  // 2秒
-                    //          LOG_DEBUG("AudioCallback", "AI音频处理中... (帧 %d)",
-                    //          ai_frame_count.load()); last_ai_log_time.store(now);
-                    //      }
-                    //  }
 
-                    // 1. 重采样 48kHz → 16kHz
+                    // 重采样 48kHz -> 16kHz
                     SRC_DATA src_data{};
 
-                    // 使用预分配的临时缓冲区
                     float* input_float  = impl->temp_float_buffer_in.data();
                     float* output_float = impl->temp_float_buffer_out.data();
 
-                    // int16 → float
                     const int16_t* pcm_data = frame->getData<int16_t>();
                     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
                     std::transform(
@@ -1268,7 +1339,6 @@ namespace app
                         [](int16_t sample)
                         { return static_cast<float>(sample) / PCM_NORMALIZE_DENOMINATOR; });
 
-                    // 重采样
                     src_data.data_in       = input_float;
                     src_data.input_frames  = static_cast<long>(frames_per_buffer);
                     src_data.data_out      = output_float;
@@ -1279,13 +1349,12 @@ namespace app
                     int resample_error = src_process(impl->ai_resampler.get(), &src_data);
                     if (resample_error == 0)
                     {
-                        // float → int16，添加到累积缓冲区（带溢出保护）
                         for (long i = 0; i < src_data.output_frames_gen; ++i)
                         {
                             if (impl->ai_resample_buffer.size() >= AI_BUFFER_MAX_SAMPLES)
                             {
-                                LOG_WARN("AudioCallback", "AI重采样缓冲区溢出，丢弃样本");
-                                break; // 停止添加更多样本
+                                LOG_WARN(LOG_TAG, "AI重采样缓冲区溢出，丢弃样本");
+                                break;
                             }
 
                             // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -1295,12 +1364,10 @@ namespace app
                                 static_cast<int16_t>(clamped_sample * PCM_CLAMP_NUMERATOR));
                         }
 
-                        // 2. 当累积到320样本（16kHz 20ms）时，进行Opus编码
                         const int TARGET_FRAME_SIZE = 320;
                         while (impl->ai_resample_buffer.size() >=
                                static_cast<size_t>(TARGET_FRAME_SIZE))
                         {
-                            // 编码320样本
                             uint8_t* opus_buffer   = impl->temp_opus_buffer.data();
                             int      encoded_bytes = opus_encode(
                                      impl->ai_encoder.get(), impl->ai_resample_buffer.data(),
@@ -1308,7 +1375,6 @@ namespace app
 
                             if (encoded_bytes > 0)
                             {
-                                // 分配帧并拷贝编码数据
                                 auto encoded_frame = impl->mem_pool->allocate(encoded_bytes);
                                 if (encoded_frame)
                                 {
@@ -1316,13 +1382,11 @@ namespace app
                                     encoded_frame->size      = encoded_bytes;
                                     encoded_frame->timestamp = get_nowus();
 
-                                    // 3. 调用AI回调
                                     impl->invokeAICallback(encoded_frame);
                                     impl->stats.encode_count.fetch_add(1);
                                 }
                             }
 
-                            // 移除已编码的样本
                             impl->ai_resample_buffer.erase(impl->ai_resample_buffer.begin(),
                                                            impl->ai_resample_buffer.begin() +
                                                                TARGET_FRAME_SIZE);
@@ -1356,12 +1420,12 @@ namespace app
                     return paContinue;
                 }
 
-                // 取出帧（零拷贝引用）
+                // 取出帧
                 AudioFramePtr& frame           = impl->playback_queue.front();
                 size_t         frame_samples   = frame->size / sizeof(int16_t);
                 size_t         samples_to_copy = std::min(samples_needed, frame_samples);
                 
-                // 获取音量百分比并转换为增益系数（0-100 -> 0.0-2.0）
+                // 应用音量增益
                 int   volume_percent = impl->output_volume.load(std::memory_order_relaxed);
                 float gain           = volume_percent * VOLUME_TO_GAIN_FACTOR;
 
@@ -1388,196 +1452,205 @@ namespace app
             }
 
             // ============================================================================
-            // 录音/播放控制
+            // 流方向接口实现
             // ============================================================================
 
-            AudioError AudioSystem::startRecord()
+            /**
+             * @brief 启动音频流
+             * @param direction 流方向
+             * @return AudioError::NONE 成功
+             */
+            AudioError AudioSystem::startStream(StreamDirection direction)
             {
+                // 检查初始化状态
                 if (!pImpl_->initialized.load())
                 {
-                    LOG_ERROR("AudioSystem", "未初始化");
+                    LOG_ERROR(LOG_TAG, "音频系统未初始化，无法启动流");
                     return AudioError::NOT_INITIALIZED;
                 }
 
+                // 根据流方向设置配置
+                PaStreamParameters  input_params;
+                PaStreamParameters  output_params;
+                PaStreamParameters* input_params_ptr  = nullptr;
+                PaStreamParameters* output_params_ptr = nullptr;
+                Impl::PaStreamConfig                  pa_config;
+
+                if (direction == StreamDirection::INPUT)
+                {
+                    // 检查是否已在录音
                 if (pImpl_->is_recording.load())
                 {
-                    LOG_WARN("AudioSystem", "已经在录音中");
+                        LOG_WARN(LOG_TAG, "录音流已在运行中");
                     return AudioError::ALREADY_RUNNING;
                 }
 
-                LOG_INFO("AudioSystem", "启动录音...");
+                    LOG_INFO(LOG_TAG, "正在启动录音流...");
 
-                // 配置输入参数
-                PaStreamParameters input_params;
+                    // 配置输入设备参数
                 input_params.device = Pa_GetDefaultInputDevice();
                 if (input_params.device == paNoDevice)
                 {
-                    LOG_ERROR("AudioSystem", "未找到输入设备");
+                        LOG_ERROR(LOG_TAG, "未找到可用的输入设备");
                     return AudioError::DEVICE_NOT_FOUND;
                 }
 
-                input_params.channelCount = pImpl_->config.channels;
-                input_params.sampleFormat = paInt16;
-                input_params.suggestedLatency =
-                    Pa_GetDeviceInfo(input_params.device)->defaultLowInputLatency;
-                input_params.hostApiSpecificStreamInfo = nullptr;
+                    input_params.channelCount                = pImpl_->config.channels;
+                    input_params.sampleFormat                = paInt16;
+                    input_params.suggestedLatency            = Pa_GetDeviceInfo(input_params.device)->defaultLowInputLatency;
+                    input_params.hostApiSpecificStreamInfo   = nullptr;
+                    input_params_ptr                         = &input_params;
 
-                // 打开流
-                PaStream* stream            = nullptr;
-                int       frames_per_buffer = pImpl_->config.sample_rate / MILLISECONDS_PER_SECOND *
-                                        pImpl_->config.frame_duration_ms;
-
-                PaError err = Pa_OpenStream(&stream, &input_params,
-                                            nullptr, // 无输出
-                                            pImpl_->config.sample_rate, frames_per_buffer,
-                                            paClipOff, Impl::recordCallback, pImpl_.get());
-
-                if (err != paNoError)
+                    // 设置流配置
+                    pa_config.sample_rate      = pImpl_->config.sample_rate;
+                    pa_config.frame_duration_ms = pImpl_->config.frame_duration_ms;
+                    pa_config.input_params     = input_params_ptr;
+                    pa_config.output_params    = nullptr;
+                    pa_config.callback         = Impl::recordCallback;
+                    pa_config.control_state    = AudioControlState::RECORD;
+                    pa_config.running_flag     = &pImpl_->is_recording;
+                    pa_config.stream_ptr       = &pImpl_->record_stream;
+                    pa_config.direction_name   = "录音";
+                }
+                else // StreamDirection::OUTPUT
                 {
-                    LOG_ERROR("AudioSystem", "打开录音流失败: %s", Pa_GetErrorText(err));
-                    return AudioError::STREAM_OPEN_FAILED;
+                    // 检查是否已在播放
+                    if (pImpl_->is_playing.load())
+                {
+                        LOG_WARN(LOG_TAG, "播放流已在运行中");
+                        return AudioError::ALREADY_RUNNING;
                 }
 
-                // 启动流
-                err = Pa_StartStream(stream);
-                if (err != paNoError)
+                    LOG_INFO(LOG_TAG, "正在启动播放流...");
+
+                    // 配置输出设备参数
+                    output_params.device = Pa_GetDefaultOutputDevice();
+                    if (output_params.device == paNoDevice)
                 {
-                    LOG_ERROR("AudioSystem", "启动录音流失败: %s", Pa_GetErrorText(err));
-                    Pa_CloseStream(stream);
-                    return AudioError::STREAM_START_FAILED;
+                        LOG_ERROR(LOG_TAG, "未找到可用的输出设备");
+                        return AudioError::DEVICE_NOT_FOUND;
+                    }
+
+                    output_params.channelCount                = pImpl_->config.channels;
+                    output_params.sampleFormat                = paInt16;
+                    output_params.suggestedLatency            = Pa_GetDeviceInfo(output_params.device)->defaultLowOutputLatency;
+                    output_params.hostApiSpecificStreamInfo   = nullptr;
+                    output_params_ptr                         = &output_params;
+
+                    // 设置流配置
+                    pa_config.sample_rate       = pImpl_->config.sample_rate;
+                    pa_config.frame_duration_ms = pImpl_->config.frame_duration_ms;
+                    pa_config.input_params      = nullptr;
+                    pa_config.output_params     = output_params_ptr;
+                    pa_config.callback          = Impl::playbackCallback;
+                    pa_config.control_state     = AudioControlState::PLAYBACK;
+                    pa_config.running_flag      = &pImpl_->is_playing;
+                    pa_config.stream_ptr        = &pImpl_->playback_stream;
+                    pa_config.direction_name    = "播放";
                 }
 
-                pImpl_->record_stream.reset(stream);
-                pImpl_->is_recording.store(true);
-                pImpl_->setControlState(AudioControlState::RECORD);
+                // 使用统一配置函数打开和启动流
+                AudioError err = pImpl_->openAndStartPaStream(pa_config);
+                if (err != AudioError::NONE)
+                {
+                    return err;
+                }
 
-                LOG_INFO("AudioSystem", "录音已启动（设备: %d, %dHz, %d声道）", input_params.device,
-                         pImpl_->config.sample_rate, pImpl_->config.channels);
+                // 记录成功日志
+                if (direction == StreamDirection::INPUT)
+                {
+                    LOG_INFO(LOG_TAG, "录音流已成功启动（设备: %d, %dHz, %d声道）",
+                             input_params.device, static_cast<int>(pa_config.sample_rate),
+                             pImpl_->config.channels);
+                }
+                else
+                {
+                    LOG_INFO(LOG_TAG, "播放流已成功启动（设备: %d）", output_params.device);
+                }
 
                 return AudioError::NONE;
             }
 
-            AudioError AudioSystem::stopRecord()
+            /**
+             * @brief 停止音频流
+             * @param direction 流方向
+             */
+            AudioError AudioSystem::stopStream(StreamDirection direction)
             {
+                if (direction == StreamDirection::INPUT)
+            {
+                    // 检查是否在录音
                 if (!pImpl_->is_recording.load())
                 {
-                    return AudioError::NONE;
+                        return AudioError::NONE; // 已在停止状态
                 }
 
-                LOG_INFO("AudioSystem", "停止录音...");
+                    LOG_INFO(LOG_TAG, "正在停止录音流...");
 
+                    // 停止录音标志
                 pImpl_->is_recording.store(false);
-                pImpl_->record_stream.reset(); // RAII自动stop和close
+
+                    // 自动停止和关闭流
+                    pImpl_->record_stream.reset();
+
+                    // 重置控制状态
                 pImpl_->setControlState(AudioControlState::NONE);
 
-                // 清理重采样缓冲区
+                    // 清理重采样缓冲区（避免内存泄漏）
                 if (!pImpl_->ai_resample_buffer.empty())
                 {
                     pImpl_->ai_resample_buffer.clear();
-                    LOG_INFO("AudioSystem", "AI重采样缓冲区已安全清除");
+                        LOG_DEBUG(LOG_TAG, "AI重采样缓冲区已清除");
                 }
 
                 if (!pImpl_->wakeword_resample_buffer.empty())
                 {
                     pImpl_->wakeword_resample_buffer.clear();
-                    LOG_DEBUG("AudioSystem", "唤醒词重采样缓冲区已清除");
+                    LOG_DEBUG(LOG_TAG, "唤醒词重采样缓冲区已清除");
                 }
 
-                LOG_INFO("AudioSystem", "录音已停止");
-                return AudioError::NONE;
-            }
-
-            bool AudioSystem::isRecording() const
-            {
-                return pImpl_->is_recording.load();
-            }
-
-            AudioError AudioSystem::startPlayback()
-            {
-                if (!pImpl_->initialized.load())
+                    LOG_INFO(LOG_TAG, "录音流已停止");
+                }
+                else // StreamDirection::OUTPUT
                 {
-                    LOG_ERROR("AudioSystem", "未初始化");
-                    return AudioError::NOT_INITIALIZED;
-                }
-
-                if (pImpl_->is_playing.load())
+                    // 检查是否在播放
+                    if (!pImpl_->is_playing.load())
                 {
-                    LOG_WARN("AudioSystem", "已经在播放中");
-                    return AudioError::ALREADY_RUNNING;
+                        return AudioError::NONE; // 已在停止状态
                 }
 
-                LOG_INFO("AudioSystem", "启动播放...");
+                    LOG_INFO(LOG_TAG, "正在停止播放流...");
 
-                // 配置输出参数
-                PaStreamParameters output_params;
-                output_params.device = Pa_GetDefaultOutputDevice();
-                if (output_params.device == paNoDevice)
-                {
-                    LOG_ERROR("AudioSystem", "未找到输出设备");
-                    return AudioError::DEVICE_NOT_FOUND;
+                    // 停止播放标志
+                    pImpl_->is_playing.store(false);
+
+                    // 自动停止和关闭流
+                    pImpl_->playback_stream.reset();
+
+                    // 重置控制状态
+                    pImpl_->setControlState(AudioControlState::NONE);
+
+                    LOG_INFO(LOG_TAG, "播放流已停止");
                 }
-
-                output_params.channelCount = pImpl_->config.channels;
-                output_params.sampleFormat = paInt16;
-                output_params.suggestedLatency =
-                    Pa_GetDeviceInfo(output_params.device)->defaultLowOutputLatency;
-                output_params.hostApiSpecificStreamInfo = nullptr;
-
-                // 打开流
-                PaStream* stream            = nullptr;
-                int       frames_per_buffer = pImpl_->config.sample_rate / MILLISECONDS_PER_SECOND *
-                                        pImpl_->config.frame_duration_ms;
-
-                PaError err =
-                    Pa_OpenStream(&stream,
-                                  nullptr, // 无输入
-                                  &output_params, pImpl_->config.sample_rate, frames_per_buffer,
-                                  paClipOff, Impl::playbackCallback, pImpl_.get());
-
-                if (err != paNoError)
-                {
-                    LOG_ERROR("AudioSystem", "打开播放流失败: %s", Pa_GetErrorText(err));
-                    return AudioError::STREAM_OPEN_FAILED;
-                }
-
-                // 启动流
-                err = Pa_StartStream(stream);
-                if (err != paNoError)
-                {
-                    LOG_ERROR("AudioSystem", "启动播放流失败: %s", Pa_GetErrorText(err));
-                    Pa_CloseStream(stream);
-                    return AudioError::STREAM_START_FAILED;
-                }
-
-                pImpl_->playback_stream.reset(stream);
-                pImpl_->is_playing.store(true);
-                pImpl_->setControlState(AudioControlState::PLAYBACK);
-
-                LOG_INFO("AudioSystem", "播放已启动（设备: %d）", output_params.device);
 
                 return AudioError::NONE;
             }
 
-            AudioError AudioSystem::stopPlayback()
+            /**
+             * @brief 检查音频流是否正在运行
+             * @param direction 流方向
+             * @return true 正在运行
+             */
+            bool AudioSystem::isStreamRunning(StreamDirection direction) const
             {
-                if (!pImpl_->is_playing.load())
+                if (direction == StreamDirection::INPUT)
                 {
-                    return AudioError::NONE;
-                }
-
-                LOG_INFO("AudioSystem", "停止播放...");
-
-                pImpl_->is_playing.store(false);
-                pImpl_->playback_stream.reset(); // RAII自动stop和close
-                pImpl_->setControlState(AudioControlState::NONE);
-
-                LOG_INFO("AudioSystem", "播放已停止");
-                return AudioError::NONE;
+                    return pImpl_->is_recording.load();
             }
-
-            bool AudioSystem::isPlaying() const
+                else // StreamDirection::OUTPUT
             {
                 return pImpl_->is_playing.load();
+                }
             }
 
             // ============================================================================
@@ -1588,7 +1661,7 @@ namespace app
             {
                 if (!pImpl_->webrtc_encoder)
                 {
-                    LOG_ERROR("AudioSystem", "WebRTC编码器未初始化");
+                    LOG_ERROR(LOG_TAG, "WebRTC编码器未初始化");
                     return nullptr;
                 }
 
@@ -1600,7 +1673,7 @@ namespace app
                     pImpl_->mem_pool->allocate(OPUS_MAX_FRAME_BYTES); // Opus最大4KB
                 if (!encoded_frame)
                 {
-                    LOG_ERROR("AudioSystem", "编码缓冲区分配失败");
+                    LOG_ERROR(LOG_TAG, "编码缓冲区分配失败");
                     return nullptr;
                 }
 
@@ -1610,7 +1683,7 @@ namespace app
 
                 if (encoded_bytes < 0)
                 {
-                    LOG_ERROR("AudioSystem", "Opus编码失败: %s", opus_strerror(encoded_bytes));
+                    LOG_ERROR(LOG_TAG, "Opus编码失败: %s", opus_strerror(encoded_bytes));
                     return nullptr;
                 }
 
@@ -1638,7 +1711,7 @@ namespace app
                 }
                 else
                 {
-                    LOG_ERROR("AudioSystem", "无可用解码器");
+                    LOG_ERROR(LOG_TAG, "无可用解码器");
                     return nullptr;
                 }
 
@@ -1646,10 +1719,10 @@ namespace app
                 static std::atomic<bool> first_decode{true};
                 if (first_decode.exchange(false))
                 {
-                    LOG_INFO("AudioSystem", "🔊 TTS解码器配置:");
-                    LOG_INFO("AudioSystem", "  使用: %d Hz 解码器", target_sample_rate);
-                    LOG_INFO("AudioSystem", "  声道数: %d", pImpl_->config.channels);
-                    LOG_INFO("AudioSystem", "  帧时长: %d ms", pImpl_->config.frame_duration_ms);
+                    LOG_INFO(LOG_TAG, "🔊 TTS解码器配置:");
+                    LOG_INFO(LOG_TAG, "  使用: %d Hz 解码器", target_sample_rate);
+                    LOG_INFO(LOG_TAG, "  声道数: %d", pImpl_->config.channels);
+                    LOG_INFO(LOG_TAG, "  帧时长: %d ms", pImpl_->config.frame_duration_ms);
                 }
 
                 // 计算PCM帧大小（使用目标采样率）
@@ -1662,7 +1735,7 @@ namespace app
                 auto decoded_frame = pImpl_->mem_pool->allocate(pcm_size);
                 if (!decoded_frame)
                 {
-                    LOG_ERROR("AudioSystem", "解码缓冲区分配失败");
+                    LOG_ERROR(LOG_TAG, "解码缓冲区分配失败");
                     return nullptr;
                 }
 
@@ -1672,7 +1745,7 @@ namespace app
 
                 if (decoded_samples < 0)
                 {
-                    LOG_ERROR("AudioSystem", "Opus解码失败: %s (opus_size=%zu)",
+                    LOG_ERROR(LOG_TAG, "Opus解码失败: %s (opus_size=%zu)",
                               opus_strerror(decoded_samples), opus_size);
                     return nullptr;
                 }
@@ -1680,7 +1753,7 @@ namespace app
                 // 检查解码结果
                 if (decoded_samples != frame_size)
                 {
-                    LOG_WARN("AudioSystem", "解码样本数不匹配: 获得 %d，期望 %d", decoded_samples,
+                    LOG_WARN(LOG_TAG, "解码样本数不匹配: 获得 %d，期望 %d", decoded_samples,
                              frame_size);
                 }
 
@@ -1694,7 +1767,7 @@ namespace app
                     auto [min_it, max_it] = std::minmax_element(pcm, pcm + decoded_samples);
                     int16_t min_val       = *min_it;
                     int16_t max_val       = *max_it;
-                    LOG_INFO("AudioSystem", "  PCM #%d: 样本数=%d, 范围=[%d, %d]", count,
+                    LOG_INFO(LOG_TAG, "  PCM #%d: 样本数=%d, 范围=[%d, %d]", count,
                              decoded_samples, min_val, max_val);
                 }
 
@@ -1710,7 +1783,7 @@ namespace app
             {
                 if (!pImpl_->webrtc_encoder)
                 {
-                    LOG_ERROR("AudioSystem", "WebRTC编码器未初始化");
+                    LOG_ERROR(LOG_TAG, "WebRTC编码器未初始化");
                     return 0;
                 }
 
@@ -1733,7 +1806,7 @@ namespace app
                         pImpl_->mem_pool->allocate(OPUS_MAX_FRAME_BYTES); // Opus最大4KB
                     if (!encoded_frame)
                     {
-                        LOG_ERROR("AudioSystem", "编码缓冲区分配失败");
+                        LOG_ERROR(LOG_TAG, "编码缓冲区分配失败");
                         break;
                     }
 
@@ -1753,13 +1826,13 @@ namespace app
                     }
                     else
                     {
-                        LOG_ERROR("AudioSystem", "帧编码失败: %s", opus_strerror(encoded_bytes));
+                        LOG_ERROR(LOG_TAG, "帧编码失败: %s", opus_strerror(encoded_bytes));
                     }
 
                     offset += current_frame_size;
                 }
 
-                LOG_DEBUG("AudioSystem", "编码了 %zu 个样本为 %zu 帧", total_samples,
+                LOG_DEBUG(LOG_TAG, "编码了 %zu 个样本为 %zu 帧", total_samples,
                           encoded_count);
                 return encoded_count;
             }
@@ -1768,200 +1841,170 @@ namespace app
             // AI/WebRTC音频流管理
             // ============================================================================
 
-            AudioError AudioSystem::startAIStream()
+            // ============================================================================
+            // 流类型接口实现
+            // ============================================================================
+
+            /**
+             * @brief 启动应用层音频流
+             * @param type 流类型
+             * @return AudioError::NONE 成功
+             */
+            AudioError AudioSystem::startStream(StreamType type)
             {
+                // 检查初始化状态
                 if (!pImpl_->initialized.load())
                 {
-                    LOG_ERROR("AudioSystem", "未初始化");
+                    LOG_ERROR(LOG_TAG, "音频系统未初始化，无法启动应用层流");
                     return AudioError::NOT_INITIALIZED;
                 }
 
-                if (pImpl_->is_ai_streaming.load())
+                // 获取流类型配置
+                Impl::StreamTypeConfig config = pImpl_->getStreamTypeConfig(type);
+
+                // 检查是否已在运行
+                if (config.streaming_flag->load())
                 {
-                    LOG_WARN("AudioSystem", "AI流已经启动");
+                    LOG_WARN(LOG_TAG, "%s音频流已在运行中", config.stream_name);
                     return AudioError::ALREADY_RUNNING;
                 }
 
-                LOG_INFO("AudioSystem", "启动AI音频流...");
+                LOG_INFO(LOG_TAG, "正在启动%s音频流...", config.stream_name);
 
-                // 设置主状态为AI
-                setMainState(AudioMainState::AI);
+                setMainState(config.main_state);
+                config.streaming_flag->store(true);
 
-                // 标记为流式传输
-                pImpl_->is_ai_streaming.store(true);
-
-                LOG_INFO("AudioSystem", "AI音频流已启动");
+                LOG_INFO(LOG_TAG, "%s音频流已成功启动", config.stream_name);
                 return AudioError::NONE;
             }
 
-            AudioError AudioSystem::stopAIStream()
+            /**
+             * @brief 停止应用层音频流
+             * @param type 流类型
+             */
+            AudioError AudioSystem::stopStream(StreamType type)
             {
-                if (!pImpl_->is_ai_streaming.load())
+                // 获取流类型配置
+                Impl::StreamTypeConfig config = pImpl_->getStreamTypeConfig(type);
+
+                // 检查是否在运行
+                if (!config.streaming_flag->load())
                 {
-                    return AudioError::NONE;
+                    return AudioError::NONE; // 已在停止状态
                 }
 
-                LOG_INFO("AudioSystem", "停止AI音频流...");
+                LOG_INFO(LOG_TAG, "正在停止%s音频流...", config.stream_name);
 
-                // 停止AI流标志，让录音回调不再处理AI数据
-                pImpl_->is_ai_streaming.store(false);
+                // 停止流标志，让录音回调不再处理对应数据
+                config.streaming_flag->store(false);
 
-                LOG_INFO("AudioSystem", "AI音频流已停止");
+                LOG_INFO(LOG_TAG, "%s音频流已停止", config.stream_name);
                 return AudioError::NONE;
             }
 
-            bool AudioSystem::isAIStreamActive() const
+            /**
+             * @brief 检查应用层音频流是否激活
+             * @param type 流类型
+             * @return true 流已激活
+             */
+            bool AudioSystem::isStreamActive(StreamType type) const
             {
-                return pImpl_->is_ai_streaming.load();
-            }
-
-            AudioError AudioSystem::startWebRTCStream()
-            {
-                if (!pImpl_->initialized.load())
+                // 直接访问对应的流标志位
+                if (type == StreamType::AI)
                 {
-                    LOG_ERROR("AudioSystem", "未初始化");
-                    return AudioError::NOT_INITIALIZED;
+                    return pImpl_->is_ai_streaming.load();
                 }
-
-                if (pImpl_->is_webrtc_streaming.load())
-                {
-                    LOG_WARN("AudioSystem", "WebRTC流已经启动");
-                    return AudioError::ALREADY_RUNNING;
-                }
-
-                LOG_INFO("AudioSystem", "启动WebRTC音频流...");
-
-                // 设置主状态为WebRTC
-                setMainState(AudioMainState::WEBRTC);
-
-                // 标记为流式传输
-                pImpl_->is_webrtc_streaming.store(true);
-
-                LOG_INFO("AudioSystem", "WebRTC音频流已启动");
-                return AudioError::NONE;
-            }
-
-            AudioError AudioSystem::stopWebRTCStream()
-            {
-                if (!pImpl_->is_webrtc_streaming.load())
-                {
-                    return AudioError::NONE;
-                }
-
-                LOG_INFO("AudioSystem", "停止WebRTC音频流...");
-
-                pImpl_->is_webrtc_streaming.store(false);
-
-                LOG_INFO("AudioSystem", "WebRTC音频流已停止");
-                return AudioError::NONE;
-            }
-
-            bool AudioSystem::isWebRTCStreamActive() const
+                else // StreamType::WEBRTC
             {
                 return pImpl_->is_webrtc_streaming.load();
+                }
             }
 
             // ============================================================================
-            // 便利函数（一键启动/停止模式）
+            // 便利函数（一键启动/停止模式，内部调用统一接口）
             // ============================================================================
 
-            AudioError AudioSystem::startAIMode()
+            /**
+             * @brief 通用启动模式函数
+             * @param main_state 主状态
+             * @param stream_type 流类型
+             * @param mode_name 模式名称
+             * @return AudioError::NONE 成功
+             */
+            AudioError AudioSystem::startMode(AudioMainState main_state, StreamType stream_type,
+                                              const char* mode_name)
             {
-                LOG_INFO("AudioSystem", "启动AI模式...");
+                LOG_INFO(LOG_TAG, "正在启动%s模式...", mode_name);
 
-                // 1. 设置主状态为AI
-                setMainState(AudioMainState::AI);
+                setMainState(main_state);
 
-                // 2. 开始录音（如果未启动）
-                if (!isRecording())
+                if (!isStreamRunning(StreamDirection::INPUT))
                 {
-                    AudioError err = startRecord();
+                    AudioError err = startStream(StreamDirection::INPUT);
                     if (err != AudioError::NONE)
                     {
-                        LOG_ERROR("AudioSystem", "启动录音失败");
+                        LOG_ERROR(LOG_TAG, "启动录音失败，%s模式启动失败", mode_name);
                         return err;
                     }
                 }
 
-                // 3. 启动AI音频流
-                AudioError err = startAIStream();
+                AudioError err = startStream(stream_type);
                 if (err != AudioError::NONE)
                 {
-                    LOG_ERROR("AudioSystem", "启动AI流失败");
+                    LOG_ERROR(LOG_TAG, "启动%s流失败，%s模式启动失败",
+                              (stream_type == StreamType::AI) ? "AI" : "WebRTC", mode_name);
                     return err;
                 }
 
-                LOG_INFO("AudioSystem", "AI模式启动成功");
+                LOG_INFO(LOG_TAG, "%s模式已成功启动", mode_name);
                 return AudioError::NONE;
+            }
+
+            /**
+             * @brief 通用停止模式函数
+             * @param stream_type 流类型
+             * @param mode_name 模式名称
+             * @param stop_record 是否停止录音
+             * @return AudioError::NONE 成功
+             */
+            AudioError AudioSystem::stopMode(StreamType stream_type, const char* mode_name,
+                                             bool stop_record)
+            {
+                LOG_INFO(LOG_TAG, "正在停止%s模式...", mode_name);
+
+                stopStream(stream_type);
+
+                if (stop_record)
+                {
+                    stopStream(StreamDirection::INPUT);
+                }
+
+                setMainState(AudioMainState::NONE);
+
+                LOG_INFO(LOG_TAG, "%s模式已停止", mode_name);
+                return AudioError::NONE;
+            }
+
+            AudioError AudioSystem::startAIMode()
+            {
+                return startMode(AudioMainState::AI, StreamType::AI, "AI");
             }
 
             AudioError AudioSystem::stopAIMode()
             {
-                LOG_INFO("AudioSystem", "停止AI模式...");
-
-                // 1. 停止AI音频流
-                stopAIStream();
-
-                // 2. 停止录音
-                stopRecord();
-
-                // 3. 重置主状态
-                setMainState(AudioMainState::NONE);
-
-                LOG_INFO("AudioSystem", "AI模式已停止");
-                return AudioError::NONE;
+                return stopMode(StreamType::AI, "AI", true);
             }
 
             AudioError AudioSystem::startWebRTCMode()
             {
-                LOG_INFO("AudioSystem", "启动WebRTC模式...");
-
-                // 1. 设置主状态为WebRTC
-                setMainState(AudioMainState::WEBRTC);
-
-                // 2. 开始录音（如果未启动）
-                if (!isRecording())
-                {
-                    AudioError err = startRecord();
-                    if (err != AudioError::NONE)
-                    {
-                        LOG_ERROR("AudioSystem", "启动录音失败");
-                        return err;
-                    }
-                }
-
-                // 3. 启动WebRTC音频流
-                AudioError err = startWebRTCStream();
-                if (err != AudioError::NONE)
-                {
-                    LOG_ERROR("AudioSystem", "启动WebRTC流失败");
-                    return err;
-                }
-
-                LOG_INFO("AudioSystem", "WebRTC模式启动成功");
-                return AudioError::NONE;
+                return startMode(AudioMainState::WEBRTC, StreamType::WEBRTC, "WebRTC");
             }
 
             AudioError AudioSystem::stopWebRTCMode()
             {
-                LOG_INFO("AudioSystem", "停止WebRTC模式...");
-
-                // 1. 停止WebRTC音频流
-                stopWebRTCStream();
-
-                // 2. 停止录音
-                stopRecord();
-
-                // 3. 重置主状态
-                setMainState(AudioMainState::NONE);
-
-                LOG_INFO("AudioSystem", "WebRTC模式已停止");
-                return AudioError::NONE;
+                return stopMode(StreamType::WEBRTC, "WebRTC", false);
             }
 
-            // ============================================================================
-            // 全部完成！Audio实现完毕
-            // ============================================================================
 
         } // namespace audio
     }     // namespace media

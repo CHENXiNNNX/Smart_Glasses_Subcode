@@ -1,8 +1,6 @@
 /**
  * @file wifi.cc
- * @brief Linux WiFi管理模块实现 - 基于wpa_supplicant
- * @author Smart_Glasses Team
- * @date 2025-01-11
+ * @brief Linux WiFi管理模块实现
  */
 
  #include "wifi.hpp"
@@ -229,16 +227,13 @@
                  }
                  bool isConnected() const
                  {
-                     // 验证IP地址是否已获取
-                     if (current_state_ == WifiState::CONNECTED)
-                     {
-                         // 再次验证IP地址，确保真正连接成功
-                         std::string ip = getIPAddressInternal();
-                         if (ip.empty())
-                         {
-                             // 状态为CONNECTED但IP为空，说明DHCP可能失败了
-                             return false;
-                         }
+                    if (current_state_ == WifiState::CONNECTED)
+                    {
+                        std::string ip = getIPAddressInternal();
+                        if (ip.empty())
+                        {
+                            return false;
+                        }
                          return true;
                      }
                      return false;
@@ -363,28 +358,27 @@
  
                  LOG_INFO(LOG_TAG, "Initializing WiFi manager...");
  
-                 // 1. 检查前置条件
+                 // 检查前置条件
                  WifiError err = checkPrerequisites();
                  if (err != WifiError::NONE)
                  {
                      return err;
                  }
  
-                 // 2. 确保接口UP
+                 // 确保接口UP
                  err = ensureInterfaceUp();
                  if (err != WifiError::NONE)
                  {
                      return err;
                  }
  
-                 // 3. 确保wpa_supplicant运行
+                 // 确保wpa_supplicant运行
                  err = ensureWpaSupplicantRunning();
                  if (err != WifiError::NONE)
                  {
                      return err;
                  }
  
-                 // 4. 获取当前状态
                  std::string ssid = getCurrentSSIDInternal();
                  if (!ssid.empty())
                  {
@@ -455,7 +449,7 @@
                  LOG_INFO(LOG_TAG, "WiFi manager initialized successfully. State: %s",
                           wifiStateToString(current_state_));
  
-                 // 5. 自动连接已保存WiFi（如果启用）
+                 // 自动连接已保存WiFi
                  if (config_.auto_connect_on_init && current_state_ != WifiState::CONNECTED)
                  {
                      LOG_INFO(LOG_TAG, "Auto-connect on init enabled, attempting to connect...");
@@ -878,7 +872,7 @@
  
                  stats_.connections_attempted++;
  
-                 // 1. 检查是否已连接到同一个SSID
+                 // 检查是否已连接到同一个SSID
                  if (current_state_ == WifiState::CONNECTED)
                  {
                      std::string current_ssid = getCurrentSSIDInternal();
@@ -888,7 +882,7 @@
                          return WifiError::ALREADY_CONNECTED;
                      }
  
-                     // 2. 如果已连接到其他WiFi，先断开
+                     // 如果已连接到其他WiFi，先断开
                      if (!current_ssid.empty())
                      {
                          LOG_INFO(LOG_TAG, "Disconnecting from %s", current_ssid.c_str());
@@ -898,7 +892,7 @@
  
                  updateState(WifiState::CONNECTING);
  
-                 // 3. 删除旧配置（如果启用）
+                 // 删除旧配置
                  if (config_.clear_old_config_on_connect)
                  {
                      int old_net_id = findNetworkIdBySSID(ssid);
@@ -911,7 +905,7 @@
                      }
                  }
  
-                 // 4. 添加新网络配置
+                 // 添加新网络配置
                  std::string output = executeWpaCli("add_network");
                  int         net_id = -1;
                  try
@@ -926,7 +920,7 @@
                      return WifiError::CONNECTION_FAILED;
                  }
  
-                 // 5. 设置SSID
+                 // 设置SSID
                  std::string cmd =
                      "set_network " + std::to_string(net_id) + " ssid '\"" + ssid + "\"'";
                  output = executeWpaCli(cmd);
@@ -938,7 +932,7 @@
                      return WifiError::CONNECTION_FAILED;
                  }
  
-                 // 6. 设置密码或开放网络
+                 // 设置密码或开放网络
                  if (password.empty())
                  {
                      cmd = "set_network " + std::to_string(net_id) + " key_mgmt NONE";
@@ -958,7 +952,7 @@
                      return WifiError::PASSWORD_INCORRECT;
                  }
  
-                 // 7. 选择网络（会自动禁用其他网络并连接）
+                 // 选择网络
                  cmd    = "select_network " + std::to_string(net_id);
                  output = executeWpaCli(cmd);
                  if (!isWpaCommandSuccess(output))
@@ -971,7 +965,7 @@
  
                  LOG_INFO(LOG_TAG, "Waiting for connection...");
  
-                 // 8. 等待连接成功
+                 // 等待连接成功
                  auto start              = std::chrono::steady_clock::now();
                  int  disconnected_count = 0;
  
@@ -991,14 +985,13 @@
                                                 " -n -q -t 5 2>&1";
                          std::string dhcp_result = executeCommand(dhcp_cmd);
  
-                         // 验证IP地址
                          std::string ip = getIPAddressInternal();
                          if (!ip.empty())
                          {
                              updateState(WifiState::CONNECTED);
                              stats_.connections_successful++;
  
-                             // 保存配置（如果启用）
+                             // 保存配置
                              if (config_.auto_save_config)
                              {
                                  saveCurrentNetwork();
@@ -1019,7 +1012,7 @@
                      {
                          disconnected_count++;
                          if (disconnected_count >= PASSWORD_FAIL_THRESHOLD)
-                         { // 约等待 POLL_INTERVAL_MS * PASSWORD_FAIL_THRESHOLD 毫秒
+                         {
                              LOG_ERROR(LOG_TAG, "Authentication failed (wrong password?)");
                              executeWpaCli("remove_network " + std::to_string(net_id));
                              updateState(WifiState::FAILED);
@@ -1053,7 +1046,7 @@
              {
                  LOG_INFO(LOG_TAG, "Connecting to saved network...");
  
-                 // 1. 获取已保存的网络列表
+                 // 获取已保存的网络列表
                  std::vector<SavedNetworkInfo> saved = getSavedNetworks();
                  if (saved.empty())
                  {
@@ -1061,7 +1054,7 @@
                      return WifiError::NETWORK_NOT_FOUND;
                  }
  
-                 // 2. 扫描可用网络
+                 // 扫描可用网络
                  std::vector<WifiInfo> available;
                  WifiError             err = scanNetworksInternal(available);
                  if (err != WifiError::NONE)
@@ -1069,7 +1062,7 @@
                      return err;
                  }
  
-                 // 3. 创建候选列表（已保存且在范围内）
+                 // 创建候选列表
                  struct Candidate
                  {
                      std::string ssid;
@@ -1108,7 +1101,7 @@
                      return WifiError::NETWORK_NOT_FOUND;
                  }
  
-                 // 4. 排序：优先级优先，相同优先级下信号强度优先
+                 // 排序候选列表
                  std::sort(candidates.begin(), candidates.end(),
                            [](const Candidate& a, const Candidate& b)
                            {
@@ -1119,12 +1112,12 @@
                                return a.signal > b.signal;
                            });
  
-                 // 5. 尝试连接最佳候选
+                 // 尝试连接最佳候选
                  const auto& best = candidates[0];
                  LOG_INFO(LOG_TAG, "Selected best network: %s (priority=%d, signal=%d%%)",
                           best.ssid.c_str(), best.priority, best.signal);
  
-                 // 6. 使用wpa_cli重新连接（已保存的网络不需要密码）
+                 // 使用wpa_cli重新连接
                  int net_id = findNetworkIdBySSID(best.ssid);
                  if (net_id < 0)
                  {
@@ -1738,7 +1731,7 @@
                  {
                      if (config_.enable_detailed_logging)
                      {
-                         LOG_DEBUG(LOG_TAG, "State change: %s → %s", wifiStateToString(old_state),
+                         LOG_DEBUG(LOG_TAG, "State change: %s -> %s", wifiStateToString(old_state),
                                    wifiStateToString(new_state));
                      }
  

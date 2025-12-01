@@ -30,7 +30,6 @@ namespace app
 
             /**
              * @brief AI对话状态
-             * @note STT完成后保持LISTENING，直到TTS开始才切换到SPEAKING
              */
             enum class AIState
             {
@@ -141,22 +140,11 @@ namespace app
              * @brief AI状态机
              *
              * 状态流转：
-             *   IDLE (唤醒词检测)
-             *     ↓ onWakewordDetected
-             *   CONNECTING (打开音频通道)
-             *     ↓ onConnectionSuccess
-             *   LISTENING (用户说话 + STT + LLM)
-             *     ↓ onTTS_start
-             *   SPEAKING (AI说话/TTS播放)
-             *     ↓ onTTS_stop + 延迟
-             *   LISTENING (连续对话) 或 IDLE (会话结束)
+             *   IDLE -> CONNECTING -> LISTENING -> SPEAKING -> LISTENING/IDLE
              *
              * 音频上传控制：
-             *   - IDLE:       禁用（仅本地唤醒词检测）
-             *   - CONNECTING: 禁用
-             *   - LISTENING:  启用（上传给服务器进行STT）
-             *   - SPEAKING:   禁用（避免回声）
-             *   - ERROR:      禁用
+             *   - IDLE/CONNECTING/SPEAKING/ERROR: 禁用
+             *   - LISTENING: 启用
              */
             class AIStateMachine
             {
@@ -168,7 +156,7 @@ namespace app
                 explicit AIStateMachine(const StateMachineConfig& config = StateMachineConfig());
 
                 /**
-                 * @brief 析构函数（RAII自动清理所有资源）
+                 * @brief 析构函数
                  */
                 ~AIStateMachine();
 
@@ -201,28 +189,28 @@ namespace app
 
                 /**
                  * @brief Hello消息接收（握手成功）
-                 * @details 状态转换: 任意 → IDLE
-                 *          音频控制: 禁用上传（仅唤醒词检测）
+                 * @details 状态转换: 任意 -> IDLE
+                 *          音频控制: 禁用上传
                  */
                 void onHello();
 
                 /**
                  * @brief 唤醒词检测到（开始连接音频通道）
-                 * @details 状态转换: IDLE → CONNECTING
+                 * @details 状态转换: IDLE -> CONNECTING
                  *          音频控制: 保持禁用
                  */
                 void onWakewordDetected();
 
                 /**
                  * @brief 音频通道连接成功
-                 * @details 状态转换: CONNECTING → LISTENING
+                 * @details 状态转换: CONNECTING -> LISTENING
                  *          音频控制: 启用音频上传
                  */
                 void onConnectionSuccess();
 
                 /**
                  * @brief 音频通道连接失败
-                 * @details 状态转换: CONNECTING → IDLE/ERROR
+                 * @details 状态转换: CONNECTING -> IDLE/ERROR
                  *          音频控制: 禁用上传
                  * @param reason 失败原因
                  */
@@ -231,7 +219,6 @@ namespace app
                 /**
                  * @brief STT消息接收
                  * @details 状态保持: LISTENING
-                 *          说明: STT partial/final都保持在LISTENING状态
                  * @param text 识别文本
                  * @param is_final 是否为最终结果
                  */
@@ -240,7 +227,6 @@ namespace app
                 /**
                  * @brief LLM消息接收
                  * @details 状态保持: LISTENING
-                 *          说明: LLM处理期间仍然保持LISTENING状态
                  * @param text LLM文本
                  * @param is_final 是否为最终结果
                  */
@@ -248,8 +234,8 @@ namespace app
 
                 /**
                  * @brief TTS开始
-                 * @details 状态转换: LISTENING → SPEAKING
-                 *          音频控制: 禁用上传（避免回声）
+                 * @details 状态转换: LISTENING -> SPEAKING
+                 *          音频控制: 禁用上传
                  */
                 void onTTS_start();
 
@@ -262,29 +248,29 @@ namespace app
 
                 /**
                  * @brief TTS结束
-                 * @details 状态转换: SPEAKING → 延迟后 → LISTENING（连续对话）
+                 * @details 状态转换: SPEAKING -> 延迟后 -> LISTENING
                  *          音频控制: 延迟后启用上传
-                 * @param delay_ms 延迟时间（避免回声，-1使用配置值）
+                 * @param delay_ms 延迟时间，-1使用配置值
                  */
                 void onTTS_stop(int delay_ms = -1);
 
                 /**
                  * @brief 停止监听（手动停止）
-                 * @details 状态转换: LISTENING → IDLE
+                 * @details 状态转换: LISTENING -> IDLE
                  *          音频控制: 禁用上传
                  */
                 void onStopListening();
 
                 /**
                  * @brief WebSocket连接关闭
-                 * @details 状态转换: 任意 → IDLE
+                 * @details 状态转换: 任意 -> IDLE
                  *          音频控制: 禁用上传
                  */
                 void onWebSocketClosed();
 
                 /**
                  * @brief 错误发生
-                 * @details 状态转换: 任意 → ERROR
+                 * @details 状态转换: 任意 -> ERROR
                  *          音频控制: 禁用上传
                  * @param error_msg 错误消息
                  */
@@ -292,7 +278,7 @@ namespace app
 
                 /**
                  * @brief 重置状态机
-                 * @details 状态转换: 任意 → IDLE
+                 * @details 状态转换: 任意 -> IDLE
                  *          音频控制: 禁用上传
                  */
                 void reset();
@@ -415,7 +401,7 @@ namespace app
 
             private:
                 class Impl;
-                std::unique_ptr<Impl> pImpl_; // Pimpl模式 + 智能指针管理
+                std::unique_ptr<Impl> pImpl_;
             };
 
         } // namespace statemachine

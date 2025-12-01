@@ -11,6 +11,13 @@
 #include "app/media/camera/camera.hpp"
 #include "app/media/sync.hpp"
 
+using namespace app::tool::log;
+
+namespace
+{
+    constexpr const char* LOG_TAG = "TEST_WEBRTC";
+} // namespace
+
 // 默认配置
 constexpr const char* DEFAULT_DEVICE_ID = "glasses_123456";
 constexpr const char* DEFAULT_SERVER_URL = "ws://192.168.50.184:8000";
@@ -63,9 +70,9 @@ int main(int argc, char* argv[]) {
     // 日志系统初始化
     app::tool::log::Logger::getInstance().initialize(app::tool::log::LogConfig());
 
-    LOG_INFO("Main", "开始初始化WebRTC系统...");
-    LOG_INFO("Main", "设备ID: %s", device_id.c_str());
-    LOG_INFO("Main", "服务器地址: %s", server_url.c_str());
+    LOG_INFO(LOG_TAG, "开始初始化WebRTC系统...");
+    LOG_INFO(LOG_TAG, "设备ID: %s", device_id.c_str());
+    LOG_INFO(LOG_TAG, "服务器地址: %s", server_url.c_str());
     
     // 创建音频配置
     app::media::audio::AudioConfig audio_config;
@@ -106,19 +113,19 @@ int main(int argc, char* argv[]) {
 
     // 初始化音频系统
     if (audio_system->initialize(sync_ctx) != app::media::audio::AudioError::NONE) {
-        LOG_ERROR("Main", "音频系统初始化失败");
+        LOG_ERROR(LOG_TAG, "音频系统初始化失败");
         return 1;
     }
 
     // 启动音频播放
     if (audio_system->startPlayback() != app::media::audio::AudioError::NONE) {
-        LOG_ERROR("Main", "音频播放启动失败");
+        LOG_ERROR(LOG_TAG, "音频播放启动失败");
         return 1;
     }
 
     // 初始化视频系统
     if (video_system->initialize(sync_ctx) != app::media::camera::VideoError::NONE) {
-        LOG_ERROR("Main", "视频系统初始化失败");
+        LOG_ERROR(LOG_TAG, "视频系统初始化失败");
         return 1;
     }
 
@@ -155,15 +162,15 @@ int main(int argc, char* argv[]) {
 
     // 设置WebRTC状态变化回调
     webrtc->onStateChanged([audio_system, video_system](app::protocol::webrtc::WebRTCState state) {
-        LOG_INFO("Main", "WebRTC 状态: %d", static_cast<int>(state));
+        LOG_INFO(LOG_TAG, "WebRTC 状态: %d", static_cast<int>(state));
 
         if (state == app::protocol::webrtc::WebRTCState::CONNECTED) {
             if (audio_system->startWebRTCMode() != app::media::audio::AudioError::NONE) {
-                LOG_ERROR("Main", "启动 WebRTC 音频模式失败");
+                LOG_ERROR(LOG_TAG, "启动 WebRTC 音频模式失败");
             }
 
             if (video_system->startWebRTCMode() != app::media::camera::VideoError::NONE) {
-                LOG_ERROR("Main", "启动 WebRTC 视频模式失败");
+                LOG_ERROR(LOG_TAG, "启动 WebRTC 视频模式失败");
             }
         } else if (state == app::protocol::webrtc::WebRTCState::FAILED || state == app::protocol::webrtc::WebRTCState::DISCONNECTED) {
             audio_system->stopWebRTCMode();
@@ -178,7 +185,7 @@ int main(int argc, char* argv[]) {
                 return;
             }
             // 打印接收到的音频数据大小
-            LOG_INFO("Main", "📥 收到音频数据: %zu 字节", size);
+            LOG_INFO(LOG_TAG, "📥 收到音频数据: %zu 字节", size);
             
             auto pcm_frame = audio_system->decodeOpus(data, size);
             if (pcm_frame) {
@@ -189,64 +196,64 @@ int main(int argc, char* argv[]) {
 
     // 设置信令状态变化回调
     signaling->onStatusChanged([](app::protocol::webrtc::SignalingStatus status) {
-        LOG_INFO("Main", "信令状态: %s", app::protocol::webrtc::Signaling::statusToString(status).c_str());
+        LOG_INFO(LOG_TAG, "信令状态: %s", app::protocol::webrtc::Signaling::statusToString(status).c_str());
         // switch (status) {
         //     case app::protocol::webrtc::SignalingStatus::DISCONNECTED:
-        //         LOG_INFO("Main", "信令状态: DISCONNECTED (未连接)");
+        //         LOG_INFO(LOG_TAG, "信令状态: DISCONNECTED (未连接)");
         //         break;
         //     case app::protocol::webrtc::SignalingStatus::CONNECTING:
-        //         LOG_INFO("Main", "信令状态: CONNECTING (连接中...)");
+        //         LOG_INFO(LOG_TAG, "信令状态: CONNECTING (连接中...)");
         //         break;
         //     case app::protocol::webrtc::SignalingStatus::CONNECTED:
-        //         LOG_INFO("Main", "信令状态: CONNECTED (已连接)");
+        //         LOG_INFO(LOG_TAG, "信令状态: CONNECTED (已连接)");
         //         break;
         //     case app::protocol::webrtc::SignalingStatus::JOINED:
-        //         LOG_INFO("Main", "信令状态: JOINED (已加入房间，等待配对...)");
+        //         LOG_INFO(LOG_TAG, "信令状态: JOINED (已加入房间，等待配对...)");
         //         break;
         //     case app::protocol::webrtc::SignalingStatus::PAIRED:
-        //         LOG_INFO("Main", "信令状态: PAIRED (已配对，可以开始WebRTC连接)");
+        //         LOG_INFO(LOG_TAG, "信令状态: PAIRED (已配对，可以开始WebRTC连接)");
         //         break;
         // }
     });
 
     // 设置错误回调
     signaling->onError([](app::protocol::webrtc::SignalingError error, const std::string& message) {
-        LOG_ERROR("Main", "错误: %s", message.c_str());
+        LOG_ERROR(LOG_TAG, "错误: %s", message.c_str());
     });
     
     // 设置房间信息变化回调
     signaling->onRoomInfoChanged([](const app::protocol::webrtc::RoomInfo& room_info) {
-        LOG_INFO("Main", "房间信息变化: 房间ID=%s, 人数=%d, 状态=%s", 
+        LOG_INFO(LOG_TAG, "房间信息变化: 房间ID=%s, 人数=%d, 状态=%s", 
                  room_info.roomId.c_str(), room_info.num, room_info.roomStatus.c_str());
     });
 
     // 连接信令服务器
     if (!signaling->connect()) {
-        LOG_ERROR("Main", "连接信令服务器失败");
+        LOG_ERROR(LOG_TAG, "连接信令服务器失败");
         return 1;
     }
 
     // 初始化WebRTC系统
     if (webrtc->open(signaling) != app::protocol::webrtc::WebRTCError::NONE) {
-        LOG_ERROR("Main", "WebRTCSystem 初始化失败");
+        LOG_ERROR(LOG_TAG, "WebRTCSystem 初始化失败");
         return 1;
     }
 
     // 等待连接成功
-    LOG_INFO("Main", "等待连接建立...");
+    LOG_INFO(LOG_TAG, "等待连接建立...");
     int wait_count = 0;
     while (signaling->getStatus() != app::protocol::webrtc::SignalingStatus::CONNECTED) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         wait_count++;
         if (wait_count > 100) {  // 10秒超时
-            LOG_ERROR("Main", "连接超时，请检查服务器地址和网络连接");
+            LOG_ERROR(LOG_TAG, "连接超时，请检查服务器地址和网络连接");
             return 1;
         }
     }
     
     // 加入房间
     if (!signaling->joinRoom()) {
-        LOG_ERROR("Main", "加入房间失败");
+        LOG_ERROR(LOG_TAG, "加入房间失败");
         return 1;
     }
 

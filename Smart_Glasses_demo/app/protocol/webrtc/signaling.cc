@@ -26,11 +26,12 @@ namespace app
 
             namespace
             {
-                constexpr int ERROR_CODE_ROOM_FULL          = 1001;
-                constexpr int ERROR_CODE_ROOM_NOT_EXISTS    = 1002;
-                constexpr int ERROR_CODE_CONNECTION_TIMEOUT = 1005;
-                constexpr int ERROR_CODE_PEER_OFFLINE       = 1006;
-                constexpr int ERROR_CODE_SERVER_ERROR       = 1007;
+                constexpr const char* LOG_TAG                   = "SIGNALING";
+                constexpr int         ERROR_CODE_ROOM_FULL      = 1001;
+                constexpr int         ERROR_CODE_ROOM_NOT_EXISTS = 1002;
+                constexpr int         ERROR_CODE_CONNECTION_TIMEOUT = 1005;
+                constexpr int         ERROR_CODE_PEER_OFFLINE   = 1006;
+                constexpr int         ERROR_CODE_SERVER_ERROR   = 1007;
             } // namespace
 
             Signaling::Signaling(const SignalingConfig& config)
@@ -42,9 +43,9 @@ namespace app
                 roomInfo_.num        = 0;
                 roomInfo_.roomStatus = "close";
 
-                LOG_INFO("Signaling", "信令客户端初始化: deviceId=%s, serverUrl=%s",
+                LOG_INFO(LOG_TAG, "信令客户端初始化: deviceId=%s, serverUrl=%s",
                          config_.deviceId.c_str(), config_.serverUrl.c_str());
-                LOG_DEBUG("Signaling", "房间ID: %s", roomInfo_.roomId.c_str());
+                LOG_DEBUG(LOG_TAG, "房间ID: %s", roomInfo_.roomId.c_str());
             }
 
             Signaling::~Signaling()
@@ -57,7 +58,7 @@ namespace app
                 SignalingStatus current = status_.load(std::memory_order_acquire);
                 if (current != SignalingStatus::DISCONNECTED)
                 {
-                    LOG_WARN("Signaling", "已经在连接或已连接");
+                    LOG_WARN(LOG_TAG, "已经在连接或已连接");
                     return false;
                 }
 
@@ -97,7 +98,7 @@ namespace app
                     err                           = ws_client_->connect();
                     if (err != websocket::WebSocketError::NONE)
                     {
-                        LOG_ERROR("Signaling", "WebSocket连接失败");
+                        LOG_ERROR(LOG_TAG, "WebSocket连接失败");
                         setStatus(SignalingStatus::DISCONNECTED);
                         return false;
                     }
@@ -106,7 +107,7 @@ namespace app
                 }
                 catch (const std::exception& e)
                 {
-                    LOG_ERROR("Signaling", "连接异常: %s", e.what());
+                    LOG_ERROR(LOG_TAG, "连接异常: %s", e.what());
                     setStatus(SignalingStatus::DISCONNECTED);
                     return false;
                 }
@@ -144,7 +145,7 @@ namespace app
                     roomInfo_.roomStatus = "close";
                 }
 
-                LOG_INFO("Signaling", "已断开连接");
+                LOG_INFO(LOG_TAG, "已断开连接");
             }
 
             bool Signaling::joinRoom()
@@ -152,7 +153,7 @@ namespace app
                 SignalingStatus current = status_.load(std::memory_order_acquire);
                 if (current != SignalingStatus::CONNECTED)
                 {
-                    LOG_WARN("Signaling", "未连接到服务器，无法加入房间");
+                    LOG_WARN(LOG_TAG, "未连接到服务器，无法加入房间");
                     return false;
                 }
 
@@ -164,7 +165,7 @@ namespace app
 
                 if (sendMessage(message))
                 {
-                    LOG_INFO("Signaling", "发送加入房间消息");
+                    LOG_INFO(LOG_TAG, "发送加入房间消息");
                     setStatus(SignalingStatus::JOINED);
                     return true;
                 }
@@ -188,7 +189,7 @@ namespace app
 
                 if (sendMessage(message))
                 {
-                    LOG_INFO("Signaling", "发送离开房间消息");
+                    LOG_INFO(LOG_TAG, "发送离开房间消息");
                     setStatus(SignalingStatus::CONNECTED);
 
                     // 清理配对信息
@@ -220,7 +221,7 @@ namespace app
 
                 if (sendMessage(message))
                 {
-                    LOG_DEBUG("Signaling", "发送房间信息请求");
+                    LOG_DEBUG(LOG_TAG, "发送房间信息请求");
                     return true;
                 }
 
@@ -232,7 +233,7 @@ namespace app
                 SignalingStatus current = status_.load(std::memory_order_acquire);
                 if (current != SignalingStatus::PAIRED)
                 {
-                    LOG_WARN("Signaling", "未配对，无法发送Offer");
+                    LOG_WARN(LOG_TAG, "未配对，无法发送Offer");
                     return false;
                 }
 
@@ -242,7 +243,7 @@ namespace app
 
                 if (sendMessage(message))
                 {
-                    LOG_INFO("Signaling", "发送SDP Offer到: %s", target_device_id.c_str());
+                    LOG_INFO(LOG_TAG, "发送SDP Offer到: %s", target_device_id.c_str());
                     return true;
                 }
 
@@ -254,7 +255,7 @@ namespace app
                 SignalingStatus current = status_.load(std::memory_order_acquire);
                 if (current != SignalingStatus::PAIRED)
                 {
-                    LOG_WARN("Signaling", "未配对，无法发送Answer");
+                    LOG_WARN(LOG_TAG, "未配对，无法发送Answer");
                     return false;
                 }
 
@@ -264,7 +265,7 @@ namespace app
 
                 if (sendMessage(message))
                 {
-                    LOG_INFO("Signaling", "发送SDP Answer到: %s", target_device_id.c_str());
+                    LOG_INFO(LOG_TAG, "发送SDP Answer到: %s", target_device_id.c_str());
                     return true;
                 }
 
@@ -277,7 +278,7 @@ namespace app
                 SignalingStatus current = status_.load(std::memory_order_acquire);
                 if (current != SignalingStatus::PAIRED)
                 {
-                    LOG_WARN("Signaling", "未配对，无法发送ICE候选");
+                    LOG_WARN(LOG_TAG, "未配对，无法发送ICE候选");
                     return false;
                 }
 
@@ -290,7 +291,7 @@ namespace app
 
                 if (sendMessage(message))
                 {
-                    LOG_DEBUG("Signaling", "发送ICE候选到: %s", target_device_id.c_str());
+                    LOG_DEBUG(LOG_TAG, "发送ICE候选到: %s", target_device_id.c_str());
                     return true;
                 }
 
@@ -306,7 +307,7 @@ namespace app
                 }
                 catch (const std::exception& e)
                 {
-                    LOG_ERROR("Signaling", "处理WebSocket消息异常: %s", e.what());
+                    LOG_ERROR(LOG_TAG, "处理WebSocket消息异常: %s", e.what());
                 }
             }
 
@@ -358,12 +359,12 @@ namespace app
                     // 验证消息基本字段
                     if (!msg.contains("type") || !msg.contains("from") || !msg.contains("to"))
                     {
-                        LOG_WARN("Signaling", "收到格式错误的消息");
+                        LOG_WARN(LOG_TAG, "收到格式错误的消息");
                         return;
                     }
 
                     std::string type = msg["type"].get<std::string>();
-                    LOG_DEBUG("Signaling", "收到消息: type=%s, from=%s", type.c_str(),
+                    LOG_DEBUG(LOG_TAG, "收到消息: type=%s, from=%s", type.c_str(),
                               msg["from"].get<std::string>().c_str());
 
                     // 根据消息类型分发处理
@@ -393,17 +394,17 @@ namespace app
                     }
                     else
                     {
-                        LOG_WARN("Signaling", "收到未知消息类型: %s", type.c_str());
+                        LOG_WARN(LOG_TAG, "收到未知消息类型: %s", type.c_str());
                     }
                 }
                 catch (const json::parse_error& e)
                 {
-                    LOG_ERROR("Signaling", "JSON解析失败: %s", e.what());
-                    LOG_DEBUG("Signaling", "原始消息: %s", message.c_str());
+                    LOG_ERROR(LOG_TAG, "JSON解析失败: %s", e.what());
+                    LOG_DEBUG(LOG_TAG, "原始消息: %s", message.c_str());
                 }
                 catch (const std::exception& e)
                 {
-                    LOG_ERROR("Signaling", "处理消息异常: %s", e.what());
+                    LOG_ERROR(LOG_TAG, "处理消息异常: %s", e.what());
                 }
             }
 
@@ -411,7 +412,7 @@ namespace app
             {
                 if (!msg.contains("data"))
                 {
-                    LOG_WARN("Signaling", "角色消息缺少data字段");
+                    LOG_WARN(LOG_TAG, "角色消息缺少data字段");
                     return;
                 }
 
@@ -438,7 +439,7 @@ namespace app
 
                 setStatus(SignalingStatus::PAIRED);
 
-                LOG_INFO("Signaling", "配对成功 - 对端设备: %s, 角色: %s", peer_id.c_str(),
+                LOG_INFO(LOG_TAG, "配对成功 - 对端设备: %s, 角色: %s", peer_id.c_str(),
                          role.c_str());
 
                 // 通知WebRTC管理器可以开始工作
@@ -447,7 +448,7 @@ namespace app
 
             void Signaling::handleOfferMessage(const json& msg)
             {
-                LOG_INFO("Signaling", "收到SDP Offer，转发给WebRTC管理器");
+                LOG_INFO(LOG_TAG, "收到SDP Offer，转发给WebRTC管理器");
 
                 std::lock_guard<std::mutex> lock(callback_mutex_);
                 if (offerCallback_)
@@ -458,14 +459,14 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("Signaling", "Offer回调异常: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "Offer回调异常: %s", e.what());
                     }
                 }
             }
 
             void Signaling::handleAnswerMessage(const json& msg)
             {
-                LOG_INFO("Signaling", "收到SDP Answer，转发给WebRTC管理器");
+                LOG_INFO(LOG_TAG, "收到SDP Answer，转发给WebRTC管理器");
 
                 std::lock_guard<std::mutex> lock(callback_mutex_);
                 if (answerCallback_)
@@ -476,14 +477,14 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("Signaling", "Answer回调异常: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "Answer回调异常: %s", e.what());
                     }
                 }
             }
 
             void Signaling::handleIceMessage(const json& msg)
             {
-                LOG_DEBUG("Signaling", "收到ICE候选，转发给WebRTC管理器");
+                LOG_DEBUG(LOG_TAG, "收到ICE候选，转发给WebRTC管理器");
 
                 std::lock_guard<std::mutex> lock(callback_mutex_);
                 if (iceCandidateCallback_)
@@ -494,7 +495,7 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("Signaling", "ICE回调异常: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "ICE回调异常: %s", e.what());
                     }
                 }
             }
@@ -503,7 +504,7 @@ namespace app
             {
                 if (!msg.contains("data"))
                 {
-                    LOG_WARN("Signaling", "房间信息消息缺少data字段");
+                    LOG_WARN(LOG_TAG, "房间信息消息缺少data字段");
                     return;
                 }
 
@@ -530,7 +531,7 @@ namespace app
                     roomInfo_ = info;
                 }
 
-                LOG_INFO("Signaling", "房间信息更新 - 房间ID: %s, 人数: %d, 状态: %s",
+                LOG_INFO(LOG_TAG, "房间信息更新 - 房间ID: %s, 人数: %d, 状态: %s",
                          info.roomId.c_str(), info.num, info.roomStatus.c_str());
 
                 // 根据房间信息更新连接状态
@@ -540,7 +541,7 @@ namespace app
                     SignalingStatus current = status_.load(std::memory_order_acquire);
                     if (current == SignalingStatus::JOINED)
                     {
-                        LOG_DEBUG("Signaling", "房间已配对，等待角色分配...");
+                        LOG_DEBUG(LOG_TAG, "房间已配对，等待角色分配...");
                     }
                 }
                 else if (info.roomStatus == "close")
@@ -549,7 +550,7 @@ namespace app
                     SignalingStatus current = status_.load(std::memory_order_acquire);
                     if (current == SignalingStatus::PAIRED)
                     {
-                        LOG_INFO("Signaling", "房间状态变为关闭，重置为已加入状态");
+                        LOG_INFO(LOG_TAG, "房间状态变为关闭，重置为已加入状态");
                         setStatus(SignalingStatus::JOINED);
 
                         {
@@ -568,7 +569,7 @@ namespace app
             {
                 if (!msg.contains("data"))
                 {
-                    LOG_WARN("Signaling", "错误消息缺少data字段");
+                    LOG_WARN(LOG_TAG, "错误消息缺少data字段");
                     return;
                 }
 
@@ -576,7 +577,7 @@ namespace app
                 int         error_code    = data.value("error_code", ERROR_CODE_SERVER_ERROR);
                 std::string error_message = data.value("error_message", "未知错误");
 
-                LOG_ERROR("Signaling", "服务器错误 [%d]: %s", error_code, error_message.c_str());
+                LOG_ERROR(LOG_TAG, "服务器错误 [%d]: %s", error_code, error_message.c_str());
 
                 auto error = static_cast<SignalingError>(error_code);
                 invokeErrorCallback(error, error_message);
@@ -621,7 +622,7 @@ namespace app
             {
                 if (!ws_client_ || !ws_client_->isConnected())
                 {
-                    LOG_WARN("Signaling", "WebSocket未连接，无法发送消息");
+                    LOG_WARN(LOG_TAG, "WebSocket未连接，无法发送消息");
                     return false;
                 }
 
@@ -633,7 +634,7 @@ namespace app
 
                     if (err != websocket::WebSocketError::NONE)
                     {
-                        LOG_ERROR("Signaling", "发送消息失败");
+                        LOG_ERROR(LOG_TAG, "发送消息失败");
                         return false;
                     }
 
@@ -641,7 +642,7 @@ namespace app
                 }
                 catch (const std::exception& e)
                 {
-                    LOG_ERROR("Signaling", "发送消息异常: %s", e.what());
+                    LOG_ERROR(LOG_TAG, "发送消息异常: %s", e.what());
                     return false;
                 }
             }
@@ -653,7 +654,7 @@ namespace app
 
                 if (old_status != new_status)
                 {
-                    LOG_INFO("Signaling", "状态变更: %s → %s", statusToString(old_status).c_str(),
+                    LOG_INFO(LOG_TAG, "状态变更: %s -> %s", statusToString(old_status).c_str(),
                              statusToString(new_status).c_str());
 
                     invokeStatusCallback(new_status);
@@ -689,7 +690,7 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("Signaling", "状态回调异常: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "状态回调异常: %s", e.what());
                     }
                 }
             }
@@ -705,7 +706,7 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("Signaling", "错误回调异常: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "错误回调异常: %s", e.what());
                     }
                 }
             }
@@ -722,7 +723,7 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("Signaling", "WebRTC就绪回调异常: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "WebRTC就绪回调异常: %s", e.what());
                     }
                 }
             }
@@ -738,7 +739,7 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("Signaling", "房间信息回调异常: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "房间信息回调异常: %s", e.what());
                     }
                 }
             }

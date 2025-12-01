@@ -125,7 +125,7 @@ namespace app
             };
 
             // ============================================================================
-            // 消息结构体（使用智能指针管理）
+            // 消息结构体
             // ============================================================================
 
             /**
@@ -291,13 +291,6 @@ namespace app
 
             /**
              * @brief xiaozhi协议处理器
-             * @details 协议处理器，特性：
-             *          - RAII自动资源管理
-             *          - 智能指针，无裸指针
-             *          - 消息异步队列，解耦接收和处理
-             *          - 哈希表O(1)查找
-             *          - 异常安全的回调
-             *          - 完整的统计和监控
              */
             class ProtocolHandler
             {
@@ -309,7 +302,7 @@ namespace app
                 explicit ProtocolHandler(const ProtocolConfig& config = ProtocolConfig());
 
                 /**
-                 * @brief 析构函数（RAII自动清理所有资源）
+                 * @brief 析构函数
                  */
                 ~ProtocolHandler();
 
@@ -318,7 +311,7 @@ namespace app
                 // ========================================================================
 
                 /**
-                 * @brief 解析JSON消息（异步）
+                 * @brief 解析JSON消息
                  * @param buffer 消息缓冲区
                  * @param size 消息大小
                  * @return ProtocolError::NONE 成功
@@ -326,7 +319,7 @@ namespace app
                 ProtocolError parseMessage(const char* buffer, size_t size);
 
                 /**
-                 * @brief 解析JSON消息（同步，用于测试）
+                 * @brief 解析JSON消息（同步）
                  * @param json_str JSON字符串
                  * @return MessageType 消息类型
                  */
@@ -338,9 +331,9 @@ namespace app
 
                 /**
                  * @brief 生成Hello消息
-                 * @param sample_rate 采样率（默认使用配置）
-                 * @param channels 声道数（默认使用配置）
-                 * @param frame_duration 帧时长（默认使用配置）
+                 * @param sample_rate 采样率
+                 * @param channels 声道数
+                 * @param frame_duration 帧时长
                  * @return JSON字符串
                  */
                 std::string generateHelloMessage(int sample_rate = -1, int channels = -1,
@@ -356,7 +349,7 @@ namespace app
                                                   ListenMode  mode = ListenMode::AUTO);
 
                 // ========================================================================
-                // 回调设置（线程安全）
+                // 回调设置
                 // ========================================================================
 
                 /**
@@ -422,11 +415,11 @@ namespace app
                 bool hasActiveSession() const;
 
                 // ========================================================================
-                // 工具函数（静态，使用哈希表优化）
+                // 工具函数
                 // ========================================================================
 
                 /**
-                 * @brief 字符串转消息类型（O(1)）
+                 * @brief 字符串转消息类型
                  */
                 static MessageType stringToMessageType(const std::string& type_str);
 
@@ -436,7 +429,7 @@ namespace app
                 static std::string messageTypeToString(MessageType type);
 
                 /**
-                 * @brief 字符串转情感类型（O(1)）
+                 * @brief 字符串转情感类型
                  */
                 static EmotionType stringToEmotionType(const std::string& emotion_str);
 

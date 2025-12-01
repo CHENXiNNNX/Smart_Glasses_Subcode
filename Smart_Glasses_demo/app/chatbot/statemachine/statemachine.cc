@@ -15,10 +15,11 @@
 
 namespace
 {
-    constexpr uint64_t MICROSECONDS_PER_MILLISECOND      = 1000ULL;
-    constexpr double   MICROSECONDS_TO_SECONDS           = 1'000'000.0;
-    constexpr double   INVALID_TRANSITION_WARN_THRESHOLD = 1.0;
-    constexpr double   CALLBACK_EXCEPTION_WARN_THRESHOLD = 0.1;
+    constexpr const char* LOG_TAG                         = "STATEMACHINE";
+    constexpr uint64_t    MICROSECONDS_PER_MILLISECOND    = 1000ULL;
+    constexpr double      MICROSECONDS_TO_SECONDS         = 1'000'000.0;
+    constexpr double      INVALID_TRANSITION_WARN_THRESHOLD = 1.0;
+    constexpr double      CALLBACK_EXCEPTION_WARN_THRESHOLD = 0.1;
 } // namespace
 
 namespace app
@@ -31,7 +32,7 @@ namespace app
             using namespace tool::log;
 
             // ============================================================================
-            // AIStateMachine::Impl 内部实现（Pimpl惯用法）
+            // AIStateMachine::Impl 内部实现
             // ============================================================================
 
             class AIStateMachine::Impl
@@ -51,11 +52,11 @@ namespace app
                 ErrorCallback       error_callback;
                 TimeoutCallback     timeout_callback;
 
-                // 状态历史（环形缓冲区）
+                // 状态历史
                 std::deque<StateTransition> state_history;
                 mutable std::mutex          history_mutex;
 
-                // 延迟任务管理（可中断）
+                // 延迟任务管理
                 std::unique_ptr<std::thread> delay_thread;
                 std::atomic<bool>            should_cancel_delay{false};
                 std::condition_variable      delay_cv;
@@ -68,7 +69,7 @@ namespace app
                 // 统计信息
                 Stats stats;
 
-                // 线程安全（回调保护）
+                // 回调保护
                 mutable std::mutex callback_mutex;
 
                 // 状态转换验证表
@@ -78,18 +79,18 @@ namespace app
                 explicit Impl(const StateMachineConfig& cfg)
                     : config(cfg), state_enter_time(get_nowus())
                 {
-                    LOG_DEBUG("StateMachine", "Impl created");
+                    LOG_DEBUG(LOG_TAG, "Impl created");
                 }
 
                 ~Impl()
                 {
-                    LOG_DEBUG("StateMachine", "Impl destroying...");
+                    LOG_DEBUG(LOG_TAG, "Impl destroying...");
 
                     // 停止所有线程
                     stopDelayThread();
                     stopWatchdogThread();
 
-                    LOG_DEBUG("StateMachine", "Impl destroyed");
+                    LOG_DEBUG(LOG_TAG, "Impl destroyed");
                 }
 
                 // ========================================================================
@@ -112,7 +113,7 @@ namespace app
                     {
                         if (!isTransitionValid(old_state, new_state))
                         {
-                            LOG_ERROR("StateMachine", "Invalid transition: %s → %s (event: %s)",
+                            LOG_ERROR(LOG_TAG, "Invalid transition: %s -> %s (event: %s)",
                                       AIStateMachine::stateToString(old_state).c_str(),
                                       AIStateMachine::stateToString(new_state).c_str(),
                                       event.c_str());
@@ -136,7 +137,7 @@ namespace app
                     state_enter_time = now;
                     stats.total_transitions.fetch_add(1, std::memory_order_relaxed);
 
-                    LOG_INFO("StateMachine", "State: %s → %s (event: %s)",
+                    LOG_INFO(LOG_TAG, "State: %s -> %s (event: %s)",
                              AIStateMachine::stateToString(old_state).c_str(),
                              AIStateMachine::stateToString(new_state).c_str(), event.c_str());
 
@@ -175,7 +176,7 @@ namespace app
 
                     if (old_value != enable)
                     {
-                        LOG_INFO("StateMachine", "Audio upload: %s",
+                        LOG_INFO(LOG_TAG, "Audio upload: %s",
                                  enable ? "ENABLED" : "DISABLED");
 
                         // 触发音频上传控制回调（异常安全）
@@ -257,13 +258,13 @@ namespace app
 
                     should_cancel_delay.store(false, std::memory_order_release);
 
-                    // 创建新的延迟线程（使用智能指针）
+                    // 创建新的延迟线程
                     delay_thread = std::make_unique<std::thread>(
                         [this, target_state, delay_ms, event]()
                         {
                             std::unique_lock<std::mutex> lock(delay_mutex);
 
-                            LOG_DEBUG("StateMachine", "Delay task started: %dms → %s", delay_ms,
+                            LOG_DEBUG(LOG_TAG, "Delay task started: %dms -> %s", delay_ms,
                                       AIStateMachine::stateToString(target_state).c_str());
 
                             // 可中断的等待
@@ -274,18 +275,18 @@ namespace app
 
                             if (cancelled)
                             {
-                                LOG_DEBUG("StateMachine", "Delay task cancelled");
+                                LOG_DEBUG(LOG_TAG, "Delay task cancelled");
                                 return;
                             }
 
                             // 再次检查取消标志
                             if (should_cancel_delay.load(std::memory_order_acquire))
                             {
-                                LOG_DEBUG("StateMachine", "Delay task cancelled (double check)");
+                                LOG_DEBUG(LOG_TAG, "Delay task cancelled (double check)");
                                 return;
                             }
 
-                            LOG_DEBUG("StateMachine", "Delay task executing state change");
+                            LOG_DEBUG(LOG_TAG, "Delay task executing state change");
                             changeState(target_state, event);
                         });
                 }
@@ -323,7 +324,7 @@ namespace app
                     watchdog_thread = std::make_unique<std::thread>(
                         [this]()
                         {
-                            LOG_DEBUG("StateMachine", "Watchdog thread started");
+                            LOG_DEBUG(LOG_TAG, "Watchdog thread started");
 
                             while (!should_stop_watchdog.load(std::memory_order_acquire))
                             {
@@ -332,7 +333,7 @@ namespace app
                                 checkStateTimeout();
                             }
 
-                            LOG_DEBUG("StateMachine", "Watchdog thread stopped");
+                            LOG_DEBUG(LOG_TAG, "Watchdog thread stopped");
                         });
                 }
 
@@ -379,7 +380,7 @@ namespace app
 
                     if (is_timeout)
                     {
-                        LOG_WARN("StateMachine",
+                        LOG_WARN(LOG_TAG,
                                  "State timeout: %s (elapsed: %llu ms, timeout: %llu ms)",
                                  AIStateMachine::stateToString(current).c_str(), elapsed_ms,
                                  timeout_ms);
@@ -411,17 +412,17 @@ namespace app
                         }
                         catch (const std::runtime_error& e)
                         {
-                            LOG_ERROR("StateMachine", "State callback runtime_error: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "State callback runtime_error: %s", e.what());
                             stats.callback_exceptions.fetch_add(1, std::memory_order_relaxed);
                         }
                         catch (const std::logic_error& e)
                         {
-                            LOG_ERROR("StateMachine", "State callback logic_error: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "State callback logic_error: %s", e.what());
                             stats.callback_exceptions.fetch_add(1, std::memory_order_relaxed);
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("StateMachine", "State callback exception: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "State callback exception: %s", e.what());
                             stats.callback_exceptions.fetch_add(1, std::memory_order_relaxed);
                         }
                         // 不捕获系统异常（bad_alloc等），让它们正确传播
@@ -440,7 +441,7 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("StateMachine", "Audio callback exception: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "Audio callback exception: %s", e.what());
                             stats.callback_exceptions.fetch_add(1, std::memory_order_relaxed);
                         }
                     }
@@ -458,7 +459,7 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("StateMachine", "Error callback exception: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "Error callback exception: %s", e.what());
                         }
                     }
                 }
@@ -475,7 +476,7 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("StateMachine", "Timeout callback exception: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "Timeout callback exception: %s", e.what());
                         }
                     }
                 }
@@ -538,7 +539,7 @@ namespace app
             AIStateMachine::AIStateMachine(const StateMachineConfig& config)
                 : pImpl_(std::make_unique<Impl>(config))
             {
-                LOG_INFO("StateMachine", "AI State Machine created");
+                LOG_INFO(LOG_TAG, "AI State Machine created");
 
                 // 启动超时监控线程
                 if (pImpl_->config.enable_state_timeout)
@@ -549,13 +550,12 @@ namespace app
 
             AIStateMachine::~AIStateMachine()
             {
-                LOG_INFO("StateMachine", "AI State Machine destroying...");
+                LOG_INFO(LOG_TAG, "AI State Machine destroying...");
 
                 // 输出最终统计
                 logStats();
 
-                // RAII自动清理（pImpl_的析构函数会清理所有资源）
-                LOG_INFO("StateMachine", "AI State Machine destroyed");
+                LOG_INFO(LOG_TAG, "AI State Machine destroyed");
             }
 
             // ========================================================================
@@ -583,9 +583,9 @@ namespace app
 
             void AIStateMachine::onHello()
             {
-                LOG_INFO("StateMachine", "Event: Hello received");
+                LOG_INFO(LOG_TAG, "Event: Hello received");
 
-                // Hello握手成功 → 进入IDLE状态（等待唤醒词）
+                // Hello握手成功 -> 进入IDLE状态（等待唤醒词）
                 pImpl_->changeState(AIState::IDLE, "onHello");
 
                 // IDLE状态下禁用音频上传（仅本地唤醒词检测）
@@ -594,9 +594,9 @@ namespace app
 
             void AIStateMachine::onWakewordDetected()
             {
-                LOG_INFO("StateMachine", "Event: Wakeword detected!");
+                LOG_INFO(LOG_TAG, "Event: Wakeword detected!");
 
-                // 唤醒词检测到 → 开始连接音频通道
+                // 唤醒词检测到 -> 开始连接音频通道
                 if (pImpl_->changeState(AIState::CONNECTING, "onWakewordDetected"))
                 {
                     // 音频上传保持禁用（连接阶段）
@@ -606,9 +606,9 @@ namespace app
 
             void AIStateMachine::onConnectionSuccess()
             {
-                LOG_INFO("StateMachine", "Event: Connection success");
+                LOG_INFO(LOG_TAG, "Event: Connection success");
 
-                // 音频通道连接成功 → 进入LISTENING状态
+                // 音频通道连接成功 -> 进入LISTENING状态
                 if (pImpl_->changeState(AIState::LISTENING, "onConnectionSuccess"))
                 {
                     // 启用音频上传（开始STT）
@@ -618,11 +618,11 @@ namespace app
 
             void AIStateMachine::onConnectionFailed(const std::string& reason)
             {
-                LOG_ERROR("StateMachine", "Event: Connection failed - %s", reason.c_str());
+                LOG_ERROR(LOG_TAG, "Event: Connection failed - %s", reason.c_str());
 
                 pImpl_->stats.connection_failures.fetch_add(1, std::memory_order_relaxed);
 
-                // 连接失败 → 返回IDLE或ERROR
+                // 连接失败 -> 返回IDLE或ERROR
                 if (pImpl_->changeState(AIState::IDLE, "onConnectionFailed", reason))
                 {
                     pImpl_->setAudioUpload(false);
@@ -631,7 +631,7 @@ namespace app
 
             void AIStateMachine::onSTT(const std::string& text, bool is_final)
             {
-                LOG_DEBUG("StateMachine", "Event: STT - \"%s\" (final: %s)", text.c_str(),
+                LOG_DEBUG(LOG_TAG, "Event: STT - \"%s\" (final: %s)", text.c_str(),
                           is_final ? "true" : "false");
 
                 // STT消息不改变状态
@@ -641,14 +641,14 @@ namespace app
                 // 仅记录日志，状态保持LISTENING
                 if (is_final)
                 {
-                    LOG_INFO("StateMachine", "STT final: \"%s\", waiting for TTS start...",
+                    LOG_INFO(LOG_TAG, "STT final: \"%s\", waiting for TTS start...",
                              text.c_str());
                 }
             }
 
             void AIStateMachine::onLLM(const std::string& text, bool is_final)
             {
-                LOG_DEBUG("StateMachine", "Event: LLM - \"%s\" (final: %s)", text.c_str(),
+                LOG_DEBUG(LOG_TAG, "Event: LLM - \"%s\" (final: %s)", text.c_str(),
                           is_final ? "true" : "false");
 
                 // LLM消息不改变状态
@@ -659,9 +659,9 @@ namespace app
 
             void AIStateMachine::onTTS_start()
             {
-                LOG_INFO("StateMachine", "Event: TTS start");
+                LOG_INFO(LOG_TAG, "Event: TTS start");
 
-                // TTS开始 → LISTENING → SPEAKING
+                // TTS开始 -> LISTENING -> SPEAKING
                 if (pImpl_->changeState(AIState::SPEAKING, "onTTS_start"))
                 {
                     // 禁用音频上传（避免回声）
@@ -671,9 +671,9 @@ namespace app
 
             void AIStateMachine::onTTS_sentenceStart(const std::string& text)
             {
-                LOG_DEBUG("StateMachine", "Event: TTS sentence start - \"%s\"", text.c_str());
+                LOG_DEBUG(LOG_TAG, "Event: TTS sentence start - \"%s\"", text.c_str());
 
-                // 句子开始 → 状态保持SPEAKING
+                // 句子开始 -> 状态保持SPEAKING
                 // 音频上传保持禁用
             }
 
@@ -685,26 +685,25 @@ namespace app
                     delay_ms = pImpl_->config.tts_finish_delay_ms;
                 }
 
-                LOG_INFO("StateMachine", "Event: TTS stop (delay: %dms)", delay_ms);
+                LOG_INFO(LOG_TAG, "Event: TTS stop (delay: %dms)", delay_ms);
 
-                // 安全的延迟状态切换
-                // SPEAKING → 延迟后 → LISTENING（连续对话）
+                // 延迟状态切换
                 pImpl_->scheduleDelayedStateChange(AIState::LISTENING, delay_ms,
                                                    "onTTS_stop_delayed");
 
-                LOG_DEBUG("StateMachine",
+                LOG_DEBUG(LOG_TAG,
                           "Scheduled return to LISTENING after %dms (continuous conversation)",
                           delay_ms);
             }
 
             void AIStateMachine::onStopListening()
             {
-                LOG_INFO("StateMachine", "Event: Stop listening");
+                LOG_INFO(LOG_TAG, "Event: Stop listening");
 
-                // 取消所有延迟任务
+                // 取消延迟任务
                 pImpl_->cancelDelayedTask();
 
-                // 手动停止 → 返回IDLE
+                // 手动停止 -> 返回IDLE
                 if (pImpl_->changeState(AIState::IDLE, "onStopListening"))
                 {
                     pImpl_->setAudioUpload(false);
@@ -713,11 +712,11 @@ namespace app
 
             void AIStateMachine::onWebSocketClosed()
             {
-                LOG_INFO("StateMachine", "Event: WebSocket closed");
+                LOG_INFO(LOG_TAG, "Event: WebSocket closed");
 
                 AIState current = getState();
 
-                // 取消所有延迟任务
+                // 取消延迟任务
                 pImpl_->cancelDelayedTask();
 
                 // 如果在对话中，回到IDLE
@@ -725,7 +724,7 @@ namespace app
                     current == AIState::SPEAKING)
                 {
 
-                    LOG_INFO("StateMachine", "Session ended, returning to IDLE...");
+                    LOG_INFO(LOG_TAG, "Session ended, returning to IDLE...");
 
                     if (pImpl_->changeState(AIState::IDLE, "onWebSocketClosed"))
                     {
@@ -736,12 +735,12 @@ namespace app
 
             void AIStateMachine::onError(const std::string& error_msg)
             {
-                LOG_ERROR("StateMachine", "Event: Error - %s", error_msg.c_str());
+                LOG_ERROR(LOG_TAG, "Event: Error - %s", error_msg.c_str());
 
-                // 取消所有延迟任务
+                // 取消延迟任务
                 pImpl_->cancelDelayedTask();
 
-                // 错误 → 进入ERROR状态
+                // 错误 -> 进入ERROR状态
                 if (pImpl_->changeState(AIState::ERROR, "onError", error_msg))
                 {
                     // 禁用音频上传
@@ -751,9 +750,9 @@ namespace app
 
             void AIStateMachine::reset()
             {
-                LOG_INFO("StateMachine", "Reset to IDLE");
+                LOG_INFO(LOG_TAG, "Reset to IDLE");
 
-                // 取消所有延迟任务
+                // 取消延迟任务
                 pImpl_->cancelDelayedTask();
 
                 // 重置到IDLE状态
@@ -814,7 +813,7 @@ namespace app
             uint64_t AIStateMachine::getTimeInCurrentState() const
             {
                 uint64_t now = get_nowus();
-                return (now - pImpl_->state_enter_time) / MICROSECONDS_PER_MILLISECOND; // 返回毫秒
+                return (now - pImpl_->state_enter_time) / MICROSECONDS_PER_MILLISECOND;
             }
 
             // ========================================================================
@@ -848,7 +847,7 @@ namespace app
                 pImpl_->stats.time_in_speaking.store(0);
                 pImpl_->stats.time_in_error.store(0);
 
-                LOG_INFO("StateMachine", "Stats reset");
+                LOG_INFO(LOG_TAG, "Stats reset");
             }
 
             void AIStateMachine::logStats() const
@@ -859,24 +858,24 @@ namespace app
                 uint64_t timeouts      = pImpl_->stats.state_timeouts.load();
                 uint64_t conn_failures = pImpl_->stats.connection_failures.load();
 
-                LOG_INFO("StateMachine", "=== AI State Machine Statistics ===");
-                LOG_INFO("StateMachine", "  Total transitions:   %llu", total);
-                LOG_INFO("StateMachine", "  Invalid transitions: %llu", invalid);
-                LOG_INFO("StateMachine", "  Callback exceptions: %llu", exceptions);
-                LOG_INFO("StateMachine", "  State timeouts:      %llu", timeouts);
-                LOG_INFO("StateMachine", "  Connection failures: %llu", conn_failures);
+                LOG_INFO(LOG_TAG, "=== AI State Machine Statistics ===");
+                LOG_INFO(LOG_TAG, "  Total transitions:   %llu", total);
+                LOG_INFO(LOG_TAG, "  Invalid transitions: %llu", invalid);
+                LOG_INFO(LOG_TAG, "  Callback exceptions: %llu", exceptions);
+                LOG_INFO(LOG_TAG, "  State timeouts:      %llu", timeouts);
+                LOG_INFO(LOG_TAG, "  Connection failures: %llu", conn_failures);
 
                 // 各状态停留时间（转换为秒）
-                LOG_INFO("StateMachine", "Time spent in each state:");
-                LOG_INFO("StateMachine", "  IDLE:       %.2f s",
+                LOG_INFO(LOG_TAG, "Time spent in each state:");
+                LOG_INFO(LOG_TAG, "  IDLE:       %.2f s",
                          pImpl_->stats.time_in_idle.load() / MICROSECONDS_TO_SECONDS);
-                LOG_INFO("StateMachine", "  CONNECTING: %.2f s",
+                LOG_INFO(LOG_TAG, "  CONNECTING: %.2f s",
                          pImpl_->stats.time_in_connecting.load() / MICROSECONDS_TO_SECONDS);
-                LOG_INFO("StateMachine", "  LISTENING:  %.2f s",
+                LOG_INFO(LOG_TAG, "  LISTENING:  %.2f s",
                          pImpl_->stats.time_in_listening.load() / MICROSECONDS_TO_SECONDS);
-                LOG_INFO("StateMachine", "  SPEAKING:   %.2f s",
+                LOG_INFO(LOG_TAG, "  SPEAKING:   %.2f s",
                          pImpl_->stats.time_in_speaking.load() / MICROSECONDS_TO_SECONDS);
-                LOG_INFO("StateMachine", "  ERROR:      %.2f s",
+                LOG_INFO(LOG_TAG, "  ERROR:      %.2f s",
                          pImpl_->stats.time_in_error.load() / MICROSECONDS_TO_SECONDS);
 
                 // 健康度评分
@@ -887,7 +886,7 @@ namespace app
 
                     if (error_rate > INVALID_TRANSITION_WARN_THRESHOLD)
                     {
-                        LOG_WARN("StateMachine",
+                        LOG_WARN(LOG_TAG,
                                  "Invalid transition rate: %.2f%% (consider reviewing state logic)",
                                  error_rate);
                     }

@@ -14,21 +14,35 @@
 #include "../protocol/websocket/websocket.hpp"
 
 // 前向声明（避免循环依赖）
-namespace app {
-namespace media {
-namespace audio {
-class AudioSystem;
-}
-namespace camera {
-class VideoSystem;
-}
-}
-namespace network {
-namespace wifi {
-class WifiManager;
-}
-}
-}
+namespace app
+{
+    namespace media
+    {
+        namespace audio
+        {
+            class AudioSystem;
+        }
+        namespace camera
+        {
+            class VideoSystem;
+        }
+    } // namespace media
+    namespace network
+    {
+        namespace wifi
+        {
+            class WifiManager;
+        }
+    } // namespace network
+    namespace protocol
+    {
+        namespace webrtc
+        {
+            class Signaling;
+            class WebRTCSystem;
+        }
+    } // namespace protocol
+} // namespace app
 
 namespace app
 {
@@ -37,24 +51,24 @@ namespace app
 
         /**
          * @brief Chatbot系统状态
-         * 
+         *
          * 状态转换流程：
-         * UNINITIALIZED -> INITIALIZING -> ACTIVATING -> ACTIVATED -> READY 
+         * UNINITIALIZED -> INITIALIZING -> ACTIVATING -> ACTIVATED -> READY
          *   -> CONNECTING -> LISTENING -> SPEAKING -> READY (循环)
          *   -> ERROR (任何阶段) / CLOSED (关闭时)
          */
         enum class ChatbotState
         {
-            UNINITIALIZED = 0,   // 未初始化（初始状态）
-            INITIALIZING,        // 正在初始化（激活管理器、MCP、唤醒词检测器）
-            ACTIVATING,          // 激活中（检查激活状态+轮询）
-            ACTIVATED,           // 已激活（设备激活成功）
-            READY,               // 就绪（等待唤醒词，可以开始AI对话）
-            CONNECTING,          // 连接AI服务器中（唤醒词触发后）
-            LISTENING,           // 监听用户语音中
-            SPEAKING,            // AI回复中（TTS播放）
-            ERROR,               // 错误状态
-            CLOSED,              // 已关闭
+            UNINITIALIZED = 0, // 未初始化（初始状态）
+            INITIALIZING,      // 正在初始化（激活管理器、MCP、唤醒词检测器）
+            ACTIVATING,        // 激活中（检查激活状态+轮询）
+            ACTIVATED,         // 已激活（设备激活成功）
+            READY,             // 就绪（等待唤醒词，可以开始AI对话）
+            CONNECTING,        // 连接AI服务器中（唤醒词触发后）
+            LISTENING,         // 监听用户语音中
+            SPEAKING,          // AI回复中（TTS播放）
+            ERROR,             // 错误状态
+            CLOSED,            // 已关闭
         };
 
         /**
@@ -105,25 +119,26 @@ namespace app
             // 服务器配置
             // ============================================================
             // std::string api_url = "ws://192.168.50.127:8000/xiaozhi/v1/"; // AI服务器URL
-            // std::string activation_api_url ="http://192.168.50.127:8002/xiaozhi/ota/"; // 激活API URL
+            // std::string activation_api_url ="http://192.168.50.127:8002/xiaozhi/ota/"; // 激活API
+            // URL
 
-            std::string api_url = "wss://api.tenclass.net/xiaozhi/v1/";
+            std::string api_url            = "wss://api.tenclass.net/xiaozhi/v1/";
             std::string activation_api_url = "https://api.tenclass.net/xiaozhi/ota/";
 
             // ============================================================
-            // 设备信息（空字符串表示自动获取）
+            // 设备信息
             // ============================================================
             std::string device_id;                               // 设备ID
             std::string client_id;                               // 客户端ID
             std::string config_file_path = "./system_para.conf"; // UUID配置文件路径
 
             // ============================================================
-            // 超时配置（可选，有默认值）
+            // 超时配置
             // ============================================================
             int activation_timeout_sec = 300; // 激活超时（5分钟）
             int connection_timeout_sec = 10;  // AI服务器连接超时（10秒）
             int network_timeout_sec    = 30;  // 网络连接超时（30秒）
-            int delay_conversation_sec = 1;   // 延迟对话时间（2秒）
+            int delay_conversation_sec = 1;
 
             // ============================================================
             // 唤醒词配置
@@ -145,27 +160,33 @@ namespace app
             // 配置
             ChatbotConfig config_;
 
-            // 核心模块（智能指针管理）
+            // 核心模块
             std::unique_ptr<activation::DeviceActivation>                   activation_manager_;
             std::unique_ptr<mcp::McpServer>                                 mcp_server_;
             std::unique_ptr<app::chatbot::protocol_handle::ProtocolHandler> protocol_handler_;
             std::unique_ptr<app::protocol::websocket::WebSocketClient>      ws_client_;
             std::unique_ptr<wakeword::WakewordDetector>                     wakeword_detector_;
 
-            // 外部注入的音频系统（不由 ChatbotSystem 管理生命周期）
+            // 外部注入的音频系统
             app::media::audio::AudioSystem* audio_system_{nullptr};
 
-            // 外部注入的视频系统（不由 ChatbotSystem 管理生命周期）
+            // 外部注入的视频系统
             app::media::camera::VideoSystem* video_system_{nullptr};
 
-            // 外部注入的WiFi管理器（不由 ChatbotSystem 管理生命周期）
+            // 外部注入的WiFi管理器
             app::network::wifi::WifiManager* wifi_manager_{nullptr};
+
+            // 外部注入的信令系统
+            app::protocol::webrtc::Signaling* signaling_{nullptr};
+
+            // 外部注入的WebRTC系统
+            app::protocol::webrtc::WebRTCSystem* webrtc_system_{nullptr};
 
             // 状态
             std::atomic<ChatbotState> state_{ChatbotState::UNINITIALIZED};
 
             // 激活管理
-            ChatbotError getDeviceId(); // 初始化设备信息（如果配置为空则自动获取）
+            ChatbotError getDeviceId();
             ChatbotError initializeActivation();   // 初始化激活管理器
             ChatbotError deinitializeActivation(); // 释放激活管理器
             ChatbotError checkActivation();        // 激活检测
@@ -182,7 +203,7 @@ namespace app
             // WebSocket连接管理
             ChatbotError initializeWebSocket();     // 初始化WebSocket客户端
             ChatbotError deinitializeWebSocket();   // 释放WebSocket客户端
-            ChatbotError connectAIServer();         // 连接AI服务器（阻塞，无限重连）
+            ChatbotError connectAIServer();
             void         setupWebSocketCallbacks(); // 设置WebSocket回调
 
             // 唤醒词管理
@@ -190,7 +211,7 @@ namespace app
             ChatbotError deinitializeWakeword();       // 释放唤醒词检测器
             void         setupWakewordCallbacks();     // 设置唤醒词回调
             void         setupWakewordAudioCallback(); // 设置音频系统的唤醒词回调
-            void setupAIAudioCallback(); // 设置AI音频流回调（发送音频到服务器）
+            void setupAIAudioCallback();
 
         public:
             explicit ChatbotSystem(const ChatbotConfig& config = ChatbotConfig());
@@ -200,18 +221,27 @@ namespace app
             ChatbotError open();
             void         close();
 
-            // 设置外部音频系统（必须在 open() 之前调用）
+            // 设置外部音频系统
             void setAudioSystem(app::media::audio::AudioSystem* audio_system);
 
-            // 设置外部视频系统（必须在 open() 之前调用）
+            // 设置外部视频系统
             void setVideoSystem(app::media::camera::VideoSystem* video_system);
 
-            // 设置外部WiFi管理器（必须在 open() 之前调用）
+            // 设置外部WiFi管理器
             void setWifiManager(app::network::wifi::WifiManager* wifi_manager);
+
+            // 设置外部信令系统
+            void setSignaling(app::protocol::webrtc::Signaling* signaling);
+
+            // 设置外部WebRTC系统
+            void setWebRTCSystem(app::protocol::webrtc::WebRTCSystem* webrtc_system);
 
             // 状态查询
             ChatbotState getState() const;
             bool         isReady() const;
+
+            // 断开AI服务器连接
+            void disconnectWebSocket();
         };
 
         // ============================================================================

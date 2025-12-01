@@ -1,18 +1,6 @@
 /**
  * @file wifi.hpp
- * @brief Linux WiFi管理模块 - 基于wpa_supplicant (嵌入式系统)
- * @details 特性：
- *          - 基于wpa_supplicant/wpa_cli实现
- *          - 适合嵌入式Linux系统
- *          - 自动连接已保存WiFi
- *          - 定时扫描功能
- *          - 优先级管理
- *          - 配置备份/恢复
- *          - RAII资源管理
- *          - 线程安全
- *
- * @author Smart_Glasses Team
- * @date 2025-01-11
+ * @brief Linux WiFi管理模块
  */
 
 #ifndef NETWORK_WIFI_HPP
@@ -195,24 +183,24 @@ namespace app
                 static constexpr const char* WPA_CTRL_PATH  = "/var/run/wpa_supplicant";
 
                 // 超时配置常量
-                static constexpr int DEFAULT_INTERFACE_UP_TIMEOUT_MS        = 5000;  // 接口UP超时（5秒）
-                static constexpr int DEFAULT_INTERFACE_UP_CHECK_INTERVAL_MS = 500;   // 接口UP检查间隔（500ms）
-                static constexpr int DEFAULT_SCAN_TIMEOUT_MS                = 10000; // 扫描超时（10秒）
-                static constexpr int DEFAULT_CONNECT_TIMEOUT_MS             = 30000; // 连接超时（30秒）
-                static constexpr int DEFAULT_DHCP_TIMEOUT_MS                = 15000; // DHCP超时（15秒）
-                static constexpr int DEFAULT_WPA_COMMAND_TIMEOUT_MS          = 5000;  // wpa_cli命令超时（5秒）
+                static constexpr int DEFAULT_INTERFACE_UP_TIMEOUT_MS        = 5000;
+                static constexpr int DEFAULT_INTERFACE_UP_CHECK_INTERVAL_MS = 500;
+                static constexpr int DEFAULT_SCAN_TIMEOUT_MS                = 10000;
+                static constexpr int DEFAULT_CONNECT_TIMEOUT_MS             = 30000;
+                static constexpr int DEFAULT_DHCP_TIMEOUT_MS                = 15000;
+                static constexpr int DEFAULT_WPA_COMMAND_TIMEOUT_MS          = 5000;
 
                 // 自动扫描配置常量
-                static constexpr int DEFAULT_TIMED_SCAN_SEC = 60; // 定时扫描间隔（秒）
+                static constexpr int DEFAULT_TIMED_SCAN_SEC = 60;
 
                 // 自动连接配置常量
-                static constexpr int DEFAULT_AUTO_CONNECT_MAX_ATTEMPTS = 1;  // 自动连接最大尝试次数
-                static constexpr int DEFAULT_AUTO_CONNECT_MIN_SIGNAL   = 30; // 自动连接最小信号强度（百分比）
+                static constexpr int DEFAULT_AUTO_CONNECT_MAX_ATTEMPTS = 1;
+                static constexpr int DEFAULT_AUTO_CONNECT_MIN_SIGNAL   = 30;
 
                 // 自动重连配置常量
-                static constexpr int DEFAULT_RECONNECT_INTERVAL_SEC = 10; // 重连间隔（秒）
-                static constexpr int DEFAULT_RECONNECT_MAX_ATTEMPTS = 5;  // 最大重连次数（0表示无限）
-                static constexpr int DEFAULT_RECONNECT_DELAY_SEC    = 3;  // 重连前等待时间（秒）
+                static constexpr int DEFAULT_RECONNECT_INTERVAL_SEC = 10;
+                static constexpr int DEFAULT_RECONNECT_MAX_ATTEMPTS = 5;
+                static constexpr int DEFAULT_RECONNECT_DELAY_SEC    = 3;
 
                 // 超时配置
                 int interface_up_timeout_ms        = DEFAULT_INTERFACE_UP_TIMEOUT_MS;
@@ -223,43 +211,31 @@ namespace app
                 int wpa_command_timeout_ms         = DEFAULT_WPA_COMMAND_TIMEOUT_MS;
 
                 // 功能开关
-                bool auto_save_config            = true; // 连接成功后自动保存配置
-                bool clear_old_config_on_connect = true; // 连接时清除旧配置（确保使用新密码）
+                bool auto_save_config            = true;
+                bool clear_old_config_on_connect = true;
 
                 // 自动扫描配置
-                bool auto_scan      = false; // 启用自动扫描
+                bool auto_scan      = false;
                 int  timed_scan_sec = DEFAULT_TIMED_SCAN_SEC;
 
-                // 自动连接配置（初始化时）
-                bool auto_connect_on_init      = true; // 初始化时自动连接已保存WiFi
+                // 自动连接配置
+                bool auto_connect_on_init      = true;
                 int  auto_connect_max_attempts = DEFAULT_AUTO_CONNECT_MAX_ATTEMPTS;
-                bool auto_connect_best_signal  = true; // 连接信号最强的已保存WiFi
+                bool auto_connect_best_signal  = true;
                 int  auto_connect_min_signal   = DEFAULT_AUTO_CONNECT_MIN_SIGNAL;
 
                 // 自动重连配置
-                bool enable_auto_reconnect  = false; // 启用自动重连
+                bool enable_auto_reconnect  = false;
                 int  reconnect_interval_sec = DEFAULT_RECONNECT_INTERVAL_SEC;
                 int  reconnect_max_attempts = DEFAULT_RECONNECT_MAX_ATTEMPTS;
                 int  reconnect_delay_sec    = DEFAULT_RECONNECT_DELAY_SEC;
 
                 // 调试选项
-                bool enable_detailed_logging = false; // 详细日志（DEBUG级别）
+                bool enable_detailed_logging = false;
             };
 
             /**
-             * @brief Linux WiFi管理器 (基于wpa_supplicant)
-             * @details 使用wpa_cli和udhcpc实现，适合嵌入式系统
-             *
-             * 主要功能：
-             * - 自动检测并打开网络接口
-             * - 扫描、连接、断开WiFi网络
-             * - 初始化时自动连接已保存WiFi
-             * - 定时扫描功能
-             * - 保存/删除/管理WiFi配置
-             * - 优先级管理
-             * - 配置备份/恢复
-             * - 自动重连机制（可选）
-             * - 完整的错误处理和日志记录
+             * @brief WiFi管理器
              */
             class WifiManager
             {
@@ -271,7 +247,7 @@ namespace app
                 explicit WifiManager(const WifiConfig& config = WifiConfig());
 
                 /**
-                 * @brief 析构函数（自动清理资源）
+                 * @brief 析构函数
                  */
                 ~WifiManager();
 
@@ -281,22 +257,12 @@ namespace app
 
                 /**
                  * @brief 初始化WiFi管理器
-                 * @details 执行以下操作：
-                 *          1. 检查wpa_supplicant和wpa_cli是否可用
-                 *          2. 检查wlan0接口是否存在
-                 *          3. 检查接口是否UP，如果未UP则自动打开并等待3秒
-                 *          4. 检查wpa_supplicant是否运行，如果未运行则自动启动
-                 *          5. 验证wpa_cli连接
-                 *          6. 获取当前状态
-                 *          7. 如果启用auto_connect_on_init，自动连接已保存WiFi
-                 *
                  * @return WifiError::NONE 成功
                  */
                 WifiError initialize();
 
                 /**
                  * @brief 关闭WiFi管理器
-                 * @details 停止所有线程，断开连接，清理资源
                  */
                 void shutdown();
 
@@ -306,12 +272,8 @@ namespace app
 
                 /**
                  * @brief 扫描可用WiFi网络
-                 * @details 支持同步和异步两种模式：
-                 *          - 同步模式：callback=nullptr，networks非空，阻塞等待扫描完成
-                 *          - 异步模式：callback非空，立即返回，结果通过callback返回
-                 *
-                 * @param callback 扫描完成回调（空回调表示同步模式）
-                 * @param networks 同步模式输出结果（按信号强度降序排列）
+                 * @param callback 扫描完成回调
+                 * @param networks 输出结果
                  * @return WifiError::NONE 成功
                  */
                 WifiError scanNetworks(const WifiScanCallback& callback = WifiScanCallback{},
@@ -319,7 +281,6 @@ namespace app
 
                 /**
                  * @brief 启用/禁用自动扫描
-                 * @details 后台线程定时扫描WiFi网络
                  * @param enabled true-启动，false-停止
                  */
                 void setAutoScan(bool enabled);
@@ -371,14 +332,12 @@ namespace app
 
                 /**
                  * @brief 断开当前WiFi连接
-                 * @details 断开连接并释放IP地址
                  * @return WifiError::NONE 成功
                  */
                 WifiError disconnect();
 
                 /**
                  * @brief 重新连接当前WiFi
-                 * @details 断开并重新连接当前已保存的网络
                  * @return WifiError::NONE 成功
                  */
                 WifiError reconnect();
@@ -389,7 +348,6 @@ namespace app
 
                 /**
                  * @brief 保存当前连接的WiFi配置
-                 * @details 调用wpa_cli save_config保存到配置文件
                  * @return WifiError::NONE 成功
                  */
                 WifiError saveCurrentNetwork();
@@ -403,7 +361,6 @@ namespace app
 
                 /**
                  * @brief 获取已保存的网络列表
-                 * @details 从wpa_cli list_networks和配置文件中读取
                  * @return 已保存的网络列表
                  */
                 std::vector<SavedNetworkInfo> getSavedNetworks() const;
@@ -419,7 +376,7 @@ namespace app
                  * @brief 设置网络优先级
                  * @details 用于控制自动连接顺序，值越大优先级越高
                  * @param ssid 网络SSID
-                 * @param priority 优先级（0-999）
+                 * @param priority 优先级
                  * @return WifiError::NONE 成功
                  */
                 WifiError setNetworkPriority(const std::string& ssid, int priority);
@@ -434,7 +391,6 @@ namespace app
 
                 /**
                  * @brief 重新加载配置文件
-                 * @details 从/etc/wpa_supplicant.conf重新加载
                  * @return WifiError::NONE 成功
                  */
                 WifiError reloadConfig();
@@ -489,7 +445,6 @@ namespace app
 
                 /**
                  * @brief 启用/禁用自动重连
-                 * @details 当WiFi断开时，自动尝试重连指定的WiFi
                  * @param enabled true-启用，false-禁用
                  * @param ssid 要重连的SSID（空字符串表示使用当前SSID）
                  * @param password 密码（如果SSID已保存可省略）
@@ -534,9 +489,9 @@ namespace app
                     uint64_t connections_attempted;  // 连接尝试次数
                     uint64_t connections_successful; // 连接成功次数
                     uint64_t disconnections;         // 断开次数
-                    uint64_t reconnects;             // 重连次数（自动+手动）
-                    uint64_t auto_reconnects;        // 自动重连次数
-                    uint64_t auto_connects;          // 自动连接次数（初始化时）
+                    uint64_t reconnects;
+                    uint64_t auto_reconnects;
+                    uint64_t auto_connects;
                     uint64_t errors;                 // 错误次数
                     uint64_t password_errors;        // 密码错误次数
                     uint64_t interface_up_count;     // 接口UP次数

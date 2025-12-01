@@ -22,6 +22,7 @@ extern "C"
 
 namespace
 {
+    constexpr const char* LOG_TAG                  = "WAKEWORD";
     constexpr std::size_t SENSITIVITY_STRING_SIZE  = 32;
     constexpr int         MAX_FRAME_LENGTH_SAMPLES = 65536;
 } // namespace
@@ -36,12 +37,11 @@ namespace app
             using namespace tool::log;
 
             // ============================================================================
-            // RAII封装Snowboy检测器
+            // Snowboy检测器封装
             // ============================================================================
 
             /**
-             * @brief Snowboy检测器RAII封装
-             * @details 自动管理Snowboy检测器的生命周期，防止内存泄漏
+             * @brief Snowboy检测器封装
              */
             class SnowboyDetectorWrapper
             {
@@ -149,7 +149,7 @@ namespace app
             };
 
             // ============================================================================
-            // 音频缓冲管理（可选）
+            // 音频缓冲管理
             // ============================================================================
 
             class AudioBuffer
@@ -169,7 +169,7 @@ namespace app
 
                     if (buffer_.size() + static_cast<size_t>(length) > max_size_)
                     {
-                        LOG_WARN("Wakeword", "Audio buffer overflow, clearing old data");
+                        LOG_WARN(LOG_TAG, "Audio buffer overflow, clearing old data");
                         buffer_.clear();
                     }
 
@@ -222,13 +222,13 @@ namespace app
                 // 配置
                 WakewordConfig config_;
 
-                // Snowboy检测器（RAII智能指针）
+                // Snowboy检测器
                 std::unique_ptr<SnowboyDetectorWrapper> detector_;
 
                 // 音频缓冲
                 std::unique_ptr<AudioBuffer> audio_buffer_;
 
-                // 回调函数（线程安全）
+                // 回调函数
                 WakewordCallback      wakeword_callback_;
                 WakewordErrorCallback error_callback_;
                 std::mutex            callback_mutex_;
@@ -247,8 +247,7 @@ namespace app
 
                 ~Impl()
                 {
-                    LOG_DEBUG(config_.log_prefix.c_str(),
-                              "Impl destroyed (detector auto-released)");
+                    LOG_DEBUG(LOG_TAG, "Impl destroyed");
                 }
 
                 // ========================================================================
@@ -259,23 +258,23 @@ namespace app
                 {
                     if (initialized_.load(std::memory_order_acquire))
                     {
-                        LOG_WARN(config_.log_prefix.c_str(), "Already initialized");
+                        LOG_WARN(LOG_TAG, "Already initialized");
                         return WakewordError::ALREADY_INITIALIZED;
                     }
 
-                    LOG_INFO(config_.log_prefix.c_str(), "Initializing...");
-                    LOG_DEBUG(config_.log_prefix.c_str(), "  Resource: %s",
+                    LOG_INFO(LOG_TAG, "Initializing...");
+                    LOG_DEBUG(LOG_TAG, "  Resource: %s",
                               config_.resource_file.c_str());
-                    LOG_DEBUG(config_.log_prefix.c_str(), "  Model: %s",
+                    LOG_DEBUG(LOG_TAG, "  Model: %s",
                               config_.model_file.c_str());
-                    LOG_DEBUG(config_.log_prefix.c_str(), "  Sensitivity: %.2f",
+                    LOG_DEBUG(LOG_TAG, "  Sensitivity: %.2f",
                               (double)config_.sensitivity);
-                    LOG_DEBUG(config_.log_prefix.c_str(), "  Audio Gain: %.2f",
+                    LOG_DEBUG(LOG_TAG, "  Audio Gain: %.2f",
                               (double)config_.audio_gain);
 
                     try
                     {
-                        // 创建Snowboy检测器（RAII）
+                        // 创建Snowboy检测器
                         detector_ = std::make_unique<SnowboyDetectorWrapper>(config_.resource_file,
                                                                              config_.model_file);
 
@@ -290,11 +289,11 @@ namespace app
                         int bits_per_sample = detector_->getBitsPerSample();
                         int num_hotwords    = detector_->getNumHotwords();
 
-                        LOG_INFO(config_.log_prefix.c_str(), " Detector created");
-                        LOG_DEBUG(config_.log_prefix.c_str(), "  Sample Rate: %d Hz", sample_rate);
-                        LOG_DEBUG(config_.log_prefix.c_str(), "  Channels: %d", num_channels);
-                        LOG_DEBUG(config_.log_prefix.c_str(), "  Bits/Sample: %d", bits_per_sample);
-                        LOG_DEBUG(config_.log_prefix.c_str(), "  Num Hotwords: %d", num_hotwords);
+                        LOG_INFO(LOG_TAG, " Detector created");
+                        LOG_DEBUG(LOG_TAG, "  Sample Rate: %d Hz", sample_rate);
+                        LOG_DEBUG(LOG_TAG, "  Channels: %d", num_channels);
+                        LOG_DEBUG(LOG_TAG, "  Bits/Sample: %d", bits_per_sample);
+                        LOG_DEBUG(LOG_TAG, "  Num Hotwords: %d", num_hotwords);
 
                         initialized_.store(true, std::memory_order_release);
                         enabled_.store(true, std::memory_order_release);
@@ -303,7 +302,7 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR(config_.log_prefix.c_str(), "✗ Failed to create detector: %s",
+                        LOG_ERROR(LOG_TAG, "✗ Failed to create detector: %s",
                                   e.what());
 
                         // 触发错误回调
@@ -322,14 +321,14 @@ namespace app
                     // 参数验证
                     if (!data)
                     {
-                        LOG_ERROR(config_.log_prefix.c_str(), "Null audio data pointer");
+                        LOG_ERROR(LOG_TAG, "Null audio data pointer");
                         invokeErrorCallback(WakewordError::INVALID_PARAMS, "Null audio data");
                         return WakewordResult::ERROR;
                     }
 
                     if (length <= 0 || length > MAX_FRAME_LENGTH_SAMPLES)
                     {
-                        LOG_ERROR(config_.log_prefix.c_str(), "Invalid frame length: %d", length);
+                        LOG_ERROR(LOG_TAG, "Invalid frame length: %d", length);
                         invokeErrorCallback(WakewordError::INVALID_PARAMS,
                                             "Invalid frame length: " + std::to_string(length));
                         return WakewordResult::ERROR;
@@ -365,17 +364,17 @@ namespace app
                     // 处理检测结果
                     if (result > 0)
                     {
-                        LOG_INFO(config_.log_prefix.c_str(), " Hotword %d detected!", result);
+                        LOG_INFO(LOG_TAG, " Hotword %d detected!", result);
                         invokeWakewordCallback(wakeword_result, result);
                     }
                     else if (result == static_cast<int>(WakewordResult::SILENCE))
                     {
                         // 静音检测（可选日志）
-                        // LOG_DEBUG(config_.log_prefix.c_str(), "Silence detected");
+                        // LOG_DEBUG(LOG_TAG, "Silence detected");
                     }
                     else if (result == static_cast<int>(WakewordResult::ERROR))
                     {
-                        // LOG_ERROR(config_.log_prefix.c_str(), "Detection error");
+                        // LOG_ERROR(LOG_TAG, "Detection error");
                         invokeErrorCallback(WakewordError::DETECTOR_ERROR,
                                             "Detection returned error");
                     }
@@ -384,7 +383,7 @@ namespace app
                 }
 
                 // ========================================================================
-                // 回调管理（线程安全+异常安全）
+                // 回调管理
                 // ========================================================================
 
                 void setWakewordCallback(WakewordCallback callback)
@@ -404,7 +403,7 @@ namespace app
                     WakewordCallback cb;
                     {
                         std::lock_guard<std::mutex> lock(callback_mutex_);
-                        cb = wakeword_callback_; // 拷贝callback
+                        cb = wakeword_callback_;
                     }
 
                     if (cb)
@@ -415,13 +414,13 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR(config_.log_prefix.c_str(), "Wakeword callback exception: %s",
+                            LOG_ERROR(LOG_TAG, "Wakeword callback exception: %s",
                                       e.what());
                             invokeErrorCallback(WakewordError::CALLBACK_EXCEPTION, e.what());
                         }
                         catch (...)
                         {
-                            LOG_ERROR(config_.log_prefix.c_str(),
+                            LOG_ERROR(LOG_TAG,
                                       "Wakeword callback unknown exception");
                             invokeErrorCallback(WakewordError::CALLBACK_EXCEPTION,
                                                 "Unknown exception");
@@ -434,7 +433,7 @@ namespace app
                     WakewordErrorCallback cb;
                     {
                         std::lock_guard<std::mutex> lock(callback_mutex_);
-                        cb = error_callback_; // 拷贝callback
+                        cb = error_callback_;
                     }
 
                     if (cb)
@@ -445,12 +444,12 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR(config_.log_prefix.c_str(), "Error callback exception: %s",
+                            LOG_ERROR(LOG_TAG, "Error callback exception: %s",
                                       e.what());
                         }
                         catch (...)
                         {
-                            LOG_ERROR(config_.log_prefix.c_str(),
+                            LOG_ERROR(LOG_TAG,
                                       "Error callback unknown exception");
                         }
                     }
@@ -466,7 +465,7 @@ namespace app
                     {
                         detector_->setSensitivity(sensitivity);
                         config_.sensitivity = sensitivity;
-                        LOG_DEBUG(config_.log_prefix.c_str(), "Sensitivity set to %.2f",
+                        LOG_DEBUG(LOG_TAG, "Sensitivity set to %.2f",
                                   (double)sensitivity);
                     }
                 }
@@ -477,7 +476,7 @@ namespace app
                     {
                         detector_->setAudioGain(gain);
                         config_.audio_gain = gain;
-                        LOG_DEBUG(config_.log_prefix.c_str(), "Audio gain set to %.2f",
+                        LOG_DEBUG(LOG_TAG, "Audio gain set to %.2f",
                                   (double)gain);
                     }
                 }
@@ -485,7 +484,7 @@ namespace app
                 void setEnabled(bool enabled)
                 {
                     enabled_.store(enabled, std::memory_order_release);
-                    LOG_INFO(config_.log_prefix.c_str(), "%s", enabled ? "Enabled" : "Disabled");
+                    LOG_INFO(LOG_TAG, "%s", enabled ? "Enabled" : "Disabled");
                 }
 
                 void reset() // NOLINT(readability-make-member-function-const)
@@ -493,13 +492,13 @@ namespace app
                     if (detector_)
                     {
                         detector_->reset();
-                        LOG_DEBUG(config_.log_prefix.c_str(), "Detector reset");
+                        LOG_DEBUG(LOG_TAG, "Detector reset");
                     }
 
                     if (audio_buffer_)
                     {
                         audio_buffer_->clear();
-                        LOG_DEBUG(config_.log_prefix.c_str(), "Audio buffer cleared");
+                        LOG_DEBUG(LOG_TAG, "Audio buffer cleared");
                     }
                 }
             };
@@ -511,14 +510,13 @@ namespace app
             WakewordDetector::WakewordDetector(const WakewordConfig& config)
                 : pImpl_(std::make_unique<Impl>(config))
             {
-                LOG_DEBUG(config.log_prefix.c_str(), "WakewordDetector created");
+                LOG_DEBUG(LOG_TAG, "WakewordDetector created");
             }
 
             WakewordDetector::~WakewordDetector()
             {
-                LOG_DEBUG(pImpl_->config_.log_prefix.c_str(), "WakewordDetector destroying...");
-                // RAII自动清理
-                LOG_DEBUG(pImpl_->config_.log_prefix.c_str(), "WakewordDetector destroyed");
+                LOG_DEBUG(LOG_TAG, "WakewordDetector destroying...");
+                LOG_DEBUG(LOG_TAG, "WakewordDetector destroyed");
             }
 
             // ========================================================================

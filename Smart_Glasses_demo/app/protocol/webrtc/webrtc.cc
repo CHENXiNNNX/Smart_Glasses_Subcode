@@ -13,16 +13,17 @@ namespace app
         {
             namespace
             {
+                constexpr const char* LOG_TAG                      = "WEBRTC";
                 // RTP 包解析常量
-                constexpr size_t  RTP_HEADER_MIN_SIZE      = 12;
-                constexpr uint8_t RTP_CC_MASK              = 0x0F;
-                constexpr uint8_t RTP_EXTENSION_MASK       = 0x10;
-                constexpr uint8_t RTP_PADDING_MASK         = 0x20;
-                constexpr size_t  RTP_EXTENSION_HEADER_LEN = 4;
-                constexpr size_t  RTP_CSRC_SIZE            = 4;
-                constexpr size_t  RTP_EXT_LENGTH_SHIFT     = 8;
+                constexpr size_t      RTP_HEADER_MIN_SIZE          = 12;
+                constexpr uint8_t     RTP_CC_MASK                  = 0x0F;
+                constexpr uint8_t     RTP_EXTENSION_MASK           = 0x10;
+                constexpr uint8_t     RTP_PADDING_MASK             = 0x20;
+                constexpr size_t      RTP_EXTENSION_HEADER_LEN     = 4;
+                constexpr size_t      RTP_CSRC_SIZE                = 4;
+                constexpr size_t      RTP_EXT_LENGTH_SHIFT         = 8;
                 // 码率变化阈值（10%）
-                constexpr double BITRATE_CHANGE_THRESHOLD = 0.1;
+                constexpr double      BITRATE_CHANGE_THRESHOLD     = 0.1;
             } // namespace
 
             // ========== PriorityTaskQueue 实现 ==========
@@ -34,7 +35,7 @@ namespace app
                 {
                     workers_.emplace_back(&PriorityTaskQueue::workerThread, this);
                 }
-                LOG_INFO("PriorityTaskQueue", "%s 启动，线程数: %zu", name_.c_str(), thread_count);
+                LOG_INFO(LOG_TAG, "%s 启动，线程数: %zu", name_.c_str(), thread_count);
             }
 
             PriorityTaskQueue::~PriorityTaskQueue()
@@ -49,7 +50,7 @@ namespace app
                         worker.join();
                     }
                 }
-                LOG_INFO("PriorityTaskQueue", "%s 已停止", name_.c_str());
+                LOG_INFO(LOG_TAG, "%s 已停止", name_.c_str());
             }
 
             void PriorityTaskQueue::post(std::function<void()> func, TaskPriority priority)
@@ -96,7 +97,7 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("PriorityTaskQueue", "%s 任务执行异常: %s", name_.c_str(),
+                            LOG_ERROR(LOG_TAG, "%s 任务执行异常: %s", name_.c_str(),
                                       e.what());
                         }
                     }
@@ -122,7 +123,7 @@ namespace app
                     }
                 }
 
-                LOG_INFO("AudioBufferPool", "初始化完成，预分配: %zu 个缓冲区",
+                LOG_INFO(LOG_TAG, "初始化完成，预分配: %zu 个缓冲区",
                          freeBuffers_.size());
             }
 
@@ -217,7 +218,7 @@ namespace app
                     }
                 }
 
-                LOG_INFO("VideoBufferPool", "初始化完成，预分配: %zu 小/%zu 中/%zu 大 缓冲区",
+                LOG_INFO(LOG_TAG, "初始化完成，预分配: %zu 小/%zu 中/%zu 大 缓冲区",
                          smallBuffers_.size(), mediumBuffers_.size(), largeBuffers_.size());
             }
 
@@ -325,7 +326,7 @@ namespace app
                 : config_(config), state_(WebRTCState::UNINITIALIZED), ice_connected_(false),
                   initialized_(false), last_audio_send_time_(), last_video_send_time_()
             {
-                LOG_INFO("WebRTCSystem", "系统实例创建，AudioSend=%d, VideoSend=%d",
+                LOG_INFO(LOG_TAG, "系统实例创建，AudioSend=%d, VideoSend=%d",
                          config_.enableAudioSend, config_.enableVideoSend);
 
                 // 初始化时间同步
@@ -339,24 +340,24 @@ namespace app
                 // 释放时间同步资源
                 sync_deinit(&sync_context_);
 
-                LOG_INFO("WebRTCSystem", "系统实例销毁完成");
+                LOG_INFO(LOG_TAG, "系统实例销毁完成");
             }
 
             WebRTCError WebRTCSystem::open(std::shared_ptr<Signaling> signaling)
             {
                 if (!signaling)
                 {
-                    LOG_ERROR("WebRTCSystem", "信令模块为空，初始化失败");
+                    LOG_ERROR(LOG_TAG, "信令模块为空，初始化失败");
                     return WebRTCError::UNKNOWN;
                 }
 
                 if (initialized_)
                 {
-                    LOG_WARN("WebRTCSystem", "重复调用open，无需重新初始化");
+                    LOG_WARN(LOG_TAG, "重复调用open，无需重新初始化");
                     return WebRTCError::NONE;
                 }
 
-                LOG_INFO("WebRTCSystem", "开始初始化WebRTC系统...");
+                LOG_INFO(LOG_TAG, "开始初始化WebRTC系统...");
                 state_.store(WebRTCState::INITIALIZING);
                 signaling_ = std::move(signaling);
                 ice_connected_.store(false);
@@ -406,7 +407,7 @@ namespace app
                 initialized_.store(true);
                 setState(WebRTCState::DISCONNECTED);
 
-                LOG_INFO("WebRTCSystem", "WebRTC系统初始化完成");
+                LOG_INFO(LOG_TAG, "WebRTC系统初始化完成");
                 return WebRTCError::NONE;
             }
 
@@ -417,7 +418,7 @@ namespace app
                     return;
                 }
 
-                LOG_INFO("WebRTCSystem", "开始关闭WebRTC系统...");
+                LOG_INFO(LOG_TAG, "开始关闭WebRTC系统...");
 
                 // 先清空任务队列（防止新任务提交和执行）
                 if (audio_task_queue_)
@@ -442,7 +443,7 @@ namespace app
                 initialized_.store(false);
                 setState(WebRTCState::UNINITIALIZED);
 
-                LOG_INFO("WebRTCSystem", "WebRTC系统关闭完成");
+                LOG_INFO(LOG_TAG, "WebRTC系统关闭完成");
             }
 
             bool WebRTCSystem::isOpen() const
@@ -459,12 +460,12 @@ namespace app
                     for (const auto& stun : config_.ice.stunServers)
                     {
                         rtc_config.iceServers.emplace_back(stun);
-                        LOG_INFO("WebRTCSystem", "添加STUN服务器: %s", stun.c_str());
+                        LOG_INFO(LOG_TAG, "添加STUN服务器: %s", stun.c_str());
                     }
                     for (const auto& turn : config_.ice.turnServers)
                     {
                         rtc_config.iceServers.emplace_back(turn);
-                        LOG_INFO("WebRTCSystem", "添加TURN服务器: %s", turn.c_str());
+                        LOG_INFO(LOG_TAG, "添加TURN服务器: %s", turn.c_str());
                     }
 
                     rtc_config.iceTransportPolicy     = config_.ice.useRelayOnly
@@ -475,12 +476,12 @@ namespace app
                     peer_connection_ = std::make_shared<rtc::PeerConnection>(rtc_config);
                     setupCallbacks();
 
-                    LOG_INFO("WebRTCSystem", "PeerConnection 创建成功");
+                    LOG_INFO(LOG_TAG, "PeerConnection 创建成功");
                     return true;
                 }
                 catch (const std::exception& e)
                 {
-                    LOG_ERROR("WebRTCSystem", "创建PeerConnection失败: %s", e.what());
+                    LOG_ERROR(LOG_TAG, "创建PeerConnection失败: %s", e.what());
                     return false;
                 }
             }
@@ -492,7 +493,7 @@ namespace app
                     return;
                 }
 
-                LOG_INFO("WebRTCSystem", "关闭 PeerConnection...");
+                LOG_INFO(LOG_TAG, "关闭 PeerConnection...");
 
                 // 先清除回调，打破循环引用
                 try
@@ -505,7 +506,7 @@ namespace app
                 }
                 catch (const std::exception& e)
                 {
-                    LOG_WARN("WebRTCSystem", "清除 PeerConnection 回调异常: %s", e.what());
+                    LOG_WARN(LOG_TAG, "清除 PeerConnection 回调异常: %s", e.what());
                 }
 
                 // 关闭数据通道
@@ -519,7 +520,7 @@ namespace app
                 }
                 catch (const std::exception& e)
                 {
-                    LOG_ERROR("WebRTCSystem", "关闭 DataChannel 异常: %s", e.what());
+                    LOG_ERROR(LOG_TAG, "关闭 DataChannel 异常: %s", e.what());
                 }
 
                 // 关闭音频轨道
@@ -533,7 +534,7 @@ namespace app
                 }
                 catch (const std::exception& e)
                 {
-                    LOG_ERROR("WebRTCSystem", "关闭音频轨道异常: %s", e.what());
+                    LOG_ERROR(LOG_TAG, "关闭音频轨道异常: %s", e.what());
                 }
                 audio_packetizer_.reset();
                 audio_rtp_config_.reset();
@@ -552,7 +553,7 @@ namespace app
                 }
                 catch (const std::exception& e)
                 {
-                    LOG_ERROR("WebRTCSystem", "关闭视频轨道异常: %s", e.what());
+                    LOG_ERROR(LOG_TAG, "关闭视频轨道异常: %s", e.what());
                 }
                 video_packetizer_.reset();
                 video_rtp_config_.reset();
@@ -568,10 +569,10 @@ namespace app
                 }
                 catch (const std::exception& e)
                 {
-                    LOG_ERROR("WebRTCSystem", "关闭 PeerConnection 异常: %s", e.what());
+                    LOG_ERROR(LOG_TAG, "关闭 PeerConnection 异常: %s", e.what());
                 }
 
-                LOG_INFO("WebRTCSystem", "PeerConnection 已关闭");
+                LOG_INFO(LOG_TAG, "PeerConnection 已关闭");
             }
 
             bool WebRTCSystem::isConnected() const
@@ -591,12 +592,12 @@ namespace app
                 role_           = role;
                 peer_device_id_ = peer_device_id;
 
-                LOG_INFO("WebRTCSystem", "收到角色分配: %s, 对端设备: %s", role_.c_str(),
+                LOG_INFO(LOG_TAG, "收到角色分配: %s, 对端设备: %s", role_.c_str(),
                          peer_device_id_.c_str());
 
                 if (!createConnection())
                 {
-                    LOG_ERROR("WebRTCSystem", "PeerConnection创建失败");
+                    LOG_ERROR(LOG_TAG, "PeerConnection创建失败");
                     setState(WebRTCState::FAILED);
                     return;
                 }
@@ -636,7 +637,7 @@ namespace app
                 }
                 else
                 {
-                    LOG_ERROR("WebRTCSystem", "无效的角色: %s", role_.c_str());
+                    LOG_ERROR(LOG_TAG, "无效的角色: %s", role_.c_str());
                     return;
                 }
 
@@ -645,17 +646,17 @@ namespace app
                     try
                     {
                         peer_connection_->setLocalDescription();
-                        LOG_INFO("WebRTCSystem", "已触发本地SDP(Offer)生成");
+                        LOG_INFO(LOG_TAG, "已触发本地SDP(Offer)生成");
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("WebRTCSystem", "生成本地 Offer 失败: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "生成本地 Offer 失败: %s", e.what());
                         setState(WebRTCState::FAILED);
                     }
                 }
                 else
                 {
-                    LOG_INFO("WebRTCSystem", "等待对端 Offer");
+                    LOG_INFO(LOG_TAG, "等待对端 Offer");
                 }
             }
 
@@ -663,19 +664,19 @@ namespace app
             {
                 if (!peer_connection_)
                 {
-                    LOG_WARN("WebRTCSystem", "PeerConnection 未初始化, 不能处理 Offer");
+                    LOG_WARN(LOG_TAG, "PeerConnection 未初始化, 不能处理 Offer");
                     return;
                 }
                 try
                 {
                     rtc::Description remote_desc(sdp, rtc::Description::Type::Offer);
                     peer_connection_->setRemoteDescription(remote_desc);
-                    LOG_INFO("WebRTCSystem", "设置远程 Offer 成功");
+                    LOG_INFO(LOG_TAG, "设置远程 Offer 成功");
                     peer_connection_->setLocalDescription(); // 触发 Answer 生成
                 }
                 catch (const std::exception& e)
                 {
-                    LOG_ERROR("WebRTCSystem", "处理远程 Offer 失败: %s", e.what());
+                    LOG_ERROR(LOG_TAG, "处理远程 Offer 失败: %s", e.what());
                     setState(WebRTCState::FAILED);
                 }
             }
@@ -684,18 +685,18 @@ namespace app
             {
                 if (!peer_connection_)
                 {
-                    LOG_WARN("WebRTCSystem", "PeerConnection 未初始化, 不能处理 Answer");
+                    LOG_WARN(LOG_TAG, "PeerConnection 未初始化, 不能处理 Answer");
                     return;
                 }
                 try
                 {
                     rtc::Description remote_desc(sdp, rtc::Description::Type::Answer);
                     peer_connection_->setRemoteDescription(remote_desc);
-                    LOG_INFO("WebRTCSystem", "设置远程 Answer 成功");
+                    LOG_INFO(LOG_TAG, "设置远程 Answer 成功");
                 }
                 catch (const std::exception& e)
                 {
-                    LOG_ERROR("WebRTCSystem", "处理远程 Answer 失败: %s", e.what());
+                    LOG_ERROR(LOG_TAG, "处理远程 Answer 失败: %s", e.what());
                     setState(WebRTCState::FAILED);
                 }
             }
@@ -704,19 +705,19 @@ namespace app
             {
                 if (!peer_connection_)
                 {
-                    LOG_WARN("WebRTCSystem", "PeerConnection 未初始化, 不能处理 ICE");
+                    LOG_WARN(LOG_TAG, "PeerConnection 未初始化, 不能处理 ICE");
                     return;
                 }
                 try
                 {
-                    LOG_INFO("WebRTCSystem", "远程ICE候选: %s", candidate.c_str());
+                    LOG_INFO(LOG_TAG, "远程ICE候选: %s", candidate.c_str());
                     rtc::Candidate rtc_candidate(candidate);
                     peer_connection_->addRemoteCandidate(rtc_candidate);
-                    LOG_DEBUG("WebRTCSystem", "远程 ICE 候选添加成功");
+                    LOG_DEBUG(LOG_TAG, "远程 ICE 候选添加成功");
                 }
                 catch (const std::exception& e)
                 {
-                    LOG_ERROR("WebRTCSystem", "添加远程 ICE 候选失败: %s", e.what());
+                    LOG_ERROR(LOG_TAG, "添加远程 ICE 候选失败: %s", e.what());
                 }
             }
 
@@ -724,19 +725,19 @@ namespace app
             {
                 if (!data_channel_ || !data_channel_->isOpen())
                 {
-                    LOG_WARN("WebRTCSystem", "DataChannel 未打开，无法发送消息");
+                    LOG_WARN(LOG_TAG, "DataChannel 未打开，无法发送消息");
                     return false;
                 }
 
                 try
                 {
                     data_channel_->send(message);
-                    LOG_DEBUG("WebRTCSystem", "DataChannel 发送消息: %s", message.c_str());
+                    LOG_DEBUG(LOG_TAG, "DataChannel 发送消息: %s", message.c_str());
                     return true;
                 }
                 catch (const std::exception& e)
                 {
-                    LOG_ERROR("WebRTCSystem", "DataChannel 发送失败: %s", e.what());
+                    LOG_ERROR(LOG_TAG, "DataChannel 发送失败: %s", e.what());
                     return false;
                 }
             }
@@ -792,7 +793,7 @@ namespace app
                                 }
                                 catch (const std::exception& e)
                                 {
-                                    LOG_ERROR("WebRTCSystem", "发送音频失败: %s", e.what());
+                                    LOG_ERROR(LOG_TAG, "发送音频失败: %s", e.what());
                                 }
                             },
                             TaskPriority::HIGH);
@@ -819,7 +820,7 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("WebRTCSystem", "发送音频失败: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "发送音频失败: %s", e.what());
                         }
                     },
                     TaskPriority::HIGH);
@@ -874,7 +875,7 @@ namespace app
                                 }
                                 catch (const std::exception& e)
                                 {
-                                    LOG_ERROR("WebRTCSystem", "发送视频失败: %s", e.what());
+                                    LOG_ERROR(LOG_TAG, "发送视频失败: %s", e.what());
                                 }
                             },
                             priority);
@@ -901,7 +902,7 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("WebRTCSystem", "发送视频失败: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "发送视频失败: %s", e.what());
                         }
                     },
                     priority);
@@ -956,12 +957,12 @@ namespace app
             void WebRTCSystem::logStats() const
             {
                 std::lock_guard<std::mutex> lock(stats_mutex_);
-                LOG_INFO("WebRTCSystem", "=== WebRTC 统计 ===");
-                LOG_INFO("WebRTCSystem", "  音频: 发送 %llu 包, %llu 字节",
+                LOG_INFO(LOG_TAG, "=== WebRTC 统计 ===");
+                LOG_INFO(LOG_TAG, "  音频: 发送 %llu 包, %llu 字节",
                          stats_.audio_packets_sent, stats_.audio_bytes_sent);
-                LOG_INFO("WebRTCSystem", "  视频: 发送 %llu 包, %llu 字节",
+                LOG_INFO(LOG_TAG, "  视频: 发送 %llu 包, %llu 字节",
                          stats_.video_packets_sent, stats_.video_bytes_sent);
-                LOG_INFO("WebRTCSystem", "==================");
+                LOG_INFO(LOG_TAG, "==================");
             }
 
             void WebRTCSystem::setupCallbacks()
@@ -975,7 +976,7 @@ namespace app
                     [this](rtc::Description description)
                     {
                         std::string sdp = std::string(description);
-                        LOG_INFO("WebRTCSystem", "本地SDP生成: %s", sdp.c_str());
+                        LOG_INFO(LOG_TAG, "本地SDP生成: %s", sdp.c_str());
                         if (signaling_ && signaling_->isPaired())
                         {
                             std::string sdp = std::string(description);
@@ -993,7 +994,7 @@ namespace app
                 peer_connection_->onLocalCandidate(
                     [this](rtc::Candidate candidate)
                     {
-                        LOG_INFO("WebRTCSystem", "本地ICE候选: %s", std::string(candidate).c_str());
+                        LOG_INFO(LOG_TAG, "本地ICE候选: %s", std::string(candidate).c_str());
                         if (signaling_ && signaling_->isPaired())
                         {
                             signaling_->sendIceCandidate(std::string(candidate), peer_device_id_);
@@ -1003,7 +1004,7 @@ namespace app
                 peer_connection_->onStateChange(
                     [this](rtc::PeerConnection::State state)
                     {
-                        LOG_INFO("WebRTCSystem", "PeerConnection 状态: %d",
+                        LOG_INFO(LOG_TAG, "PeerConnection 状态: %d",
                                  static_cast<int>(state));
                         if (state == rtc::PeerConnection::State::Connected)
                         {
@@ -1025,7 +1026,7 @@ namespace app
                 peer_connection_->onIceStateChange(
                     [this](rtc::PeerConnection::IceState state)
                     {
-                        LOG_INFO("WebRTCSystem", "ICE 状态: %d", static_cast<int>(state));
+                        LOG_INFO(LOG_TAG, "ICE 状态: %d", static_cast<int>(state));
                         switch (state)
                         {
                         case rtc::PeerConnection::IceState::Checking:
@@ -1051,7 +1052,7 @@ namespace app
                     peer_connection_->onDataChannel(
                         [this](std::shared_ptr<rtc::DataChannel> dc)
                         {
-                            LOG_INFO("WebRTCSystem", "接收到对端 DataChannel: %s",
+                            LOG_INFO(LOG_TAG, "接收到对端 DataChannel: %s",
                                      dc->label().c_str());
                             data_channel_ = dc;
                             setupDataChannel();
@@ -1072,12 +1073,12 @@ namespace app
                     {
                         data_channel_ =
                             peer_connection_->createDataChannel(config_.dataChannelLabel);
-                        LOG_INFO("WebRTCSystem", "创建 DataChannel: %s",
+                        LOG_INFO(LOG_TAG, "创建 DataChannel: %s",
                                  config_.dataChannelLabel.c_str());
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("WebRTCSystem", "创建 DataChannel 失败: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "创建 DataChannel 失败: %s", e.what());
                         return;
                     }
                 }
@@ -1085,12 +1086,12 @@ namespace app
                 data_channel_->onOpen(
                     [this]()
                     {
-                        LOG_INFO("WebRTCSystem", "DataChannel 打开完成");
+                        LOG_INFO(LOG_TAG, "DataChannel 打开完成");
                         handleDataChannel();
                     });
 
                 data_channel_->onClosed([this]()
-                                        { LOG_INFO("WebRTCSystem", "DataChannel 已关闭"); });
+                                        { LOG_INFO(LOG_TAG, "DataChannel 已关闭"); });
 
                 data_channel_->onMessage(
                     [this](auto data)
@@ -1130,7 +1131,7 @@ namespace app
                     audio_desc.addSSRC(2, "audio", "stream1", "audio");
 
                     audio_track_ = peer_connection_->addTrack(audio_desc);
-                    LOG_INFO("WebRTCSystem", "音频轨道已创建, direction=%d",
+                    LOG_INFO(LOG_TAG, "音频轨道已创建, direction=%d",
                              static_cast<int>(direction));
 
                     // 根据不同的方向设置MediaHandler
@@ -1170,7 +1171,7 @@ namespace app
                         // 设置轨道打开回调
                         audio_track_->onOpen(
                             []()
-                            { LOG_INFO("WebRTCSystem", "音频轨道已打开，可以开始发送音频数据"); });
+                            { LOG_INFO(LOG_TAG, "音频轨道已打开，可以开始发送音频数据"); });
                     }
                     else if (direction == rtc::Description::Direction::RecvOnly)
                     {
@@ -1204,7 +1205,7 @@ namespace app
                 }
                 catch (const std::exception& e)
                 {
-                    LOG_ERROR("WebRTCSystem", "创建音频轨道失败: %s", e.what());
+                    LOG_ERROR(LOG_TAG, "创建音频轨道失败: %s", e.what());
                 }
             }
 
@@ -1237,7 +1238,7 @@ namespace app
                     video_desc.addSSRC(1, "video", "stream1", "video");
 
                     video_track_ = peer_connection_->addTrack(video_desc);
-                    LOG_INFO("WebRTCSystem", "视频轨道已创建, direction=%d",
+                    LOG_INFO(LOG_TAG, "视频轨道已创建, direction=%d",
                              static_cast<int>(direction));
 
                     // 根据不同的方向设置MediaHandler
@@ -1277,9 +1278,9 @@ namespace app
                         // 设置轨道打开回调
                         video_track_->onOpen(
                             []()
-                            { LOG_INFO("WebRTCSystem", "视频轨道已打开，可以开始发送视频数据"); });
+                            { LOG_INFO(LOG_TAG, "视频轨道已打开，可以开始发送视频数据"); });
 
-                        LOG_INFO("WebRTCSystem", "视频发送链已配置完成");
+                        LOG_INFO(LOG_TAG, "视频发送链已配置完成");
                     }
 
                     if (direction == rtc::Description::Direction::RecvOnly)
@@ -1287,7 +1288,7 @@ namespace app
                         // 纯接收模式：只需要接收会话
                         auto receive_session = std::make_shared<rtc::RtcpReceivingSession>();
                         video_track_->setMediaHandler(receive_session);
-                        LOG_INFO("WebRTCSystem", "视频接收链已配置完成（RecvOnly）");
+                        LOG_INFO(LOG_TAG, "视频接收链已配置完成（RecvOnly）");
                     }
 
                     // 设置接收回调（SendRecv和RecvOnly都需要）
@@ -1312,18 +1313,18 @@ namespace app
                                 }
                             });
 
-                        LOG_INFO("WebRTCSystem", "视频接收回调已设置");
+                        LOG_INFO(LOG_TAG, "视频接收回调已设置");
                     }
                 }
                 catch (const std::exception& e)
                 {
-                    LOG_ERROR("WebRTCSystem", "创建视频轨道失败: %s", e.what());
+                    LOG_ERROR(LOG_TAG, "创建视频轨道失败: %s", e.what());
                 }
             }
 
             void WebRTCSystem::handleDataChannel()
             {
-                LOG_INFO("WebRTCSystem", "DataChannel 已打开，可进行数据通信");
+                LOG_INFO(LOG_TAG, "DataChannel 已打开，可进行数据通信");
                 if (role_ == "offerer")
                 {
                     std::string test_message = "Hello from glasses device !";
@@ -1333,7 +1334,7 @@ namespace app
 
             void WebRTCSystem::handleDataMessage(const std::string& message)
             {
-                LOG_INFO("WebRTCSystem", "收到 DataChannel 消息: %s", message.c_str());
+                LOG_INFO(LOG_TAG, "收到 DataChannel 消息: %s", message.c_str());
                 std::lock_guard<std::mutex> lock(callback_mutex_);
                 if (data_message_callback_)
                 {
@@ -1343,7 +1344,7 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("WebRTCSystem", "数据回调异常: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "数据回调异常: %s", e.what());
                     }
                 }
             }
@@ -1363,7 +1364,7 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("WebRTCSystem", "音频回调异常: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "音频回调异常: %s", e.what());
                     }
                 }
             }
@@ -1383,7 +1384,7 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("WebRTCSystem", "视频回调异常: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "视频回调异常: %s", e.what());
                     }
                 }
             }
@@ -1393,7 +1394,7 @@ namespace app
                 WebRTCState old_state = state_.exchange(new_state, std::memory_order_acq_rel);
                 if (old_state != new_state)
                 {
-                    LOG_INFO("WebRTCSystem", "状态变更: %d -> %d", static_cast<int>(old_state),
+                    LOG_INFO(LOG_TAG, "状态变更: %d -> %d", static_cast<int>(old_state),
                              static_cast<int>(new_state));
                     std::lock_guard<std::mutex> lock(callback_mutex_);
                     if (state_callback_)
@@ -1404,7 +1405,7 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("WebRTCSystem", "状态回调异常: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "状态回调异常: %s", e.what());
                         }
                     }
                 }
@@ -1429,17 +1430,17 @@ namespace app
                     settings.heartbeatInterval        = config_.sctp.heartbeatInterval;
 
                     rtc::SetSctpSettings(settings);
-                    LOG_INFO("WebRTCSystem", "SCTP 配置完成");
+                    LOG_INFO(LOG_TAG, "SCTP 配置完成");
                 }
                 catch (const std::exception& e)
                 {
-                    LOG_ERROR("WebRTCSystem", "SCTP 配置失败: %s", e.what());
+                    LOG_ERROR(LOG_TAG, "SCTP 配置失败: %s", e.what());
                 }
             }
 
             void WebRTCSystem::cleanup()
             {
-                LOG_INFO("WebRTCSystem", "清理内部资源...");
+                LOG_INFO(LOG_TAG, "清理内部资源...");
 
                 // 销毁任务队列（会等待所有工作线程退出）
                 if (audio_task_queue_)
@@ -1470,7 +1471,7 @@ namespace app
                     stats_ = Stats{};
                 }
 
-                LOG_INFO("WebRTCSystem", "资源清理完成");
+                LOG_INFO(LOG_TAG, "资源清理完成");
             }
 
             bool WebRTCSystem::parseRtpPacket(const uint8_t* rtp_data, size_t rtp_size,
@@ -1545,7 +1546,7 @@ namespace app
                         static_cast<int64_t>(static_cast<double>(old_bitrate) *
                                              BITRATE_CHANGE_THRESHOLD))
                 {
-                    LOG_INFO("WebRTCSystem", "码率调整: %u -> %u bps (%.2f Mbps)", old_bitrate,
+                    LOG_INFO(LOG_TAG, "码率调整: %u -> %u bps (%.2f Mbps)", old_bitrate,
                              bitrate, bitrate / 1000000.0);
                 }
 
