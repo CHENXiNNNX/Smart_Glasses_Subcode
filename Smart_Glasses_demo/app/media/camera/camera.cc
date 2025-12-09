@@ -10,6 +10,7 @@
 #include "../../protocol/http/http.hpp"
 #include "../../tool/mac/mac.hpp"
 #include "../../tool/uuid/uuid.hpp"
+#include "../../tool/file/file.hpp"
 #include <cstring>
 #include <algorithm>
 #include <chrono>
@@ -26,13 +27,13 @@ namespace app
         {
 
             using namespace tool::log;
+            using namespace tool::file;
 
             namespace
             {
                 constexpr const char* LOG_TAG                 = "CAMERA";
                 constexpr double      FIXED_POOL_WARN_THRESHOLD = 70.0;
                 constexpr uint64_t    FIXED_POOL_MIN_SAMPLES    = 100;
-                constexpr mode_t      DIRECTORY_PERMISSION      = 0755;
                 constexpr int         JPEG_DEFAULT_QUALITY      = 77;
                 constexpr int         JPEG_MIN_QUALITY          = 1;
                 constexpr int         JPEG_MAX_QUALITY          = 100;
@@ -1487,51 +1488,6 @@ namespace app
                 return VideoError::NONE;
             }
 
-            // FileWrapper 实现
-            FileWrapper::FileWrapper(const std::string& filename, bool write) : filename_(filename)
-            {
-
-                const char* mode = write ? "wb" : "rb";
-                file_            = fopen(filename.c_str(), mode);
-
-                if (file_)
-                {
-                    valid_ = true;
-                    LOG_INFO(LOG_TAG, "文件已打开: %s", filename.c_str());
-                }
-                else
-                {
-                    LOG_ERROR(LOG_TAG, "打开文件失败: %s", filename.c_str());
-                }
-            }
-
-            FileWrapper::~FileWrapper()
-            {
-                if (file_)
-                {
-                    fclose(file_);
-                    LOG_INFO(LOG_TAG, "文件已关闭: %s", filename_.c_str());
-                }
-            }
-
-            bool FileWrapper::write(const void* data, size_t size)
-            {
-                if (!valid_ || !file_)
-                {
-                    return false;
-                }
-
-                size_t written = fwrite(data, 1, size, file_);
-                return written == size;
-            }
-
-            void FileWrapper::flush()
-            {
-                if (file_)
-                {
-                    fflush(file_);
-                }
-            }
 
             // ============================================================================
             // VideoSystem::Impl 实现类（Pimpl模式）
@@ -1584,8 +1540,8 @@ namespace app
                     sync_ctx_ = sync_ctx;
 
                     // 创建输出目录
-                    mkdir(config_.photo_path.c_str(), DIRECTORY_PERMISSION);
-                    mkdir(config_.record_path.c_str(), DIRECTORY_PERMISSION);
+                    createDirectory(config_.photo_path);
+                    createDirectory(config_.record_path);
 
                     LOG_INFO(LOG_TAG, "初始化RKMPI系统...");
                     if (RK_MPI_SYS_Init() != RK_SUCCESS)
@@ -1870,12 +1826,13 @@ namespace app
                                                          std::to_string(photo_id_++) + ".jpg"
                                                    : photo_filename_;
 
-                        // 使用FileWrapper保存
-                        FileWrapper file(filename, true);
+                        // 使用文件工具类保存
+                        FileWrapper file(filename, FileMode::WRITE);
                         if (file.isValid())
                         {
                             if (file.write(frame->data, frame->size))
                             {
+                                file.flush();
                                 LOG_INFO(LOG_TAG, "照片已保存: %s (%zu 字节)", filename.c_str(),
                                          frame->size);
                                 stats_.photos_taken.fetch_add(1, std::memory_order_relaxed);
@@ -2164,7 +2121,7 @@ namespace app
                                                             std::to_string(record_id_++) + ".h264"
                                                       : filename;
 
-                    record_file_ = std::make_unique<FileWrapper>(record_filename, true);
+                    record_file_ = std::make_unique<FileWrapper>(record_filename, FileMode::WRITE);
                     if (!record_file_->isValid())
                     {
                         record_file_.reset();

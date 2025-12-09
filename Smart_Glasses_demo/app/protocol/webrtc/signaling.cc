@@ -7,8 +7,13 @@
 #include "../../tool/log/log.hpp"
 #include "../../../common/common.hpp"
 
+#if __has_include(<nlohmann/json.hpp>)
+#include <nlohmann/json.hpp>
+#else
+#include "../../../third_party/libdatachannel/deps/json/single_include/nlohmann/json.hpp"
+#endif
+
 #include <sstream>
-#include <iomanip>
 
 using namespace app::tool::log;
 using json = nlohmann::json;
@@ -26,26 +31,26 @@ namespace app
 
             namespace
             {
-                constexpr const char* LOG_TAG                   = "SIGNALING";
-                constexpr int         ERROR_CODE_ROOM_FULL      = 1001;
-                constexpr int         ERROR_CODE_ROOM_NOT_EXISTS = 1002;
-                constexpr int         ERROR_CODE_CONNECTION_TIMEOUT = 1005;
-                constexpr int         ERROR_CODE_PEER_OFFLINE   = 1006;
-                constexpr int         ERROR_CODE_SERVER_ERROR   = 1007;
+                constexpr const char* LOG_TAG                         = "SIGNALING";
+                constexpr int         ERROR_CODE_ROOM_FULL            = 1001;
+                constexpr int         ERROR_CODE_ROOM_NOT_EXISTS      = 1002;
+                constexpr int         ERROR_CODE_MESSAGE_FORMAT_ERROR = 1003;
+                constexpr int         ERROR_CODE_DEVICE_ID_ERROR      = 1004;
+                constexpr int         ERROR_CODE_CONNECTION_TIMEOUT   = 1005;
+                constexpr int         ERROR_CODE_PEER_OFFLINE         = 1006;
+                constexpr int         ERROR_CODE_SERVER_ERROR         = 1007;
             } // namespace
 
             Signaling::Signaling(const SignalingConfig& config)
-                : config_(config), status_(SignalingStatus::DISCONNECTED), roomInfo_()
+                : config_(config), status_(SignalingStatus::DISCONNECTED), room_info_()
             {
-
                 // 初始化房间信息
-                roomInfo_.roomId     = extractRoomId(config_.deviceId);
-                roomInfo_.num        = 0;
-                roomInfo_.roomStatus = "close";
+                room_info_.room_id = extractRoomId(config_.device_id);
+                room_info_.num     = 0;
 
                 LOG_INFO(LOG_TAG, "信令客户端初始化: deviceId=%s, serverUrl=%s",
-                         config_.deviceId.c_str(), config_.serverUrl.c_str());
-                LOG_DEBUG(LOG_TAG, "房间ID: %s", roomInfo_.roomId.c_str());
+                         config_.device_id.c_str(), config_.server_url.c_str());
+                LOG_DEBUG(LOG_TAG, "房间ID: %s", room_info_.room_id.c_str());
             }
 
             Signaling::~Signaling()
@@ -68,7 +73,7 @@ namespace app
 
                     // 创建WebSocket客户端配置
                     websocket::WebSocketConfig ws_config;
-                    ws_config.url                    = config_.serverUrl;
+                    ws_config.url                    = config_.server_url;
                     ws_config.auto_reconnect         = config_.auto_reconnect;
                     ws_config.reconnect_interval_ms  = config_.reconnect_interval_ms;
                     ws_config.max_reconnect_attempts = config_.max_reconnect_attempts;
@@ -139,10 +144,9 @@ namespace app
                 // 清理状态
                 {
                     std::lock_guard<std::mutex> lock(mutex_);
-                    peerDeviceId_.clear();
+                    peer_device_id_.clear();
                     role_.clear();
-                    roomInfo_.num        = 0;
-                    roomInfo_.roomStatus = "close";
+                    room_info_.num = 0;
                 }
 
                 LOG_INFO(LOG_TAG, "已断开连接");
@@ -158,8 +162,7 @@ namespace app
                 }
 
                 json message = {{"type", "join"},
-                                {"device_id", config_.deviceId},
-                                {"from", config_.deviceId},
+                                {"from", config_.device_id},
                                 {"to", "server"},
                                 {"time", getCurrentTimestamp()}};
 
@@ -182,8 +185,7 @@ namespace app
                 }
 
                 json message = {{"type", "leave"},
-                                {"device_id", config_.deviceId},
-                                {"from", config_.deviceId},
+                                {"from", config_.device_id},
                                 {"to", "server"},
                                 {"time", getCurrentTimestamp()}};
 
@@ -195,7 +197,7 @@ namespace app
                     // 清理配对信息
                     {
                         std::lock_guard<std::mutex> lock(mutex_);
-                        peerDeviceId_.clear();
+                        peer_device_id_.clear();
                         role_.clear();
                     }
 
@@ -214,14 +216,54 @@ namespace app
                 }
 
                 json message = {{"type", "get_room_info"},
-                                {"device_id", config_.deviceId},
-                                {"from", config_.deviceId},
+                                {"from", config_.device_id},
                                 {"to", "server"},
                                 {"time", getCurrentTimestamp()}};
 
                 if (sendMessage(message))
                 {
                     LOG_DEBUG(LOG_TAG, "发送房间信息请求");
+                    return true;
+                }
+
+                return false;
+            }
+
+            bool Signaling::sendConnectionRequest(const std::string& peer_id, const ConnectionRequest& request)
+            {
+                SignalingStatus current = status_.load(std::memory_order_acquire);
+                if (current != SignalingStatus::JOINED && current != SignalingStatus::PAIRED)
+                {
+                    LOG_WARN(LOG_TAG, "未加入房间，无法发送连接请求");
+                    return false;
+                }
+
+                // 确定目标设备ID
+                std::string target_device_id;
+                if (!peer_id.empty())
+                {
+                    target_device_id = peer_id;
+                }
+                else
+                {
+                    // 如果未指定，自动推导：设备端发送给APP端
+                    target_device_id = "app_" + extractRoomId(config_.device_id);
+                }
+
+                json message = {{"type", "get_connect"},
+                                {"from", config_.device_id},
+                                {"to", target_device_id},
+                                {"data", {
+                                    {"message", request.message},
+                                    {"audio", request.audio},
+                                    {"video", request.video}
+                                }},
+                                {"time", getCurrentTimestamp()}};
+
+                if (sendMessage(message))
+                {
+                    LOG_INFO(LOG_TAG, "发送连接请求到 %s (message=%d, audio=%d, video=%d)",
+                             target_device_id.c_str(), request.message, request.audio, request.video);
                     return true;
                 }
 
@@ -237,9 +279,36 @@ namespace app
                     return false;
                 }
 
-                json message = {{"type", "offer"},          {"device_id", config_.deviceId},
-                                {"from", config_.deviceId}, {"to", target_device_id},
-                                {"data", {{"sdp", sdp}}},   {"time", getCurrentTimestamp()}};
+                // 验证角色：只有设备端可以发送offer
+                if (!isDevice())
+                {
+                    LOG_ERROR(LOG_TAG, "只有设备端可以发送Offer");
+                    return false;
+                }
+
+                // 打印发送的Offer SDP内容
+                LOG_INFO(LOG_TAG, "========== 发送 OFFER SDP ==========");
+                LOG_INFO(LOG_TAG, "发送方设备: %s", config_.device_id.c_str());
+                LOG_INFO(LOG_TAG, "接收方设备: %s", target_device_id.c_str());
+                LOG_INFO(LOG_TAG, "SDP类型: offer");
+                LOG_INFO(LOG_TAG, "SDP内容:");
+                // 按行打印SDP以便阅读
+                std::istringstream sdp_stream(sdp);
+                std::string line;
+                while (std::getline(sdp_stream, line))
+                {
+                    if (!line.empty())
+                    {
+                        LOG_INFO(LOG_TAG, "  %s", line.c_str());
+                    }
+                }
+                LOG_INFO(LOG_TAG, "=====================================\n");
+
+                json message = {{"type", "offer"},
+                                {"from", config_.device_id},
+                                {"to", target_device_id},
+                                {"data", {{"sdp", sdp}}},
+                                {"time", getCurrentTimestamp()}};
 
                 if (sendMessage(message))
                 {
@@ -250,27 +319,6 @@ namespace app
                 return false;
             }
 
-            bool Signaling::sendAnswer(const std::string& sdp, const std::string& target_device_id)
-            {
-                SignalingStatus current = status_.load(std::memory_order_acquire);
-                if (current != SignalingStatus::PAIRED)
-                {
-                    LOG_WARN(LOG_TAG, "未配对，无法发送Answer");
-                    return false;
-                }
-
-                json message = {{"type", "answer"},         {"device_id", config_.deviceId},
-                                {"from", config_.deviceId}, {"to", target_device_id},
-                                {"data", {{"sdp", sdp}}},   {"time", getCurrentTimestamp()}};
-
-                if (sendMessage(message))
-                {
-                    LOG_INFO(LOG_TAG, "发送SDP Answer到: %s", target_device_id.c_str());
-                    return true;
-                }
-
-                return false;
-            }
 
             bool Signaling::sendIceCandidate(const std::string& candidate,
                                              const std::string& target_device_id)
@@ -282,9 +330,15 @@ namespace app
                     return false;
                 }
 
+                // 打印发送的ICE候选内容
+                LOG_INFO(LOG_TAG, "========== 发送 ICE候选 ==========");
+                LOG_INFO(LOG_TAG, "发送方设备: %s", config_.device_id.c_str());
+                LOG_INFO(LOG_TAG, "接收方设备: %s", target_device_id.c_str());
+                LOG_INFO(LOG_TAG, "ICE候选内容: %s", candidate.c_str());
+                LOG_INFO(LOG_TAG, "===================================\n");
+
                 json message = {{"type", "ice"},
-                                {"device_id", config_.deviceId},
-                                {"from", config_.deviceId},
+                                {"from", config_.device_id},
                                 {"to", target_device_id},
                                 {"data", {{"candidate", candidate}}},
                                 {"time", getCurrentTimestamp()}};
@@ -372,6 +426,14 @@ namespace app
                     {
                         handleRoleMessage(msg);
                     }
+                    else if (type == "get_connect")
+                    {
+                        handleConnectionRequestMessage(msg);
+                    }
+                    else if (type == "respond_post")
+                    {
+                        handleConnectionResponseMessage(msg);
+                    }
                     else if (type == "offer")
                     {
                         handleOfferMessage(msg);
@@ -421,20 +483,18 @@ namespace app
                 std::string peer_id;
                 std::string role;
 
-                if (data.contains("peer_device_id"))
+                if (data.contains("peer_id"))
                 {
-                    peer_id = data["peer_device_id"].get<std::string>();
+                    peer_id = data["peer_id"].get<std::string>();
                 }
 
-                if (data.contains("role"))
-                {
-                    role = data["role"].get<std::string>();
-                }
+                // 设备端始终作为offerer
+                role = "offerer";
 
                 {
                     std::lock_guard<std::mutex> lock(mutex_);
-                    peerDeviceId_ = peer_id;
-                    role_         = role;
+                    peer_device_id_ = peer_id;
+                    role_           = role;
                 }
 
                 setStatus(SignalingStatus::PAIRED);
@@ -446,16 +506,75 @@ namespace app
                 invokeWebRTCReadyCallback(role, peer_id);
             }
 
+            void Signaling::handleConnectionRequestMessage(const json& msg)
+            {
+                if (!msg.contains("data"))
+                {
+                    LOG_WARN(LOG_TAG, "连接请求消息缺少data字段");
+                    return;
+                }
+
+                auto data = msg["data"];
+
+                ConnectionRequest request;
+                request.message = data.value("message", false);
+                request.audio   = data.value("audio", false);
+                request.video   = data.value("video", false);
+
+                std::string from = msg.value("from", "unknown");
+                LOG_INFO(LOG_TAG, "收到连接请求 from=%s (message=%d, audio=%d, video=%d)",
+                         from.c_str(), request.message, request.audio, request.video);
+
+                // 触发连接请求回调，让上层决定如何处理
+                invokeConnectionRequestCallback(request);
+            }
+
+            void Signaling::handleConnectionResponseMessage(const json& msg)
+            {
+                bool respond = msg.value("respond", false);
+                std::string from = msg.value("from", "unknown");
+                
+                LOG_INFO(LOG_TAG, "收到连接请求回应 from=%s, respond=%s",
+                         from.c_str(), respond ? "true(同意)" : "false(拒绝)");
+
+                // 触发连接请求回应回调
+                invokeConnectionResponseCallback(respond);
+            }
+
             void Signaling::handleOfferMessage(const json& msg)
             {
+                // 打印接收到的Offer SDP内容
+                if (msg.contains("data") && msg["data"].contains("sdp"))
+                {
+                    std::string sdp = msg["data"]["sdp"].get<std::string>();
+                    std::string from = msg.value("from", "unknown");
+
+                    LOG_INFO(LOG_TAG, "========== 收到 OFFER SDP ==========");
+                    LOG_INFO(LOG_TAG, "发送方设备: %s", from.c_str());
+                    LOG_INFO(LOG_TAG, "接收方设备: %s", config_.device_id.c_str());
+                    LOG_INFO(LOG_TAG, "SDP类型: offer");
+                    LOG_INFO(LOG_TAG, "SDP内容:");
+                    // 按行打印SDP以便阅读
+                    std::istringstream sdp_stream(sdp);
+                    std::string line;
+                    while (std::getline(sdp_stream, line))
+                    {
+                        if (!line.empty())
+                        {
+                            LOG_INFO(LOG_TAG, "  %s", line.c_str());
+                        }
+                    }
+                    LOG_INFO(LOG_TAG, "==========================================\n");
+                }
+
                 LOG_INFO(LOG_TAG, "收到SDP Offer，转发给WebRTC管理器");
 
                 std::lock_guard<std::mutex> lock(callback_mutex_);
-                if (offerCallback_)
+                if (offer_callback_)
                 {
                     try
                     {
-                        offerCallback_(msg);
+                        offer_callback_(msg);
                     }
                     catch (const std::exception& e)
                     {
@@ -466,14 +585,38 @@ namespace app
 
             void Signaling::handleAnswerMessage(const json& msg)
             {
+                // 打印接收到的Answer SDP内容
+                if (msg.contains("data") && msg["data"].contains("sdp"))
+                {
+                    std::string sdp = msg["data"]["sdp"].get<std::string>();
+                    std::string from = msg.value("from", "unknown");
+
+                    LOG_INFO(LOG_TAG, "========== 收到 ANSWER SDP ==========");
+                    LOG_INFO(LOG_TAG, "发送方设备: %s", from.c_str());
+                    LOG_INFO(LOG_TAG, "接收方设备: %s", config_.device_id.c_str());
+                    LOG_INFO(LOG_TAG, "SDP类型: answer");
+                    LOG_INFO(LOG_TAG, "SDP内容:");
+                    // 按行打印SDP以便阅读
+                    std::istringstream sdp_stream(sdp);
+                    std::string line;
+                    while (std::getline(sdp_stream, line))
+                    {
+                        if (!line.empty())
+                        {
+                            LOG_INFO(LOG_TAG, "  %s", line.c_str());
+                        }
+                    }
+                    LOG_INFO(LOG_TAG, "==========================================\n");
+                }
+
                 LOG_INFO(LOG_TAG, "收到SDP Answer，转发给WebRTC管理器");
 
                 std::lock_guard<std::mutex> lock(callback_mutex_);
-                if (answerCallback_)
+                if (answer_callback_)
                 {
                     try
                     {
-                        answerCallback_(msg);
+                        answer_callback_(msg);
                     }
                     catch (const std::exception& e)
                     {
@@ -484,14 +627,27 @@ namespace app
 
             void Signaling::handleIceMessage(const json& msg)
             {
+                // 打印接收到的ICE候选内容
+                if (msg.contains("data") && msg["data"].contains("candidate"))
+                {
+                    std::string candidate = msg["data"]["candidate"].get<std::string>();
+                    std::string from = msg.value("from", "unknown");
+
+                    LOG_INFO(LOG_TAG, "========== 收到 ICE候选 ==========");
+                    LOG_INFO(LOG_TAG, "发送方设备: %s", from.c_str());
+                    LOG_INFO(LOG_TAG, "接收方设备: %s", config_.device_id.c_str());
+                    LOG_INFO(LOG_TAG, "ICE候选内容: %s", candidate.c_str());
+                    LOG_INFO(LOG_TAG, "========================================\n");
+                }
+
                 LOG_DEBUG(LOG_TAG, "收到ICE候选，转发给WebRTC管理器");
 
                 std::lock_guard<std::mutex> lock(callback_mutex_);
-                if (iceCandidateCallback_)
+                if (ice_candidate_callback_)
                 {
                     try
                     {
-                        iceCandidateCallback_(msg);
+                        ice_candidate_callback_(msg);
                     }
                     catch (const std::exception& e)
                     {
@@ -513,7 +669,7 @@ namespace app
 
                 if (data.contains("room_id"))
                 {
-                    info.roomId = data["room_id"].get<std::string>();
+                    info.room_id = data["room_id"].get<std::string>();
                 }
 
                 if (data.contains("num"))
@@ -521,41 +677,36 @@ namespace app
                     info.num = data["num"].get<int>();
                 }
 
-                if (data.contains("room_status"))
-                {
-                    info.roomStatus = data["room_status"].get<std::string>();
-                }
-
                 {
                     std::lock_guard<std::mutex> lock(mutex_);
-                    roomInfo_ = info;
+                    room_info_ = info;
                 }
 
-                LOG_INFO(LOG_TAG, "房间信息更新 - 房间ID: %s, 人数: %d, 状态: %s",
-                         info.roomId.c_str(), info.num, info.roomStatus.c_str());
+                LOG_INFO(LOG_TAG, "房间信息更新 - 房间ID: %s, 人数: %d",
+                         info.room_id.c_str(), info.num);
 
                 // 根据房间信息更新连接状态
-                if (info.roomStatus == "open" && info.num == 2)
+                if (info.num == 2)
                 {
-                    // 房间已配对，但如果当前状态还不是PAIRED，说明还在等待角色分配
+                    // 房间已满，可以配对
                     SignalingStatus current = status_.load(std::memory_order_acquire);
                     if (current == SignalingStatus::JOINED)
                     {
-                        LOG_DEBUG(LOG_TAG, "房间已配对，等待角色分配...");
+                        LOG_DEBUG(LOG_TAG, "房间已满，等待角色分配...");
                     }
                 }
-                else if (info.roomStatus == "close")
+                else if (info.num < 2)
                 {
-                    // 房间关闭或只有一个人
+                    // 房间人数不足或房间关闭
                     SignalingStatus current = status_.load(std::memory_order_acquire);
                     if (current == SignalingStatus::PAIRED)
                     {
-                        LOG_INFO(LOG_TAG, "房间状态变为关闭，重置为已加入状态");
+                        LOG_INFO(LOG_TAG, "房间人数不足，重置为已加入状态");
                         setStatus(SignalingStatus::JOINED);
 
                         {
                             std::lock_guard<std::mutex> lock(mutex_);
-                            peerDeviceId_.clear();
+                            peer_device_id_.clear();
                             role_.clear();
                         }
                     }
@@ -595,7 +746,7 @@ namespace app
                         setStatus(SignalingStatus::CONNECTED);
 
                         std::lock_guard<std::mutex> lock(mutex_);
-                        peerDeviceId_.clear();
+                        peer_device_id_.clear();
                         role_.clear();
                     }
                 }
@@ -608,7 +759,7 @@ namespace app
                         setStatus(SignalingStatus::JOINED);
 
                         std::lock_guard<std::mutex> lock(mutex_);
-                        peerDeviceId_.clear();
+                        peer_device_id_.clear();
                         role_.clear();
                     }
                 }
@@ -682,11 +833,11 @@ namespace app
             void Signaling::invokeStatusCallback(SignalingStatus status)
             {
                 std::lock_guard<std::mutex> lock(callback_mutex_);
-                if (statusCallback_)
+                if (status_callback_)
                 {
                     try
                     {
-                        statusCallback_(status);
+                        status_callback_(status);
                     }
                     catch (const std::exception& e)
                     {
@@ -698,11 +849,11 @@ namespace app
             void Signaling::invokeErrorCallback(SignalingError error, const std::string& message)
             {
                 std::lock_guard<std::mutex> lock(callback_mutex_);
-                if (errorCallback_)
+                if (error_callback_)
                 {
                     try
                     {
-                        errorCallback_(error, message);
+                        error_callback_(error, message);
                     }
                     catch (const std::exception& e)
                     {
@@ -715,11 +866,11 @@ namespace app
                                                       const std::string& peer_device_id)
             {
                 std::lock_guard<std::mutex> lock(callback_mutex_);
-                if (webrtcReadyCallback_)
+                if (webrtc_ready_callback_)
                 {
                     try
                     {
-                        webrtcReadyCallback_(role, peer_device_id);
+                        webrtc_ready_callback_(role, peer_device_id);
                     }
                     catch (const std::exception& e)
                     {
@@ -731,15 +882,47 @@ namespace app
             void Signaling::invokeRoomInfoCallback(const RoomInfo& info)
             {
                 std::lock_guard<std::mutex> lock(callback_mutex_);
-                if (roomInfoCallback_)
+                if (room_info_callback_)
                 {
                     try
                     {
-                        roomInfoCallback_(info);
+                        room_info_callback_(info);
                     }
                     catch (const std::exception& e)
                     {
                         LOG_ERROR(LOG_TAG, "房间信息回调异常: %s", e.what());
+                    }
+                }
+            }
+
+            void Signaling::invokeConnectionRequestCallback(const ConnectionRequest& request)
+            {
+                std::lock_guard<std::mutex> lock(callback_mutex_);
+                if (connection_request_callback_)
+                {
+                    try
+                    {
+                        connection_request_callback_(request);
+                    }
+                    catch (const std::exception& e)
+                    {
+                        LOG_ERROR(LOG_TAG, "连接请求回调异常: %s", e.what());
+                    }
+                }
+            }
+
+            void Signaling::invokeConnectionResponseCallback(bool accepted)
+            {
+                std::lock_guard<std::mutex> lock(callback_mutex_);
+                if (connection_response_callback_)
+                {
+                    try
+                    {
+                        connection_response_callback_(accepted);
+                    }
+                    catch (const std::exception& e)
+                    {
+                        LOG_ERROR(LOG_TAG, "连接请求回应回调异常: %s", e.what());
                     }
                 }
             }

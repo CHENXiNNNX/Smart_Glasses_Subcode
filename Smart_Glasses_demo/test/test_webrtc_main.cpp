@@ -13,67 +13,17 @@
 
 using namespace app::tool::log;
 
-namespace
-{
-    constexpr const char* LOG_TAG = "TEST_WEBRTC";
-} // namespace
+#define LOG_TAG "MAIN"
 
-// 默认配置
-constexpr const char* DEFAULT_DEVICE_ID = "glasses_123456";
-constexpr const char* DEFAULT_SERVER_URL = "ws://192.168.50.184:8000";
+const std::string device_id = "glasses_123456";
+const std::string server_url = "ws://10.93.1.49:8000";
 
-// 打印使用说明
-void printUsage(const char* program_name) {
-    std::cout << "用法: " << program_name << " [选项]" << std::endl;
-    std::cout << std::endl;
-    std::cout << "选项:" << std::endl;
-    std::cout << "  <服务器地址>           信令服务器地址 (例如: ws://192.168.1.100:8000)" << std::endl;
-    std::cout << "  -h, --help            显示此帮助信息" << std::endl;
-    std::cout << "  -d, --device <ID>     指定设备ID (默认: glasses_123456)" << std::endl;
-    std::cout << std::endl;
-    std::cout << "示例:" << std::endl;
-    std::cout << "  " << program_name << "                              # 使用默认配置" << std::endl;
-    std::cout << "  " << program_name << " ws://192.168.1.100:8000     # 指定服务器地址" << std::endl;
-    std::cout << "  " << program_name << " -d my_glasses ws://localhost:8000  # 指定设备ID和服务器" << std::endl;
-    std::cout << std::endl;
-}
-
-int main(int argc, char* argv[]) {
-    // 解析命令行参数
-    std::string device_id = DEFAULT_DEVICE_ID;
-    std::string server_url = DEFAULT_SERVER_URL;
-    
-    for (int i = 1; i < argc; i++) {
-        std::string arg = argv[i];
-        
-        if (arg == "-h" || arg == "--help") {
-            printUsage(argv[0]);
-            return 0;
-        } else if (arg == "-d" || arg == "--device") {
-            if (i + 1 < argc) {
-                device_id = argv[++i];
-            } else {
-                std::cerr << "错误: -d/--device 选项需要指定设备ID" << std::endl;
-                printUsage(argv[0]);
-                return 1;
-            }
-        } else if (arg.find("ws://") == 0 || arg.find("wss://") == 0) {
-            // 识别为服务器地址
-            server_url = arg;
-        } else {
-            std::cerr << "错误: 未知选项 '" << arg << "'" << std::endl;
-            printUsage(argv[0]);
-            return 1;
-        }
-    }
-    
+int main() {
     // 日志系统初始化
-    app::tool::log::Logger::getInstance().initialize(app::tool::log::LogConfig());
+    Logger::getInstance().initialize(LogConfig());
 
-    LOG_INFO(LOG_TAG, "开始初始化WebRTC系统...");
-    LOG_INFO(LOG_TAG, "设备ID: %s", device_id.c_str());
-    LOG_INFO(LOG_TAG, "服务器地址: %s", server_url.c_str());
-    
+    LOG_INFO(LOG_TAG, "开始运行应用程序");
+
     // 创建音频配置
     app::media::audio::AudioConfig audio_config;
     audio_config.sample_rate = 48000;        // 采样率
@@ -84,20 +34,15 @@ int main(int argc, char* argv[]) {
     app::media::camera::VideoConfig video_config;
     video_config.width = 1920;           // 分辨率宽度
     video_config.height = 1080;           // 分辨率高度
-
+    
     // 创建信令配置
     app::protocol::webrtc::SignalingConfig sig_config;
-    sig_config.deviceId = device_id;
-    sig_config.serverUrl = server_url;
+    sig_config.device_id = device_id;
+    sig_config.server_url = server_url;
 
     // 创建WebRTC配置
     app::protocol::webrtc::WebRTCConfig webrtc_config;
-    webrtc_config.enableAudioSend = true;
-    webrtc_config.enableAudioReceive = true;
-    webrtc_config.enableVideoSend = true;
-    webrtc_config.enableVideoReceive = false;
-    webrtc_config.enableDataChannel = true;
-    webrtc_config.ice.stunServers = {"stun:stun.l.google.com:19302"};
+    webrtc_config.ice.stun_servers = {"stun:stun.l.google.com:19302"};
 
     // 创建信令实例
     auto signaling = std::make_shared<app::protocol::webrtc::Signaling>(sig_config);
@@ -118,7 +63,7 @@ int main(int argc, char* argv[]) {
     }
 
     // 启动音频播放
-    if (audio_system->startPlayback() != app::media::audio::AudioError::NONE) {
+    if (audio_system->startStream(app::media::audio::StreamDirection::OUTPUT) != app::media::audio::AudioError::NONE) {
         LOG_ERROR(LOG_TAG, "音频播放启动失败");
         return 1;
     }
@@ -162,7 +107,7 @@ int main(int argc, char* argv[]) {
 
     // 设置WebRTC状态变化回调
     webrtc->onStateChanged([audio_system, video_system](app::protocol::webrtc::WebRTCState state) {
-        LOG_INFO(LOG_TAG, "WebRTC 状态: %d", static_cast<int>(state));
+        LOG_INFO(LOG_TAG, "WebRTC 状态: %s", app::protocol::webrtc::WebRTCSystem::stateToString(state));
 
         if (state == app::protocol::webrtc::WebRTCState::CONNECTED) {
             if (audio_system->startWebRTCMode() != app::media::audio::AudioError::NONE) {
@@ -185,7 +130,7 @@ int main(int argc, char* argv[]) {
                 return;
             }
             // 打印接收到的音频数据大小
-            LOG_INFO(LOG_TAG, "📥 收到音频数据: %zu 字节", size);
+            // LOG_INFO(LOG_TAG, "收到音频数据: %zu 字节", size);
             
             auto pcm_frame = audio_system->decodeOpus(data, size);
             if (pcm_frame) {
@@ -193,7 +138,7 @@ int main(int argc, char* argv[]) {
             }
         }
     );
-
+    
     // 设置信令状态变化回调
     signaling->onStatusChanged([](app::protocol::webrtc::SignalingStatus status) {
         LOG_INFO(LOG_TAG, "信令状态: %s", app::protocol::webrtc::Signaling::statusToString(status).c_str());
@@ -217,28 +162,22 @@ int main(int argc, char* argv[]) {
     });
 
     // 设置错误回调
-    signaling->onError([](app::protocol::webrtc::SignalingError error, const std::string& message) {
+    signaling->onError([](app::protocol::webrtc::SignalingError /* error */, const std::string& message) {
         LOG_ERROR(LOG_TAG, "错误: %s", message.c_str());
     });
     
     // 设置房间信息变化回调
     signaling->onRoomInfoChanged([](const app::protocol::webrtc::RoomInfo& room_info) {
-        LOG_INFO(LOG_TAG, "房间信息变化: 房间ID=%s, 人数=%d, 状态=%s", 
-                 room_info.roomId.c_str(), room_info.num, room_info.roomStatus.c_str());
+        LOG_INFO(LOG_TAG, "房间信息变化: 房间ID=%s, 人数=%d", 
+                 room_info.room_id.c_str(), room_info.num);
     });
-
+    
     // 连接信令服务器
     if (!signaling->connect()) {
         LOG_ERROR(LOG_TAG, "连接信令服务器失败");
         return 1;
     }
-
-    // 初始化WebRTC系统
-    if (webrtc->open(signaling) != app::protocol::webrtc::WebRTCError::NONE) {
-        LOG_ERROR(LOG_TAG, "WebRTCSystem 初始化失败");
-        return 1;
-    }
-
+    
     // 等待连接成功
     LOG_INFO(LOG_TAG, "等待连接建立...");
     int wait_count = 0;
@@ -251,33 +190,64 @@ int main(int argc, char* argv[]) {
         }
     }
     
-    // 加入房间
-    if (!signaling->joinRoom()) {
-        LOG_ERROR(LOG_TAG, "加入房间失败");
+    // 初始化WebRTC系统
+    if (webrtc->initialize(signaling) != app::protocol::webrtc::WebRTCError::NONE) {
+        LOG_ERROR(LOG_TAG, "WebRTC系统初始化失败");
         return 1;
     }
-
+    LOG_INFO(LOG_TAG, "WebRTC系统初始化成功");
+    
     // 主循环
-    std::cout << "[Main] 输入 'q' 退出" << std::endl;
+    LOG_INFO(LOG_TAG, "输入 'q' 退出, 输入 'j' 加入房间, 输入 'l' 离开房间, 输入 'c' 发送连接请求");
     std::string input;
     while (std::cin >> input) {
         if (input == "q" || input == "Q") {
             break;
         }
+        else if (input == "j" || input == "J") {
+            // 加入房间
+            if (!signaling->joinRoom()) {
+                LOG_ERROR(LOG_TAG, "加入房间失败");
+            } else {
+                LOG_INFO(LOG_TAG, "已发送加入房间请求");
+            }
+        }
+        else if (input == "l" || input == "L") {
+            // 离开房间
+            if (!signaling->leaveRoom()) {
+                LOG_ERROR(LOG_TAG, "离开房间失败");
+            } else {
+                LOG_INFO(LOG_TAG, "已发送离开房间请求");
+            }
+        }
+        else if (input == "c" || input == "C") {
+            // 发送连接请求
+            std::string peer_id = signaling->getPeerDeviceId();
+            if (peer_id.empty()) {
+                LOG_ERROR(LOG_TAG, "未配对，无法获取对端设备ID");
+            } else {
+                if (!webrtc->sendConnectionRequest(peer_id, true, true, false)) {
+                    LOG_ERROR(LOG_TAG, "发送连接请求失败");
+                } else {
+                    LOG_INFO(LOG_TAG, "连接请求已发送到: %s", peer_id.c_str());
+                }
+            }
+        }
     }
 
-    audio_system->stopWebRTCMode();           // 停掉采集/编码
-    audio_system->stopPlayback();             // 停掉播放
-    audio_system->shutdown();                 // 释放 PortAudio、内存池等
+    audio_system->stopWebRTCMode();          // 停掉采集/编码
+    audio_system->stopStream(app::media::audio::StreamDirection::OUTPUT);             // 停掉播放
+    audio_system->shutdown();                // 释放 PortAudio、内存池等
 
-    video_system->stopWebRTCMode();           // 停止视频推流
-    video_system->stopRecord();               // 停止录像
-    video_system->shutdown();                 // 释放RKMPI资源
+    video_system->stopWebRTCMode();          // 停止视频推流
+    video_system->stopRecord();              // 停止录像
+    video_system->shutdown();                // 释放RKMPI资源
 
-    sync_deinit(sync_ctx.get());    // 关闭时间同步
+    sync_deinit(sync_ctx.get());   // 关闭时间同步
 
-    webrtc->close();                         // 关闭 PeerConnection/任务队列
+    webrtc->shutdown();                      // 关闭 PeerConnection/任务队列
     signaling->disconnect();                 // 断开 WebSocket
+    
     
     return 0;
 }

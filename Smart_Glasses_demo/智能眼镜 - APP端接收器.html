@@ -197,6 +197,38 @@
             color: white;
         }
 
+        .btn-call {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            font-size: 1.1em;
+            font-weight: bold;
+            padding: 12px 24px;
+        }
+
+        .btn-answer {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            font-size: 1.1em;
+            font-weight: bold;
+            padding: 12px 24px;
+        }
+
+        .btn-reject {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            font-size: 1.1em;
+            font-weight: bold;
+            padding: 12px 24px;
+        }
+
+        .btn-hangup {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            font-size: 1.1em;
+            font-weight: bold;
+            padding: 12px 24px;
+        }
+
         .message-panel {
             background: #f8f9fa;
             border-radius: 10px;
@@ -390,11 +422,11 @@
             </div>
             <div class="status-item">
                 <span class="status-label">角色:</span>
-                <span class="status-value" id="role">未分配</span>
+                <span class="status-value" id="role">answerer</span>
             </div>
             <div class="status-item">
-                <span class="status-label">房间状态:</span>
-                <span class="status-value status-disconnected" id="roomStatus">已关闭</span>
+                <span class="status-label">房间ID:</span>
+                <span class="status-value" id="roomId">未加入</span>
             </div>
         </div>
 
@@ -411,8 +443,11 @@
             <button class="btn btn-primary" id="connectBtn" onclick="connectToServer()" disabled="">连接服务器</button>
             <button class="btn btn-success" id="joinBtn" onclick="joinRoom()">加入房间</button>
             <button class="btn btn-warning" id="leaveBtn" onclick="leaveRoom()" disabled="">离开房间</button>
-            <button class="btn btn-info" id="startVariedAudioBtn" onclick="createAudioTrackWithVariedAudio()" disabled="">开始发送起伏音频</button>
-            <button class="btn btn-secondary" id="stopVariedAudioBtn" onclick="stopVariedAudio()" disabled="">停止起伏音频</button>
+            <button class="btn btn-call" id="voiceCallBtn" onclick="makeVoiceCall()" disabled="">📞 语音电话</button>
+            <button class="btn btn-call" id="videoCallBtn" onclick="makeVideoCall()" disabled="">📹 视频电话</button>
+            <button class="btn btn-answer" id="answerBtn" onclick="answerCall()" disabled="" style="display: none;">✅ 接听</button>
+            <button class="btn btn-reject" id="rejectBtn" onclick="rejectCall()" disabled="" style="display: none;">❌ 拒绝</button>
+            <button class="btn btn-hangup" id="hangupBtn" onclick="hangupCall()" disabled="" style="display: none;">📴 挂断</button>
             <button class="btn btn-danger" id="disconnectBtn" onclick="disconnectFromServer()">断开连接</button>
         </div>
 
@@ -584,6 +619,13 @@
             // 设置设备ID显示
             document.getElementById('deviceId').textContent = DEVICE_ID;
             
+            // 页面加载时自动请求麦克风权限
+            requestMicrophonePermission().then(stream => {
+                if (stream) {
+                    log('麦克风已就绪，可以开始发送实时音频', 'info');
+                }
+            });
+            
             log('页面加载完成，等待连接...', 'info');
         });
         const PEER_DEVICE_ID = 'glasses_123456';  // 设备端标识
@@ -595,9 +637,12 @@
         let dataChannel = null;
         let connectionStatus = 'disconnected';  // disconnected, connected, joined, paired
         let peerDeviceId = '';
-        let role = '';  // offerer, answerer
+        // APP端固定为answerer，不需要role变量
         let roomId = '';
-        let roomStatus = 'close';  // open, close
+        
+        // 电话状态管理
+        let pendingCall = false;  // 是否有待接听的电话
+        let isInCall = false;      // 是否正在通话中
         
         // 音视频元素
         let videoElement = null;
@@ -609,7 +654,10 @@
         // ICE候选使用的mid和mLineIndex（根据SDP动态确定）
         let mediaMid = null;  // 媒体轨道的 mid（audio或video，从SDP解析）
         let mediaMLineIndex = 0;  // 媒体轨道的 m-line 索引
-        let pendingIceCandidates = [];  // 缓存待处理的ICE候选
+        let pendingIceCandidates = [];  // 缓存待处理的ICE候选（用于远程ICE候选）
+        let pendingLocalIceCandidates = [];  // 缓存待发送的本地ICE候选（按流程：SDP交换完成后再发送）
+        let sdpExchangeCompleted = false;  // SDP交换完成标志
+        let answererIceSent = false;  // 应答方是否已发送ICE候选
         let remoteDescriptionSet = false;  // 标记是否已设置远程描述
         
         // 音频配置
@@ -760,29 +808,14 @@
             
             // 更新连接信息
             document.getElementById('peerDevice').textContent = peerDeviceId || '未连接';
-            document.getElementById('role').textContent = role || '未分配';
-            document.getElementById('roomStatus').textContent = getRoomStatusText();
-            document.getElementById('roomStatus').className = `status-value ${getRoomStatusClass()}`;
+            document.getElementById('role').textContent = 'answerer';  // APP端固定为answerer
+            document.getElementById('roomId').textContent = roomId || '未加入';
 
             // 更新按钮状态
             updateButtonStates();
         }
         
-        function getRoomStatusText() {
-            switch (roomStatus) {
-                case 'open': return '已打开';
-                case 'close': return '已关闭';
-                default: return '未知';
-            }
-        }
-        
-        function getRoomStatusClass() {
-            switch (roomStatus) {
-                case 'open': return 'status-connected';
-                case 'close': return 'status-disconnected';
-                default: return 'status-disconnected';
-            }
-        }
+        // 移除房间状态相关函数（新方案中房间信息只有room_id和num）
 
         function getWSStatusText() {
             if (!ws) return '未连接';
@@ -837,11 +870,12 @@
             document.getElementById('connectBtn').disabled = isConnected;
             document.getElementById('joinBtn').disabled = !isConnected || isJoined;
             document.getElementById('leaveBtn').disabled = !isJoined;
-            document.getElementById('startVariedAudioBtn').disabled = !isRtcConnected;
-            document.getElementById('stopVariedAudioBtn').disabled = !isRtcConnected || !audioGenerator;
             document.getElementById('disconnectBtn').disabled = !isConnected;
             document.getElementById('messageInput').disabled = !isDataChannelOpen;
             document.getElementById('sendBtn').disabled = !isDataChannelOpen;
+            
+            // 更新电话按钮状态
+            updateCallButtons();
         }
 
         // WebSocket连接
@@ -873,7 +907,7 @@
                 log('WebSocket连接已关闭', 'warn');
                 connectionStatus = 'disconnected';
                 peerDeviceId = '';
-                role = '';
+                roomId = '';
                 updateStatus();
             };
 
@@ -911,8 +945,39 @@
                 case 'error':
                     handleErrorMessage(message);
                     break;
+                case 'get_connect':
+                    handleConnectionRequestMessage(message);
+                    break;
+                case 'respond_post':
+                    handleConnectionResponseMessage(message);
+                    break;
                 default:
                     log(`未知消息类型: ${message.type}`, 'warn');
+            }
+        }
+        
+        // 处理连接请求消息（get_connect）
+        function handleConnectionRequestMessage(message) {
+            // 根据新方案：APP端如果接收到get_connect消息，只需要知道有连接请求即可，不需要处理data字段
+            log(`收到连接请求 from ${message.from}`, 'info');
+            // 显示接听和拒绝按钮，等待用户操作
+            if (peerDeviceId) {
+                pendingCall = true;
+                updateCallButtons();
+            } else {
+                log('未配对，无法回应连接请求', 'warn');
+            }
+        }
+        
+        // 处理连接请求回应消息（respond_post）
+        function handleConnectionResponseMessage(message) {
+            const respond = message.respond;
+            const from = message.from || 'unknown';
+            if (respond) {
+                log(`收到连接请求回应 from ${from}: 同意连接`, 'info');
+                // APP端收到同意后，等待设备端发送offer
+            } else {
+                log(`收到连接请求回应 from ${from}: 拒绝连接`, 'warn');
             }
         }
         
@@ -921,30 +986,32 @@
             if (message.data) {
                 if (message.data.room_id) {
                     roomId = message.data.room_id;
+                    log(`房间ID: ${roomId}`, 'info');
                 }
                 if (message.data.num !== undefined) {
                     log(`房间人数: ${message.data.num}`, 'info');
                 }
-                if (message.data.room_status) {
-                    roomStatus = message.data.room_status;
-                    log(`房间状态变更: ${roomStatus}`, 'info');
-                    updateStatus();
-                }
+                // 新方案中房间信息只有room_id和num，没有room_status
+                updateStatus();
             }
         }
 
         // 处理角色分配消息
         function handleRoleMessage(message) {
-            if (message.data && message.data.peer_device_id) {
-                peerDeviceId = message.data.peer_device_id;
-            }
-            if (message.data && message.data.role) {
-                role = message.data.role;
+            // 根据新方案，role消息的data字段使用peer_id
+            if (message.data && message.data.peer_id) {
+                peerDeviceId = message.data.peer_id;
             }
             
+            // APP端固定为answerer
+            const role = 'answerer';
+            
             connectionStatus = 'paired';
-            log(`配对成功 - 对端设备: ${peerDeviceId}, 角色: ${role}`, 'info');
+            log(`配对成功 - 对端设备: ${peerDeviceId}, 角色: ${role} (APP端固定为answerer)`, 'info');
             updateStatus();
+            
+            // 更新电话按钮状态
+            updateCallButtons();
 
             // 创建WebRTC连接
             createPeerConnection();
@@ -960,14 +1027,33 @@
                 pc.onicecandidate = function(event) {
                     if (event.candidate) {
                         log(`生成本地ICE候选`, 'webrtc');
-                        sendIceCandidate(event.candidate);
+                        
+                        // 按照流程：SDP交换完成后再发送ICE候选
+                        if (sdpExchangeCompleted) {
+                            // SDP交换已完成，立即发送
+                            sendIceCandidate(event.candidate);
+                            log('发送ICE候选（SDP交换已完成）', 'webrtc');
+                        } else {
+                            // SDP交换未完成，缓存ICE候选
+                            pendingLocalIceCandidates.push(event.candidate);
+                            log(`缓存ICE候选（等待SDP交换完成），当前缓存数: ${pendingLocalIceCandidates.length}`, 'webrtc');
+                        }
                     }
                 };
 
                 // 连接状态变化
                 pc.onconnectionstatechange = function() {
                     log(`WebRTC连接状态: ${pc.connectionState}`, 'webrtc');
+                    // 如果连接断开或失败，更新通话状态
+                    if (pc.connectionState === 'closed' || pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+                        isInCall = false;
+                        pendingCall = false;
+                    } else if (pc.connectionState === 'connected') {
+                        isInCall = true;
+                        pendingCall = false;
+                    }
                     updateStatus();
+                    updateCallButtons();
                 };
 
                 // ICE连接状态变化
@@ -993,14 +1079,14 @@
                     }
                 };
 
-                // 根据角色执行不同操作
-                if (role === 'offerer') {
-                    log('作为发起方，创建DataChannel和音视频轨道', 'webrtc');
-                    setupOffererMode();
-                } else if (role === 'answerer') {
-                    log('作为应答方，等待接收DataChannel和音视频轨道', 'webrtc');
-                    setupAnswererMode();
-                }
+                // 重置SDP交换标志和ICE候选状态
+                sdpExchangeCompleted = false;
+                answererIceSent = false;
+                pendingLocalIceCandidates = [];
+                
+                // APP端固定为answerer，只执行answerer模式
+                log('作为应答方，等待接收DataChannel和音视频轨道', 'webrtc');
+                setupAnswererMode();
 
             } catch (error) {
                 log(`创建WebRTC连接失败: ${error}`, 'error');
@@ -1124,54 +1210,7 @@
         }
         
         // 发起方模式设置
-        async function setupOffererMode() {
-            try {
-                // 创建数据通道
-                dataChannel = pc.createDataChannel('glasses_data_channel');
-                setupDataChannel(dataChannel);
-                
-                // 等待音频轨道创建完成
-                await createAudioTrackWithVariedAudio();
-                
-                // 等待一小段时间确保轨道完全添加到PeerConnection
-                await new Promise(resolve => setTimeout(resolve, 100));
-                
-                // 再次确认轨道已添加
-                const senderTracks = pc.getSenders();
-                log(`最终确认 - PeerConnection发送轨道数量: ${senderTracks.length}`, 'webrtc');
-                
-                if (senderTracks.length === 0) {
-                    log('警告：没有找到发送轨道，SDP可能不包含音频发送能力', 'warn');
-                }
-                
-                // 创建并发送offer
-                const offer = await pc.createOffer();
-                await pc.setLocalDescription(offer);
-                
-                log('发送SDP Offer', 'webrtc');
-                
-                // 调试：检查SDP中的音频媒体行
-                const sdpLines = offer.sdp.split('\n');
-                const audioMediaLine = sdpLines.find(line => line.startsWith('m=audio'));
-                if (audioMediaLine) {
-                    log(`SDP音频媒体行: ${audioMediaLine}`, 'webrtc');
-                }
-                
-                const audioDirection = sdpLines.find(line => line.startsWith('a=sendrecv') || line.startsWith('a=sendonly') || line.startsWith('a=recvonly') || line.startsWith('a=inactive'));
-                if (audioDirection) {
-                    log(`SDP音频方向: ${audioDirection}`, 'webrtc');
-                } else {
-                    log('警告：SDP中没有找到音频方向属性', 'warn');
-                }
-                
-                sendOffer(pc.localDescription.sdp);
-                
-            } catch (error) {
-                log(`发起方模式设置失败: ${error}`, 'error');
-            }
-        }
-        
-        // 应答方模式设置
+        // 应答方模式设置（APP端固定为answerer，不需要offerer模式）
         function setupAnswererMode() {
             // 应答方等待接收远程轨道和DataChannel
             log('等待接收远程DataChannel和音视频轨道', 'webrtc');
@@ -1332,34 +1371,72 @@
             }
         }
         
-        // 全局音频生成器
-        let audioGenerator = null;
+        // 全局音频流和轨道
+        let microphoneStream = null;
+        let microphoneTrack = null;
         
-        // 创建音频轨道并发送高低起伏音频
-        async function createAudioTrackWithVariedAudio() {
+        // 请求麦克风权限并获取音频流
+        async function requestMicrophonePermission() {
             try {
-                // 创建高低起伏音频生成器
-                audioGenerator = new VariedAudioGenerator(48000, 440, 0.05); // 440Hz基础频率，高低起伏，降低音量
-                const audioStream = await audioGenerator.generateAudioStream();
+                log('正在请求麦克风权限...', 'info');
+                microphoneStream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        sampleRate: 48000,
+                        channelCount: 1,
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    } 
+                });
+                log('麦克风权限已获取，开始录音', 'webrtc');
+                return microphoneStream;
+            } catch (error) {
+                log(`获取麦克风权限失败: ${error.message}`, 'error');
+                if (error.name === 'NotAllowedError') {
+                    log('用户拒绝了麦克风权限，请允许访问麦克风后刷新页面', 'error');
+                } else if (error.name === 'NotFoundError') {
+                    log('未找到麦克风设备，请检查设备连接', 'error');
+                }
+                return null;
+            }
+        }
+        
+        // 创建音频轨道并发送实时麦克风音频
+        async function createAudioTrackWithMicrophone() {
+            try {
+                // 检查PeerConnection是否已存在音频发送轨道
+                const existingSenders = pc.getSenders();
+                const hasAudioSender = existingSenders.some(sender => {
+                    return sender.track && sender.track.kind === 'audio';
+                });
                 
-                if (!audioStream) {
-                    log('创建高低起伏音频流失败', 'error');
+                if (hasAudioSender) {
+                    log('音频轨道已存在，跳过重复创建', 'webrtc');
                     return;
                 }
                 
+                // 如果还没有获取麦克风流，先获取
+                if (!microphoneStream) {
+                    microphoneStream = await requestMicrophonePermission();
+                    if (!microphoneStream) {
+                        log('无法获取麦克风流', 'error');
+                        return;
+                    }
+                }
+                
                 // 从音频流中获取音频轨道
-                const audioTracks = audioStream.getAudioTracks();
+                const audioTracks = microphoneStream.getAudioTracks();
                 if (audioTracks.length === 0) {
                     log('音频流中没有音频轨道', 'error');
                     return;
                 }
                 
-                const audioTrack = audioTracks[0];
-                log(`音频轨道创建成功，轨道ID: ${audioTrack.id}`, 'webrtc');
+                microphoneTrack = audioTracks[0];
+                log(`实时音频轨道创建成功，轨道ID: ${microphoneTrack.id}`, 'webrtc');
                 
                 // 添加音频轨道到PeerConnection
-                pc.addTrack(audioTrack, audioStream);
-                log('音频轨道已添加到PeerConnection，开始发送高低起伏音频', 'webrtc');
+                pc.addTrack(microphoneTrack, microphoneStream);
+                log('实时音频轨道已添加到PeerConnection，开始发送麦克风音频', 'webrtc');
                 
                 // 调试：检查PeerConnection中的轨道数量
                 const senderTracks = pc.getSenders();
@@ -1372,19 +1449,21 @@
                     }
                 });
                 
-                // 注意：SDP Offer将在setupOffererMode中创建，这里不需要重复创建
-                
             } catch (error) {
-                log(`创建音频轨道失败: ${error}`, 'error');
+                log(`创建实时音频轨道失败: ${error}`, 'error');
             }
         }
         
-        // 停止高低起伏音频
-        function stopVariedAudio() {
-            if (audioGenerator) {
-                audioGenerator.stop();
-                audioGenerator = null;
-                log('高低起伏音频已停止', 'webrtc');
+        // 停止实时音频（内部使用，用于清理资源）
+        function stopMicrophoneAudio() {
+            if (microphoneTrack) {
+                microphoneTrack.stop();
+                microphoneTrack = null;
+                log('实时音频已停止', 'webrtc');
+            }
+            if (microphoneStream) {
+                microphoneStream.getTracks().forEach(track => track.stop());
+                microphoneStream = null;
             }
         }
 
@@ -1395,24 +1474,15 @@
             dataChannel.onopen = function() {
                 log('DataChannel连接已打开', 'webrtc');
                 updateStatus();
-                
-                // 发送测试消息
-                if (role === 'offerer') {
-                    const testMessage = 'Hello from web client!';
-                    dataChannel.send(testMessage);
-                    log(`发送消息: ${testMessage}`, 'info');
-                }
             };
 
             dataChannel.onmessage = function(event) {
                 log(`收到DataChannel消息: ${event.data}`, 'info');
                 
-                // 如果是应答方，回复消息
-                if (role === 'answerer') {
-                    const reply = `Reply from web: ${event.data}`;
-                    dataChannel.send(reply);
-                    log(`回复消息: ${reply}`, 'info');
-                }
+                // APP端固定为answerer，可以回复消息
+                const reply = `Reply from web: ${event.data}`;
+                dataChannel.send(reply);
+                log(`回复消息: ${reply}`, 'info');
             };
 
             dataChannel.onclose = function() {
@@ -1490,10 +1560,10 @@
                 // 处理之前缓存的ICE候选
                 processPendingIceCandidates();
                 
-                // 只有当远程确实有音频轨道，且包含发送能力时，才创建本地音频轨道
+                // 只有当远程确实有音频轨道，且包含发送能力时，才自动创建本地音频轨道
                 if (hasAudio && audioDirection && (audioDirection === 'sendrecv' || audioDirection === 'sendonly')) {
-                    log('远程Offer包含音频发送能力，创建本地音频轨道', 'webrtc');
-                    await createAudioTrackWithVariedAudio();
+                    log('远程Offer包含音频发送能力，自动创建本地音频轨道', 'webrtc');
+                    await createAudioTrackWithMicrophone();
                     
                     // 等待轨道添加完成
                     await new Promise(resolve => setTimeout(resolve, 100));
@@ -1514,6 +1584,11 @@
                 
                 sendAnswer(pc.localDescription.sdp);
                 
+                // 标记SDP交换完成（Answerer生成Answer后）
+                sdpExchangeCompleted = true;
+                
+                // 注意：应答方的ICE候选在收到发起方的ICE候选后再发送（在handleIceMessage中处理）
+                
             } catch (error) {
                 log(`处理Offer失败: ${error}`, 'error');
             }
@@ -1522,25 +1597,31 @@
         // 处理SDP Answer
         function handleAnswerMessage(message) {
             if (!pc || !message.data || !message.data.sdp) return;
-
+            
             log('收到SDP Answer', 'webrtc');
             
             const answer = new RTCSessionDescription({
                 type: 'answer',
                 sdp: message.data.sdp
             });
-
+            
             pc.setRemoteDescription(answer).then(function() {
                 log('设置远程SDP Answer成功', 'webrtc');
                 remoteDescriptionSet = true;
                 
-                // 从 SDP 中解析媒体轨道的 mid（如果还没有解析过）
-                if (mediaMid === null) {
-                    parseSdpForMediaInfo(message.data.sdp);
-                }
+                // 重要：收到Answer后，重新解析Answer SDP来更新mid信息
+                // 因为设备端发送的ICE候选对应的是Answer SDP的mid，而不是Offer SDP的mid
+                // 即使之前已经解析过Offer SDP的mid，也需要用Answer SDP的mid来更新
+                parseSdpForMediaInfo(message.data.sdp);
+                log('已从Answer SDP重新解析媒体mid信息', 'webrtc');
                 
-                // 处理之前缓存的ICE候选
+                // 处理之前缓存的ICE候选（使用更新后的mid信息）
                 processPendingIceCandidates();
+                
+                // 标记SDP交换完成
+                sdpExchangeCompleted = true;
+                
+                // APP端固定为answerer，收到Answer后不需要发送ICE候选（应该由设备端发送）
             }).catch(function(error) {
                 log(`设置远程SDP失败: ${error}`, 'error');
             });
@@ -1701,6 +1782,28 @@
             log(`收到ICE候选 (长度: ${candidateStr.length})`, 'webrtc');
             
             addIceCandidate(candidateStr);
+            
+            // 按照流程：APP端（answerer）收到设备端（offerer）的ICE候选后，发送自己的ICE候选
+            if (sdpExchangeCompleted && !answererIceSent) {
+                answererIceSent = true;
+                log('APP端（answerer）收到设备端（offerer）ICE候选，开始发送自己的ICE候选', 'webrtc');
+                flushPendingLocalIceCandidates();
+            }
+        }
+        
+        // 发送缓存的本地ICE候选
+        function flushPendingLocalIceCandidates() {
+            if (pendingLocalIceCandidates.length === 0) {
+                return;
+            }
+            
+            log(`开始发送缓存的本地ICE候选，数量: ${pendingLocalIceCandidates.length}`, 'webrtc');
+            
+            pendingLocalIceCandidates.forEach(function(candidate) {
+                sendIceCandidate(candidate);
+            });
+            
+            pendingLocalIceCandidates = [];
         }
 
         // 处理错误消息
@@ -1726,7 +1829,6 @@
         function joinRoom() {
             const message = {
                 type: 'join',
-                device_id: DEVICE_ID,
                 from: DEVICE_ID,
                 to: 'server',
                 time: Date.now() * 1000  // 微秒时间戳
@@ -1742,7 +1844,6 @@
         function leaveRoom() {
             const message = {
                 type: 'leave',
-                device_id: DEVICE_ID,
                 from: DEVICE_ID,
                 to: 'server',
                 time: Date.now() * 1000  // 微秒时间戳
@@ -1752,9 +1853,7 @@
                 log('发送离开房间消息', 'info');
                 connectionStatus = 'connected';
                 peerDeviceId = '';
-                role = '';
                 roomId = '';
-                roomStatus = 'close';
                 
                 // 关闭WebRTC连接
                 closeWebRTCConnection();
@@ -1772,8 +1871,8 @@
                 dataChannel = null;
             }
             
-            // 停止高低起伏音频
-            stopVariedAudio();
+            // 停止实时音频
+            stopMicrophoneAudio();
             
             // 清理音视频元素
             if (videoElement) {
@@ -1789,7 +1888,10 @@
             
             // 重置ICE候选相关变量
             pendingIceCandidates = [];
+            pendingLocalIceCandidates = [];
             remoteDescriptionSet = false;
+            sdpExchangeCompleted = false;
+            answererIceSent = false;
             audioMid = '0';
             audioMLineIndex = 0;
             
@@ -1836,7 +1938,10 @@
             
             // 重置ICE候选相关变量
             pendingIceCandidates = [];
+            pendingLocalIceCandidates = [];
             remoteDescriptionSet = false;
+            sdpExchangeCompleted = false;
+            answererIceSent = false;
             audioMid = '0';
             audioMLineIndex = 0;
             
@@ -1853,30 +1958,18 @@
             hasAudioStream = false;
             connectionStatus = 'disconnected';
             peerDeviceId = '';
-            role = '';
+            roomId = '';
             updateStatus();
             
             log('已断开连接', 'info');
         }
 
         // ========== WebRTC消息发送函数 ==========
-        function sendOffer(sdp) {
-            const message = {
-                type: 'offer',
-                device_id: DEVICE_ID,
-                from: DEVICE_ID,
-                to: peerDeviceId,
-                data: { sdp: sdp },
-                time: Date.now() * 1000  // 微秒时间戳
-            };
-            sendToServer(message);
-            log('发送SDP Offer到设备端', 'webrtc');
-        }
-
+        // 注意：APP端不发送offer，只发送answer（设备端发送offer，APP端回复answer）
+        
         function sendAnswer(sdp) {
             const message = {
                 type: 'answer',
-                device_id: DEVICE_ID,
                 from: DEVICE_ID,
                 to: peerDeviceId,
                 data: { sdp: sdp },
@@ -1889,13 +1982,186 @@
         function sendIceCandidate(candidate) {
             const message = {
                 type: 'ice',
-                device_id: DEVICE_ID,
                 from: DEVICE_ID,
                 to: peerDeviceId,
                 data: { candidate: candidate.candidate },
                 time: Date.now() * 1000  // 微秒时间戳
             };
             sendToServer(message);
+        }
+        
+        // 拨打语音电话（仅音频和消息）
+        function makeVoiceCall() {
+            if (!peerDeviceId) {
+                log('未配对，无法拨打电话', 'error');
+                return;
+            }
+            
+            if (isInCall) {
+                log('正在通话中，无法拨打新电话', 'warn');
+                return;
+            }
+            
+            sendConnectionRequest(true, true, false);  // 开启消息、音频，不开启视频
+            isInCall = true;
+            pendingCall = false;
+            updateCallButtons();
+            log('正在拨打语音电话...', 'info');
+        }
+        
+        // 拨打视频电话（音频、消息和视频）
+        function makeVideoCall() {
+            if (!peerDeviceId) {
+                log('未配对，无法拨打电话', 'error');
+                return;
+            }
+            
+            if (isInCall) {
+                log('正在通话中，无法拨打新电话', 'warn');
+                return;
+            }
+            
+            sendConnectionRequest(true, true, true);  // 开启消息、音频、视频
+            isInCall = true;
+            pendingCall = false;
+            updateCallButtons();
+            log('正在拨打视频电话...', 'info');
+        }
+        
+        // 接听电话
+        function answerCall() {
+            if (!peerDeviceId) {
+                log('未配对，无法接听电话', 'error');
+                return;
+            }
+            
+            if (!pendingCall) {
+                log('没有待接听的电话', 'warn');
+                return;
+            }
+            
+            sendConnectionResponse(true);  // 同意连接请求
+            isInCall = true;
+            pendingCall = false;
+            updateCallButtons();
+            log('已接听电话', 'info');
+        }
+        
+        // 拒绝电话
+        function rejectCall() {
+            if (!peerDeviceId) {
+                log('未配对，无法拒绝电话', 'error');
+                return;
+            }
+            
+            if (!pendingCall) {
+                log('没有待接听的电话', 'warn');
+                return;
+            }
+            
+            sendConnectionResponse(false);  // 拒绝连接请求
+            pendingCall = false;
+            isInCall = false;
+            updateCallButtons();
+            log('已拒绝电话', 'info');
+        }
+        
+        // 挂断电话
+        function hangupCall() {
+            if (!isInCall) {
+                log('当前没有通话', 'warn');
+                return;
+            }
+            
+            // 断开WebRTC连接
+            if (pc) {
+                pc.close();
+                pc = null;
+            }
+            
+            isInCall = false;
+            pendingCall = false;
+            updateCallButtons();
+            log('已挂断电话', 'info');
+        }
+        
+        // 更新电话按钮状态
+        function updateCallButtons() {
+            const voiceCallBtn = document.getElementById('voiceCallBtn');
+            const videoCallBtn = document.getElementById('videoCallBtn');
+            const answerBtn = document.getElementById('answerBtn');
+            const rejectBtn = document.getElementById('rejectBtn');
+            const hangupBtn = document.getElementById('hangupBtn');
+            
+            if (voiceCallBtn && videoCallBtn && answerBtn && rejectBtn && hangupBtn) {
+                // 语音电话和视频电话按钮：已配对且不在通话中时可用
+                const canCall = peerDeviceId && !isInCall && !pendingCall;
+                voiceCallBtn.disabled = !canCall;
+                videoCallBtn.disabled = !canCall;
+                
+                // 接听和拒绝按钮：有待接听的电话时显示
+                if (pendingCall) {
+                    answerBtn.style.display = 'inline-block';
+                    rejectBtn.style.display = 'inline-block';
+                    answerBtn.disabled = false;
+                    rejectBtn.disabled = false;
+                } else {
+                    answerBtn.style.display = 'none';
+                    rejectBtn.style.display = 'none';
+                }
+                
+                // 挂断按钮：正在通话中时显示
+                if (isInCall) {
+                    hangupBtn.style.display = 'inline-block';
+                    hangupBtn.disabled = false;
+                } else {
+                    hangupBtn.style.display = 'none';
+                }
+            }
+        }
+        
+        // 发送连接请求（get_connect）
+        function sendConnectionRequest(messageEnabled = true, audioEnabled = true, videoEnabled = true) {
+            if (!peerDeviceId) {
+                log('未配对，无法发送连接请求', 'error');
+                return;
+            }
+            
+            const message = {
+                type: 'get_connect',
+                from: DEVICE_ID,
+                to: peerDeviceId,
+                data: {
+                    message: messageEnabled,  // 通知设备端打开消息通道
+                    audio: audioEnabled,      // 通知设备端打开音频通道
+                    video: videoEnabled       // 通知设备端打开视频通道
+                },
+                time: Date.now() * 1000  // 微秒时间戳
+            };
+            
+            if (sendToServer(message)) {
+                log(`发送连接请求 (message: ${messageEnabled}, audio: ${audioEnabled}, video: ${videoEnabled})`, 'info');
+            }
+        }
+        
+        // 发送连接请求回应（respond_post）
+        function sendConnectionResponse(accepted = true) {
+            if (!peerDeviceId) {
+                log('未配对，无法发送连接请求回应', 'error');
+                return;
+            }
+            
+            const message = {
+                type: 'respond_post',
+                from: DEVICE_ID,
+                to: peerDeviceId,
+                respond: accepted,  // true表示同意连接，false表示拒绝
+                time: Date.now() * 1000  // 微秒时间戳
+            };
+            
+            if (sendToServer(message)) {
+                log(`发送连接请求回应: ${accepted ? '同意' : '拒绝'}`, 'info');
+            }
         }
 
         // 发送DataChannel消息

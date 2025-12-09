@@ -336,6 +336,7 @@ extern "C"
 
 #include "../sync.hpp"
 #include "../../tool/memory/mem_pool.hpp"
+#include "../../tool/file/file.hpp"
 
 namespace app
 {
@@ -810,34 +811,8 @@ namespace app
                 int          current_jpeg_quality_;
             };
 
-            /**
-             * @brief 文件资源包装器
-             */
-            class FileWrapper
-            {
-            public:
-                explicit FileWrapper(const std::string& filename, bool write = true);
-                ~FileWrapper();
-
-                FileWrapper(const FileWrapper&)            = delete;
-                FileWrapper& operator=(const FileWrapper&) = delete;
-
-                bool isValid() const
-                {
-                    return valid_;
-                }
-                bool        write(const void* data, size_t size);
-                void        flush();
-                std::string getFilename() const
-                {
-                    return filename_;
-                }
-
-            private:
-                std::string filename_;
-                FILE*       file_  = nullptr;
-                bool        valid_ = false;
-            };
+            // 使用文件工具类
+            using FileWrapper = tool::file::FileWrapper;
 
             // ============================================================================
             // 回调函数类型定义

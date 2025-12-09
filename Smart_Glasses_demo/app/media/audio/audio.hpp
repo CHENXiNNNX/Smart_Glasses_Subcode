@@ -410,6 +410,10 @@ namespace app
                 size_t max_record_queue_size   = 300; // 录音队列最大长度（6秒缓冲）
                 size_t max_playback_queue_size = 300; // 播放队列最大长度（6秒缓冲）
 
+                // 录音文件存储配置
+                std::string record_path         = "/root/audio/"; // 录音保存路径
+                int         record_duration_sec = 0;              // 录音时长（秒，0表示手动停止）
+
                 // 内存池配置
                 AudioMemoryPoolConfig mem_pool_config;
             };
@@ -605,6 +609,29 @@ namespace app
                  * @brief 清空播放队列
                  */
                 void clearPlaybackQueue();
+
+                // ========================================================================
+                // 录音文件存储
+                // ========================================================================
+
+                /**
+                 * @brief 开始录音（保存到文件）
+                 * @param filename 文件名（可选，为空则使用默认命名）
+                 * @param duration_sec 录音时长（秒，0表示手动停止）
+                 * @return AudioError::NONE 成功
+                 */
+                AudioError startRecord(const std::string& filename = "", int duration_sec = 0);
+
+                /**
+                 * @brief 停止录音
+                 * @return AudioError::NONE 成功
+                 */
+                AudioError stopRecord();
+
+                /**
+                 * @brief 检查是否正在录音
+                 */
+                bool isRecording() const;
 
                 // ========================================================================
                 // 编解码

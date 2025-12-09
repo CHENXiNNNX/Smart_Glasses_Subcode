@@ -442,8 +442,8 @@ namespace app
     {
         // 创建信令配置
         app::protocol::webrtc::SignalingConfig sig_config;
-        sig_config.deviceId = device_id;
-        sig_config.serverUrl = server_url;
+        sig_config.device_id = device_id;
+        sig_config.server_url = server_url;
 
         // 创建信令实例
         signaling_ = std::make_shared<app::protocol::webrtc::Signaling>(sig_config);
@@ -492,212 +492,206 @@ namespace app
     // 初始化Webrtc
     bool App::initWebrtc()
     {
-        if (webrtc_)
-        {
-            LOG_WARN(LOG_TAG, "WebRTC系统已初始化，跳过");
-            return true;
-        }
+        // if (webrtc_)
+        // {
+        //     LOG_WARN(LOG_TAG, "WebRTC系统已初始化，跳过");
+        //     return true;
+        // }
 
-        if (!signaling_)
-        {
-            LOG_ERROR(LOG_TAG, "信令系统未初始化，无法初始化WebRTC");
-            return false;
-        }
+        // if (!signaling_)
+        // {
+        //     LOG_ERROR(LOG_TAG, "信令系统未初始化，无法初始化WebRTC");
+        //     return false;
+        // }
 
-        // 创建WebRTC配置
-        app::protocol::webrtc::WebRTCConfig webrtc_config;
-        webrtc_config.enableAudioSend    = true;
-        webrtc_config.enableAudioReceive = true;
-        webrtc_config.enableVideoSend    = true;
-        webrtc_config.enableVideoReceive = false;
-        webrtc_config.enableDataChannel  = true;
-        webrtc_config.ice.stunServers    = {"stun:stun.l.google.com:19302"};
+        // // 创建WebRTC配置
+        // app::protocol::webrtc::WebRTCConfig webrtc_config;
+        // webrtc_config.enableAudioSend    = true;
+        // webrtc_config.enableAudioReceive = true;
+        // webrtc_config.enableVideoSend    = true;
+        // webrtc_config.enableVideoReceive = false;
+        // webrtc_config.enableDataChannel  = true;
+        // webrtc_config.ice.stunServers    = {"stun:stun.l.google.com:19302"};
 
-        // 创建WebRTC实例
-        webrtc_ = std::make_shared<app::protocol::webrtc::WebRTCSystem>(webrtc_config);
+        // // 创建WebRTC实例
+        // webrtc_ = std::make_shared<app::protocol::webrtc::WebRTCSystem>(webrtc_config);
 
-        // 打开WebRTC系统
-        app::protocol::webrtc::WebRTCError webrtc_err = webrtc_->open(signaling_);
-        if (webrtc_err != app::protocol::webrtc::WebRTCError::NONE)
-        {
-            LOG_ERROR(LOG_TAG, "  WebRTC系统初始化失败: %d", static_cast<int>(webrtc_err));
-            webrtc_.reset();
-            return false;
-        }
+        // // 打开WebRTC系统
+        // app::protocol::webrtc::WebRTCError webrtc_err = webrtc_->open(signaling_);
+        // if (webrtc_err != app::protocol::webrtc::WebRTCError::NONE)
+        // {
+        //     LOG_ERROR(LOG_TAG, "  WebRTC系统初始化失败: %d", static_cast<int>(webrtc_err));
+        //     webrtc_.reset();
+        //     return false;
+        // }
 
-        std::weak_ptr<app::protocol::webrtc::WebRTCSystem> webrtc_wp = webrtc_;
+        // std::weak_ptr<app::protocol::webrtc::WebRTCSystem> webrtc_wp = webrtc_;
 
-        if (audio_system_)
-        {
-            audio_system_->setWebRTCAudioCallback(
-                [webrtc_wp](app::media::audio::AudioFramePtr opus_frame)
-                {
-                    auto webrtc = webrtc_wp.lock();
-                    if (!webrtc || !opus_frame || opus_frame->size == 0 || !webrtc->isConnected())
-                    {
-                        return;
-                    }
-                    webrtc->sendAudioData(opus_frame->data, opus_frame->size,
-                                          opus_frame->timestamp);
-                });
+        // if (audio_system_)
+        // {
+        //     audio_system_->setWebRTCAudioCallback(
+        //         [webrtc_wp](app::media::audio::AudioFramePtr opus_frame)
+        //         {
+        //             auto webrtc = webrtc_wp.lock();
+        //             if (!webrtc || !opus_frame || opus_frame->size == 0 || !webrtc->isConnected())
+        //             {
+        //                 return;
+        //             }
+        //             webrtc->sendAudioData(opus_frame->data, opus_frame->size,
+        //                                   opus_frame->timestamp);
+        //         });
 
-            webrtc_->onAudioData(
-                [this](const uint8_t* data, size_t size)
-                {
-                    if (!audio_system_ || !data || size == 0)
-                    {
-                        return;
-                    }
+        //     webrtc_->onAudioData(
+        //         [this](const uint8_t* data, size_t size)
+        //         {
+        //             if (!audio_system_ || !data || size == 0)
+        //             {
+        //                 return;
+        //             }
 
-                    if (!audio_system_->isStreamRunning(app::media::audio::StreamDirection::OUTPUT))
-                    {
-                        auto play_err = audio_system_->startStream(app::media::audio::StreamDirection::OUTPUT);
-                        if (play_err != app::media::audio::AudioError::NONE &&
-                            play_err != app::media::audio::AudioError::ALREADY_RUNNING)
-                        {
-                            LOG_ERROR(LOG_TAG, "启动WebRTC播放流失败: %d", static_cast<int>(play_err));
-                            return;
-                        }
-                    }
+        //             if (!audio_system_->isStreamRunning(app::media::audio::StreamDirection::OUTPUT))
+        //             {
+        //                 auto play_err = audio_system_->startStream(app::media::audio::StreamDirection::OUTPUT);
+        //                 if (play_err != app::media::audio::AudioError::NONE &&
+        //                     play_err != app::media::audio::AudioError::ALREADY_RUNNING)
+        //                 {
+        //                     LOG_ERROR(LOG_TAG, "启动WebRTC播放流失败: %d", static_cast<int>(play_err));
+        //                     return;
+        //                 }
+        //             }
 
-                    auto pcm_frame = audio_system_->decodeOpus(data, size);
-                    if (pcm_frame)
-                    {
-                        audio_system_->pushPlaybackFrame(pcm_frame);
-                    }
-                });
-        }
+        //             auto pcm_frame = audio_system_->decodeOpus(data, size);
+        //             if (pcm_frame)
+        //             {
+        //                 audio_system_->pushPlaybackFrame(pcm_frame);
+        //             }
+        //         });
+        // }
 
-        if (video_system_)
-        {
-            video_system_->setWebRTCVideoCallback(
-                [webrtc_wp](app::media::camera::VideoFramePtr video_frame)
-                {
-                    auto webrtc = webrtc_wp.lock();
-                    if (!webrtc || !video_frame || video_frame->size == 0 || !webrtc->isConnected())
-                    {
-                        return;
-                    }
+        // if (video_system_)
+        // {
+        //     video_system_->setWebRTCVideoCallback(
+        //         [webrtc_wp](app::media::camera::VideoFramePtr video_frame)
+        //         {
+        //             auto webrtc = webrtc_wp.lock();
+        //             if (!webrtc || !video_frame || video_frame->size == 0 || !webrtc->isConnected())
+        //             {
+        //                 return;
+        //             }
 
-                    webrtc->sendVideoData(video_frame->data, video_frame->size,
-                                          video_frame->timestamp, video_frame->is_keyframe);
-                });
-        }
+        //             webrtc->sendVideoData(video_frame->data, video_frame->size,
+        //                                   video_frame->timestamp, video_frame->is_keyframe);
+        //         });
+        // }
 
-        // AI音频 -> WebRTC 音频
-        auto prepare_audio_for_webrtc = [this]()
-        {
-            if (!audio_system_)
-            {
-                return;
-            }
+        // // AI音频 -> WebRTC 音频
+        // auto prepare_audio_for_webrtc = [this]()
+        // {
+        //     if (!audio_system_)
+        //     {
+        //         return;
+        //     }
 
-            auto stop_ai_err = audio_system_->stopAIMode();
-            if (stop_ai_err != app::media::audio::AudioError::NONE &&
-                stop_ai_err != app::media::audio::AudioError::NOT_INITIALIZED)
-            {
-                LOG_WARN(LOG_TAG, "停止AI模式失败: %d", static_cast<int>(stop_ai_err));
-            }
+        //     auto stop_ai_err = audio_system_->stopAIMode();
+        //     if (stop_ai_err != app::media::audio::AudioError::NONE &&
+        //         stop_ai_err != app::media::audio::AudioError::NOT_INITIALIZED)
+        //     {
+        //         LOG_WARN(LOG_TAG, "停止AI模式失败: %d", static_cast<int>(stop_ai_err));
+        //     }
 
-            if (audio_system_->isStreamRunning(app::media::audio::StreamDirection::OUTPUT))
-            {
-                audio_system_->stopStream(app::media::audio::StreamDirection::OUTPUT);
-            }
+        //     if (audio_system_->isStreamRunning(app::media::audio::StreamDirection::OUTPUT))
+        //     {
+        //         audio_system_->stopStream(app::media::audio::StreamDirection::OUTPUT);
+        //     }
 
-            const int max_wait_ms       = 500;
-            const int check_interval_ms = 50;
-            int       waited_ms         = 0;
+        //     const int max_wait_ms       = 500;
+        //     const int check_interval_ms = 50;
+        //     int       waited_ms         = 0;
 
-            while (audio_system_->getMainState() != app::media::audio::AudioMainState::NONE &&
-                   waited_ms < max_wait_ms)
-            {
-                std::this_thread::sleep_for(std::chrono::milliseconds(check_interval_ms));
-                waited_ms += check_interval_ms;
-            }
+        //     while (audio_system_->getMainState() != app::media::audio::AudioMainState::NONE &&
+        //            waited_ms < max_wait_ms)
+        //     {
+        //         std::this_thread::sleep_for(std::chrono::milliseconds(check_interval_ms));
+        //         waited_ms += check_interval_ms;
+        //     }
 
-            if (audio_system_->getMainState() != app::media::audio::AudioMainState::NONE)
-            {
-                LOG_WARN(LOG_TAG, "音频主状态仍未退出AI模式，强制切换");
-            }
-        };
+        //     if (audio_system_->getMainState() != app::media::audio::AudioMainState::NONE)
+        //     {
+        //         LOG_WARN(LOG_TAG, "音频主状态仍未退出AI模式，强制切换");
+        //     }
+        // };
 
-        // 状态变化时切换音视频系统模式
-        webrtc_->onStateChanged(
-            [this, prepare_audio_for_webrtc](app::protocol::webrtc::WebRTCState state)
-            {
-                LOG_INFO(LOG_TAG, "WebRTC 状态变化: %d", static_cast<int>(state));
+        // // 状态变化时切换音视频系统模式
+        // webrtc_->onStateChanged(
+        //     [this, prepare_audio_for_webrtc](app::protocol::webrtc::WebRTCState state)
+        //     {
+        //         LOG_INFO(LOG_TAG, "WebRTC 状态变化: %d", static_cast<int>(state));
 
-                if (state == app::protocol::webrtc::WebRTCState::CONNECTED)
-                {
-                    if (audio_system_)
-                    {
-                        prepare_audio_for_webrtc();
-                        auto err = audio_system_->startWebRTCMode();
-                        if (err != app::media::audio::AudioError::NONE &&
-                            err != app::media::audio::AudioError::ALREADY_RUNNING)
-                        {
-                            LOG_ERROR(LOG_TAG, "启动WebRTC音频模式失败: %d", static_cast<int>(err));
-                        }
-                    }
+        //         if (state == app::protocol::webrtc::WebRTCState::CONNECTED)
+        //         {
+        //             if (audio_system_)
+        //             {
+        //                 prepare_audio_for_webrtc();
+        //                 auto err = audio_system_->startWebRTCMode();
+        //                 if (err != app::media::audio::AudioError::NONE &&
+        //                     err != app::media::audio::AudioError::ALREADY_RUNNING)
+        //                 {
+        //                     LOG_ERROR(LOG_TAG, "启动WebRTC音频模式失败: %d", static_cast<int>(err));
+        //                 }
+        //             }
 
-                    if (video_system_)
-                    {
-                        auto err = video_system_->startWebRTCMode();
-                        if (err != app::media::camera::VideoError::NONE &&
-                            err != app::media::camera::VideoError::ALREADY_STARTED)
-                        {
-                            LOG_ERROR(LOG_TAG, "启动WebRTC视频模式失败: %d", static_cast<int>(err));
-                        }
-                    }
-                }
-                else if (state == app::protocol::webrtc::WebRTCState::FAILED ||
-                         state == app::protocol::webrtc::WebRTCState::DISCONNECTED)
-                {
-                    if (audio_system_)
-                    {
-                        audio_system_->stopWebRTCMode();
-                        // auto err = audio_system_->startAIMode();
-                        // if (err != app::media::audio::AudioError::NONE &&
-                        //     err != app::media::audio::AudioError::ALREADY_RUNNING)
-                        // {
-                        //     LOG_WARN(LOG_TAG, "恢复AI音频模式失败: %d", static_cast<int>(err));
-                        // }
-                    }
-                    if (video_system_)
-                    {
-                        video_system_->stopWebRTCMode();
-                    }
-                }
-            });
+        //             if (video_system_)
+        //             {
+        //                 auto err = video_system_->startWebRTCMode();
+        //                 if (err != app::media::camera::VideoError::NONE &&
+        //                     err != app::media::camera::VideoError::ALREADY_STARTED)
+        //                 {
+        //                     LOG_ERROR(LOG_TAG, "启动WebRTC视频模式失败: %d", static_cast<int>(err));
+        //                 }
+        //             }
+        //         }
+        //         else if (state == app::protocol::webrtc::WebRTCState::FAILED ||
+        //                  state == app::protocol::webrtc::WebRTCState::DISCONNECTED)
+        //         {
+        //             if (audio_system_)
+        //             {
+        //                 audio_system_->stopWebRTCMode();
+        //             }
+        //             if (video_system_)
+        //             {
+        //                 video_system_->stopWebRTCMode();
+        //             }
+        //         }
+        //     });
 
-        LOG_INFO(LOG_TAG, "  WebRTC系统初始化成功");
+        // LOG_INFO(LOG_TAG, "  WebRTC系统初始化成功");
         return true;
     }
 
     // 释放Webrtc
     bool App::deinitWebrtc()
     {
-        if (!webrtc_)
-        {
-            return true;
-        }
+        // if (!webrtc_)
+        // {
+        //     return true;
+        // }
 
-        if (audio_system_)
-        {
-            audio_system_->stopWebRTCMode();
-            audio_system_->setWebRTCAudioCallback(nullptr);
-        }
+        // if (audio_system_)
+        // {
+        //     audio_system_->stopWebRTCMode();
+        //     audio_system_->setWebRTCAudioCallback(nullptr);
+        // }
 
-        if (video_system_)
-        {
-            video_system_->stopWebRTCMode();
-            video_system_->setWebRTCVideoCallback(nullptr);
-        }
+        // if (video_system_)
+        // {
+        //     video_system_->stopWebRTCMode();
+        //     video_system_->setWebRTCVideoCallback(nullptr);
+        // }
 
-        webrtc_->close();
-        webrtc_.reset();
+        // webrtc_->close();
+        // webrtc_.reset();
 
-        LOG_INFO(LOG_TAG, "  WebRTC系统已释放");
+        // LOG_INFO(LOG_TAG, "  WebRTC系统已释放");
         return true;
     }
 

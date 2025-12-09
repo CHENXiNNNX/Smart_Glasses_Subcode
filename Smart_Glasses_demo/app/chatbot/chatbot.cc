@@ -816,23 +816,23 @@ namespace app
                     {
 
                         LOG_INFO(LOG_TAG, "========================================");
-                        LOG_INFO(LOG_TAG, "  🎙️ 唤醒词检测到！Hotword %d",
+                        LOG_INFO(LOG_TAG, "       唤醒词检测到！Hotword %d",
                                  hotword_index);
                         LOG_INFO(LOG_TAG, "========================================");
 
-                        // 检查WebRTC是否正在连接或已连接，如果是则忽略唤醒词
-                        if (webrtc_system_)
-                        {
-                            auto webrtc_state = webrtc_system_->getState();
-                            if (webrtc_state != app::protocol::webrtc::WebRTCState::UNINITIALIZED &&
-                                webrtc_state != app::protocol::webrtc::WebRTCState::DISCONNECTED &&
-                                webrtc_state != app::protocol::webrtc::WebRTCState::FAILED)
-                            {
-                                LOG_WARN(LOG_TAG, "WebRTC正在连接或已连接，忽略唤醒词。WebRTC状态: %d",
-                                         static_cast<int>(webrtc_state));
-                                return;
-                            }
-                        }
+                        // // 检查WebRTC是否正在连接或已连接，如果是则忽略唤醒词
+                        // if (webrtc_system_)
+                        // {
+                        //     auto webrtc_state = webrtc_system_->getState();
+                        //     if (webrtc_state != app::protocol::webrtc::WebRTCState::UNINITIALIZED &&
+                        //         webrtc_state != app::protocol::webrtc::WebRTCState::DISCONNECTED &&
+                        //         webrtc_state != app::protocol::webrtc::WebRTCState::FAILED)
+                        //     {
+                        //         LOG_WARN(LOG_TAG, "WebRTC正在连接或已连接，忽略唤醒词。WebRTC状态: %d",
+                        //                  static_cast<int>(webrtc_state));
+                        //         return;
+                        //     }
+                        // }
 
                         // 检查当前状态，只有在READY状态才处理唤醒词
                         ChatbotState current_state = state_.load();

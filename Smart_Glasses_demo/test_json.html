@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC JSON消息测试工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .panel.full-width {
+            grid-column: 1 / -1;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .config-section {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        textarea {
+            min-height: 120px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.connecting {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .message-list {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background: #f8f9fa;
+        }
+
+        .message-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+            background: white;
+        }
+
+        .message-item.sent {
+            border-left-color: #28a745;
+        }
+
+        .message-item.received {
+            border-left-color: #007bff;
+        }
+
+        .message-item.error {
+            border-left-color: #dc3545;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .message-type {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .message-time {
+            color: #999;
+        }
+
+        .message-content {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .template-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .template-btn {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+        }
+
+        .clear-btn {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 WebRTC JSON消息测试工具</h1>
+    
+    <div class="container">
+        <!-- 连接配置面板 -->
+        <div class="panel">
+            <h2>📡 连接配置</h2>
+            <div class="config-section">
+                <div class="form-group">
+                    <label>服务器地址:</label>
+                    <input type="text" id="serverUrl" value="ws://localhost:8000" placeholder="ws://localhost:8000">
+                </div>
+                <div class="form-group">
+                    <label>设备ID (from):</label>
+                    <select id="deviceType">
+                        <option value="glasses">设备端 (glasses_xxx)</option>
+                        <option value="app">APP端 (app_xxx)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>设备标识 (xxx):</label>
+                    <input type="text" id="deviceId" value="123456" placeholder="123456">
+                </div>
+                <div class="form-group">
+                    <label>对端ID (to, 用于点对点消息):</label>
+                    <input type="text" id="peerId" value="" placeholder="app_123456 或 glasses_123456">
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="connect()">连接</button>
+                    <button class="btn btn-danger" onclick="disconnect()">断开</button>
+                </div>
+                <div id="connectionStatus" class="status disconnected">未连接</div>
+            </div>
+        </div>
+
+        <!-- 消息模板面板 -->
+        <div class="panel">
+            <h2>📝 消息模板</h2>
+            <div class="template-buttons">
+                <button class="btn btn-secondary template-btn" onclick="loadTemplate('join')">加入房间</button>
+                <button class="btn btn-secondary template-btn" onclick="loadTemplate('leave')">离开房间</button>
+                <button class="btn btn-secondary template-btn" onclick="loadTemplate('get_room_info')">请求房间信息</button>
+                <button class="btn btn-secondary template-btn" onclick="loadTemplate('get_connect')">连接请求</button>
+                <button class="btn btn-secondary template-btn" onclick="loadTemplate('offer')">发送Offer</button>
+                <button class="btn btn-secondary template-btn" onclick="loadTemplate('answer')">发送Answer</button>
+                <button class="btn btn-secondary template-btn" onclick="loadTemplate('ice')">发送ICE</button>
+            </div>
+            <div class="form-group">
+                <label>消息内容 (JSON):</label>
+                <textarea id="messageContent" placeholder='{"type": "join", "from": "glasses_123456", "to": "server", "time": 1234567890000}'></textarea>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-success" onclick="sendMessage()">发送消息</button>
+                <button class="btn btn-secondary" onclick="validateJSON()">验证JSON</button>
+                <button class="btn btn-secondary" onclick="formatJSON()">格式化JSON</button>
+            </div>
+        </div>
+
+        <!-- 连接请求配置 -->
+        <div class="panel">
+            <h2>🔗 连接请求配置</h2>
+            <div class="form-group">
+                <label>对端ID:</label>
+                <input type="text" id="connectPeerId" placeholder="app_123456 或 glasses_123456">
+            </div>
+            <div class="form-group">
+                <label>通道配置:</label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="enableMessage" checked>
+                        <label for="enableMessage">消息通道</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="enableAudio" checked>
+                        <label for="enableAudio">音频通道</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="enableVideo" checked>
+                        <label for="enableVideo">视频通道</label>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="sendConnectionRequest()">发送连接请求</button>
+        </div>
+
+        <!-- 消息日志面板 -->
+        <div class="panel full-width">
+            <h2>📋 消息日志</h2>
+            <button class="btn btn-secondary clear-btn" onclick="clearMessages()">清空日志</button>
+            <div id="messageList" class="message-list"></div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let deviceId = '';
+        let deviceType = 'glasses';
+
+        // 获取当前设备ID
+        function getCurrentDeviceId() {
+            const type = document.getElementById('deviceType').value;
+            const id = document.getElementById('deviceId').value;
+            return `${type}_${id}`;
+        }
+
+        // 连接WebSocket
+        function connect() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            if (!serverUrl) {
+                alert('请输入服务器地址');
+                return;
+            }
+
+            try {
+                ws = new WebSocket(serverUrl);
+                deviceId = getCurrentDeviceId();
+                deviceType = document.getElementById('deviceType').value;
+
+                updateStatus('connecting', '正在连接...');
+
+                ws.onopen = function() {
+                    updateStatus('connected', `已连接 (${deviceId})`);
+                    addMessage('系统', '连接成功', 'info');
+                };
+
+                ws.onmessage = function(event) {
+                    try {
+                        const message = JSON.parse(event.data);
+                        addMessage('接收', JSON.stringify(message, null, 2), 'received', message);
+                    } catch (e) {
+                        addMessage('接收', event.data, 'received');
+                    }
+                };
+
+                ws.onerror = function(error) {
+                    addMessage('错误', 'WebSocket错误: ' + error, 'error');
+                };
+
+                ws.onclose = function() {
+                    updateStatus('disconnected', '已断开连接');
+                    addMessage('系统', '连接已关闭', 'info');
+                };
+            } catch (error) {
+                updateStatus('disconnected', '连接失败');
+                addMessage('错误', '连接失败: ' + error.message, 'error');
+            }
+        }
+
+        // 断开连接
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+            updateStatus('disconnected', '未连接');
+        }
+
+        // 更新连接状态
+        function updateStatus(status, text) {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.className = 'status ' + status;
+            statusEl.textContent = text;
+        }
+
+        // 发送消息
+        function sendMessage() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert('请先连接服务器');
+                return;
+            }
+
+            const content = document.getElementById('messageContent').value.trim();
+            if (!content) {
+                alert('请输入消息内容');
+                return;
+            }
+
+            try {
+                let message = JSON.parse(content);
+                
+                // 自动填充from字段
+                if (!message.from) {
+                    message.from = getCurrentDeviceId();
+                }
+                
+                // 自动填充time字段（微秒时间戳）
+                if (!message.time) {
+                    message.time = Date.now() * 1000;
+                }
+
+                // 自动填充to字段（如果是点对点消息且未指定）
+                if (!message.to && message.type !== 'join' && message.type !== 'leave' && message.type !== 'get_room_info') {
+                    const peerId = document.getElementById('peerId').value;
+                    if (peerId) {
+                        message.to = peerId;
+                    } else {
+                        // 根据设备类型自动设置对端
+                        if (deviceType === 'glasses') {
+                            message.to = 'app_' + document.getElementById('deviceId').value;
+                        } else {
+                            message.to = 'glasses_' + document.getElementById('deviceId').value;
+                        }
+                    }
+                }
+
+                const jsonStr = JSON.stringify(message);
+                ws.send(jsonStr);
+                addMessage('发送', jsonStr, 'sent', message);
+                
+                // 清空输入框
+                document.getElementById('messageContent').value = '';
+            } catch (error) {
+                alert('JSON格式错误: ' + error.message);
+            }
+        }
+
+        // 发送连接请求
+        function sendConnectionRequest() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert('请先连接服务器');
+                return;
+            }
+
+            const peerId = document.getElementById('connectPeerId').value;
+            if (!peerId) {
+                alert('请输入对端ID');
+                return;
+            }
+
+            const message = {
+                type: 'get_connect',
+                from: getCurrentDeviceId(),
+                to: peerId,
+                data: {
+                    message: document.getElementById('enableMessage').checked,
+                    audio: document.getElementById('enableAudio').checked,
+                    video: document.getElementById('enableVideo').checked
+                },
+                time: Date.now() * 1000
+            };
+
+            const jsonStr = JSON.stringify(message);
+            ws.send(jsonStr);
+            addMessage('发送', jsonStr, 'sent', message);
+        }
+
+        // 加载消息模板
+        function loadTemplate(type) {
+            const deviceId = getCurrentDeviceId();
+            const deviceIdNum = document.getElementById('deviceId').value;
+            let message = {};
+
+            switch(type) {
+                case 'join':
+                    message = {
+                        type: 'join',
+                        from: deviceId,
+                        to: 'server',
+                        time: Date.now() * 1000
+                    };
+                    break;
+                case 'leave':
+                    message = {
+                        type: 'leave',
+                        from: deviceId,
+                        to: 'server',
+                        time: Date.now() * 1000
+                    };
+                    break;
+                case 'get_room_info':
+                    message = {
+                        type: 'get_room_info',
+                        from: deviceId,
+                        to: 'server',
+                        time: Date.now() * 1000
+                    };
+                    break;
+                case 'get_connect':
+                    const peerId = document.getElementById('peerId').value || 
+                                   (deviceType === 'glasses' ? 'app_' + deviceIdNum : 'glasses_' + deviceIdNum);
+                    message = {
+                        type: 'get_connect',
+                        from: deviceId,
+                        to: peerId,
+                        data: {
+                            message: true,
+                            audio: true,
+                            video: true
+                        },
+                        time: Date.now() * 1000
+                    };
+                    break;
+                case 'offer':
+                    const offerPeerId = document.getElementById('peerId').value || 
+                                       (deviceType === 'glasses' ? 'app_' + deviceIdNum : 'glasses_' + deviceIdNum);
+                    message = {
+                        type: 'offer',
+                        from: deviceId,
+                        to: offerPeerId,
+                        data: {
+                            sdp: 'v=0\r\no=- 123456789 123456789 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\n...'
+                        },
+                        time: Date.now() * 1000
+                    };
+                    break;
+                case 'answer':
+                    const answerPeerId = document.getElementById('peerId').value || 
+                                        (deviceType === 'glasses' ? 'app_' + deviceIdNum : 'glasses_' + deviceIdNum);
+                    message = {
+                        type: 'answer',
+                        from: deviceId,
+                        to: answerPeerId,
+                        data: {
+                            sdp: 'v=0\r\no=- 123456789 123456789 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\n...'
+                        },
+                        time: Date.now() * 1000
+                    };
+                    break;
+                case 'ice':
+                    const icePeerId = document.getElementById('peerId').value || 
+                                     (deviceType === 'glasses' ? 'app_' + deviceIdNum : 'glasses_' + deviceIdNum);
+                    message = {
+                        type: 'ice',
+                        from: deviceId,
+                        to: icePeerId,
+                        data: {
+                            candidate: 'candidate:1 1 UDP 2130706431 192.168.1.1 54321 typ host'
+                        },
+                        time: Date.now() * 1000
+                    };
+                    break;
+            }
+
+            document.getElementById('messageContent').value = JSON.stringify(message, null, 2);
+        }
+
+        // 验证JSON格式
+        function validateJSON() {
+            const content = document.getElementById('messageContent').value.trim();
+            if (!content) {
+                alert('请输入JSON内容');
+                return;
+            }
+
+            try {
+                const obj = JSON.parse(content);
+                alert('✅ JSON格式正确！\n\n类型: ' + (obj.type || '未指定'));
+            } catch (error) {
+                alert('❌ JSON格式错误: ' + error.message);
+            }
+        }
+
+        // 格式化JSON
+        function formatJSON() {
+            const content = document.getElementById('messageContent').value.trim();
+            if (!content) {
+                return;
+            }
+
+            try {
+                const obj = JSON.parse(content);
+                document.getElementById('messageContent').value = JSON.stringify(obj, null, 2);
+            } catch (error) {
+                alert('JSON格式错误，无法格式化: ' + error.message);
+            }
+        }
+
+        // 添加消息到日志
+        function addMessage(direction, content, type, messageObj) {
+            const messageList = document.getElementById('messageList');
+            const messageItem = document.createElement('div');
+            messageItem.className = 'message-item ' + type;
+
+            const time = new Date().toLocaleTimeString();
+            const messageType = messageObj ? messageObj.type : '未知';
+            
+            messageItem.innerHTML = `
+                <div class="message-header">
+                    <span class="message-type">[${direction}] ${messageType}</span>
+                    <span class="message-time">${time}</span>
+                </div>
+                <div class="message-content">${escapeHtml(content)}</div>
+            `;
+
+            messageList.appendChild(messageItem);
+            messageList.scrollTop = messageList.scrollHeight;
+        }
+
+        // 清空消息日志
+        function clearMessages() {
+            document.getElementById('messageList').innerHTML = '';
+        }
+
+        // HTML转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 页面加载完成
+        window.addEventListener('DOMContentLoaded', function() {
+            addMessage('系统', '页面加载完成，请配置连接参数后点击"连接"按钮', 'info');
+        });
+    </script>
+</body>
+</html>
+

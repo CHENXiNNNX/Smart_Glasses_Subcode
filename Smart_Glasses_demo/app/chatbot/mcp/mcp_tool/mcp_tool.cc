@@ -619,146 +619,146 @@ namespace app
                 // Webrtc工具注册
                 // ============================================================================
                 
-                int McpToolManager::registerWebrtcTools(
-                    McpServer&                           mcp_server,
-                    app::media::audio::AudioSystem*      audio_system,
-                    app::protocol::webrtc::Signaling*    signaling,
-                    app::protocol::webrtc::WebRTCSystem* webrtc_system,
-                    app::chatbot::ChatbotSystem*         chatbot_system)
-                {
-                    int count = 0;
+                // int McpToolManager::registerWebrtcTools(
+                //     McpServer&                           mcp_server,
+                //     app::media::audio::AudioSystem*      audio_system,
+                //     app::protocol::webrtc::Signaling*    signaling,
+                //     app::protocol::webrtc::WebRTCSystem* webrtc_system,
+                //     app::chatbot::ChatbotSystem*         chatbot_system)
+                // {
+                //     int count = 0;
 
-                    if (!signaling || !webrtc_system)
-                    {
-                        LOG_WARN(LOG_TAG, "信令或WebRTC系统指针为空，跳过WebRTC工具注册");
-                        return count;
-                    }
+                //     if (!signaling || !webrtc_system)
+                //     {
+                //         LOG_WARN(LOG_TAG, "信令或WebRTC系统指针为空，跳过WebRTC工具注册");
+                //         return count;
+                //     }
 
-                    auto err = mcp_server.add_tool(
-                        "self.webrtc.start_pairing",
-                        "Switch Smart Glasses from the chatbot AI dialogue to WebRTC pairing mode. "
-                        "This tool stops the AI conversation audio pipeline and requests the "
-                        "signaling server to pair with a remote peer so that WebRTC media can flow.",
-                        mcp::PropertyList(),
-                        [audio_system, signaling, webrtc_system,
-                         chatbot_system](const mcp::PropertyList& props [[maybe_unused]])
-                            -> mcp::ReturnValue
-                        {
-                            mcp::json result;
-                            result["success"] = false;
+                //     auto err = mcp_server.add_tool(
+                //         "self.webrtc.start_pairing",
+                //         "Switch Smart Glasses from the chatbot AI dialogue to WebRTC pairing mode. "
+                //         "This tool stops the AI conversation audio pipeline and requests the "
+                //         "signaling server to pair with a remote peer so that WebRTC media can flow.",
+                //         mcp::PropertyList(),
+                //         [audio_system, signaling, webrtc_system,
+                //          chatbot_system](const mcp::PropertyList& props [[maybe_unused]])
+                //             -> mcp::ReturnValue
+                //         {
+                //             mcp::json result;
+                //             result["success"] = false;
 
-                            if (!signaling || !webrtc_system)
-                            {
-                                result["message"] = "信令或WebRTC系统不可用";
-                                return result;
-                            }
+                //             if (!signaling || !webrtc_system)
+                //             {
+                //                 result["message"] = "信令或WebRTC系统不可用";
+                //                 return result;
+                //             }
 
-                            // 断开AI服务器连接
-                            bool ws_disconnected = false;
-                            if (chatbot_system)
-                            {
-                                chatbot_system->disconnectWebSocket();
-                                ws_disconnected = true;
-                            }
+                //             // 断开AI服务器连接
+                //             bool ws_disconnected = false;
+                //             if (chatbot_system)
+                //             {
+                //                 chatbot_system->disconnectWebSocket();
+                //                 ws_disconnected = true;
+                //             }
 
-                            // 停止当前AI对话音频流
-                            bool ai_audio_stopped   = false;
-                            bool playback_stopped   = false;
-                            bool awaiting_webrtc_on = false;
-                            if (audio_system)
-                            {
-                                auto stop_err = audio_system->stopAIMode();
-                                if (stop_err != app::media::audio::AudioError::NONE &&
-                                    stop_err != app::media::audio::AudioError::NOT_INITIALIZED)
-                                {
-                                    LOG_WARN(LOG_TAG, "停止AI模式失败，错误码: %d",
-                                             static_cast<int>(stop_err));
-                                    result["audio_stop_error"] = static_cast<int>(stop_err);
-                                }
-                                else
-                                {
-                                    ai_audio_stopped = true;
-                                }
+                //             // 停止当前AI对话音频流
+                //             bool ai_audio_stopped   = false;
+                //             bool playback_stopped   = false;
+                //             bool awaiting_webrtc_on = false;
+                //             if (audio_system)
+                //             {
+                //                 auto stop_err = audio_system->stopAIMode();
+                //                 if (stop_err != app::media::audio::AudioError::NONE &&
+                //                     stop_err != app::media::audio::AudioError::NOT_INITIALIZED)
+                //                 {
+                //                     LOG_WARN(LOG_TAG, "停止AI模式失败，错误码: %d",
+                //                              static_cast<int>(stop_err));
+                //                     result["audio_stop_error"] = static_cast<int>(stop_err);
+                //                 }
+                //                 else
+                //                 {
+                //                     ai_audio_stopped = true;
+                //                 }
 
-                                if (audio_system->isStreamRunning(app::media::audio::StreamDirection::OUTPUT))
-                                {
-                                    audio_system->stopStream(app::media::audio::StreamDirection::OUTPUT);
-                                    playback_stopped = true;
-                                }
+                //                 if (audio_system->isStreamRunning(app::media::audio::StreamDirection::OUTPUT))
+                //                 {
+                //                     audio_system->stopStream(app::media::audio::StreamDirection::OUTPUT);
+                //                     playback_stopped = true;
+                //                 }
 
-                                awaiting_webrtc_on = true;
-                            }
-                            else
-                            {
-                                LOG_WARN(LOG_TAG, "音频系统为空，无法主动终止AI对话音频");
-                            }
-                            result["ws_disconnected"] = ws_disconnected;
+                //                 awaiting_webrtc_on = true;
+                //             }
+                //             else
+                //             {
+                //                 LOG_WARN(LOG_TAG, "音频系统为空，无法主动终止AI对话音频");
+                //             }
+                //             result["ws_disconnected"] = ws_disconnected;
 
-                            // 确认WebRTC系统已初始化
-                            if (!webrtc_system->isOpen())
-                            {
-                                LOG_ERROR(LOG_TAG, "WebRTC系统未初始化");
-                                result["message"] = "WebRTC系统未初始化";
-                                return result;
-                            }
+                //             // 确认WebRTC系统已初始化
+                //             if (!webrtc_system->isOpen())
+                //             {
+                //                 LOG_ERROR(LOG_TAG, "WebRTC系统未初始化");
+                //                 result["message"] = "WebRTC系统未初始化";
+                //                 return result;
+                //             }
 
-                            // 确保信令已连接并加入房间
-                            if (!signaling->isConnected())
-                            {
-                                LOG_INFO(LOG_TAG, "信令未连接，尝试重新连接...");
-                                if (!signaling->connect())
-                                {
-                                    result["message"] = "信令服务器连接失败";
-                                    return result;
-                                }
-                            }
+                //             // 确保信令已连接并加入房间
+                //             if (!signaling->isConnected())
+                //             {
+                //                 LOG_INFO(LOG_TAG, "信令未连接，尝试重新连接...");
+                //                 if (!signaling->connect())
+                //                 {
+                //                     result["message"] = "信令服务器连接失败";
+                //                     return result;
+                //                 }
+                //             }
 
-                            auto status = signaling->getStatus();
-                            if (status == app::protocol::webrtc::SignalingStatus::DISCONNECTED)
-                            {
-                                result["message"] = "信令服务器未连接";
-                                return result;
-                            }
+                //             auto status = signaling->getStatus();
+                //             if (status == app::protocol::webrtc::SignalingStatus::DISCONNECTED)
+                //             {
+                //                 result["message"] = "信令服务器未连接";
+                //                 return result;
+                //             }
 
-                            if (status == app::protocol::webrtc::SignalingStatus::CONNECTED)
-                            {
-                                LOG_INFO(LOG_TAG, "加入信令房间，等待配对...");
-                                if (!signaling->joinRoom())
-                                {
-                                    result["message"] = "加入房间失败";
-                                    return result;
-                                }
-                                status = signaling->getStatus();
-                            }
+                //             if (status == app::protocol::webrtc::SignalingStatus::CONNECTED)
+                //             {
+                //                 LOG_INFO(LOG_TAG, "加入信令房间，等待配对...");
+                //                 if (!signaling->joinRoom())
+                //                 {
+                //                     result["message"] = "加入房间失败";
+                //                     return result;
+                //                 }
+                //                 status = signaling->getStatus();
+                //             }
 
-                            // 获取房间信息
-                            if (!signaling->requestRoomInfo())
-                            {
-                                LOG_WARN(LOG_TAG, "房间信息请求失败");
-                            }
+                //             // 获取房间信息
+                //             if (!signaling->requestRoomInfo())
+                //             {
+                //                 LOG_WARN(LOG_TAG, "房间信息请求失败");
+                //             }
 
-                            // 返回状态
-                            result["success"]          = true;
-                            result["message"]          = "已切换至WebRTC配对模式，请等待对端设备";
-                            result["signaling_status"] =
-                                app::protocol::webrtc::Signaling::statusToString(
-                                    signaling->getStatus());
-                            result["webrtc_state"] =
-                                static_cast<int>(webrtc_system->getState());
-                            result["ai_audio_stopped"] = ai_audio_stopped;
-                            result["playback_stopped"] = playback_stopped;
-                            result["awaiting_webrtc_audio"] = awaiting_webrtc_on;
-                            return result;
-                        });
+                //             // 返回状态
+                //             result["success"]          = true;
+                //             result["message"]          = "已切换至WebRTC配对模式，请等待对端设备";
+                //             result["signaling_status"] =
+                //                 app::protocol::webrtc::Signaling::statusToString(
+                //                     signaling->getStatus());
+                //             result["webrtc_state"] =
+                //                 static_cast<int>(webrtc_system->getState());
+                //             result["ai_audio_stopped"] = ai_audio_stopped;
+                //             result["playback_stopped"] = playback_stopped;
+                //             result["awaiting_webrtc_audio"] = awaiting_webrtc_on;
+                //             return result;
+                //         });
 
-                    if (err == mcp::McpError::NONE)
-                    {
-                        count++;
-                    }
+                //     if (err == mcp::McpError::NONE)
+                //     {
+                //         count++;
+                //     }
 
-                    LOG_INFO(LOG_TAG, "已注册 %d 个Webrtc工具", count);
-                    return count;
-                }
+                //     LOG_INFO(LOG_TAG, "已注册 %d 个Webrtc工具", count);
+                //     return count;
+                // }
 
                 // ============================================================================
                 // 注册所有工具
@@ -782,7 +782,7 @@ namespace app
                     total += registerAudioTools(mcp_server, audio_system);
                     total += registerVideoTools(mcp_server, video_system);
                     total += registerNetworkTools(mcp_server, wifi_manager);
-                    total += registerWebrtcTools(mcp_server, audio_system, signaling, webrtc_system, chatbot_system);
+                    // total += registerWebrtcTools(mcp_server, audio_system, signaling, webrtc_system, chatbot_system);
 
                     LOG_INFO(LOG_TAG, "========================================");
                     if (total == 0)

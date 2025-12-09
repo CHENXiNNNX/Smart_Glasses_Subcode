@@ -1,5 +1,6 @@
 const WebSocket = require('ws');
 const http = require('http');
+const os = require('os');
 
 // 服务器配置参数
 const CONFIG = {
@@ -42,8 +43,34 @@ class RoomManager {
         this.connections = new Map(); // connectionId -> Connection对象
     }
 
+    // 提取房间ID（从设备ID中提取数字部分）
+    extractRoomId(deviceId) {
+        // 支持格式：glasses_123456 或 app_123456
+        const match = deviceId.match(/(\d+)$/);
+        return match ? `room_${match[1]}` : 'room_default';
+    }
+
+    // 判断设备类型
+    isDevice(deviceId) {
+        return deviceId.startsWith('glasses_');
+    }
+
+    isApp(deviceId) {
+        return deviceId.startsWith('app_');
+    }
+
+    // 验证设备ID格式
+    validateDeviceId(deviceId) {
+        return this.isDevice(deviceId) || this.isApp(deviceId);
+    }
+
     // 创建或加入房间
     joinRoom(connection, deviceId) {
+        // 验证设备ID格式
+        if (!this.validateDeviceId(deviceId)) {
+            return this.sendError(connection, ERROR_CODES.DEVICE_ID_ERROR, "设备ID格式错误，应为glasses_xxx或app_xxx");
+        }
+
         const roomId = this.extractRoomId(deviceId);
         
         if (!this.rooms.has(roomId)) {
@@ -76,6 +103,7 @@ class RoomManager {
         // 将连接添加到房间
         room.connections.push(connection);
         connection.roomId = roomId;
+        connection.deviceId = deviceId;
         connection.status = CONNECTION_STATUS.JOINED;
         
         console.log(`[INFO] 客户端 ${deviceId} 加入房间: ${roomId}`);
@@ -105,35 +133,49 @@ class RoomManager {
         
         const [client1, client2] = room.connections;
         
-        // 第一个加入的是发起方(offerer)，第二个是应答方(answerer)
-        client1.role = 'offerer';
-        client2.role = 'answerer';
+        // 根据新方案：设备端始终作为offerer，APP端始终作为answerer
+        // 无论谁先加入，角色都是固定的
+        let deviceConnection, appConnection;
+        if (this.isDevice(client1.deviceId)) {
+            deviceConnection = client1;
+            appConnection = client2;
+        } else {
+            deviceConnection = client2;
+            appConnection = client1;
+        }
         
-        client1.status = CONNECTION_STATUS.PAIRED;
-        client2.status = CONNECTION_STATUS.PAIRED;
+        deviceConnection.role = 'offerer';
+        appConnection.role = 'answerer';
+        
+        deviceConnection.status = CONNECTION_STATUS.PAIRED;
+        appConnection.status = CONNECTION_STATUS.PAIRED;
 
         // 发送角色信息给双方
-        this.sendRoleMessage(client1, client2.deviceId);
-        this.sendRoleMessage(client2, client1.deviceId);
+        // 设备端收到对端APP的ID
+        this.sendRoleMessage(deviceConnection, appConnection.deviceId);
+        // APP端收到对端设备的ID
+        this.sendRoleMessage(appConnection, deviceConnection.deviceId);
 
         // 发送配对后的房间信息变动通知
         this.sendRoomInfo(room);
 
-        console.log(`[INFO] 房间 ${room.id} 配对成功: ${client1.deviceId} <-> ${client2.deviceId}`);
+        console.log(`[INFO] 房间 ${room.id} 配对成功: ${deviceConnection.deviceId}(offerer) <-> ${appConnection.deviceId}(answerer)`);
     }
 
     // 发送角色信息
     sendRoleMessage(connection, peerDeviceId) {
         const message = {
             type: 'role',
-            device_id: peerDeviceId,
             from: 'server',
             to: connection.deviceId,
-            data: { peer_device_id: peerDeviceId, role: connection.role },
+            data: {
+                peer_id: peerDeviceId
+            },
             time: this.getCurrentTimestamp()
         };
         
         this.sendMessage(connection, message);
+        console.log(`[INFO] 发送角色信息给 ${connection.deviceId}: 对端=${peerDeviceId}, 角色=${connection.role}`);
     }
 
     // 发送房间信息变动消息
@@ -142,15 +184,13 @@ class RoomManager {
 
         const roomInfo = {
             room_id: room.id,
-            num: room.connections.length,
-            room_status: room.status === ROOM_STATUS.PAIRED ? 'open' : 'close'
+            num: room.connections.length
         };
 
         // 向房间内所有客户端发送房间信息
         room.connections.forEach(connection => {
             const message = {
                 type: 'info',
-                device_id: connection.deviceId,
                 from: 'server',
                 to: connection.deviceId,
                 data: roomInfo,
@@ -158,7 +198,7 @@ class RoomManager {
             };
             
             this.sendMessage(connection, message);
-            console.log(`[INFO] 发送房间信息给 ${connection.deviceId}: 房间${room.id}, 人数${roomInfo.num}, 状态${roomInfo.room_status}`);
+            console.log(`[INFO] 发送房间信息给 ${connection.deviceId}: 房间=${room.id}, 人数=${roomInfo.num}`);
         });
     }
 
@@ -235,14 +275,55 @@ class RoomManager {
         }
 
         const room = this.rooms.get(fromConnection.roomId);
-        if (!room || room.status !== ROOM_STATUS.PAIRED) {
-            return this.sendError(fromConnection, ERROR_CODES.PEER_OFFLINE, "对端未连接");
+        if (!room) {
+            return this.sendError(fromConnection, ERROR_CODES.ROOM_NOT_EXISTS, "房间不存在");
+        }
+
+        // get_connect和respond_post消息可以在未配对时转发（用于发起连接请求和回应）
+        if (message.type === 'get_connect' || message.type === 'respond_post') {
+            if (room.connections.length < 2) {
+                return this.sendError(fromConnection, ERROR_CODES.PEER_OFFLINE, "对端未加入房间");
+            }
+        } else {
+            // 其他消息（offer, answer, ice）需要在配对后转发
+            if (room.status !== ROOM_STATUS.PAIRED) {
+                return this.sendError(fromConnection, ERROR_CODES.PEER_OFFLINE, "对端未连接");
+            }
         }
 
         // 找到对端连接
         const peerConnection = room.connections.find(conn => conn !== fromConnection);
         if (!peerConnection) {
             return this.sendError(fromConnection, ERROR_CODES.PEER_OFFLINE, "对端已离线");
+        }
+
+        // 打印SDP和ICE内容（用于调试）
+        if (message.type === 'offer' || message.type === 'answer') {
+            if (message.data && message.data.sdp) {
+                console.log(`\n[SDP] ========== ${message.type.toUpperCase()} SDP ==========`);
+                console.log(`[SDP] 发送方: ${fromConnection.deviceId} (${fromConnection.role || 'unknown'})`);
+                console.log(`[SDP] 接收方: ${peerConnection.deviceId} (${peerConnection.role || 'unknown'})`);
+                console.log(`[SDP] 房间ID: ${room.id}`);
+                if (typeof message.data.sdp === 'string') {
+                    console.log(`[SDP] SDP内容:`);
+                    const lines = message.data.sdp.split('\n');
+                    lines.forEach(line => {
+                        if (line.trim()) {
+                            console.log(`[SDP]   ${line}`);
+                        }
+                    });
+                } else {
+                    console.log(`[SDP] SDP数据:`, JSON.stringify(message.data.sdp, null, 2));
+                }
+                console.log(`[SDP] ===========================================\n`);
+            }
+        } else if (message.type === 'ice') {
+            if (message.data && message.data.candidate) {
+                console.log(`[ICE] 转发ICE候选: ${fromConnection.deviceId} -> ${peerConnection.deviceId}`);
+                if (typeof message.data.candidate === 'string') {
+                    console.log(`[ICE]   候选: ${message.data.candidate.substring(0, 100)}...`);
+                }
+            }
         }
 
         // 添加时间戳并转发
@@ -252,17 +333,10 @@ class RoomManager {
         console.log(`[INFO] 转发消息: ${message.type} from ${fromConnection.deviceId} to ${peerConnection.deviceId}`);
     }
 
-    // 提取房间ID（从设备ID中提取数字部分）
-    extractRoomId(deviceId) {
-        const match = deviceId.match(/(\d+)$/);
-        return match ? match[1] : 'default';
-    }
-
     // 发送错误消息
     sendError(connection, errorCode, errorMessage) {
         const message = {
             type: 'error',
-            device_id: connection.deviceId,
             from: 'server',
             to: connection.deviceId,
             data: {
@@ -278,14 +352,19 @@ class RoomManager {
 
     // 发送消息
     sendMessage(connection, message) {
-        if (connection.ws.readyState === WebSocket.OPEN) {
-            connection.ws.send(JSON.stringify(message));
+        if (connection.ws && connection.ws.readyState === WebSocket.OPEN) {
+            try {
+                const jsonMessage = JSON.stringify(message);
+                connection.ws.send(jsonMessage);
+            } catch (error) {
+                console.error(`[ERROR] 发送消息失败: ${error.message}`);
+            }
         }
     }
 
     // 获取当前微秒时间戳
     getCurrentTimestamp() {
-        return Date.now() * 1000 + Math.floor(Math.random() * 1000);
+        return Date.now() * 1000; // 转换为微秒
     }
 
     // 获取房间状态（用于监控）
@@ -297,41 +376,14 @@ class RoomManager {
                 id: room.id,
                 status: room.status,
                 connectionCount: room.connections.length,
-                createdAt: room.createdAt
+                createdAt: room.createdAt,
+                devices: room.connections.map(conn => ({
+                    deviceId: conn.deviceId,
+                    role: conn.role || 'none',
+                    status: conn.status
+                }))
             }))
         };
-    }
-
-    // 基于特定事件下发房间信息
-    sendRoomInfoByEvent(roomId, eventType, eventData = {}) {
-        const room = this.rooms.get(roomId);
-        if (!room || room.connections.length === 0) return;
-
-        console.log(`[INFO] 基于事件 ${eventType} 下发房间信息: ${roomId}`);
-
-        const roomInfo = {
-            room_id: room.id,
-            num: room.connections.length,
-            room_status: room.status === ROOM_STATUS.PAIRED ? 'open' : 'close',
-            event_type: eventType,
-            event_data: eventData,
-            timestamp: this.getCurrentTimestamp()
-        };
-
-        // 向房间内所有客户端发送
-        room.connections.forEach(connection => {
-            const message = {
-                type: 'info',
-                device_id: connection.deviceId,
-                from: 'server',
-                to: connection.deviceId,
-                data: roomInfo,
-                time: this.getCurrentTimestamp()
-            };
-            
-            this.sendMessage(connection, message);
-            console.log(`[INFO] 发送事件房间信息给 ${connection.deviceId}: 事件${eventType}, 房间${room.id}, 人数${roomInfo.num}, 状态${roomInfo.room_status}`);
-        });
     }
 
     // 客户端请求房间信息
@@ -349,15 +401,11 @@ class RoomManager {
 
         const roomInfo = {
             room_id: room.id,
-            num: room.connections.length,
-            room_status: room.status === ROOM_STATUS.PAIRED ? 'open' : 'close',
-            request_type: 'client_request',
-            timestamp: this.getCurrentTimestamp()
+            num: room.connections.length
         };
 
         const message = {
             type: 'info',
-            device_id: connection.deviceId,
             from: 'server',
             to: connection.deviceId,
             data: roomInfo,
@@ -365,39 +413,7 @@ class RoomManager {
         };
         
         this.sendMessage(connection, message);
-        console.log(`[INFO] 发送请求房间信息给 ${connection.deviceId}: 房间${room.id}, 人数${roomInfo.num}, 状态${roomInfo.room_status}`);
-    }
-
-    // 广播房间信息给指定房间
-    broadcastRoomInfo(roomId, customData = {}) {
-        const room = this.rooms.get(roomId);
-        if (!room || room.connections.length === 0) return;
-
-        console.log(`[INFO] 广播房间信息: ${roomId}`);
-
-        const roomInfo = {
-            room_id: room.id,
-            num: room.connections.length,
-            room_status: room.status === ROOM_STATUS.PAIRED ? 'open' : 'close',
-            broadcast_type: 'manual',
-            ...customData,
-            timestamp: this.getCurrentTimestamp()
-        };
-
-        // 向房间内所有客户端发送
-        room.connections.forEach(connection => {
-            const message = {
-                type: 'info',
-                device_id: connection.deviceId,
-                from: 'server',
-                to: connection.deviceId,
-                data: roomInfo,
-                time: this.getCurrentTimestamp()
-            };
-            
-            this.sendMessage(connection, message);
-            console.log(`[INFO] 广播房间信息给 ${connection.deviceId}: 房间${room.id}, 人数${roomInfo.num}, 状态${roomInfo.room_status}`);
-        });
+        console.log(`[INFO] 发送请求房间信息给 ${connection.deviceId}: 房间=${room.id}, 人数=${roomInfo.num}`);
     }
 }
 
@@ -432,22 +448,27 @@ wss.on('connection', (ws, req) => {
         try {
             const message = JSON.parse(data.toString('utf8'));
             
-            // 验证消息格式
-            if (!message.type || !message.device_id || !message.from || !message.to) {
-                return roomManager.sendError(connection, ERROR_CODES.MESSAGE_FORMAT_ERROR, "消息格式错误");
+            // 验证消息格式（根据新方案，消息应包含type, from, to, time）
+            if (!message.type || !message.from || !message.to) {
+                return roomManager.sendError(connection, ERROR_CODES.MESSAGE_FORMAT_ERROR, "消息格式错误：缺少必需字段(type, from, to)");
             }
 
-            // 设置连接的设备ID
+            // 设置连接的设备ID（从from字段获取）
             if (!connection.deviceId) {
-                connection.deviceId = message.device_id;
+                connection.deviceId = message.from;
             }
 
-            console.log(`[INFO] 收到消息: ${message.type} from ${message.from}`);
+            // 验证设备ID格式
+            if (!roomManager.validateDeviceId(connection.deviceId)) {
+                return roomManager.sendError(connection, ERROR_CODES.DEVICE_ID_ERROR, "设备ID格式错误，应为glasses_xxx或app_xxx");
+            }
+
+            console.log(`[INFO] 收到消息: type=${message.type}, from=${message.from}, to=${message.to}`);
 
             // 根据消息类型处理
             switch (message.type) {
                 case 'join':
-                    roomManager.joinRoom(connection, message.device_id);
+                    roomManager.joinRoom(connection, message.from);
                     break;
                     
                 case 'leave':
@@ -457,33 +478,22 @@ wss.on('connection', (ws, req) => {
                 case 'offer':
                 case 'answer':
                 case 'ice':
+                    // 转发SDP和ICE消息给对端
+                    roomManager.forwardMessage(connection, message);
+                    break;
+                    
+                case 'get_connect':
+                    // 转发连接请求给对端
+                    roomManager.forwardMessage(connection, message);
+                    break;
+                    
+                case 'respond_post':
+                    // 转发连接请求回应给对端
                     roomManager.forwardMessage(connection, message);
                     break;
                     
                 case 'get_room_info':
                     roomManager.sendRoomInfoOnRequest(connection);
-                    break;
-                    
-                case 'broadcast_room_info':
-                    // 处理广播房间信息请求（需要管理员权限或特殊验证）
-                    if (message.data && message.data.room_id) {
-                        roomManager.broadcastRoomInfo(message.data.room_id, message.data.custom_data || {});
-                    } else {
-                        roomManager.sendError(connection, ERROR_CODES.MESSAGE_FORMAT_ERROR, "广播房间信息需要指定room_id");
-                    }
-                    break;
-                    
-                case 'trigger_event':
-                    // 处理触发特定事件请求
-                    if (message.data && message.data.room_id && message.data.event_type) {
-                        eventManager.triggerCustomEvent(
-                            message.data.room_id, 
-                            message.data.event_type, 
-                            message.data.event_data || {}
-                        );
-                    } else {
-                        roomManager.sendError(connection, ERROR_CODES.MESSAGE_FORMAT_ERROR, "触发事件需要指定room_id和event_type");
-                    }
                     break;
                     
                 default:
@@ -516,145 +526,73 @@ wss.on('connection', (ws, req) => {
     });
 });
 
+// 获取本地网络IP地址
+function getLocalIPAddresses() {
+    const interfaces = os.networkInterfaces();
+    const addresses = [];
+    
+    for (const interfaceName in interfaces) {
+        const iface = interfaces[interfaceName];
+        for (const alias of iface) {
+            // 跳过内部（即127.0.0.1）和非IPv4地址
+            if (alias.family === 'IPv4' && !alias.internal) {
+                addresses.push({
+                    interface: interfaceName,
+                    address: alias.address,
+                    netmask: alias.netmask
+                });
+            }
+        }
+    }
+    
+    return addresses;
+}
+
 // 启动服务器
 server.listen(CONFIG.PORT, () => {
+    console.log(`\n[INFO] ==========================================`);
     console.log(`[INFO] WebSocket信令服务器启动成功`);
+    console.log(`[INFO] ==========================================`);
     console.log(`[INFO] 监听端口: ${CONFIG.PORT}`);
     console.log(`[INFO] 房间超时时间: ${CONFIG.ROOM_TIMEOUT}ms`);
     console.log(`[INFO] 最大连接数: ${CONFIG.MAX_CONNECTIONS}`);
+    
+    // 打印本地网络IP地址
+    const ipAddresses = getLocalIPAddresses();
+    if (ipAddresses.length > 0) {
+        console.log(`[INFO] 本地网络IP地址:`);
+        ipAddresses.forEach((ip, index) => {
+            console.log(`[INFO]   ${index + 1}. ${ip.interface}: ${ip.address} (${ip.netmask})`);
+        });
+    } else {
+        console.log(`[WARN] 未找到可用的网络接口`);
+    }
+    
+    // 打印本地回环地址
+    console.log(`[INFO] 本地回环地址: 127.0.0.1`);
+    console.log(`[INFO] ==========================================\n`);
 });
+
+// 定期房间状态检查，每60秒自动下发房间信息（符合文档要求）
+setInterval(() => {
+    console.log(`[INFO] 定期房间状态检查，下发房间信息`);
+    roomManager.rooms.forEach((room, roomId) => {
+        if (room.connections.length > 0) {
+            roomManager.sendRoomInfo(room);
+        }
+    });
+}, 60000); // 每60秒检查一次
 
 // 定期输出服务器状态
 setInterval(() => {
     const stats = roomManager.getRoomStats();
     console.log(`[STATS] 房间数: ${stats.totalRooms}, 连接数: ${stats.totalConnections}`);
+    if (stats.rooms.length > 0) {
+        stats.rooms.forEach(room => {
+            console.log(`[STATS]   房间 ${room.id}: 状态=${room.status}, 人数=${room.connectionCount}`);
+        });
+    }
 }, 30000); // 每30秒输出一次
-
-// 基于特定事件的房间信息下发机制
-class EventManager {
-    constructor(roomManager) {
-        this.roomManager = roomManager;
-        this.eventListeners = new Map();
-        this.setupEventHandlers();
-    }
-
-    // 设置事件处理器
-    setupEventHandlers() {
-        // 定期房间状态检查事件
-        setInterval(() => {
-            this.triggerPeriodicRoomCheck();
-        }, 60000); // 每分钟检查一次
-
-        // WebRTC连接状态变化事件（模拟）
-        setInterval(() => {
-            this.triggerWebRTCStatusCheck();
-        }, 15000); // 每15秒检查一次WebRTC状态
-
-        // 网络质量检查事件
-        setInterval(() => {
-            this.triggerNetworkQualityCheck();
-        }, 30000); // 每30秒检查一次网络质量
-    }
-
-    // 定期房间状态检查
-    triggerPeriodicRoomCheck() {
-        console.log(`[EVENT] 触发定期房间状态检查`);
-        
-        this.roomManager.rooms.forEach((room, roomId) => {
-            if (room.connections.length > 0) {
-                this.roomManager.sendRoomInfoByEvent(roomId, 'periodic_check', {
-                    check_type: 'room_status',
-                    room_age: Date.now() - room.createdAt,
-                    last_check: Date.now()
-                });
-            }
-        });
-    }
-
-    // WebRTC连接状态检查
-    triggerWebRTCStatusCheck() {
-        console.log(`[EVENT] 触发WebRTC连接状态检查`);
-        
-        this.roomManager.rooms.forEach((room, roomId) => {
-            if (room.status === ROOM_STATUS.PAIRED && room.connections.length === 2) {
-                // 模拟WebRTC连接状态检查
-                const connectionQuality = this.simulateConnectionQuality();
-                
-                this.roomManager.sendRoomInfoByEvent(roomId, 'webrtc_status_check', {
-                    connection_quality: connectionQuality,
-                    ice_state: 'connected',
-                    data_channel_open: true,
-                    last_check: Date.now()
-                });
-            }
-        });
-    }
-
-    // 网络质量检查
-    triggerNetworkQualityCheck() {
-        console.log(`[EVENT] 触发网络质量检查`);
-        
-        this.roomManager.rooms.forEach((room, roomId) => {
-            if (room.connections.length > 0) {
-                const networkQuality = this.simulateNetworkQuality();
-                
-                this.roomManager.sendRoomInfoByEvent(roomId, 'network_quality_check', {
-                    latency: networkQuality.latency,
-                    bandwidth: networkQuality.bandwidth,
-                    packet_loss: networkQuality.packetLoss,
-                    last_check: Date.now()
-                });
-            }
-        });
-    }
-
-    // 模拟连接质量
-    simulateConnectionQuality() {
-        const qualities = ['excellent', 'good', 'fair', 'poor'];
-        return qualities[Math.floor(Math.random() * qualities.length)];
-    }
-
-    // 模拟网络质量
-    simulateNetworkQuality() {
-        return {
-            latency: Math.floor(Math.random() * 100) + 10, // 10-110ms
-            bandwidth: Math.floor(Math.random() * 5000) + 1000, // 1-6 Mbps
-            packetLoss: Math.random() * 0.05 // 0-5% packet loss
-        };
-    }
-
-    // 手动触发特定事件
-    triggerCustomEvent(roomId, eventType, eventData) {
-        if (this.roomManager.rooms.has(roomId)) {
-            this.roomManager.sendRoomInfoByEvent(roomId, eventType, eventData);
-            console.log(`[EVENT] 手动触发事件: ${eventType} for room: ${roomId}`);
-        } else {
-            console.log(`[EVENT] 房间不存在: ${roomId}`);
-        }
-    }
-
-    // 添加事件监听器
-    addEventListener(eventType, callback) {
-        if (!this.eventListeners.has(eventType)) {
-            this.eventListeners.set(eventType, []);
-        }
-        this.eventListeners.get(eventType).push(callback);
-    }
-
-    // 移除事件监听器
-    removeEventListener(eventType, callback) {
-        if (this.eventListeners.has(eventType)) {
-            const listeners = this.eventListeners.get(eventType);
-            const index = listeners.indexOf(callback);
-            if (index > -1) {
-                listeners.splice(index, 1);
-            }
-        }
-    }
-}
-
-// 创建事件管理器
-const eventManager = new EventManager(roomManager);
 
 // 优雅关闭处理
 process.on('SIGINT', () => {
@@ -673,4 +611,5 @@ process.on('SIGINT', () => {
     });
 });
 
-module.exports = { roomManager, eventManager, wss, server };
+module.exports = { roomManager, wss, server };
+

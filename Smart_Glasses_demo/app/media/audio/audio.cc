@@ -6,6 +6,7 @@
 
 #include "audio.hpp"
 #include "../../tool/log/log.hpp"
+#include "../../tool/file/file.hpp"
 #include "../../../common/common.hpp"
 #include <cstring>
 #include <algorithm>
@@ -19,6 +20,100 @@ namespace app
         {
 
             using namespace tool::log;
+            using namespace tool::file;
+
+            namespace
+            {
+                // WAV文件头结构
+                struct WAVHeader
+                {
+                    // RIFF头
+                    char     riff[4] = {'R', 'I', 'F', 'F'}; // "RIFF"
+                    uint32_t file_size;                       // 文件大小 - 8
+                    char     wave[4] = {'W', 'A', 'V', 'E'}; // "WAVE"
+
+                    // fmt chunk
+                    char     fmt[4]  = {'f', 'm', 't', ' '}; // "fmt "
+                    uint32_t fmt_size = 16;                   // fmt chunk大小（16字节）
+                    uint16_t audio_format = 1;                // PCM格式 = 1
+                    uint16_t num_channels;                    // 声道数
+                    uint32_t sample_rate;                     // 采样率
+                    uint32_t byte_rate;                       // 字节率 = sample_rate * num_channels * bits_per_sample / 8
+                    uint16_t block_align;                     // 块对齐 = num_channels * bits_per_sample / 8
+                    uint16_t bits_per_sample = 16;            // 位深（16-bit）
+
+                    // data chunk
+                    char     data[4] = {'d', 'a', 't', 'a'}; // "data"
+                    uint32_t data_size;                       // 数据大小
+                };
+
+                /**
+                 * @brief 写入WAV文件头
+                 */
+                bool writeWAVHeader(FileWrapper& file, int sample_rate, int channels, size_t data_size)
+                {
+                    WAVHeader header{};
+                    header.num_channels   = static_cast<uint16_t>(channels);
+                    header.sample_rate   = static_cast<uint32_t>(sample_rate);
+                    header.bits_per_sample = 16;
+                    header.block_align   = static_cast<uint16_t>(channels * header.bits_per_sample / 8);
+                    header.byte_rate     = header.sample_rate * header.block_align;
+                    header.data_size     = static_cast<uint32_t>(data_size);
+                    header.file_size     = static_cast<uint32_t>(sizeof(WAVHeader) - 8 + data_size);
+
+                    // 写入文件头
+                    if (!file.write(&header, sizeof(WAVHeader)))
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+
+                /**
+                 * @brief 更新WAV文件头中的文件大小和数据大小
+                 */
+                bool updateWAVHeader(FileWrapper& file, size_t data_size)
+                {
+                    // 保存当前位置
+                    long current_pos = file.getPosition();
+                    if (current_pos < 0)
+                    {
+                        return false;
+                    }
+
+                    // 移动到文件大小位置（偏移4）
+                    if (!file.seek(4, SEEK_SET))
+                    {
+                        return false;
+                    }
+
+                    // 更新文件大小
+                    uint32_t file_size = static_cast<uint32_t>(sizeof(WAVHeader) - 8 + data_size);
+                    if (!file.write(&file_size, sizeof(uint32_t)))
+                    {
+                        return false;
+                    }
+
+                    // 移动到数据大小位置（偏移40）
+                    if (!file.seek(40, SEEK_SET))
+                    {
+                        return false;
+                    }
+
+                    // 更新数据大小
+                    uint32_t data_size_32 = static_cast<uint32_t>(data_size);
+                    if (!file.write(&data_size_32, sizeof(uint32_t)))
+                    {
+                        return false;
+                    }
+
+                    // 恢复位置
+                    file.seek(current_pos, SEEK_SET);
+
+                    return true;
+                }
+            } // namespace
 
             namespace
             {
@@ -427,6 +522,15 @@ namespace app
                 // 时间同步
                 std::shared_ptr<sync_context_t> sync_ctx;
 
+                // 录音文件存储
+                std::unique_ptr<FileWrapper>          record_file_;
+                int                                   record_id_ = 0;
+                int                                   record_duration_sec_ = 0;
+                std::chrono::steady_clock::time_point record_start_time_;
+                std::mutex                            record_file_mutex_;
+                std::atomic<bool>                     is_recording_to_file_{false};
+                size_t                                record_data_size_ = 0; // 已写入的PCM数据大小（用于WAV文件头）
+
                 // 统计信息
                 Stats stats;
 
@@ -727,6 +831,9 @@ namespace app
 
                 pImpl_->sync_ctx = std::move(sync_ctx);
 
+                // 创建录音输出目录
+                createDirectory(pImpl_->config.record_path);
+
                 // 创建内存池
                 pImpl_->mem_pool =
                     std::make_unique<AudioMemoryPool>(pImpl_->config.mem_pool_config);
@@ -906,6 +1013,9 @@ namespace app
                     return;
                 }
 
+                // 停止录音文件存储
+                stopRecord();
+
                 LOG_INFO(LOG_TAG, "关闭音频系统...");
 
                 // 停止录音和播放
@@ -1052,6 +1162,107 @@ namespace app
                 std::queue<AudioFramePtr>   empty;
                 std::swap(pImpl_->record_queue, empty);
                 LOG_DEBUG(LOG_TAG, "录音队列已清空");
+            }
+
+            AudioError AudioSystem::startRecord(const std::string& filename, int duration_sec)
+            {
+                if (!pImpl_->initialized.load())
+                {
+                    LOG_ERROR(LOG_TAG, "音频系统未初始化");
+                    return AudioError::NOT_INITIALIZED;
+                }
+
+                std::lock_guard<std::mutex> lock(pImpl_->record_file_mutex_);
+
+                if (pImpl_->is_recording_to_file_.load())
+                {
+                    LOG_WARN(LOG_TAG, "录音已在进行中");
+                    return AudioError::ALREADY_RUNNING;
+                }
+
+                // 生成文件名（WAV格式）
+                std::string record_filename = filename.empty()
+                                                 ? pImpl_->config.record_path + "record_" +
+                                                       std::to_string(pImpl_->record_id_++) + ".wav"
+                                                 : filename;
+
+                // 确保文件扩展名为.wav
+                if (record_filename.size() < 4 ||
+                    record_filename.substr(record_filename.size() - 4) != ".wav")
+                {
+                    if (record_filename.back() != '/')
+                    {
+                        record_filename += ".wav";
+                    }
+                }
+
+                // 创建录音文件
+                pImpl_->record_file_ =
+                    std::make_unique<FileWrapper>(record_filename, FileMode::WRITE);
+                if (!pImpl_->record_file_->isValid())
+                {
+                    LOG_ERROR(LOG_TAG, "创建录音文件失败: %s", record_filename.c_str());
+                    pImpl_->record_file_.reset();
+                    return AudioError::STREAM_OPEN_FAILED;
+                }
+
+                // 写入WAV文件头（数据大小先写0，停止时更新）
+                if (!writeWAVHeader(*pImpl_->record_file_, pImpl_->config.sample_rate,
+                                     pImpl_->config.channels, 0))
+                {
+                    LOG_ERROR(LOG_TAG, "写入WAV文件头失败");
+                    pImpl_->record_file_.reset();
+                    return AudioError::STREAM_OPEN_FAILED;
+                }
+
+                pImpl_->record_duration_sec_ = duration_sec;
+                pImpl_->record_start_time_    = std::chrono::steady_clock::now();
+                pImpl_->record_data_size_     = 0; // 重置数据大小计数
+                pImpl_->is_recording_to_file_.store(true);
+
+                LOG_INFO(LOG_TAG, "录音已启动: %s (时长: %d 秒)", record_filename.c_str(),
+                         duration_sec > 0 ? duration_sec : -1);
+                return AudioError::NONE;
+            }
+
+            AudioError AudioSystem::stopRecord()
+            {
+                std::lock_guard<std::mutex> lock(pImpl_->record_file_mutex_);
+
+                if (!pImpl_->is_recording_to_file_.load())
+                {
+                    return AudioError::NONE; // 已经停止
+                }
+
+                pImpl_->is_recording_to_file_.store(false);
+
+                if (pImpl_->record_file_)
+                {
+                    pImpl_->record_file_->flush();
+
+                    // 更新WAV文件头中的文件大小和数据大小
+                    if (pImpl_->record_data_size_ > 0)
+                    {
+                        if (!updateWAVHeader(*pImpl_->record_file_, pImpl_->record_data_size_))
+                        {
+                            LOG_WARN(LOG_TAG, "更新WAV文件头失败，文件可能无法正常播放");
+                        }
+                        pImpl_->record_file_->flush();
+                    }
+
+                    LOG_INFO(LOG_TAG, "录音已停止: %s (数据大小: %zu 字节)",
+                             pImpl_->record_file_->getFilename().c_str(),
+                             pImpl_->record_data_size_);
+                    pImpl_->record_file_.reset();
+                    pImpl_->record_data_size_ = 0;
+                }
+
+                return AudioError::NONE;
+            }
+
+            bool AudioSystem::isRecording() const
+            {
+                return pImpl_->is_recording_to_file_.load();
             }
 
             void AudioSystem::clearPlaybackQueue()
@@ -1278,6 +1489,42 @@ namespace app
                 }
                 impl->record_queue_cv.notify_one();
                 impl->stats.frames_recorded.fetch_add(1);
+
+                // 录音文件存储（如果启用）
+                if (impl->is_recording_to_file_.load())
+                {
+                    std::lock_guard<std::mutex> lock(impl->record_file_mutex_);
+
+                    if (impl->record_file_ && impl->record_file_->isValid())
+                    {
+                        // 写入PCM数据到文件
+                        if (impl->record_file_->write(frame->data, frame->size))
+                        {
+                            impl->record_data_size_ += frame->size; // 累计数据大小
+                            impl->record_file_->flush();
+
+                            // 检查录音时长
+                            if (impl->record_duration_sec_ > 0)
+                            {
+                                auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                                   std::chrono::steady_clock::now() -
+                                                   impl->record_start_time_)
+                                                   .count();
+
+                                if (elapsed >= impl->record_duration_sec_ * 1000)
+                                {
+                                    LOG_INFO(LOG_TAG, "录音时长已达到，正在停止...");
+                                    // 停止录音（在回调中不能直接调用，需要设置标志）
+                                    impl->is_recording_to_file_.store(false);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            LOG_ERROR(LOG_TAG, "写入录音文件失败");
+                        }
+                    }
+                }
 
                 // WebRTC音频编码
                 if (impl->main_state.load() == AudioMainState::WEBRTC &&
@@ -1715,16 +1962,6 @@ namespace app
                     return nullptr;
                 }
 
-                // 打印解码器配置（仅第一次）
-                static std::atomic<bool> first_decode{true};
-                if (first_decode.exchange(false))
-                {
-                    LOG_INFO(LOG_TAG, "🔊 TTS解码器配置:");
-                    LOG_INFO(LOG_TAG, "  使用: %d Hz 解码器", target_sample_rate);
-                    LOG_INFO(LOG_TAG, "  声道数: %d", pImpl_->config.channels);
-                    LOG_INFO(LOG_TAG, "  帧时长: %d ms", pImpl_->config.frame_duration_ms);
-                }
-
                 // 计算PCM帧大小（使用目标采样率）
                 int frame_size =
                     target_sample_rate / MILLISECONDS_PER_SECOND * pImpl_->config.frame_duration_ms;
@@ -2009,3 +2246,4 @@ namespace app
         } // namespace audio
     }     // namespace media
 } // namespace app
+
