@@ -8,9 +8,6 @@
  *          4. 正弦波生成和音量调整播放测试
  *          5. AI模式和WebRTC模式测试
  *          6. 3A音频算法测试
- * 
- * @author Smart_Glasses Team
- * @date 2025-01-29
  */
 
  #include "app/media/audio/audio.hpp"
@@ -27,10 +24,15 @@
  #include <mutex>
  #include <atomic>
  
- using namespace app::media::audio;
- using namespace app::tool::log;
- 
- // 全局变量
+using namespace app::media::audio;
+using namespace app::tool::log;
+
+namespace
+{
+    constexpr const char* LOG_TAG = "TEST_AUDIO";
+} // namespace
+
+// 全局变量
  std::queue<AudioFramePtr> g_recorded_frames;
  std::queue<AudioFramePtr> g_ai_frames;
  std::queue<AudioFramePtr> g_webrtc_frames;
@@ -88,7 +90,7 @@
  bool saveAudioToFile(const std::string& filename, const std::vector<AudioFramePtr>& frames) {
      std::ofstream file(filename, std::ios::binary);
      if (!file) {
-         LOG_ERROR("TEST", "创建文件失败: %s", filename.c_str());
+         LOG_ERROR(LOG_TAG, "创建文件失败: %s", filename.c_str());
          return false;
      }
      
@@ -98,7 +100,7 @@
          total_samples += frame->size / sizeof(int16_t);
      }
      
-     LOG_INFO("TEST", "已保存 %zu 个样本到 %s", total_samples, filename.c_str());
+     LOG_INFO(LOG_TAG, "已保存 %zu 个样本到 %s", total_samples, filename.c_str());
      return true;
  }
  
@@ -112,7 +114,7 @@
      g_callback_count.fetch_add(1);
      
      if (g_callback_count.load() % 50 == 0) {
-         LOG_DEBUG("TEST", "已录制帧数: %d, 队列大小: %zu", 
+         LOG_DEBUG(LOG_TAG, "已录制帧数: %d, 队列大小: %zu", 
                   g_callback_count.load(), g_recorded_frames.size());
      }
  }
@@ -120,17 +122,17 @@
  void onAIAudioCallback(AudioFramePtr frame) {
      std::lock_guard<std::mutex> lock(g_frames_mutex);
      g_ai_frames.push(frame);
-     LOG_DEBUG("TEST", "收到AI音频帧: %zu 字节", frame->size);
+     LOG_DEBUG(LOG_TAG, "收到AI音频帧: %zu 字节", frame->size);
  }
  
  void onWebRTCAudioCallback(AudioFramePtr frame) {
      std::lock_guard<std::mutex> lock(g_frames_mutex);
      g_webrtc_frames.push(frame);
-     LOG_DEBUG("TEST", "收到WebRTC音频帧: %zu 字节", frame->size);
+     LOG_DEBUG(LOG_TAG, "收到WebRTC音频帧: %zu 字节", frame->size);
  }
  
  void onWakewordCallback(const int16_t* data, size_t length) {
-     LOG_DEBUG("TEST", "唤醒词音频数据: %zu 个样本", length);
+     LOG_DEBUG(LOG_TAG, "唤醒词音频数据: %zu 个样本", length);
  }
  
  // ============================================================================
@@ -141,9 +143,9 @@
   * @brief 测试1：内存分配性能和正确性
   */
  bool testMemoryAllocation() {
-     LOG_INFO("TEST", "========================================");
-     LOG_INFO("TEST", "测试1：内存分配性能和正确性");
-     LOG_INFO("TEST", "========================================");
+     LOG_INFO(LOG_TAG, "========================================");
+     LOG_INFO(LOG_TAG, "测试1：内存分配性能和正确性");
+     LOG_INFO(LOG_TAG, "========================================");
      
      // 配置小型内存池进行压力测试
      AudioMemoryPoolConfig config;
@@ -154,20 +156,20 @@
      AudioMemoryPool pool(config);
      
      // 测试1.1：固定池分配测试
-     LOG_INFO("TEST", "1.1 固定池分配测试...");
+     LOG_INFO(LOG_TAG, "1.1 固定池分配测试...");
      std::vector<AudioFramePtr> fixed_frames;
      
      // 分配所有固定池帧
      for (int i = 0; i < 50; i++) {
          auto frame = pool.allocate(1024);  // 小于2048，使用固定池
          if (!frame) {
-             LOG_ERROR("TEST", "固定池分配失败，索引 %d", i);
+             LOG_ERROR(LOG_TAG, "固定池分配失败，索引 %d", i);
              return false;
          }
          
          // 验证帧属性
          if (!frame->is_from_fixed_pool || frame->fixed_pool_index < 0) {
-             LOG_ERROR("TEST", "无效的固定池帧，索引 %d", i);
+             LOG_ERROR(LOG_TAG, "无效的固定池帧，索引 %d", i);
              return false;
          }
          
@@ -177,52 +179,52 @@
      // 尝试再分配一个，应该回退到动态池
      auto extra_frame = pool.allocate(1024);
      if (!extra_frame || extra_frame->is_from_fixed_pool) {
-         LOG_ERROR("TEST", "回退到动态池失败");
+         LOG_ERROR(LOG_TAG, "回退到动态池失败");
          return false;
      }
      
-     LOG_INFO("TEST", "✓ 固定池分配和回退机制正常");
+     LOG_INFO(LOG_TAG, "✓ 固定池分配和回退机制正常");
      
      // 测试1.2：动态池大帧分配
-     LOG_INFO("TEST", "1.2 动态池大帧分配测试...");
+     LOG_INFO(LOG_TAG, "1.2 动态池大帧分配测试...");
      std::vector<AudioFramePtr> dynamic_frames;
      
      for (int i = 0; i < 10; i++) {
          auto frame = pool.allocate(4096);  // 大于2048，使用动态池
          if (!frame || frame->is_from_fixed_pool) {
-             LOG_ERROR("TEST", "动态池分配失败，索引 %d", i);
+             LOG_ERROR(LOG_TAG, "动态池分配失败，索引 %d", i);
              return false;
          }
          dynamic_frames.push_back(frame);
      }
      
-     LOG_INFO("TEST", "✓ 动态池分配正常");
+     LOG_INFO(LOG_TAG, "✓ 动态池分配正常");
      
      // 测试1.3：内存回收和重用
-     LOG_INFO("TEST", "1.3 内存回收和重用测试...");
+     LOG_INFO(LOG_TAG, "1.3 内存回收和重用测试...");
      fixed_frames.clear();  // 释放所有固定池帧
      extra_frame.reset();
      
      // 重新分配，应该重用固定池
      auto reused_frame = pool.allocate(1024);
      if (!reused_frame || !reused_frame->is_from_fixed_pool) {
-         LOG_ERROR("TEST", "固定池重用失败");
+         LOG_ERROR(LOG_TAG, "固定池重用失败");
          return false;
      }
      
-     LOG_INFO("TEST", "✓ 内存回收和重用正常");
+     LOG_INFO(LOG_TAG, "✓ 内存回收和重用正常");
      
      // 输出统计信息
      AudioMemoryPool::Stats stats;
      pool.getStats(stats);
-     LOG_INFO("TEST", "内存池统计：");
-     LOG_INFO("TEST", "  总分配次数: %llu", stats.total_allocations.load());
-     LOG_INFO("TEST", "  固定池命中: %llu (%.2f%%)", 
+     LOG_INFO(LOG_TAG, "内存池统计：");
+     LOG_INFO(LOG_TAG, "  总分配次数: %llu", stats.total_allocations.load());
+     LOG_INFO(LOG_TAG, "  固定池命中: %llu (%.2f%%)", 
               stats.fixed_pool_hits.load(), stats.getFixedPoolHitRate());
-     LOG_INFO("TEST", "  动态池命中: %llu", stats.dynamic_pool_hits.load());
-     LOG_INFO("TEST", "  分配失败: %llu", stats.allocation_failures.load());
+     LOG_INFO(LOG_TAG, "  动态池命中: %llu", stats.dynamic_pool_hits.load());
+     LOG_INFO(LOG_TAG, "  分配失败: %llu", stats.allocation_failures.load());
      
-     LOG_INFO("TEST", "✅ 内存分配测试通过");
+     LOG_INFO(LOG_TAG, "✅ 内存分配测试通过");
      return true;
  }
  
@@ -230,9 +232,9 @@
   * @brief 测试2：录制音频编码成Opus后解码播放
   */
  bool testOpusCodecAndPlayback() {
-     LOG_INFO("TEST", "========================================");
-     LOG_INFO("TEST", "测试2：录制音频编码成Opus后解码播放");
-     LOG_INFO("TEST", "========================================");
+     LOG_INFO(LOG_TAG, "========================================");
+     LOG_INFO(LOG_TAG, "测试2：录制音频编码成Opus后解码播放");
+     LOG_INFO(LOG_TAG, "========================================");
      
      // 配置音频系统
      AudioConfig config;
@@ -246,15 +248,15 @@
      
      // 初始化音频系统
      if (audio_system.initialize() != AudioError::NONE) {
-         LOG_ERROR("TEST", "音频系统初始化失败");
+         LOG_ERROR(LOG_TAG, "音频系统初始化失败");
          return false;
      }
      
-     LOG_INFO("TEST", "2.1 开始录音（3秒）...");
+     LOG_INFO(LOG_TAG, "2.1 开始录音（3秒）...");
      
      // 开始录音
      if (audio_system.startRecord() != AudioError::NONE) {
-         LOG_ERROR("TEST", "启动录音失败");
+         LOG_ERROR(LOG_TAG, "启动录音失败");
          return false;
      }
      
@@ -262,7 +264,7 @@
      std::vector<AudioFramePtr> recorded_frames;
      auto start_time = std::chrono::steady_clock::now();
      
-     LOG_INFO("TEST", "正在录音，请对着麦克风说话...");
+     LOG_INFO(LOG_TAG, "正在录音，请对着麦克风说话...");
      
      while (std::chrono::steady_clock::now() - start_time < std::chrono::seconds(3)) {
          auto frame = audio_system.getRecordedFrame(std::chrono::milliseconds(100));
@@ -271,18 +273,18 @@
              
              // 每收集50帧输出一次进度
              if (recorded_frames.size() % 50 == 0) {
-                 LOG_INFO("TEST", "已录制 %zu 帧...", recorded_frames.size());
+                 LOG_INFO(LOG_TAG, "已录制 %zu 帧...", recorded_frames.size());
              }
          }
      }
      
      audio_system.stopRecord();
      
-     LOG_INFO("TEST", "录制完成，共 %zu 帧", recorded_frames.size());
+     LOG_INFO(LOG_TAG, "录制完成，共 %zu 帧", recorded_frames.size());
      
      // 如果没有录制到真实音频，生成模拟音频数据用于测试
      if (recorded_frames.empty()) {
-         LOG_WARN("TEST", "未录制到真实音频，生成模拟音频用于编解码测试");
+         LOG_WARN(LOG_TAG, "未录制到真实音频，生成模拟音频用于编解码测试");
          
          // 使用内存池生成模拟音频帧
          AudioMemoryPool test_pool(config.mem_pool_config);
@@ -304,15 +306,15 @@
              }
          }
          
-         LOG_INFO("TEST", "已生成 %zu 帧模拟音频数据用于测试", recorded_frames.size());
+         LOG_INFO(LOG_TAG, "已生成 %zu 帧模拟音频数据用于测试", recorded_frames.size());
      }
      
      if (recorded_frames.empty()) {
-         LOG_ERROR("TEST", "无法获取测试音频数据");
+         LOG_ERROR(LOG_TAG, "无法获取测试音频数据");
          return false;
      }
      
-     LOG_INFO("TEST", "2.2 编码为Opus...");
+     LOG_INFO(LOG_TAG, "2.2 编码为Opus...");
      
      // 编码所有录音帧
      std::vector<AudioFramePtr> opus_frames;
@@ -327,18 +329,18 @@
          }
      }
      
-     LOG_INFO("TEST", "编码完成，共 %zu 个Opus帧", opus_frames.size());
+     LOG_INFO(LOG_TAG, "编码完成，共 %zu 个Opus帧", opus_frames.size());
      
      if (opus_frames.empty()) {
-         LOG_ERROR("TEST", "未生成Opus帧");
+         LOG_ERROR(LOG_TAG, "未生成Opus帧");
          return false;
      }
      
-     LOG_INFO("TEST", "2.3 解码Opus并播放...");
+     LOG_INFO(LOG_TAG, "2.3 解码Opus并播放...");
      
      // 开始播放
      if (audio_system.startPlayback() != AudioError::NONE) {
-         LOG_ERROR("TEST", "启动播放失败");
+         LOG_ERROR(LOG_TAG, "启动播放失败");
          return false;
      }
      
@@ -358,7 +360,7 @@
      
      audio_system.stopPlayback();
      
-     LOG_INFO("TEST", "✅ Opus编解码和播放测试通过");
+     LOG_INFO(LOG_TAG, "✅ Opus编解码和播放测试通过");
      return true;
  }
  
@@ -366,9 +368,9 @@
   * @brief 测试3：下采样到16kHz的录音播放
   */
  bool testDownsamplingPlayback() {
-     LOG_INFO("TEST", "========================================");
-     LOG_INFO("TEST", "测试3：下采样到16kHz的录音播放");
-     LOG_INFO("TEST", "========================================");
+     LOG_INFO(LOG_TAG, "========================================");
+     LOG_INFO(LOG_TAG, "测试3：下采样到16kHz的录音播放");
+     LOG_INFO(LOG_TAG, "========================================");
      
      // 配置音频系统
      AudioConfig config;
@@ -379,11 +381,11 @@
      AudioSystem audio_system(config);
      
      if (audio_system.initialize() != AudioError::NONE) {
-         LOG_ERROR("TEST", "音频系统初始化失败");
+         LOG_ERROR(LOG_TAG, "音频系统初始化失败");
          return false;
      }
      
-     LOG_INFO("TEST", "3.1 启动AI模式（自动16kHz下采样）...");
+     LOG_INFO(LOG_TAG, "3.1 启动AI模式（自动16kHz下采样）...");
      
      // 设置AI音频回调
      audio_system.setAIAudioCallback(onAIAudioCallback);
@@ -397,11 +399,11 @@
      
      // 启动AI模式（会自动进行48kHz->16kHz重采样和Opus编码）
      if (audio_system.startAIMode() != AudioError::NONE) {
-         LOG_ERROR("TEST", "启动AI模式失败");
+         LOG_ERROR(LOG_TAG, "启动AI模式失败");
          return false;
      }
      
-     LOG_INFO("TEST", "AI模式录音中（3秒）...");
+     LOG_INFO(LOG_TAG, "AI模式录音中（3秒）...");
      
      // 录音3秒，期间会自动下采样和编码
      std::this_thread::sleep_for(std::chrono::seconds(3));
@@ -418,14 +420,14 @@
          }
      }
      
-     LOG_INFO("TEST", "收集到 %zu 个16kHz Opus帧", ai_opus_frames.size());
+     LOG_INFO(LOG_TAG, "收集到 %zu 个16kHz Opus帧", ai_opus_frames.size());
      
      if (ai_opus_frames.empty()) {
-         LOG_WARN("TEST", "未收集到AI帧，可能需要更长的录音时间");
+         LOG_WARN(LOG_TAG, "未收集到AI帧，可能需要更长的录音时间");
          return true;  // 不算失败，可能需要更长录音时间
      }
      
-     LOG_INFO("TEST", "3.2 解码16kHz音频并播放...");
+     LOG_INFO(LOG_TAG, "3.2 解码16kHz音频并播放...");
      
      // 注意：这些是16kHz的Opus帧，需要用16kHz解码器解码
      // 为简化测试，我们直接保存原始数据
@@ -437,12 +439,12 @@
      }
      
      double estimated_duration = ai_opus_frames.size() * 20.0 / 1000.0;  // 每帧20ms
-     LOG_INFO("TEST", "16kHz音频特征：");
-     LOG_INFO("TEST", "  Opus帧数: %zu", ai_opus_frames.size());
-     LOG_INFO("TEST", "  总大小: %zu 字节", total_opus_size);
-     LOG_INFO("TEST", "  估计时长: %.2f 秒", estimated_duration);
+     LOG_INFO(LOG_TAG, "16kHz音频特征：");
+     LOG_INFO(LOG_TAG, "  Opus帧数: %zu", ai_opus_frames.size());
+     LOG_INFO(LOG_TAG, "  总大小: %zu 字节", total_opus_size);
+     LOG_INFO(LOG_TAG, "  估计时长: %.2f 秒", estimated_duration);
      
-     LOG_INFO("TEST", "✅ 16kHz下采样测试通过");
+     LOG_INFO(LOG_TAG, "✅ 16kHz下采样测试通过");
      return true;
  }
  
@@ -450,9 +452,9 @@
   * @brief 测试4：正弦波生成和音量调整播放
   */
  bool testSineWaveAndVolumeControl() {
-     LOG_INFO("TEST", "========================================");
-     LOG_INFO("TEST", "测试4：正弦波生成和音量调整播放");
-     LOG_INFO("TEST", "========================================");
+     LOG_INFO(LOG_TAG, "========================================");
+     LOG_INFO(LOG_TAG, "测试4：正弦波生成和音量调整播放");
+     LOG_INFO(LOG_TAG, "========================================");
      
      AudioConfig config;
      config.sample_rate = 48000;
@@ -461,7 +463,7 @@
      AudioSystem audio_system(config);
      
      if (audio_system.initialize() != AudioError::NONE) {
-         LOG_ERROR("TEST", "音频系统初始化失败");
+         LOG_ERROR(LOG_TAG, "音频系统初始化失败");
          return false;
      }
      
@@ -470,7 +472,7 @@
      pool_config.fixed_block_count = 100;
      AudioMemoryPool pool(pool_config);
      
-     LOG_INFO("TEST", "4.1 生成不同频率的正弦波...");
+     LOG_INFO(LOG_TAG, "4.1 生成不同频率的正弦波...");
      
      // 生成不同频率的正弦波
      std::vector<std::pair<double, std::string>> frequencies = {
@@ -481,12 +483,12 @@
      };
      
      if (audio_system.startPlayback() != AudioError::NONE) {
-         LOG_ERROR("TEST", "启动播放失败");
+         LOG_ERROR(LOG_TAG, "启动播放失败");
          return false;
      }
      
      for (const auto& [freq, name] : frequencies) {
-         LOG_INFO("TEST", "播放 %s (%.2f Hz)...", name.c_str(), freq);
+         LOG_INFO(LOG_TAG, "播放 %s (%.2f Hz)...", name.c_str(), freq);
          
          // 测试不同音量级别
          std::vector<float> volumes = {0.3f, 0.6f, 1.0f, 0.1f};
@@ -494,7 +496,7 @@
          for (float volume : volumes) {
              // 设置音量
              audio_system.setOutputVolume(volume);
-             LOG_INFO("TEST", "  音量: %.1f", volume);
+             LOG_INFO(LOG_TAG, "  音量: %.1f", volume);
              
              // 生成500ms的正弦波
              auto sine_frame = createSineWaveFrame(pool, freq, 0.8, config.sample_rate, 500);
@@ -510,7 +512,7 @@
          std::this_thread::sleep_for(std::chrono::milliseconds(200));
      }
      
-     LOG_INFO("TEST", "4.2 测试音量渐变效果...");
+     LOG_INFO(LOG_TAG, "4.2 测试音量渐变效果...");
      
      // 生成长音调，同时调整音量
      auto long_sine = createSineWaveFrame(pool, 440.0, 0.8, config.sample_rate, 3000);  // 3秒
@@ -537,7 +539,7 @@
      
      audio_system.stopPlayback();
      
-     LOG_INFO("TEST", "✅ 正弦波生成和音量控制测试通过");
+     LOG_INFO(LOG_TAG, "✅ 正弦波生成和音量控制测试通过");
      return true;
  }
  
@@ -545,9 +547,9 @@
   * @brief 测试5：AI模式和WebRTC模式切换
   */
  bool testModeSwitch() {
-     LOG_INFO("TEST", "========================================");
-     LOG_INFO("TEST", "测试5：AI模式和WebRTC模式切换");
-     LOG_INFO("TEST", "========================================");
+     LOG_INFO(LOG_TAG, "========================================");
+     LOG_INFO(LOG_TAG, "测试5：AI模式和WebRTC模式切换");
+     LOG_INFO(LOG_TAG, "========================================");
      
      AudioConfig config;
      config.sample_rate = 48000;
@@ -558,7 +560,7 @@
      AudioSystem audio_system(config);
      
      if (audio_system.initialize() != AudioError::NONE) {
-         LOG_ERROR("TEST", "音频系统初始化失败");
+         LOG_ERROR(LOG_TAG, "音频系统初始化失败");
          return false;
      }
      
@@ -567,7 +569,7 @@
      audio_system.setWebRTCAudioCallback(onWebRTCAudioCallback);
      audio_system.setWakewordCallback(onWakewordCallback);
      
-     LOG_INFO("TEST", "5.1 测试AI模式...");
+     LOG_INFO(LOG_TAG, "5.1 测试AI模式...");
      
      // 清空队列
      {
@@ -579,21 +581,21 @@
      
      // 启动AI模式
      if (audio_system.startAIMode() != AudioError::NONE) {
-         LOG_ERROR("TEST", "启动AI模式失败");
+         LOG_ERROR(LOG_TAG, "启动AI模式失败");
          return false;
      }
      
-     LOG_INFO("TEST", "AI模式运行中（2秒）...");
+     LOG_INFO(LOG_TAG, "AI模式运行中（2秒）...");
      std::this_thread::sleep_for(std::chrono::seconds(2));
      
      // 检查AI模式状态
      if (audio_system.getMainState() != AudioMainState::AI) {
-         LOG_ERROR("TEST", "未进入AI模式");
+         LOG_ERROR(LOG_TAG, "未进入AI模式");
          return false;
      }
      
      if (!audio_system.isAIStreamActive()) {
-         LOG_ERROR("TEST", "AI流未激活");
+         LOG_ERROR(LOG_TAG, "AI流未激活");
          return false;
      }
      
@@ -606,27 +608,27 @@
          ai_frame_count = g_ai_frames.size();
      }
      
-     LOG_INFO("TEST", "AI模式收集帧数: %zu", ai_frame_count);
+     LOG_INFO(LOG_TAG, "AI模式收集帧数: %zu", ai_frame_count);
      
-     LOG_INFO("TEST", "5.2 测试WebRTC模式...");
+     LOG_INFO(LOG_TAG, "5.2 测试WebRTC模式...");
      
      // 启动WebRTC模式
      if (audio_system.startWebRTCMode() != AudioError::NONE) {
-         LOG_ERROR("TEST", "启动WebRTC模式失败");
+         LOG_ERROR(LOG_TAG, "启动WebRTC模式失败");
          return false;
      }
      
-     LOG_INFO("TEST", "WebRTC模式运行中（2秒）...");
+     LOG_INFO(LOG_TAG, "WebRTC模式运行中（2秒）...");
      std::this_thread::sleep_for(std::chrono::seconds(2));
      
      // 检查WebRTC模式状态
      if (audio_system.getMainState() != AudioMainState::WEBRTC) {
-         LOG_ERROR("TEST", "未进入WebRTC模式");
+         LOG_ERROR(LOG_TAG, "未进入WebRTC模式");
          return false;
      }
      
      if (!audio_system.isWebRTCStreamActive()) {
-         LOG_ERROR("TEST", "WebRTC流未激活");
+         LOG_ERROR(LOG_TAG, "WebRTC流未激活");
          return false;
      }
      
@@ -639,9 +641,9 @@
          webrtc_frame_count = g_webrtc_frames.size();
      }
      
-     LOG_INFO("TEST", "WebRTC模式收集帧数: %zu", webrtc_frame_count);
+     LOG_INFO(LOG_TAG, "WebRTC模式收集帧数: %zu", webrtc_frame_count);
      
-     LOG_INFO("TEST", "5.3 测试快速模式切换...");
+     LOG_INFO(LOG_TAG, "5.3 测试快速模式切换...");
      
      // 快速切换测试
      for (int i = 0; i < 3; i++) {
@@ -653,10 +655,10 @@
          std::this_thread::sleep_for(std::chrono::milliseconds(500));
          audio_system.stopWebRTCMode();
          
-         LOG_INFO("TEST", "快速切换 #%d 完成", i + 1);
+         LOG_INFO(LOG_TAG, "快速切换 #%d 完成", i + 1);
      }
      
-     LOG_INFO("TEST", "✅ 模式切换测试通过");
+     LOG_INFO(LOG_TAG, "✅ 模式切换测试通过");
      return true;
  }
  
@@ -664,9 +666,9 @@
   * @brief 测试6：3A音频算法效果
   */
  bool test3AAlgorithms() {
-     LOG_INFO("TEST", "========================================");
-     LOG_INFO("TEST", "测试6：3A音频算法效果");
-     LOG_INFO("TEST", "========================================");
+     LOG_INFO(LOG_TAG, "========================================");
+     LOG_INFO(LOG_TAG, "测试6：3A音频算法效果");
+     LOG_INFO(LOG_TAG, "========================================");
      
      // 配置启用所有3A算法
      AudioConfig config;
@@ -681,15 +683,15 @@
      AudioSystem audio_system(config);
      
      if (audio_system.initialize() != AudioError::NONE) {
-         LOG_ERROR("TEST", "启用3A的音频系统初始化失败");
+         LOG_ERROR(LOG_TAG, "启用3A的音频系统初始化失败");
          return false;
      }
      
-     LOG_INFO("TEST", "6.1 3A算法参数：");
-     LOG_INFO("TEST", "  降噪: %s", config.enable_denoise ? "开启" : "关闭");
-     LOG_INFO("TEST", "  AGC: %s (目标电平: %.1f)", 
+     LOG_INFO(LOG_TAG, "6.1 3A算法参数：");
+     LOG_INFO(LOG_TAG, "  降噪: %s", config.enable_denoise ? "开启" : "关闭");
+     LOG_INFO(LOG_TAG, "  AGC: %s (目标电平: %.1f)", 
               config.enable_agc ? "开启" : "关闭", config.agc_level);
-     LOG_INFO("TEST", "  VAD: %s", config.enable_vad ? "开启" : "关闭");
+     LOG_INFO(LOG_TAG, "  VAD: %s", config.enable_vad ? "开启" : "关闭");
      
      // 清空队列
      {
@@ -699,10 +701,10 @@
          g_callback_count.store(0);
      }
      
-     LOG_INFO("TEST", "6.2 启用3A算法录音测试（5秒）...");
+     LOG_INFO(LOG_TAG, "6.2 启用3A算法录音测试（5秒）...");
      
      if (audio_system.startRecord() != AudioError::NONE) {
-         LOG_ERROR("TEST", "启动录音失败");
+         LOG_ERROR(LOG_TAG, "启动录音失败");
          return false;
      }
      
@@ -721,7 +723,7 @@
          }
      }
      
-     LOG_INFO("TEST", "3A处理完成，共处理 %zu 帧", processed_frames.size());
+     LOG_INFO(LOG_TAG, "3A处理完成，共处理 %zu 帧", processed_frames.size());
      
      // 分析音频特征（简单统计）
      if (!processed_frames.empty()) {
@@ -739,13 +741,13 @@
          }
          
          double avg_amplitude = total_samples > 0 ? (double)sum_abs / total_samples : 0.0;
-         LOG_INFO("TEST", "音频统计：");
-         LOG_INFO("TEST", "  总样本数: %zu", total_samples);
-         LOG_INFO("TEST", "  平均幅度: %.2f", avg_amplitude);
-         LOG_INFO("TEST", "  动态范围: %s", avg_amplitude > 1000 ? "正常" : "较小");
+         LOG_INFO(LOG_TAG, "音频统计：");
+         LOG_INFO(LOG_TAG, "  总样本数: %zu", total_samples);
+         LOG_INFO(LOG_TAG, "  平均幅度: %.2f", avg_amplitude);
+         LOG_INFO(LOG_TAG, "  动态范围: %s", avg_amplitude > 1000 ? "正常" : "较小");
      }
      
-     LOG_INFO("TEST", "✅ 3A音频算法测试完成");
+     LOG_INFO(LOG_TAG, "✅ 3A音频算法测试完成");
      return true;
  }
  
@@ -767,8 +769,8 @@
          return -1;
      }
      
-     LOG_INFO("MAIN", "🎵 AudioSystem 完整功能测试开始");
-     LOG_INFO("MAIN", "========================================");
+     LOG_INFO(LOG_TAG, "🎵 AudioSystem 完整功能测试开始");
+     LOG_INFO(LOG_TAG, "========================================");
      
      int passed = 0;
      int failed = 0;
@@ -785,18 +787,18 @@
      
      for (const auto& [test_func, test_name] : tests) {
          try {
-             LOG_INFO("MAIN", "\n开始执行: %s", test_name.c_str());
+             LOG_INFO(LOG_TAG, "\n开始执行: %s", test_name.c_str());
              
              if (test_func()) {
-                 LOG_INFO("MAIN", "✅ %s - 通过", test_name.c_str());
+                 LOG_INFO(LOG_TAG, "✅ %s - 通过", test_name.c_str());
                  passed++;
              } else {
-                 LOG_ERROR("MAIN", "❌ %s - 失败", test_name.c_str());
+                 LOG_ERROR(LOG_TAG, "❌ %s - 失败", test_name.c_str());
                  failed++;
              }
              
          } catch (const std::exception& e) {
-             LOG_ERROR("MAIN", "❌ %s - 异常: %s", test_name.c_str(), e.what());
+             LOG_ERROR(LOG_TAG, "❌ %s - 异常: %s", test_name.c_str(), e.what());
              failed++;
          }
          
@@ -804,11 +806,11 @@
          std::this_thread::sleep_for(std::chrono::milliseconds(500));
      }
      
-     LOG_INFO("MAIN", "========================================");
-     LOG_INFO("MAIN", "🎵 AudioSystem 测试完成");
-     LOG_INFO("MAIN", "✅ 通过: %d 个测试", passed);
-     LOG_INFO("MAIN", "❌ 失败: %d 个测试", failed);
-     LOG_INFO("MAIN", "总计: %d 个测试", passed + failed);
+     LOG_INFO(LOG_TAG, "========================================");
+     LOG_INFO(LOG_TAG, "🎵 AudioSystem 测试完成");
+     LOG_INFO(LOG_TAG, "✅ 通过: %d 个测试", passed);
+     LOG_INFO(LOG_TAG, "❌ 失败: %d 个测试", failed);
+     LOG_INFO(LOG_TAG, "总计: %d 个测试", passed + failed);
      
      if (failed == 0) {
          std::cout << "\n🎉 所有测试通过！AudioSystem 功能完全正常！\n" << std::endl;

@@ -156,7 +156,7 @@ namespace app
                 std::function<void(ActivationStatus status, const ActivationResult& result)>;
 
             /**
-             * @brief 激活进度回调（轮询时）
+             * @brief 激活进度回调
              */
             using ActivationProgressCallback = std::function<void(int elapsed_sec, int total_sec)>;
 
@@ -183,7 +183,7 @@ namespace app
                 explicit DeviceActivation(ActivationConfig config = ActivationConfig());
 
                 /**
-                 * @brief 析构函数（RAII自动清理所有资源）
+                 * @brief 析构函数
                  */
                 ~DeviceActivation();
 
@@ -192,7 +192,7 @@ namespace app
                 // ========================================================================
 
                 /**
-                 * @brief 同步检查激活状态（阻塞）
+                 * @brief 同步检查激活状态
                  * @param mac MAC地址
                  * @param uuid UUID
                  * @return 激活结果
@@ -200,7 +200,7 @@ namespace app
                 ActivationResult checkActivation(const std::string& mac, const std::string& uuid);
 
                 /**
-                 * @brief 快速检查是否已激活（阻塞）
+                 * @brief 快速检查是否已激活
                  * @param mac MAC地址
                  * @param uuid UUID
                  * @return true-已激活, false-未激活或失败
@@ -212,7 +212,7 @@ namespace app
                 // ========================================================================
 
                 /**
-                 * @brief 异步检查激活状态（立即返回）
+                 * @brief 异步检查激活状态
                  * @param mac MAC地址
                  * @param uuid UUID
                  * @return future对象，可获取激活结果
@@ -221,11 +221,11 @@ namespace app
                                                                    const std::string& uuid);
 
                 // ========================================================================
-                // 轮询接口（异步非阻塞）
+                // 轮询接口
                 // ========================================================================
 
                 /**
-                 * @brief 启动异步轮询（立即返回，后台线程轮询）
+                 * @brief 启动异步轮询
                  * @param mac MAC地址
                  * @param uuid UUID
                  * @param timeout_sec 超时时间（秒）
@@ -246,7 +246,7 @@ namespace app
                 bool isPolling() const;
 
                 /**
-                 * @brief 等待轮询完成（阻塞）
+                 * @brief 等待轮询完成
                  * @param timeout_ms 超时时间（毫秒），0表示无限等待
                  * @return 最终激活结果
                  */
@@ -285,7 +285,7 @@ namespace app
                 const ActivationConfig& getConfig() const;
 
                 /**
-                 * @brief 更新配置（仅在非轮询状态下）
+                 * @brief 更新配置
                  * @param config 新配置
                  * @return true-成功, false-正在轮询中无法更新
                  */

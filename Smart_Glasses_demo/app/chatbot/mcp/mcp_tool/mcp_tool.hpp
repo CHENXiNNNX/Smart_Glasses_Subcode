@@ -1,10 +1,6 @@
 /**
  * @file mcp_tool.hpp
  * @brief MCP工具注册管理
- * @details 负责注册所有Smart_Glasses设备工具到MCP服务器
- *
- * @author Smart Glasses Team
- * @date 2025-01-29
  */
 
 #ifndef MCP_TOOL_HPP
@@ -23,15 +19,27 @@ namespace app
         {
             class VideoSystem;
         }
-    }
+    } // namespace media
     namespace network
     {
         namespace wifi
         {
             class WifiManager;
         }
+    } // namespace network
+    namespace protocol
+    {
+        namespace webrtc
+        {
+            class Signaling;
+            class WebRTCSystem;
+        }
+    } // namespace protocol
+    namespace chatbot
+    {
+        class ChatbotSystem;
     }
-}
+} // namespace app
 
 namespace app
 {
@@ -47,7 +55,6 @@ namespace app
 
                 /**
                  * @brief MCP工具管理器
-                 * @details 负责向MCP服务器注册所有设备工具
                  */
                 class McpToolManager
                 {
@@ -55,15 +62,22 @@ namespace app
                     /**
                      * @brief 注册所有工具到MCP服务器
                      * @param mcp_server MCP服务器实例
-                     * @param audio_system 音频系统指针（可选）
-                     * @param video_system 视频系统指针（可选）
-                     * @param wifi_manager WiFi管理器指针（可选）
+                     * @param audio_system 音频系统指针
+                     * @param video_system 视频系统指针
+                     * @param wifi_manager WiFi管理器指针
+                     * @param signaling 信令系统指针
+                     * @param webrtc_system Webrtc系统指针
+                     * @param chatbot_system Chatbot系统指针
                      * @return 成功注册的工具数量
                      */
-                    static int registerAllTools(McpServer& mcp_server, 
-                                               app::media::audio::AudioSystem* audio_system = nullptr,
-                                               app::media::camera::VideoSystem* video_system = nullptr,
-                                               app::network::wifi::WifiManager* wifi_manager = nullptr);
+                    static int
+                    registerAllTools(McpServer&                           mcp_server,
+                                     app::media::audio::AudioSystem*      audio_system  = nullptr,
+                                     app::media::camera::VideoSystem*     video_system  = nullptr,
+                                     app::network::wifi::WifiManager*     wifi_manager  = nullptr,
+                                     app::protocol::webrtc::Signaling*    signaling     = nullptr,
+                                     app::protocol::webrtc::WebRTCSystem* webrtc_system = nullptr,
+                                     app::chatbot::ChatbotSystem*         chatbot_system = nullptr);
 
                     /**
                      * @brief 注册系统工具
@@ -75,29 +89,47 @@ namespace app
                     /**
                      * @brief 注册音频工具
                      * @param mcp_server MCP服务器实例
-                     * @param audio_system 音频系统指针（必需）
+                     * @param audio_system 音频系统指针
                      * @return 注册的工具数量
                      */
-                    static int registerAudioTools(McpServer& mcp_server,
-                                                 app::media::audio::AudioSystem* audio_system);
+                    static int registerAudioTools(McpServer&                      mcp_server,
+                                                  app::media::audio::AudioSystem* audio_system = nullptr);
 
                     /**
                      * @brief 注册视频工具
                      * @param mcp_server MCP服务器实例
-                     * @param video_system 视频系统指针（可选）
+                     * @param video_system 视频系统指针
                      * @return 注册的工具数量
                      */
-                    static int registerVideoTools(McpServer& mcp_server,
-                                                 app::media::camera::VideoSystem* video_system = nullptr);
+                    static int
+                    registerVideoTools(McpServer&                       mcp_server,
+                                       app::media::camera::VideoSystem* video_system = nullptr);
+
+                    /**
+                     * @brief 注册Webrtc工具
+                     * @param mcp_server MCP服务器实例
+                     * @param audio_system 音频系统指针
+                     * @param signaling 信令系统指针
+                     * @param webrtc_system Webrtc系统指针
+                     * @param chatbot_system Chatbot系统指针
+                     * @return 注册的工具数量
+                     */
+                    static int registerWebrtcTools(
+                        McpServer&                           mcp_server,
+                        app::media::audio::AudioSystem*      audio_system   = nullptr,
+                        app::protocol::webrtc::Signaling*    signaling      = nullptr,
+                        app::protocol::webrtc::WebRTCSystem* webrtc_system  = nullptr,
+                        app::chatbot::ChatbotSystem*         chatbot_system = nullptr);
 
                     /**
                      * @brief 注册网络工具
                      * @param mcp_server MCP服务器实例
-                     * @param wifi_manager WiFi管理器指针（可选）
+                     * @param wifi_manager WiFi管理器指针
                      * @return 注册的工具数量
                      */
-                    static int registerNetworkTools(McpServer& mcp_server,
-                                                    app::network::wifi::WifiManager* wifi_manager = nullptr);
+                    static int
+                    registerNetworkTools(McpServer&                       mcp_server,
+                                         app::network::wifi::WifiManager* wifi_manager = nullptr);
                 };
 
             } // namespace mcp_tool

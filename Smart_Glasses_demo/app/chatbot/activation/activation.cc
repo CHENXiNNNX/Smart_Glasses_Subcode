@@ -31,7 +31,7 @@ namespace app
 
             namespace
             {
-                constexpr const char* LOG_TAG                        = "Activation";
+                constexpr const char* LOG_TAG                        = "ACTIVATION";
                 constexpr double      SUCCESS_RATE_WARNING_THRESHOLD = 90.0;
             } // namespace
 
@@ -45,7 +45,7 @@ namespace app
                 // 配置
                 ActivationConfig config;
 
-                // HTTP客户端（RAII管理）
+                // HTTP客户端
                 std::unique_ptr<http::HttpClient> http_client;
 
                 // 轮询状态

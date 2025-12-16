@@ -23,6 +23,7 @@ using json = nlohmann::json;
 
 namespace
 {
+    constexpr const char*               LOG_TAG                       = "PROTOCOL_HANDLE";
     constexpr std::chrono::milliseconds QUEUE_WAIT_TIMEOUT{100};
     constexpr int                       MIN_SAMPLE_RATE               = 8000;
     constexpr int                       MAX_SAMPLE_RATE               = 48000;
@@ -46,10 +47,8 @@ namespace app
             using namespace tool::log;
 
             // ============================================================================
-            // 静态哈希表（O(1)查找优化）
+            // 静态哈希表
             // ============================================================================
-
-            // 消息类型哈希表
             static const std::unordered_map<std::string, MessageType> MESSAGE_TYPE_MAP = {
                 {"hello", MessageType::HELLO}, {"listen", MessageType::LISTEN},
                 {"stt", MessageType::STT},     {"llm", MessageType::LLM},
@@ -62,7 +61,6 @@ namespace app
                 {MessageType::TTS, "tts"},     {MessageType::MCP, "mcp"},
                 {MessageType::ERROR, "error"}, {MessageType::UNKNOWN, "unknown"}};
 
-            // 情感类型哈希表
             static const std::unordered_map<std::string, EmotionType> EMOTION_MAP = {
                 {"neutral", EmotionType::NEUTRAL},
                 {"happy", EmotionType::HAPPY},
@@ -109,7 +107,6 @@ namespace app
                 {EmotionType::SILLY, "silly"},
                 {EmotionType::CONFUSED, "confused"}};
 
-            // 监听模式哈希表
             static const std::unordered_map<std::string, ListenMode> LISTEN_MODE_MAP = {
                 {"auto", ListenMode::AUTO},
                 {"manual", ListenMode::MANUAL},
@@ -121,7 +118,7 @@ namespace app
                 {ListenMode::REALTIME, "realtime"}};
 
             // ============================================================================
-            // ProtocolHandler::Impl 内部实现（Pimpl惯用法）
+            // ProtocolHandler::Impl 内部实现
             // ============================================================================
 
             class ProtocolHandler::Impl
@@ -157,14 +154,14 @@ namespace app
 
                 explicit Impl(ProtocolConfig cfg) : config(std::move(cfg))
                 {
-                    LOG_DEBUG("ProtocolHandler", "Impl created");
+                    LOG_DEBUG(LOG_TAG, "Impl created");
                 }
 
                 ~Impl()
                 {
-                    LOG_DEBUG("ProtocolHandler", "Impl destroying...");
+                    LOG_DEBUG(LOG_TAG, "Impl destroying...");
                     stopProcessorThread();
-                    LOG_DEBUG("ProtocolHandler", "Impl destroyed");
+                    LOG_DEBUG(LOG_TAG, "Impl destroyed");
                 }
 
                 // ========================================================================
@@ -183,7 +180,7 @@ namespace app
                     processor_thread = std::make_unique<std::thread>(
                         [this]()
                         {
-                            LOG_DEBUG("ProtocolHandler", "Message processor thread started");
+                            LOG_DEBUG(LOG_TAG, "Message processor thread started");
 
                             while (!should_stop.load(std::memory_order_acquire))
                             {
@@ -216,7 +213,7 @@ namespace app
                                 processMessageInternal(buffer.data(), buffer.size());
                             }
 
-                            LOG_DEBUG("ProtocolHandler", "Message processor thread stopped");
+                            LOG_DEBUG(LOG_TAG, "Message processor thread stopped");
                         });
                 }
 
@@ -240,13 +237,13 @@ namespace app
                     if (message_queue.size() >= config.message_queue_size)
                     {
                         stats.queue_overflows.fetch_add(1, std::memory_order_relaxed);
-                        LOG_WARN("ProtocolHandler",
+                        LOG_WARN(LOG_TAG,
                                  "Message queue full (%zu), dropping oldest message",
                                  config.message_queue_size);
                         message_queue.pop(); // 丢弃最旧的消息
                     }
 
-                    // 拷贝消息到队列（必要的拷贝，因为buffer可能被复用）
+                    // 拷贝消息到队列
                     std::vector<char> msg_buffer(size);
                     std::copy_n(buffer, size, msg_buffer.begin());
                     message_queue.push(std::move(msg_buffer));
@@ -319,21 +316,21 @@ namespace app
                     }
                     catch (const json::parse_error& e)
                     {
-                        LOG_ERROR("ProtocolHandler", "JSON parse error: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "JSON parse error: %s", e.what());
                         stats.parse_errors.fetch_add(1, std::memory_order_relaxed);
                         invokeErrorCallback(std::string("JSON parse error: ") + e.what());
                         return MessageType::ERROR;
                     }
                     catch (const json::type_error& e)
                     {
-                        LOG_ERROR("ProtocolHandler", "JSON type error: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "JSON type error: %s", e.what());
                         stats.parse_errors.fetch_add(1, std::memory_order_relaxed);
                         invokeErrorCallback(std::string("JSON type error: ") + e.what());
                         return MessageType::ERROR;
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("ProtocolHandler", "Exception: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "Exception: %s", e.what());
                         stats.parse_errors.fetch_add(1, std::memory_order_relaxed);
                         invokeErrorCallback(std::string("Exception: ") + e.what());
                         return MessageType::ERROR;
@@ -366,14 +363,14 @@ namespace app
                         return handleErrorMessage(j);
 
                     default:
-                        LOG_WARN("ProtocolHandler", "Unknown message type: %d",
+                        LOG_WARN(LOG_TAG, "Unknown message type: %d",
                                  static_cast<int>(type));
                         return false;
                     }
                 }
 
                 // ========================================================================
-                // 各类型消息处理（异常安全）
+                // 各类型消息处理
                 // ========================================================================
 
                 bool handleHelloMessage(const json& j)
@@ -396,11 +393,11 @@ namespace app
                         else
                         {
                             applyDefaultAudioParams(msg);
-                            LOG_WARN("ProtocolHandler",
+                            LOG_WARN(LOG_TAG,
                                      "audio_params missing or null, using defaults");
                         }
 
-                        LOG_INFO("ProtocolHandler", "<- Hello: session=%s, audio=%dHz/%dch/%dms",
+                        LOG_INFO(LOG_TAG, "<- Hello: session=%s, audio=%dHz/%dch/%dms",
                                  msg.session_id.c_str(), msg.audio_params.sample_rate,
                                  msg.audio_params.channels, msg.audio_params.frame_duration);
 
@@ -409,7 +406,7 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("ProtocolHandler", "Failed to handle Hello message: %s",
+                        LOG_ERROR(LOG_TAG, "Failed to handle Hello message: %s",
                                   e.what());
                         return false;
                     }
@@ -438,7 +435,7 @@ namespace app
                             }
                             else
                             {
-                                LOG_WARN("ProtocolHandler", "Unknown listen state: %s",
+                                LOG_WARN(LOG_TAG, "Unknown listen state: %s",
                                          state_str.c_str());
                                 msg.state = ListenState::START;
                             }
@@ -462,7 +459,7 @@ namespace app
                         // 调用回调
                         invokeListenCallback(msg);
 
-                        LOG_DEBUG("ProtocolHandler", "<- Listen: state=%s, mode=%s",
+                        LOG_DEBUG(LOG_TAG, "<- Listen: state=%s, mode=%s",
                                   (msg.state == ListenState::START) ? "start" : "stop",
                                   listenModeToString(msg.mode).c_str());
 
@@ -470,7 +467,7 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("ProtocolHandler", "Failed to handle Listen message: %s",
+                        LOG_ERROR(LOG_TAG, "Failed to handle Listen message: %s",
                                   e.what());
                         return false;
                     }
@@ -486,16 +483,16 @@ namespace app
                         msg.text       = j.value("text", "");
                         msg.is_final   = j.value("is_final", true);
 
-                        LOG_DEBUG("ProtocolHandler", "-> STT: \"%s\" (final: %s)", msg.text.c_str(),
+                        LOG_DEBUG(LOG_TAG, "-> STT: \"%s\" (final: %s)", msg.text.c_str(),
                                   msg.is_final ? "true" : "false");
 
-                        // 触发回调（异常安全）
+                        // 触发回调
                         invokeSTTCallback(msg);
                         return true;
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("ProtocolHandler", "Failed to handle STT message: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "Failed to handle STT message: %s", e.what());
                         return false;
                     }
                 }
@@ -510,22 +507,22 @@ namespace app
                         msg.text       = j.value("text", "");
                         msg.is_final   = j.value("is_final", true);
 
-                        // 解析情感类型（使用哈希表）
+                        // 解析情感类型
                         std::string emotion_str = j.value("emotion", "neutral");
                         msg.emotion             = ProtocolHandler::stringToEmotionType(emotion_str);
 
-                        LOG_DEBUG("ProtocolHandler", "<- LLM: \"%s\" (emotion: %s, final: %s)",
+                        LOG_DEBUG(LOG_TAG, "<- LLM: \"%s\" (emotion: %s, final: %s)",
                                   msg.text.c_str(),
                                   ProtocolHandler::emotionTypeToString(msg.emotion).c_str(),
                                   msg.is_final ? "true" : "false");
 
-                        // 触发回调（异常安全）
+                        // 触发回调
                         invokeLLMCallback(msg);
                         return true;
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("ProtocolHandler", "Failed to handle LLM message: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "Failed to handle LLM message: %s", e.what());
                         return false;
                     }
                 }
@@ -545,7 +542,7 @@ namespace app
                             msg.text       = j.value("text", "");
                             msg.state      = TTSState::START;
 
-                            LOG_DEBUG("ProtocolHandler", "<- TTS: state=start");
+                            LOG_DEBUG(LOG_TAG, "<- TTS: state=start");
                             invokeTTSCallback(msg);
                         }
                         else if (state_str == "sentence_start")
@@ -555,7 +552,7 @@ namespace app
                             msg.text       = j.value("text", "");
                             msg.state      = TTSState::SENTENCE_START;
 
-                            LOG_DEBUG("ProtocolHandler",
+                            LOG_DEBUG(LOG_TAG,
                                       "<- TTS: state=sentence_start, text=\"%s\"",
                                       msg.text.c_str());
                             invokeTTSCallback(msg);
@@ -567,13 +564,13 @@ namespace app
                             msg.text       = j.value("text", "");
                             msg.state      = TTSState::STOP;
 
-                            LOG_DEBUG("ProtocolHandler", "<- TTS: state=stop");
+                            LOG_DEBUG(LOG_TAG, "<- TTS: state=stop");
                             invokeTTSCallback(msg);
                         }
                         else
                         {
                             // 未知状态
-                            LOG_DEBUG("ProtocolHandler", "<- TTS: state=%s (ignored)",
+                            LOG_DEBUG(LOG_TAG, "<- TTS: state=%s (ignored)",
                                       state_str.c_str());
                         }
 
@@ -581,7 +578,7 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("ProtocolHandler", "Failed to handle TTS message: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "Failed to handle TTS message: %s", e.what());
                         return false;
                     }
                 }
@@ -592,29 +589,29 @@ namespace app
                     {
                         if (!j.contains("payload"))
                         {
-                            LOG_ERROR("ProtocolHandler", "MCP message missing 'payload' field");
+                            LOG_ERROR(LOG_TAG, "MCP message missing 'payload' field");
                             return false;
                         }
 
                         std::string mcp_payload = j["payload"].dump();
 
-                        LOG_DEBUG("ProtocolHandler", "<- MCP: payload size=%zu",
+                        LOG_DEBUG(LOG_TAG, "<- MCP: payload size=%zu",
                                   mcp_payload.size());
 
-                        // 触发回调并获取响应（异常安全）
+                        // 触发回调并获取响应
                         std::string response = invokeMCPCallback(mcp_payload);
 
                         // 记录响应（但发送由外部处理）
                         if (!response.empty())
                         {
-                            LOG_DEBUG("ProtocolHandler", "MCP response size: %zu", response.size());
+                            LOG_DEBUG(LOG_TAG, "MCP response size: %zu", response.size());
                         }
 
                         return true;
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("ProtocolHandler", "Failed to handle MCP message: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "Failed to handle MCP message: %s", e.what());
                         return false;
                     }
                 }
@@ -625,7 +622,7 @@ namespace app
                     {
                         std::string error_msg = j.value("message", "Unknown error");
 
-                        LOG_ERROR("ProtocolHandler", "<- Error: %s", error_msg.c_str());
+                        LOG_ERROR(LOG_TAG, "<- Error: %s", error_msg.c_str());
 
                         // 触发错误回调
                         invokeErrorCallback(error_msg);
@@ -633,14 +630,14 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR("ProtocolHandler", "Failed to handle Error message: %s",
+                        LOG_ERROR(LOG_TAG, "Failed to handle Error message: %s",
                                   e.what());
                         return false;
                     }
                 }
 
                 // ========================================================================
-                // 回调调用（异常安全）
+                // 回调调用
                 // ========================================================================
 
                 void invokeHelloCallback(const HelloMessage& msg)
@@ -655,19 +652,19 @@ namespace app
                         }
                         catch (const std::runtime_error& e)
                         {
-                            LOG_ERROR("ProtocolHandler", "Hello callback runtime_error: %s",
+                            LOG_ERROR(LOG_TAG, "Hello callback runtime_error: %s",
                                       e.what());
                             stats.callback_exceptions.fetch_add(1, std::memory_order_relaxed);
                         }
                         catch (const std::logic_error& e)
                         {
-                            LOG_ERROR("ProtocolHandler", "Hello callback logic_error: %s",
+                            LOG_ERROR(LOG_TAG, "Hello callback logic_error: %s",
                                       e.what());
                             stats.callback_exceptions.fetch_add(1, std::memory_order_relaxed);
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("ProtocolHandler", "Hello callback exception: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "Hello callback exception: %s", e.what());
                             stats.callback_exceptions.fetch_add(1, std::memory_order_relaxed);
                         }
                     }
@@ -685,7 +682,7 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("ProtocolHandler", "Listen callback exception: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "Listen callback exception: %s", e.what());
                             stats.callback_exceptions.fetch_add(1, std::memory_order_relaxed);
                         }
                     }
@@ -703,7 +700,7 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("ProtocolHandler", "STT callback exception: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "STT callback exception: %s", e.what());
                             stats.callback_exceptions.fetch_add(1, std::memory_order_relaxed);
                         }
                     }
@@ -721,7 +718,7 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("ProtocolHandler", "LLM callback exception: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "LLM callback exception: %s", e.what());
                             stats.callback_exceptions.fetch_add(1, std::memory_order_relaxed);
                         }
                     }
@@ -739,7 +736,7 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("ProtocolHandler", "TTS callback exception: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "TTS callback exception: %s", e.what());
                             stats.callback_exceptions.fetch_add(1, std::memory_order_relaxed);
                         }
                     }
@@ -757,7 +754,7 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("ProtocolHandler", "MCP callback exception: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "MCP callback exception: %s", e.what());
                             stats.callback_exceptions.fetch_add(1, std::memory_order_relaxed);
                             return "";
                         }
@@ -777,7 +774,7 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("ProtocolHandler", "Error callback exception: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "Error callback exception: %s", e.what());
                         }
                     }
                 }
@@ -794,7 +791,7 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR("ProtocolHandler", "Protocol error callback exception: %s",
+                            LOG_ERROR(LOG_TAG, "Protocol error callback exception: %s",
                                       e.what());
                         }
                     }
@@ -856,7 +853,7 @@ namespace app
                         }
 
                         std::string key_str(key);
-                        LOG_WARN("ProtocolHandler", "%.*s: %s=%d out of range [%d, %d], use %d",
+                        LOG_WARN(LOG_TAG, "%.*s: %s=%d out of range [%d, %d], use %d",
                                  static_cast<int>(warn_context.size()), warn_context.data(),
                                  key_str.c_str(), value, min_value, max_value, fallback);
                     }
@@ -898,7 +895,7 @@ namespace app
             ProtocolHandler::ProtocolHandler(const ProtocolConfig& config)
                 : pImpl_(std::make_unique<Impl>(config))
             {
-                LOG_INFO("ProtocolHandler", "Protocol Handler created");
+                LOG_INFO(LOG_TAG, "Protocol Handler created");
 
                 // 启动异步处理线程
                 if (pImpl_->config.enable_async_processing)
@@ -909,13 +906,12 @@ namespace app
 
             ProtocolHandler::~ProtocolHandler()
             {
-                LOG_INFO("ProtocolHandler", "Protocol Handler destroying...");
+                LOG_INFO(LOG_TAG, "Protocol Handler destroying...");
 
                 // 输出最终统计
                 logStats();
 
-                // RAII自动清理（pImpl_析构会停止线程并清理资源）
-                LOG_INFO("ProtocolHandler", "Protocol Handler destroyed");
+                LOG_INFO(LOG_TAG, "Protocol Handler destroyed");
             }
 
             // ========================================================================
@@ -931,7 +927,7 @@ namespace app
 
                 if (pImpl_->config.enable_async_processing)
                 {
-                    // 异步处理：快速入队，不阻塞调用线程
+                    // 异步处理
                     return pImpl_->enqueueMessage(buffer, size);
                 }
 
@@ -969,21 +965,21 @@ namespace app
                 // 参数验证
                 if (sample_rate < MIN_SAMPLE_RATE || sample_rate > MAX_SAMPLE_RATE)
                 {
-                    LOG_WARN("ProtocolHandler", "Invalid sample_rate: %d, using default",
+                    LOG_WARN(LOG_TAG, "Invalid sample_rate: %d, using default",
                              sample_rate);
                     sample_rate = pImpl_->config.default_sample_rate;
                 }
 
                 if (channels < MIN_CHANNEL_COUNT || channels > MAX_CHANNEL_COUNT)
                 {
-                    LOG_WARN("ProtocolHandler", "Invalid channels: %d, using default", channels);
+                    LOG_WARN(LOG_TAG, "Invalid channels: %d, using default", channels);
                     channels = pImpl_->config.default_channels;
                 }
 
                 if (frame_duration < MIN_FRAME_DURATION_MS ||
                     frame_duration > MAX_FRAME_DURATION_MS)
                 {
-                    LOG_WARN("ProtocolHandler", "Invalid frame_duration: %d, using default",
+                    LOG_WARN(LOG_TAG, "Invalid frame_duration: %d, using default",
                              frame_duration);
                     frame_duration = pImpl_->config.default_frame_duration;
                 }
@@ -1075,7 +1071,7 @@ namespace app
             {
                 std::lock_guard<std::mutex> lock(pImpl_->session_mutex);
                 pImpl_->session_id = session_id;
-                LOG_INFO("ProtocolHandler", "Session ID set: %s", session_id.c_str());
+                LOG_INFO(LOG_TAG, "Session ID set: %s", session_id.c_str());
             }
 
             std::string ProtocolHandler::getSessionId() const
@@ -1091,7 +1087,7 @@ namespace app
             }
 
             // ========================================================================
-            // 工具函数（静态，使用哈希表）
+            // 工具函数
             // ========================================================================
 
             MessageType ProtocolHandler::stringToMessageType(const std::string& type_str)
@@ -1167,7 +1163,7 @@ namespace app
                 pImpl_->stats.total_parse_time_us.store(0);
                 pImpl_->stats.avg_parse_time_us.store(0);
 
-                LOG_INFO("ProtocolHandler", "Stats reset");
+                LOG_INFO(LOG_TAG, "Stats reset");
             }
 
             void ProtocolHandler::logStats() const
@@ -1178,30 +1174,30 @@ namespace app
                 uint64_t invalid    = pImpl_->stats.invalid_messages.load();
                 uint64_t overflows  = pImpl_->stats.queue_overflows.load();
 
-                LOG_INFO("ProtocolHandler", "=== Protocol Handler Statistics ===");
-                LOG_INFO("ProtocolHandler", "  Messages parsed:     %llu", total);
-                LOG_INFO("ProtocolHandler", "  Parse errors:        %llu", errors);
-                LOG_INFO("ProtocolHandler", "  Callback exceptions: %llu", exceptions);
-                LOG_INFO("ProtocolHandler", "  Invalid messages:    %llu", invalid);
-                LOG_INFO("ProtocolHandler", "  Queue overflows:     %llu", overflows);
+                LOG_INFO(LOG_TAG, "=== Protocol Handler Statistics ===");
+                LOG_INFO(LOG_TAG, "  Messages parsed:     %llu", total);
+                LOG_INFO(LOG_TAG, "  Parse errors:        %llu", errors);
+                LOG_INFO(LOG_TAG, "  Callback exceptions: %llu", exceptions);
+                LOG_INFO(LOG_TAG, "  Invalid messages:    %llu", invalid);
+                LOG_INFO(LOG_TAG, "  Queue overflows:     %llu", overflows);
 
-                LOG_INFO("ProtocolHandler", "Message type breakdown:");
-                LOG_INFO("ProtocolHandler", "  HELLO: %llu", pImpl_->stats.hello_count.load());
-                LOG_INFO("ProtocolHandler", "  STT:   %llu", pImpl_->stats.stt_count.load());
-                LOG_INFO("ProtocolHandler", "  LLM:   %llu", pImpl_->stats.llm_count.load());
-                LOG_INFO("ProtocolHandler", "  TTS:   %llu", pImpl_->stats.tts_count.load());
-                LOG_INFO("ProtocolHandler", "  MCP:   %llu", pImpl_->stats.mcp_count.load());
-                LOG_INFO("ProtocolHandler", "  ERROR: %llu", pImpl_->stats.error_count.load());
+                LOG_INFO(LOG_TAG, "Message type breakdown:");
+                LOG_INFO(LOG_TAG, "  HELLO: %llu", pImpl_->stats.hello_count.load());
+                LOG_INFO(LOG_TAG, "  STT:   %llu", pImpl_->stats.stt_count.load());
+                LOG_INFO(LOG_TAG, "  LLM:   %llu", pImpl_->stats.llm_count.load());
+                LOG_INFO(LOG_TAG, "  TTS:   %llu", pImpl_->stats.tts_count.load());
+                LOG_INFO(LOG_TAG, "  MCP:   %llu", pImpl_->stats.mcp_count.load());
+                LOG_INFO(LOG_TAG, "  ERROR: %llu", pImpl_->stats.error_count.load());
 
                 // 性能指标
                 uint64_t avg_time = pImpl_->stats.avg_parse_time_us.load();
                 if (total > 0)
                 {
-                    LOG_INFO("ProtocolHandler", "  Avg parse time: %llu μs", avg_time);
+                    LOG_INFO(LOG_TAG, "  Avg parse time: %llu μs", avg_time);
 
                     if (avg_time > PERFORMANCE_WARN_THRESHOLD_US)
                     {
-                        LOG_WARN("ProtocolHandler",
+                        LOG_WARN(LOG_TAG,
                                  "Average parse time > 1ms, consider optimization");
                     }
                 }
@@ -1214,19 +1210,19 @@ namespace app
 
                     if (error_rate > ERROR_RATE_WARN_THRESHOLD)
                     {
-                        LOG_WARN("ProtocolHandler", "Error rate: %.2f%% (review message format)",
+                        LOG_WARN(LOG_TAG, "Error rate: %.2f%% (review message format)",
                                  error_rate);
                     }
 
                     if (exception_rate > EXCEPTION_RATE_WARN_THRESHOLD)
                     {
-                        LOG_WARN("ProtocolHandler", "Exception rate: %.2f%% (review callbacks)",
+                        LOG_WARN(LOG_TAG, "Exception rate: %.2f%% (review callbacks)",
                                  exception_rate);
                     }
 
                     if (overflows > 0)
                     {
-                        LOG_WARN("ProtocolHandler",
+                        LOG_WARN(LOG_TAG,
                                  "Queue overflows: %llu (consider increasing queue size)",
                                  overflows);
                     }

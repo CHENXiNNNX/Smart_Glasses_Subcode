@@ -29,8 +29,6 @@
 - 1006: 对端已离线
 - 1007: 服务器内部错误
 (6)配对逻辑
-- 第一个加入房间的客户端自动成为发起方(offerer)
-- 第二个加入房间的客户端自动成为应答方(answerer)
 - 配对成功后，服务器向双方发送role消息，包含对端设备ID
 - 后续SDP和ICE消息在配对的双方之间透明转发
 (7)日志和监控
@@ -50,69 +48,54 @@
 (1)加入房间
 {
   "type": "join",
-  "device_id": "glasses_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "from":"glasses_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "to":"server"
+  "from": "glasses_xxx",  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
+  "to": "server",
   "time": 国际标准时间(1970年开始)，以微秒为单位
 }
 (2)离开房间
 {
   "type": "leave",
-  "device_id": "glasses_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "from":"glasses_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "to":"server"
+  "from": "glasses_xxx",  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
+  "to": "server",
   "time": 国际标准时间(1970年开始)，以微秒为单位
 }
-(3)sdp发送
+(3)sdp发送(设备端作为offerer，发送offer)
 {
   "type": "offer",
-  "device_id": "glasses_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "from":"glasses_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "to":"app_xxx"
-  "data":{}
+  "from": "glasses_xxx",  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
+  "to": "app_xxx",
+  "data": {},
   "time": 国际标准时间(1970年开始)，以微秒为单位
 }
-(4)sdp应答
-{
-  "type": "answer",
-  "device_id": "glasses_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "from":"glasses_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "to":"app_xxx"
-  "data":{}
-  "time": 国际标准时间(1970年开始)，以微秒为单位
-}
+(4)注意：设备端不会发送answer，设备端只发送offer。APP端收到offer后会发送answer给设备端（见APP端消息格式(3)）
 (5)ice信息
 {
   "type": "ice",
-  "device_id": "glasses_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "from":"glasses_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "to":"app_xxx"
-  "data":{}
+  "from": "glasses_xxx",  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
+  "to": "app_xxx",
+  "data": {},
   "time": 国际标准时间(1970年开始)，以微秒为单位
 }
 (6)角色信息
 {
   "type": "role",
-  "device_id": "app_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
   "from":"server"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
   "to":"glasses_xxx"
-  "data":{}
+  "data":{
+    "peer_id"：对端id
+  }
   "time": 国际标准时间(1970年开始)，以微秒为单位
 }
 (7)房间信息变动下发
 {
   "type": "info",
-  "device_id": "glasses_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "from":"server"
-  "to":"glasses_xxx"
-  "data":{}
+  "from": "server",
+  "to": "glasses_xxx",  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
+  "data": {
+    "room_id": "xxx",  # xxx为唯一标识的房间号
+    "num": xxx         # xxx为房间内人数
+  },
   "time": 国际标准时间(1970年开始)，以微秒为单位
-}
-# 房间信息格式
-"data":{
-  room_id:xxx # xxx为唯一标识的房间号
-  num:xxx    # xxx为房间内人数
-  room_status:open/close
 } 
 # 房间信息下发规则
 - 当设备端或者APP端不管谁先加入房间，使得信令服务器建立房间后会下发房间状态信息
@@ -124,18 +107,39 @@
 (8)请求房间信息
 {
   "type": "get_room_info",
-  "device_id": "glasses_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "from":"glasses_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "to":"server"
+  "from": "glasses_xxx",  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
+  "to": "server",
   "time": 国际标准时间(1970年开始)，以微秒为单位
 }
-(9)错误信息
+(9)连接请求
+{
+  "type": "get_connect",
+  "from": "glasses_xxx",  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
+  "to": "app_xxx",
+  "data": {  # 这个data只需要设备端接收到处理就行了，APP端如果接收到则不需要处理，只是视为连接请求
+    "message": true/false,  # 当为true，则通知设备端打开消息通道，进行消息互通发送，反之则不开
+    "audio": true/false,    # 当为true，则通知设备端打开音频通道，进行音频互通发送，反之则不开
+    "video": true/false     # 当为true，则通知设备端打开视频通道，进行视频互通发送，反之则不开(这里的视频数据发送只是做设备端到APP端的发送)
+  },
+  "time": 国际标准时间(1970年开始)，以微秒为单位
+}
+(10)回应连接请求
+{
+  "type": "respond_post",
+  "from": "glasses_xxx"，  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
+  "to": "app_xxx",
+  "respond"：true/false，  # 当为true，则为同意连接，反之则不同意
+  "time": 国际标准时间(1970年开始)，以微秒为单位
+}
+(11)错误信息
 {
   "type": "error",
-  "device_id": "glasses_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "from":"server"
-  "to":"glasses_xxx"
-  "data":{"error_code": 错误码, "error_message": "错误描述信息"}
+  "from": "server",
+  "to": "glasses_xxx",
+  "data": {
+    "error_code": 错误码,
+    "error_message": "错误描述信息"
+  },
   "time": 国际标准时间(1970年开始)，以微秒为单位
 }
 
@@ -144,70 +148,55 @@
 (1)加入房间
 {
   "type": "join",
-  "device_id": "app_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "from":"app_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "to":"server"
+  "from": "app_xxx",  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
+  "to": "server",
   "time": 国际标准时间(1970年开始)，以微秒为单位
 }
 (2)离开房间
 {
   "type": "leave",
-  "device_id": "app_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "from":"app_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "to":"server"
+  "from": "app_xxx",  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
+  "to": "server",
   "time": 国际标准时间(1970年开始)，以微秒为单位
 }
-(3)sdp发送
-{
-  "type": "offer",
-  "device_id": "app_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "from":"app_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "to":"glasses_xxx"
-  "data":{}
-  "time": 国际标准时间(1970年开始)，以微秒为单位
-}
-(4)sdp应答
+(3)sdp应答(APP端作为answerer，发送answer给设备端)
 {
   "type": "answer",
-  "device_id": "app_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "from":"app_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "to":"glasses_xxx"
-  "data":{}
+  "from": "app_xxx",  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
+  "to": "glasses_xxx",
+  "data": {},
   "time": 国际标准时间(1970年开始)，以微秒为单位
 }
+(4)注意：APP端不会发送offer，设备端会发送offer给APP端，APP端收到后回复answer
 (5)ice信息
 {
   "type": "ice",
-  "device_id": "app_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "from":"app_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "to":"glasses_xxx"
-  "data":{}
+  "from": "app_xxx",  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
+  "to": "glasses_xxx",
+  "data": {},
   "time": 国际标准时间(1970年开始)，以微秒为单位
 }
 (6)角色信息
 {
   "type": "role",
-  "device_id": "app_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "from":"server"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "to":"app_xxx"
-  "data":{}
+  "from": "server",
+  "to": "app_xxx",
+  "data": {
+    "peer_id": "对端id"
+  },
   "time": 国际标准时间(1970年开始)，以微秒为单位
 }
 (7)房间信息对应变动下发
 {
   "type": "info",
-  "device_id": "app_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "from":"server"
-  "to":"app_xxx"
-  "data":{} 
+  "from": "server",
+  "to": "app_xxx",
+  "data": {
+    "room_id": "xxx",  # xxx为唯一标识的房间号
+    "num": xxx         # xxx为房间内人数
+  },
   "time": 国际标准时间(1970年开始)，以微秒为单位
 }
-## 房间信息格式
-"data":{
-  room_id:xxx # xxx为唯一标识的房间号
-  num:xxx    # xxx为房间内人数
-  room_status:open/close
-} 
 ## 房间信息下发规则
 - 当设备端或者APP端不管谁先加入房间，使得信令服务器建立房间后会下发房间状态信息
 - 当设备端或者APP端谁离开房间造成房间信息变动，信令服务器会下发房间状态信息
@@ -218,18 +207,39 @@
 (8)请求房间信息
 {
   "type": "get_room_info",
-  "device_id": "app_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "from":"app_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "to":"server"
+  "from": "app_xxx",  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
+  "to": "server",
   "time": 国际标准时间(1970年开始)，以微秒为单位
 }
-(9)错误信息
+(9)连接请求
+{
+  "type": "get_connect",
+  "from": "app_xxx",  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
+  "to": "glasses_xxx",
+  "data": {  # 这个data只需要设备端接收到处理就行了，APP端如果接收到则不需要处理，只是视为连接请求
+    "message": true/false,  # 当为true，则通知设备端打开消息通道，进行消息互通发送，反之则不开
+    "audio": true/false,    # 当为true，则通知设备端打开音频通道，进行音频互通发送，反之则不开
+    "video": true/false     # 当为true，则通知设备端打开视频通道，进行视频互通发送，反之则不开(这里的视频数据发送只是做设备端到APP端的发送)
+  },
+  "time": 国际标准时间(1970年开始)，以微秒为单位
+}
+(10)回应连接请求
+{
+  "type": "respond_post",
+  "from": "app_xxx"，  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
+  "to": "glasses_xxx",
+  "respond"：true/false，  # 当为true，则为同意连接，反之则不同意
+  "time": 国际标准时间(1970年开始)，以微秒为单位
+}
+(11)错误信息
 {
   "type": "error",
-  "device_id": "app_xxx"  # xxx代表唯一标识，以后会使用mac地址作为标识，现在测试的时候暂定为123456
-  "from":"server"
-  "to":"app_xxx"
-  "data":{"error_code": 错误码, "error_message": "错误描述信息"}
+  "from": "server",
+  "to": "app_xxx",
+  "data": {
+    "error_code": 错误码,
+    "error_message": "错误描述信息"
+  },
   "time": 国际标准时间(1970年开始)，以微秒为单位
 }
 
@@ -238,33 +248,31 @@
 -opus格式
 -48000hz
 -实时的双向音频通信
-
 (2)视频发送
 -h264格式
 -实时的设备端到APP端的单向发送视频
 
-5.webrtc配置
-(1)实现数据通道，音频收发，视频发送的接口
-(2)可以选择开关这三个接口，通过在结构体里面配置
-(3)通过现有的视频接口实现设备端到APP端的实时单向h264视频发送
-(4)实现实时音频收发功能
-(5)实现实时音视频流同步
-
-6.功能:
-(1)webrtc的连接过程分为三个端，设备端，服务器，APP端
-(2)双向音频+单向视频，其中视频为设备端到APP端的单向发送
-(3)信令服务器会根据双方的唯一标识规划房间，然后让双端加入，进行一对一配对，房间名为双方相同的唯一标识
-器规定，双端不干涉，在双方都退出房间之后，会清除房间，等待下一次配对
-(4)设备端和对端在ws连接之前会分配了连接标识了，服务器不用管，只需针对标识相同的进行配对就可以了，由于是测试阶段，
-设备端唯一标识先固定为glasses_123456，APP端也已经被固定为app_123456，其中123456就是它们的唯一标识，后续会换成设
-备端的mac地址，并会在连接信令服务器在本地进行规划设定了，服务端不干涉双端配置，只关注相同唯一标识进行配对
-(5)谁先进入房间谁就作为发起方，后进入房间的作为接收方,也就是当一方先连接ws信令服务器后，服务器会基于一方的唯一标
-识建立房间，然后将其分配在房间里面，此时房间会保持30秒，当另一方在30秒内没有根据房间号进行对应加入房间的话，此时
-服务器会踢掉房间内的人，同时销毁房间
-(6)json消息中要附带时间戳，时间戳用国际标准时间戳(1970年开始的那个)，并使用微秒计数
-(7)当双端都已经成功加入房间配对后，服务器会分别下发对端的id信息,即设备端收到app_id，APP端收到device_id,双端则会记
-录对端设备信息
-(8)无论设备端作为发起方还是接收方，都需要实现双向音频+单向视频的实时传输功能(单向视频实时传输为设备端到APP端)，需要通过房间的先后进入机制来实现电话拨打的功能的
-(9)坚持谁需要发送音视频数据谁就负责建立音视频轨道，否则就负责接收
-(10)设备端根据webrtc的功能开关配置来控制音视频的传输以及轨道建立机制等等，依此控制收发音视频数据(视频接收暂时不实现，暂留空实现)
-
+5.功能(都在信令服务器已连接的前提下):
+(1)WebRTC角色固定：无论谁先加入房间或谁先发送连接请求，设备端始终作为WebRTC的offerer(发起方)，APP端始终作为answerer(应答方)
+   - 设备端创建并发送SDP offer
+   - APP端接收offer后创建并发送SDP answer
+   - 双方交换ICE候选信息
+(2)当APP端需要做“打电话”的操作到设备端的时候：
+   - APP端首先加入房间
+   - APP端发送"get_connect"的json请求到服务器，服务器转发给设备端
+   - 设备端收到连接请求后，根据data字段中的message/audio/video参数决定开启哪些通道
+   - 设备端同意连接后，创建WebRTC连接并发送offer给APP端
+   - APP端收到offer后创建answer并回复给设备端
+   - 双方完成WebRTC连接建立
+(3)当设备端需要做“打电话”的操作到APP端的时候：
+   - 设备端首先加入房间
+   - 设备端发送"get_connect"的json请求到服务器，服务器转发给APP端
+   - APP端收到连接请求后，可以选择“接听电话”
+   - 设备端创建WebRTC连接并发送offer给APP端
+   - APP端收到offer后创建answer并回复给设备端
+   - 双方完成WebRTC连接建立
+(4)连接请求处理：
+   - get_connect消息中的data字段只对设备端有意义，设备端根据这些参数决定开启哪些通道
+   - APP端如果收到get_connect消息，只需要知道有连接请求即可，不需要处理data字段
+   - 当任意一端接收到连接请求之后，可以选择“接听电话”的操作，即同意连接请求
+   - 一旦同意连接，设备端会创建offer，APP端会创建answer，完成WebRTC连接

@@ -1,16 +1,7 @@
 /**
  * @file audio.hpp
- * @brief 音频系统 - 现代C++实现
- * @details 特性：
- *          - RAII资源管理
- *          - 智能指针（无裸指针）
- *          - 两级内存池（固定池+动态池）
- *          - 线程安全
- *          - 状态机管理
- *          - 性能优化（<50ns分配延迟）
- *
- * @author Smart_Glasses Team
- * @date 2025-01-29
+ * @brief 音频系统
+ * @details 实现音频采集、播放、编解码等功能
  */
 
 #ifndef AUDIO_HPP
@@ -136,6 +127,24 @@ namespace app
             };
 
             /**
+             * @brief 音频流类型（用于统一接口）
+             */
+            enum class StreamType
+            {
+                AI,     // AI音频流
+                WEBRTC  // WebRTC音频流
+            };
+
+            /**
+             * @brief 音频流方向（用于统一接口）
+             */
+            enum class StreamDirection
+            {
+                INPUT,   // 输入流（录音）
+                OUTPUT   // 输出流（播放）
+            };
+
+            /**
              * @brief 音频错误类型
              */
             enum class AudioError
@@ -155,7 +164,7 @@ namespace app
             };
 
             // ============================================================================
-            // RAII包装器（智能指针删除器）
+            // RAII包装器
             // ============================================================================
 
             /**
@@ -227,11 +236,11 @@ namespace app
             using PaStreamPtr = std::unique_ptr<PaStream, PaStreamDeleter>;
 
             // ============================================================================
-            // 音频帧结构（shared_ptr自动管理生命周期）
+            // 音频帧结构
             // ============================================================================
 
             /**
-             * @brief 音频帧（通过shared_ptr自动管理生命周期）
+             * @brief 音频帧
              */
             struct AudioFrame
             {
@@ -265,11 +274,11 @@ namespace app
                 }
             };
 
-            // 智能指针类型（自动管理生命周期）
+            // 智能指针类型
             using AudioFramePtr = std::shared_ptr<AudioFrame>;
 
             // ============================================================================
-            // 音频内存池（三级架构）
+            // 音频内存池
             // ============================================================================
 
             /**
@@ -286,7 +295,7 @@ namespace app
             };
 
             /**
-             * @brief 音频内存池（两级缓冲池架构）
+             * @brief 音频内存池
              */
             class AudioMemoryPool
             {
@@ -302,9 +311,9 @@ namespace app
                 ~AudioMemoryPool();
 
                 /**
-                 * @brief 分配音频帧（自动选择最优策略）
+                 * @brief 分配音频帧
                  * @param size 数据大小（字节）
-                 * @return 音频帧智能指针（智能指针自动管理生命周期）
+                 * @return 音频帧指针
                  */
                 AudioFramePtr allocate(size_t size);
 
@@ -330,7 +339,6 @@ namespace app
                 void resetStats();
                 void logStats() const;
 
-                // 禁止拷贝
                 AudioMemoryPool(const AudioMemoryPool&)            = delete;
                 AudioMemoryPool& operator=(const AudioMemoryPool&) = delete;
 
@@ -402,6 +410,10 @@ namespace app
                 size_t max_record_queue_size   = 300; // 录音队列最大长度（6秒缓冲）
                 size_t max_playback_queue_size = 300; // 播放队列最大长度（6秒缓冲）
 
+                // 录音文件存储配置
+                std::string record_path         = "/root/audio/"; // 录音保存路径
+                int         record_duration_sec = 0;              // 录音时长（秒，0表示手动停止）
+
                 // 内存池配置
                 AudioMemoryPoolConfig mem_pool_config;
             };
@@ -411,7 +423,7 @@ namespace app
             // ============================================================================
 
             /**
-             * @brief 音频帧回调（零拷贝传输）
+             * @brief 音频帧回调
              */
             using AudioFrameCallback = std::function<void(AudioFramePtr frame)>;
 
@@ -433,13 +445,7 @@ namespace app
 
             /**
              * @brief 音频系统
-             * @details 现代C++实现的音频系统，特性：
-             *          - RAII自动资源管理
-             *          - 智能指针，无裸指针
-             *          - 两级内存池，<50ns分配延迟
-             *          - 零拷贝传输（智能指针）
-             *          - 完全线程安全
-             *          - 主+子状态机管理
+             * @details 提供音频采集、播放、编解码等功能
              */
             class AudioSystem
             {
@@ -451,7 +457,7 @@ namespace app
                 explicit AudioSystem(const AudioConfig& config = AudioConfig());
 
                 /**
-                 * @brief 析构函数（RAII自动清理所有资源）
+                 * @brief 析构函数
                  */
                 ~AudioSystem();
 
@@ -513,97 +519,71 @@ namespace app
                 AudioFunctionState getFunctionState() const;
 
                 // ========================================================================
-                // 录音/播放控制
+                // 流管理接口
                 // ========================================================================
 
                 /**
-                 * @brief 开始录音
+                 * @brief 启动音频流
+                 * @param direction 流方向
                  * @return AudioError::NONE 成功
                  */
-                AudioError startRecord();
+                AudioError startStream(StreamDirection direction);
 
                 /**
-                 * @brief 停止录音
+                 * @brief 停止音频流
+                 * @param direction 流方向
                  */
-                AudioError stopRecord();
+                AudioError stopStream(StreamDirection direction);
 
                 /**
-                 * @brief 是否正在录音
+                 * @brief 检查音频流是否正在运行
+                 * @param direction 流方向
                  */
-                bool isRecording() const;
+                bool isStreamRunning(StreamDirection direction) const;
 
                 /**
-                 * @brief 开始播放
-                 */
-                AudioError startPlayback();
-
-                /**
-                 * @brief 停止播放
-                 */
-                AudioError stopPlayback();
-
-                /**
-                 * @brief 是否正在播放
-                 */
-                bool isPlaying() const;
-
-                // ========================================================================
-                // AI/WebRTC音频流管理
-                // ========================================================================
-
-                /**
-                 * @brief 启动AI音频流（开始上传音频到服务器）
+                 * @brief 启动应用层音频流
+                 * @param type 流类型
                  * @return AudioError::NONE 成功
                  */
-                AudioError startAIStream();
+                AudioError startStream(StreamType type);
 
                 /**
-                 * @brief 停止AI音频流
+                 * @brief 停止应用层音频流
+                 * @param type 流类型
                  */
-                AudioError stopAIStream();
+                AudioError stopStream(StreamType type);
 
                 /**
-                 * @brief 检查AI音频流是否启用
+                 * @brief 检查应用层音频流是否激活
+                 * @param type 流类型
                  */
-                bool isAIStreamActive() const;
-
-                /**
-                 * @brief 启动WebRTC音频流
-                 */
-                AudioError startWebRTCStream();
-
-                /**
-                 * @brief 停止WebRTC音频流
-                 */
-                AudioError stopWebRTCStream();
-
-                /**
-                 * @brief 检查WebRTC音频流是否启用
-                 */
-                bool isWebRTCStreamActive() const;
+                bool isStreamActive(StreamType type) const;
 
                 // ========================================================================
                 // 回调设置（线程安全）
                 // ========================================================================
 
                 /**
-                 * @brief 设置AI音频帧回调（Opus编码后）
+                 * @brief 设置AI音频帧回调
                  * @param callback 回调函数
                  */
                 void setAIAudioCallback(AudioFrameCallback callback);
 
                 /**
-                 * @brief 设置WebRTC音频帧回调（Opus编码后）
+                 * @brief 设置WebRTC音频帧回调
+                 * @param callback 回调函数
                  */
                 void setWebRTCAudioCallback(AudioFrameCallback callback);
 
                 /**
-                 * @brief 设置唤醒词音频回调（PCM原始数据）
+                 * @brief 设置唤醒词音频回调
+                 * @param callback 回调函数
                  */
                 void setWakewordCallback(WakewordCallback callback);
 
                 // ========================================================================
-                // 音频帧队列操作（零拷贝）
+                // 音频帧队列操作
                 // ========================================================================
 
                 /**
@@ -615,7 +595,7 @@ namespace app
                     std::chrono::milliseconds timeout = std::chrono::milliseconds(100));
 
                 /**
-                 * @brief 推送播放帧（零拷贝）
+                 * @brief 推送播放帧
                  * @param frame 音频帧智能指针
                  */
                 void pushPlaybackFrame(AudioFramePtr frame);
@@ -631,11 +611,34 @@ namespace app
                 void clearPlaybackQueue();
 
                 // ========================================================================
+                // 录音文件存储
+                // ========================================================================
+
+                /**
+                 * @brief 开始录音（保存到文件）
+                 * @param filename 文件名（可选，为空则使用默认命名）
+                 * @param duration_sec 录音时长（秒，0表示手动停止）
+                 * @return AudioError::NONE 成功
+                 */
+                AudioError startRecord(const std::string& filename = "", int duration_sec = 0);
+
+                /**
+                 * @brief 停止录音
+                 * @return AudioError::NONE 成功
+                 */
+                AudioError stopRecord();
+
+                /**
+                 * @brief 检查是否正在录音
+                 */
+                bool isRecording() const;
+
+                // ========================================================================
                 // 编解码
                 // ========================================================================
 
                 /**
-                 * @brief Opus编码（PCM → Opus）
+                 * @brief Opus编码（PCM -> Opus）
                  * @param pcm_data PCM数据
                  * @param pcm_size PCM大小（字节）
                  * @return Opus编码后的帧（失败返回nullptr）
@@ -643,7 +646,7 @@ namespace app
                 AudioFramePtr encodeOpus(const int16_t* pcm_data, size_t pcm_size);
 
                 /**
-                 * @brief Opus解码（Opus → PCM）
+                 * @brief Opus解码（Opus -> PCM）
                  * @param opus_data Opus数据
                  * @param opus_size Opus大小（字节）
                  * @return PCM解码后的帧（失败返回nullptr）
@@ -728,31 +731,52 @@ namespace app
                 // ========================================================================
 
                 /**
-                 * @brief 一键启动AI模式（设置状态+开始录音+启动AI流）
+                 * @brief 启动AI模式
                  * @return AudioError::NONE 成功
                  */
                 AudioError startAIMode();
 
                 /**
-                 * @brief 一键停止AI模式
+                 * @brief 停止AI模式
+                 * @return AudioError::NONE 成功
                  */
                 AudioError stopAIMode();
 
                 /**
-                 * @brief 一键启动WebRTC模式
+                 * @brief 启动WebRTC模式
+                 * @return AudioError::NONE 成功
                  */
                 AudioError startWebRTCMode();
 
                 /**
-                 * @brief 一键停止WebRTC模式
+                 * @brief 停止WebRTC模式
+                 * @return AudioError::NONE 成功
                  */
                 AudioError stopWebRTCMode();
 
-                // 禁止拷贝和赋值
                 AudioSystem(const AudioSystem&)            = delete;
                 AudioSystem& operator=(const AudioSystem&) = delete;
 
             private:
+                /**
+                 * @brief 通用启动模式函数
+                 * @param main_state 主状态
+                 * @param stream_type 流类型
+                 * @param mode_name 模式名称
+                 * @return AudioError::NONE 成功
+                 */
+                AudioError startMode(AudioMainState main_state, StreamType stream_type,
+                                     const char* mode_name);
+
+                /**
+                 * @brief 通用停止模式函数
+                 * @param stream_type 流类型
+                 * @param mode_name 模式名称
+                 * @param stop_record 是否停止录音
+                 * @return AudioError::NONE 成功
+                 */
+                AudioError stopMode(StreamType stream_type, const char* mode_name, bool stop_record);
+
                 class Impl;
                 std::unique_ptr<Impl> pImpl_;
             };

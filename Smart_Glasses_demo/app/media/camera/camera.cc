@@ -2,13 +2,6 @@
  * @file camera.cc
  * @brief 视频系统实现
  * @details 实现视频采集、编码、拍照、录像等功能
- *          - 支持H.264/H.265/JPEG编码
- *          - 基于RKMPI硬件加速
- *          - 三级内存池管理（固定池/动态池/DMA池）
- *          - ISP参数动态调整
- *          - WebRTC推流支持
- * @author Smart_Glasses Team
- * @date 2025-01-29
  */
 
 #include "camera.hpp"
@@ -17,6 +10,7 @@
 #include "../../protocol/http/http.hpp"
 #include "../../tool/mac/mac.hpp"
 #include "../../tool/uuid/uuid.hpp"
+#include "../../tool/file/file.hpp"
 #include <cstring>
 #include <algorithm>
 #include <chrono>
@@ -33,20 +27,21 @@ namespace app
         {
 
             using namespace tool::log;
+            using namespace tool::file;
 
             namespace
             {
-                constexpr double   FIXED_POOL_WARN_THRESHOLD = 70.0;
-                constexpr uint64_t FIXED_POOL_MIN_SAMPLES    = 100;
-                constexpr mode_t   DIRECTORY_PERMISSION      = 0755;
-                constexpr int      JPEG_DEFAULT_QUALITY      = 77;
-                constexpr int      JPEG_MIN_QUALITY          = 1;
-                constexpr int      JPEG_MAX_QUALITY          = 100;
-                constexpr int      JPEG_QP_SCALE             = 99;
-                constexpr int      JPEG_QP_OFFSET            = 50;
-                constexpr int      JPEG_QP_DIVISOR           = 100;
-                constexpr int      STREAM_SLEEP_MS           = 100;
-                constexpr double   BYTES_PER_MEGABYTE        = 1024.0 * 1024.0;
+                constexpr const char* LOG_TAG                 = "CAMERA";
+                constexpr double      FIXED_POOL_WARN_THRESHOLD = 70.0;
+                constexpr uint64_t    FIXED_POOL_MIN_SAMPLES    = 100;
+                constexpr int         JPEG_DEFAULT_QUALITY      = 77;
+                constexpr int         JPEG_MIN_QUALITY          = 1;
+                constexpr int         JPEG_MAX_QUALITY          = 100;
+                constexpr int         JPEG_QP_SCALE             = 99;
+                constexpr int         JPEG_QP_OFFSET            = 50;
+                constexpr int         JPEG_QP_DIVISOR           = 100;
+                constexpr int         STREAM_SLEEP_MS           = 100;
+                constexpr double      BYTES_PER_MEGABYTE        = 1024.0 * 1024.0;
             } // namespace
 
             // ============================================================================
@@ -61,7 +56,7 @@ namespace app
                 if (block_count > MAX_BLOCKS)
                 {
                     block_count = MAX_BLOCKS;
-                    LOG_WARN("VideoMemoryPool", "块数量限制为 %zu", MAX_BLOCKS);
+                    LOG_WARN(LOG_TAG, "块数量限制为 %zu", MAX_BLOCKS);
                 }
 
                 // 初始化位图（所有位为0表示空闲）
@@ -79,14 +74,14 @@ namespace app
                     frame_objects[i].frame_index = i;
                 }
 
-                LOG_INFO("VideoMemoryPool", "固定池已初始化: %zu 块 × %zu 字节 = %.2f MB", block_count,
+                LOG_INFO(LOG_TAG, "固定池已初始化: %zu 块 × %zu 字节 = %.2f MB", block_count,
                          block_size,
                          static_cast<double>(block_count * block_size) / BYTES_PER_MEGABYTE);
             }
 
             VideoMemoryPool::FixedPool::~FixedPool()
             {
-                LOG_INFO("VideoMemoryPool", "固定池已销毁");
+                LOG_INFO(LOG_TAG, "固定池已销毁");
             }
 
             int VideoMemoryPool::FixedPool::allocateBlock()
@@ -138,7 +133,7 @@ namespace app
             {
                 if (index < 0 || index >= static_cast<int>(block_count))
                 {
-                    LOG_ERROR("VideoMemoryPool", "无效的块索引: %d", index);
+                    LOG_ERROR(LOG_TAG, "无效的块索引: %d", index);
                     return;
                 }
 
@@ -167,7 +162,7 @@ namespace app
 
             VideoMemoryPool::DMAPool::DMAPool(size_t dma_block_size) : block_size(dma_block_size)
             {
-                LOG_INFO("VideoMemoryPool", "初始化DMA池...");
+                LOG_INFO(LOG_TAG, "初始化DMA池...");
 
                 // 预分配DMA缓冲区
                 for (size_t i = 0; i < MAX_DMA_BLOCKS; i++)
@@ -184,24 +179,24 @@ namespace app
 
                         if (!blocks[i].vir_addr)
                         {
-                            LOG_ERROR("VideoMemoryPool", "获取DMA块 %zu 的虚拟地址失败", i);
+                            LOG_ERROR(LOG_TAG, "获取DMA块 %zu 的虚拟地址失败", i);
                             RK_MPI_SYS_Free(mb_blk);
                             blocks[i].mb_blk = nullptr;
                         }
                     }
                     else
                     {
-                        LOG_WARN("VideoMemoryPool", "分配DMA块 %zu 失败 (ret: 0x%x)", i, ret);
+                        LOG_WARN(LOG_TAG, "分配DMA块 %zu 失败 (ret: 0x%x)", i, ret);
                         break;
                     }
                 }
 
-                LOG_INFO("VideoMemoryPool", "DMA池已初始化，共 %zu 块", MAX_DMA_BLOCKS);
+                LOG_INFO(LOG_TAG, "DMA池已初始化，共 %zu 块", MAX_DMA_BLOCKS);
             }
 
             VideoMemoryPool::DMAPool::~DMAPool()
             {
-                LOG_INFO("VideoMemoryPool", "销毁DMA池...");
+                LOG_INFO(LOG_TAG, "销毁DMA池...");
 
                 std::lock_guard<std::mutex> lock(mutex);
                 for (size_t i = 0; i < MAX_DMA_BLOCKS; i++)
@@ -210,7 +205,7 @@ namespace app
                     {
                         if (blocks[i].in_use)
                         {
-                            LOG_WARN("VideoMemoryPool", "DMA块 %zu 在销毁时仍在使用", i);
+                            LOG_WARN(LOG_TAG, "DMA块 %zu 在销毁时仍在使用", i);
                         }
                         RK_MPI_SYS_Free(blocks[i].mb_blk);
                         blocks[i].mb_blk   = nullptr;
@@ -218,7 +213,7 @@ namespace app
                     }
                 }
 
-                LOG_INFO("VideoMemoryPool", "DMA池已销毁");
+                LOG_INFO(LOG_TAG, "DMA池已销毁");
             }
 
             VideoFrame* VideoMemoryPool::DMAPool::allocateDMAFrame(size_t size)
@@ -245,14 +240,14 @@ namespace app
                         frame->is_dma_buffer = true;
                         frame->dma_mb_blk    = blocks[i].mb_blk;
 
-                        // 设置删除器（释放时标记为未使用）
+                        // 设置删除器
                         frame->deleter = [this](int block_idx)
                         {
                             std::lock_guard<std::mutex> lock(mutex);
                             if (block_idx >= 0 && block_idx < static_cast<int>(MAX_DMA_BLOCKS))
                             {
                                 blocks[block_idx].in_use = false;
-                                LOG_DEBUG("VideoMemoryPool", "DMA块 %d 已通过删除器释放", block_idx);
+                                LOG_DEBUG(LOG_TAG, "DMA块 %d 已通过删除器释放", block_idx);
                             }
                         };
 
@@ -276,11 +271,11 @@ namespace app
                 if (block_idx >= 0 && block_idx < static_cast<int>(MAX_DMA_BLOCKS))
                 {
                     blocks[block_idx].in_use = false;
-                    LOG_DEBUG("VideoMemoryPool", "DMA块 %d 已释放", block_idx);
+                    LOG_DEBUG(LOG_TAG, "DMA块 %d 已释放", block_idx);
                 }
                 else
                 {
-                    LOG_ERROR("VideoMemoryPool", "无效的DMA块索引: %d", block_idx);
+                    LOG_ERROR(LOG_TAG, "无效的DMA块索引: %d", block_idx);
                 }
             }
 
@@ -288,9 +283,9 @@ namespace app
             VideoMemoryPool::VideoMemoryPool(const VideoMemoryPoolConfig& config) : config_(config)
             {
 
-                LOG_INFO("VideoMemoryPool", "===========================================");
-                LOG_INFO("VideoMemoryPool", "  初始化视频内存池");
-                LOG_INFO("VideoMemoryPool", "===========================================");
+                LOG_INFO(LOG_TAG, "===========================================");
+                LOG_INFO(LOG_TAG, "  初始化视频内存池");
+                LOG_INFO(LOG_TAG, "===========================================");
 
                 // 初始化固定池
                 fixed_pool_ =
@@ -303,7 +298,7 @@ namespace app
                                                                1.5 // 扩展因子
                     );
 
-                LOG_INFO("VideoMemoryPool", "动态池: %.2f MB, 对齐: %zu 字节",
+                LOG_INFO(LOG_TAG, "动态池: %.2f MB, 对齐: %zu 字节",
                          static_cast<double>(config.dynamic_pool_size) / BYTES_PER_MEGABYTE,
                          config.alignment);
 
@@ -311,29 +306,26 @@ namespace app
                 if (config.enable_dma)
                 {
                     dma_pool_ = std::make_unique<DMAPool>(config.fixed_block_size);
-                    LOG_INFO("VideoMemoryPool", "DMA池: %zu 块 × %zu KB = %zu KB",
+                    LOG_INFO(LOG_TAG, "DMA池: %zu 块 × %zu KB = %zu KB",
                              DMAPool::MAX_DMA_BLOCKS, config.fixed_block_size / 1024,
                              (DMAPool::MAX_DMA_BLOCKS * config.fixed_block_size) / 1024);
                 }
 
-                // DMA零拷贝状态
                 if (config.enable_dma)
                 {
-                    LOG_INFO("VideoMemoryPool", "DMA零拷贝: 已启用");
-                    LOG_INFO("VideoMemoryPool", "  性能: 无memcpy开销");
-                    LOG_INFO("VideoMemoryPool", "  注意: 固定/动态池作为后备");
+                    LOG_INFO(LOG_TAG, "DMA已启用");
                 }
                 else
                 {
-                    LOG_INFO("VideoMemoryPool", "DMA零拷贝: 已禁用");
+                    LOG_INFO(LOG_TAG, "DMA已禁用");
                 }
 
-                LOG_INFO("VideoMemoryPool", "===========================================");
+                LOG_INFO(LOG_TAG, "===========================================");
             }
 
             VideoMemoryPool::~VideoMemoryPool()
             {
-                LOG_INFO("VideoMemoryPool", "视频内存池正在关闭...");
+                LOG_INFO(LOG_TAG, "视频内存池正在关闭...");
                 logStats();
             }
 
@@ -341,7 +333,7 @@ namespace app
             {
                 stats_.total_allocations.fetch_add(1, std::memory_order_relaxed);
 
-                // 第一级：尝试固定池（适合小帧：JPEG、IDR帧）
+                // 尝试固定池
                 if (size <= config_.fixed_block_size)
                 {
                     int block_index = fixed_pool_->allocateBlock();
@@ -355,12 +347,12 @@ namespace app
                         frame_obj->size        = size;
                         frame_obj->frame_index = block_index;
 
-                        // 设置删除器（释放时归还到固定池）
+                        // 设置删除器
                         auto pool_ptr      = fixed_pool_.get();
                         frame_obj->deleter = [pool_ptr](int idx)
                         { pool_ptr->deallocateBlock(idx); };
 
-                        // 返回共享指针（使用自定义删除器）
+                        // 返回共享指针
                         return VideoFramePtr(frame_obj,
                                              [](VideoFrame* f)
                                              {
@@ -368,12 +360,11 @@ namespace app
                                                  {
                                                      f->deleter(f->frame_index);
                                                  }
-                                                 // 注意：不delete f，因为它在对象池中
                                              });
                     }
                 }
 
-                // 第二级：动态池（大帧：H.264/H.265 P帧）
+                // 尝试动态池
                 auto* mem = dynamic_pool_->allocate(size + sizeof(VideoFrame));
                 if (mem)
                 {
@@ -388,7 +379,7 @@ namespace app
                     frame->size        = size;
                     frame->frame_index = -1; // 动态池没有索引
 
-                    // 设置删除器（释放到动态池）
+                    // 设置删除器
                     auto pool_ptr  = dynamic_pool_.get();
                     frame->deleter = [pool_ptr, mem](int) { pool_ptr->deallocate(mem); };
 
@@ -403,7 +394,7 @@ namespace app
                                          });
                 }
 
-                // 第三级：DMA零拷贝内存池
+                // DMA内存池
                 if (dma_pool_)
                 {
                     auto* dma_frame = dma_pool_->allocateDMAFrame(size);
@@ -411,7 +402,7 @@ namespace app
                     {
                         stats_.dma_pool_hits.fetch_add(1, std::memory_order_relaxed);
 
-                        // 返回智能指针（使用自定义删除器）
+                        // 返回智能指针
                         return VideoFramePtr(dma_frame,
                                              [](VideoFrame* f)
                                              {
@@ -430,7 +421,7 @@ namespace app
 
                 // 分配失败
                 stats_.allocation_failures.fetch_add(1, std::memory_order_relaxed);
-                LOG_ERROR("VideoMemoryPool", "内存分配失败，大小: %zu", size);
+                LOG_ERROR(LOG_TAG, "内存分配失败，大小: %zu", size);
                 return nullptr;
             }
 
@@ -463,27 +454,26 @@ namespace app
                 uint64_t dma_hits     = stats_.dma_pool_hits.load(std::memory_order_relaxed);
                 uint64_t failures     = stats_.allocation_failures.load(std::memory_order_relaxed);
 
-                LOG_INFO("VideoMemoryPool", "=== 内存池统计 ===");
-                LOG_INFO("VideoMemoryPool", "  总分配次数: %zu", total);
+                LOG_INFO(LOG_TAG, "=== 内存池统计 ===");
+                LOG_INFO(LOG_TAG, "  总分配次数: %zu", total);
 
                 if (total > 0)
                 {
-                    LOG_INFO("VideoMemoryPool", "  固定池命中:   %zu (%.2f%%)", fixed_hits,
+                    LOG_INFO(LOG_TAG, "  固定池命中:   %zu (%.2f%%)", fixed_hits,
                              (double)fixed_hits * 100.0 / total);
-                    LOG_INFO("VideoMemoryPool", "  动态池命中: %zu (%.2f%%)", dynamic_hits,
+                    LOG_INFO(LOG_TAG, "  动态池命中: %zu (%.2f%%)", dynamic_hits,
                              (double)dynamic_hits * 100.0 / total);
 
                     // DMA池统计（如果启用）
                     if (dma_pool_)
                     {
-                        LOG_INFO("VideoMemoryPool", "  DMA池命中:     %zu (%.2f%%)", dma_hits,
+                        LOG_INFO(LOG_TAG, "  DMA池命中:     %zu (%.2f%%)", dma_hits,
                                  (double)dma_hits * 100.0 / total);
                     }
                 }
 
-                LOG_INFO("VideoMemoryPool", "  分配失败:          %zu", failures);
+                LOG_INFO(LOG_TAG, "  分配失败:          %zu", failures);
 
-                // 性能分析和建议
                 if (total > 100)
                 {
                     uint64_t pool_hits      = fixed_hits + dynamic_hits + dma_hits;
@@ -491,61 +481,57 @@ namespace app
 
                     if (fixed_hits * 100 / total < 70)
                     {
-                        LOG_WARN("VideoMemoryPool", "固定池命中率偏低，建议增加池大小");
+                        LOG_WARN(LOG_TAG, "固定池命中率偏低，建议增加池大小");
                     }
 
                     if (dma_pool_ && dma_hits > 0)
                     {
-                        LOG_INFO("VideoMemoryPool", "DMA零拷贝已激活");
+                        LOG_INFO(LOG_TAG, "DMA已激活");
                     }
 
-                    LOG_INFO("VideoMemoryPool", "总体命中率: %.2f%%", total_hit_rate);
+                    LOG_INFO(LOG_TAG, "总体命中率: %.2f%%", total_hit_rate);
                 }
             }
 
             // ============================================================================
-            // RAII 资源包装器实现
+            // 资源包装器实现
             // ============================================================================
 
             // ISPWrapper 实现
             ISPWrapper::ISPWrapper(int camera_id, const std::string& iq_dir) : camera_id_(camera_id)
             {
 
-                LOG_INFO("Camera", "使用直接AIQ API为相机 %d 初始化ISP", camera_id);
+                LOG_INFO(LOG_TAG, "使用直接AIQ API为相机 %d 初始化ISP", camera_id);
 
                 // 停止RkLunch服务
                 system("RkLunch-stop.sh 2>/dev/null");
 
-                // 步骤1：枚举相机静态信息，获取sensor entity name
                 rk_aiq_static_info_t static_info;
                 memset(&static_info, 0, sizeof(static_info));
 
                 if (rk_aiq_uapi2_sysctl_enumStaticMetas(camera_id, &static_info) != 0)
                 {
-                    LOG_ERROR("Camera", "枚举相机静态元数据失败");
+                    LOG_ERROR(LOG_TAG, "枚举相机静态元数据失败");
                     return;
                 }
 
                 const char* sns_ent_name = static_info.sensor_info.sensor_name;
-                LOG_INFO("Camera", "发现传感器: %s", sns_ent_name);
+                LOG_INFO(LOG_TAG, "发现传感器: %s", sns_ent_name);
 
-                // 步骤2：直接使用AIQ API初始化（不使用SAMPLE_COMM_ISP）
                 aiq_ctx_ = rk_aiq_uapi2_sysctl_init(sns_ent_name, iq_dir.c_str(), nullptr, nullptr);
 
                 if (!aiq_ctx_)
                 {
-                    LOG_ERROR("Camera", "AIQ上下文初始化失败");
+                    LOG_ERROR(LOG_TAG, "AIQ上下文初始化失败");
                     return;
                 }
 
-                LOG_INFO("Camera", " AIQ上下文创建成功");
-
-                // 步骤3：准备并启动AIQ
+                LOG_INFO(LOG_TAG, " AIQ上下文创建成功");
                 rk_aiq_working_mode_t hdr_mode = RK_AIQ_WORKING_MODE_NORMAL;
 
                 if (rk_aiq_uapi2_sysctl_prepare(aiq_ctx_, 0, 0, hdr_mode) != 0)
                 {
-                    LOG_ERROR("Camera", "AIQ准备失败");
+                    LOG_ERROR(LOG_TAG, "AIQ准备失败");
                     rk_aiq_uapi2_sysctl_deinit(aiq_ctx_);
                     aiq_ctx_ = nullptr;
                     return;
@@ -553,7 +539,7 @@ namespace app
 
                 if (rk_aiq_uapi2_sysctl_start(aiq_ctx_) != 0)
                 {
-                    LOG_ERROR("Camera", "AIQ启动失败");
+                    LOG_ERROR(LOG_TAG, "AIQ启动失败");
                     rk_aiq_uapi2_sysctl_deinit(aiq_ctx_);
                     aiq_ctx_ = nullptr;
                     return;
@@ -568,7 +554,7 @@ namespace app
                 {
                     rk_aiq_uapi2_sysctl_stop(aiq_ctx_, false);
                     rk_aiq_uapi2_sysctl_deinit(aiq_ctx_);
-                    LOG_INFO("Camera", "ISP/AIQ已停止并去初始化");
+                    LOG_INFO(LOG_TAG, "ISP/AIQ已停止并去初始化");
                 }
             }
 
@@ -580,18 +566,18 @@ namespace app
             {
                 if (!aiq_ctx_)
                 {
-                    LOG_ERROR("ISP", "AIQ上下文未初始化");
+                    LOG_ERROR(LOG_TAG, "AIQ上下文未初始化");
                     return VideoError::NOT_INITIALIZED;
                 }
 
                 XCamReturn ret = rk_aiq_uapi2_setExpMode(aiq_ctx_, mode);
                 if (ret == XCAM_RETURN_NO_ERROR)
                 {
-                    LOG_INFO("ISP", " 曝光模式设置为: %s", mode == OP_AUTO ? "自动" : "手动");
+                    LOG_INFO(LOG_TAG, " 曝光模式设置为: %s", mode == OP_AUTO ? "自动" : "手动");
                     return VideoError::NONE;
                 }
 
-                LOG_ERROR("ISP", "设置曝光模式失败: %d", ret);
+                LOG_ERROR(LOG_TAG, "设置曝光模式失败: %d", ret);
                 return VideoError::RKMPI_ERROR;
             }
 
@@ -619,10 +605,10 @@ namespace app
                 XCamReturn ret = rk_aiq_uapi2_setExpGainRange(aiq_ctx_, &gain);
                 if (ret == XCAM_RETURN_NO_ERROR)
                 {
-                    LOG_INFO("ISP", " 曝光增益范围设置为: [%.2f, %.2f]", min_gain, max_gain);
+                    LOG_INFO(LOG_TAG, " 曝光增益范围设置为: [%.2f, %.2f]", min_gain, max_gain);
                     return VideoError::NONE;
                 }
-                LOG_ERROR("ISP", "设置曝光增益范围失败");
+                LOG_ERROR(LOG_TAG, "设置曝光增益范围失败");
                 return VideoError::RKMPI_ERROR;
             }
 
@@ -655,10 +641,10 @@ namespace app
                 XCamReturn ret = rk_aiq_uapi2_setExpTimeRange(aiq_ctx_, &time);
                 if (ret == XCAM_RETURN_NO_ERROR)
                 {
-                    LOG_INFO("ISP", " 曝光时间范围设置为: [%.4f, %.4f]s", min_time, max_time);
+                    LOG_INFO(LOG_TAG, " 曝光时间范围设置为: [%.4f, %.4f]s", min_time, max_time);
                     return VideoError::NONE;
                 }
-                LOG_ERROR("ISP", "设置曝光时间范围失败");
+                LOG_ERROR(LOG_TAG, "设置曝光时间范围失败");
                 return VideoError::RKMPI_ERROR;
             }
 
@@ -688,10 +674,10 @@ namespace app
                 XCamReturn ret = rk_aiq_uapi2_setAeLock(aiq_ctx_, lock);
                 if (ret == XCAM_RETURN_NO_ERROR)
                 {
-                    LOG_INFO("ISP", " AE %s", lock ? "已锁定" : "已解锁");
+                    LOG_INFO(LOG_TAG, " AE %s", lock ? "已锁定" : "已解锁");
                     return VideoError::NONE;
                 }
-                LOG_ERROR("ISP", "%s AE失败", lock ? "锁定" : "解锁");
+                LOG_ERROR(LOG_TAG, "%s AE失败", lock ? "锁定" : "解锁");
                 return VideoError::RKMPI_ERROR;
             }
 
@@ -704,10 +690,10 @@ namespace app
                 XCamReturn ret = rk_aiq_uapi2_setWBMode(aiq_ctx_, mode);
                 if (ret == XCAM_RETURN_NO_ERROR)
                 {
-                    LOG_INFO("ISP", " 白平衡模式设置为: %s", mode == OP_AUTO ? "自动" : "手动");
+                    LOG_INFO(LOG_TAG, " 白平衡模式设置为: %s", mode == OP_AUTO ? "自动" : "手动");
                     return VideoError::NONE;
                 }
-                LOG_ERROR("ISP", "设置白平衡模式失败");
+                LOG_ERROR(LOG_TAG, "设置白平衡模式失败");
                 return VideoError::RKMPI_ERROR;
             }
 
@@ -735,10 +721,10 @@ namespace app
                 XCamReturn ret = rk_aiq_uapi2_setMWBGain(aiq_ctx_, &gain);
                 if (ret == XCAM_RETURN_NO_ERROR)
                 {
-                    LOG_INFO("ISP", " WB增益设置为: R=%.2f, B=%.2f", r_gain, b_gain);
+                    LOG_INFO(LOG_TAG, " WB增益设置为: R=%.2f, B=%.2f", r_gain, b_gain);
                     return VideoError::NONE;
                 }
-                LOG_ERROR("ISP", "设置WB增益失败");
+                LOG_ERROR(LOG_TAG, "设置WB增益失败");
                 return VideoError::RKMPI_ERROR;
             }
 
@@ -768,10 +754,10 @@ namespace app
                 XCamReturn ret = rk_aiq_uapi2_setMWBCT(aiq_ctx_, ct);
                 if (ret == XCAM_RETURN_NO_ERROR)
                 {
-                    LOG_INFO("ISP", " 色温设置为: %uK", ct);
+                    LOG_INFO(LOG_TAG, " 色温设置为: %uK", ct);
                     return VideoError::NONE;
                 }
-                LOG_ERROR("ISP", "设置色温失败");
+                LOG_ERROR(LOG_TAG, "设置色温失败");
                 return VideoError::RKMPI_ERROR;
             }
 
@@ -795,10 +781,10 @@ namespace app
                     lock ? rk_aiq_uapi2_lockAWB(aiq_ctx_) : rk_aiq_uapi2_unlockAWB(aiq_ctx_);
                 if (ret == XCAM_RETURN_NO_ERROR)
                 {
-                    LOG_INFO("ISP", " AWB %s", lock ? "已锁定" : "已解锁");
+                    LOG_INFO(LOG_TAG, " AWB %s", lock ? "已锁定" : "已解锁");
                     return VideoError::NONE;
                 }
-                LOG_ERROR("ISP", "%s AWB失败", lock ? "锁定" : "解锁");
+                LOG_ERROR(LOG_TAG, "%s AWB失败", lock ? "锁定" : "解锁");
                 return VideoError::RKMPI_ERROR;
             }
 
@@ -811,10 +797,10 @@ namespace app
                 XCamReturn ret = rk_aiq_uapi2_setBrightness(aiq_ctx_, level);
                 if (ret == XCAM_RETURN_NO_ERROR)
                 {
-                    LOG_INFO("ISP", " 亮度设置为: %u", level);
+                    LOG_INFO(LOG_TAG, " 亮度设置为: %u", level);
                     return VideoError::NONE;
                 }
-                LOG_ERROR("ISP", "设置亮度失败");
+                LOG_ERROR(LOG_TAG, "设置亮度失败");
                 return VideoError::RKMPI_ERROR;
             }
 
@@ -837,10 +823,10 @@ namespace app
                 XCamReturn ret = rk_aiq_uapi2_setContrast(aiq_ctx_, level);
                 if (ret == XCAM_RETURN_NO_ERROR)
                 {
-                    LOG_INFO("ISP", " 对比度设置为: %u", level);
+                    LOG_INFO(LOG_TAG, " 对比度设置为: %u", level);
                     return VideoError::NONE;
                 }
-                LOG_ERROR("ISP", "设置对比度失败");
+                LOG_ERROR(LOG_TAG, "设置对比度失败");
                 return VideoError::RKMPI_ERROR;
             }
 
@@ -863,10 +849,10 @@ namespace app
                 XCamReturn ret = rk_aiq_uapi2_setSaturation(aiq_ctx_, level);
                 if (ret == XCAM_RETURN_NO_ERROR)
                 {
-                    LOG_INFO("ISP", " 饱和度设置为: %u", level);
+                    LOG_INFO(LOG_TAG, " 饱和度设置为: %u", level);
                     return VideoError::NONE;
                 }
-                LOG_ERROR("ISP", "设置饱和度失败");
+                LOG_ERROR(LOG_TAG, "设置饱和度失败");
                 return VideoError::RKMPI_ERROR;
             }
 
@@ -889,10 +875,10 @@ namespace app
                 XCamReturn ret = rk_aiq_uapi2_setHue(aiq_ctx_, level);
                 if (ret == XCAM_RETURN_NO_ERROR)
                 {
-                    LOG_INFO("ISP", " 色调设置为: %u", level);
+                    LOG_INFO(LOG_TAG, " 色调设置为: %u", level);
                     return VideoError::NONE;
                 }
-                LOG_ERROR("ISP", "设置色调失败");
+                LOG_ERROR(LOG_TAG, "设置色调失败");
                 return VideoError::RKMPI_ERROR;
             }
 
@@ -915,10 +901,10 @@ namespace app
                 XCamReturn ret = rk_aiq_uapi2_setSharpness(aiq_ctx_, level);
                 if (ret == XCAM_RETURN_NO_ERROR)
                 {
-                    LOG_INFO("ISP", " 锐度设置为: %u", level);
+                    LOG_INFO(LOG_TAG, " 锐度设置为: %u", level);
                     return VideoError::NONE;
                 }
-                LOG_ERROR("ISP", "设置锐度失败");
+                LOG_ERROR(LOG_TAG, "设置锐度失败");
                 return VideoError::RKMPI_ERROR;
             }
 
@@ -941,7 +927,7 @@ namespace app
                 XCamReturn ret = rk_aiq_uapi2_setDehazeEnable(aiq_ctx_, level > 0);
                 if (ret != XCAM_RETURN_NO_ERROR)
                 {
-                    LOG_ERROR("ISP", "启用/禁用去雾失败");
+                    LOG_ERROR(LOG_TAG, "启用/禁用去雾失败");
                     return VideoError::RKMPI_ERROR;
                 }
                 if (level > 0)
@@ -949,13 +935,13 @@ namespace app
                     ret = rk_aiq_uapi2_setMDehazeStrth(aiq_ctx_, level);
                     if (ret == XCAM_RETURN_NO_ERROR)
                     {
-                        LOG_INFO("ISP", " 去雾强度设置为: %u", level);
+                        LOG_INFO(LOG_TAG, " 去雾强度设置为: %u", level);
                         return VideoError::NONE;
                     }
-                    LOG_ERROR("ISP", "设置去雾强度失败");
+                    LOG_ERROR(LOG_TAG, "设置去雾强度失败");
                     return VideoError::RKMPI_ERROR;
                 }
-                LOG_INFO("ISP", " 去雾已禁用");
+                LOG_INFO(LOG_TAG, " 去雾已禁用");
                 return VideoError::NONE;
             }
 
@@ -972,7 +958,7 @@ namespace app
             // VIDeviceWrapper 实现
             VIDeviceWrapper::VIDeviceWrapper(int dev_id) : dev_id_(dev_id)
             {
-                LOG_INFO("Camera", "初始化VI设备 %d", dev_id);
+                LOG_INFO(LOG_TAG, "初始化VI设备 %d", dev_id);
 
                 VI_DEV_ATTR_S      dev_attr{};
                 VI_DEV_BIND_PIPE_S bind_pipe{};
@@ -984,7 +970,7 @@ namespace app
                     ret = RK_MPI_VI_SetDevAttr(dev_id, &dev_attr);
                     if (ret != RK_SUCCESS)
                     {
-                        LOG_ERROR("Camera", "RK_MPI_VI_SetDevAttr 失败: 0x%x", ret);
+                        LOG_ERROR(LOG_TAG, "RK_MPI_VI_SetDevAttr 失败: 0x%x", ret);
                         return;
                     }
                 }
@@ -997,7 +983,7 @@ namespace app
                     ret = RK_MPI_VI_EnableDev(dev_id);
                     if (ret != RK_SUCCESS)
                     {
-                        LOG_ERROR("Camera", "RK_MPI_VI_EnableDev 失败: 0x%x", ret);
+                        LOG_ERROR(LOG_TAG, "RK_MPI_VI_EnableDev 失败: 0x%x", ret);
                         return;
                     }
 
@@ -1007,14 +993,14 @@ namespace app
                     ret                 = RK_MPI_VI_SetDevBindPipe(dev_id, &bind_pipe);
                     if (ret != RK_SUCCESS)
                     {
-                        LOG_ERROR("Camera", "RK_MPI_VI_SetDevBindPipe 失败: 0x%x", ret);
+                        LOG_ERROR(LOG_TAG, "RK_MPI_VI_SetDevBindPipe 失败: 0x%x", ret);
                         RK_MPI_VI_DisableDev(dev_id);
                         return;
                     }
                 }
 
                 valid_ = true;
-                LOG_INFO("Camera", " VI设备初始化成功");
+                LOG_INFO(LOG_TAG, " VI设备初始化成功");
             }
 
             VIDeviceWrapper::~VIDeviceWrapper()
@@ -1022,7 +1008,7 @@ namespace app
                 if (valid_)
                 {
                     RK_MPI_VI_DisableDev(dev_id_);
-                    LOG_INFO("Camera", "VI设备 %d 已禁用", dev_id_);
+                    LOG_INFO(LOG_TAG, "VI设备 %d 已禁用", dev_id_);
                 }
             }
 
@@ -1031,7 +1017,7 @@ namespace app
                 : dev_id_(dev_id), chn_id_(chn_id)
             {
 
-                LOG_INFO("Camera", "初始化VI通道 %d (%dx%d)", chn_id, width, height);
+                LOG_INFO(LOG_TAG, "初始化VI通道 %d (%dx%d)", chn_id, width, height);
 
                 VI_CHN_ATTR_S vi_chn_attr;
                 std::memset(&vi_chn_attr, 0, sizeof(vi_chn_attr));
@@ -1043,24 +1029,24 @@ namespace app
                 vi_chn_attr.enPixelFormat         = RK_FMT_YUV420SP;
                 vi_chn_attr.enCompressMode        = COMPRESS_MODE_NONE;
                 vi_chn_attr.u32Depth =
-                    0; // 绑定模式为0(自动采帧)，如果不为0则为采取指定帧数(0代表无限)
+                    0;
 
                 RK_S32 ret = RK_MPI_VI_SetChnAttr(dev_id, chn_id, &vi_chn_attr);
                 if (ret != RK_SUCCESS)
                 {
-                    LOG_ERROR("Camera", "RK_MPI_VI_SetChnAttr 失败: 0x%x", ret);
+                    LOG_ERROR(LOG_TAG, "RK_MPI_VI_SetChnAttr 失败: 0x%x", ret);
                     return;
                 }
 
                 ret = RK_MPI_VI_EnableChn(dev_id, chn_id);
                 if (ret != RK_SUCCESS)
                 {
-                    LOG_ERROR("Camera", "RK_MPI_VI_EnableChn 失败: 0x%x", ret);
+                    LOG_ERROR(LOG_TAG, "RK_MPI_VI_EnableChn 失败: 0x%x", ret);
                     return;
                 }
 
                 valid_ = true;
-                LOG_INFO("Camera", " VI通道初始化成功");
+                LOG_INFO(LOG_TAG, " VI通道初始化成功");
             }
 
             VIChannelWrapper::~VIChannelWrapper()
@@ -1068,7 +1054,7 @@ namespace app
                 if (valid_)
                 {
                     RK_MPI_VI_DisableChn(dev_id_, chn_id_);
-                    LOG_INFO("Camera", "VI通道 %d 已禁用", chn_id_);
+                    LOG_INFO(LOG_TAG, "VI通道 %d 已禁用", chn_id_);
                 }
             }
 
@@ -1078,9 +1064,9 @@ namespace app
                 : chn_id_(chn_id), current_format_(format), current_width_(width),
                   current_height_(height), current_bitrate_(bitrate), current_gop_(gop),
                   current_jpeg_quality_(JPEG_DEFAULT_QUALITY)
-            { // 默认JPEG质量
+            {
 
-                LOG_INFO("Camera", "初始化VENC通道 %d (%dx%d, 格式=%d)", chn_id, width, height,
+                LOG_INFO(LOG_TAG, "初始化VENC通道 %d (%dx%d, 格式=%d)", chn_id, width, height,
                          static_cast<int>(format));
 
                 VENC_CHN_ATTR_S venc_attr{};
@@ -1129,7 +1115,7 @@ namespace app
                 RK_S32 ret = RK_MPI_VENC_CreateChn(chn_id, &venc_attr);
                 if (ret != RK_SUCCESS)
                 {
-                    LOG_ERROR("Camera", "RK_MPI_VENC_CreateChn 失败: 0x%x", ret);
+                    LOG_ERROR(LOG_TAG, "RK_MPI_VENC_CreateChn 失败: 0x%x", ret);
                     return;
                 }
 
@@ -1139,13 +1125,13 @@ namespace app
                 ret = RK_MPI_VENC_StartRecvFrame(chn_id, &recv_param);
                 if (ret != RK_SUCCESS)
                 {
-                    LOG_ERROR("Camera", "RK_MPI_VENC_StartRecvFrame 失败: 0x%x", ret);
+                    LOG_ERROR(LOG_TAG, "RK_MPI_VENC_StartRecvFrame 失败: 0x%x", ret);
                     RK_MPI_VENC_DestroyChn(chn_id);
                     return;
                 }
 
                 valid_ = true;
-                LOG_INFO("Camera", " VENC初始化成功");
+                LOG_INFO(LOG_TAG, " VENC初始化成功");
             }
 
             VENCWrapper::~VENCWrapper()
@@ -1154,7 +1140,7 @@ namespace app
                 {
                     RK_MPI_VENC_StopRecvFrame(chn_id_);
                     RK_MPI_VENC_DestroyChn(chn_id_);
-                    LOG_INFO("Camera", "VENC通道 %d 已销毁", chn_id_);
+                    LOG_INFO(LOG_TAG, "VENC通道 %d 已销毁", chn_id_);
                 }
             }
 
@@ -1274,19 +1260,15 @@ namespace app
                 // 创建VideoFrame对象（堆分配）
                 VideoFrame* video_frame = new VideoFrame();
 
-                // 直接使用DMA地址，零拷贝
                 if (venc_stream->u32PackCount == 1)
                 {
-                    // 单包：直接使用DMA地址
                     video_frame->data = static_cast<uint8_t*>(
                         RK_MPI_MB_Handle2VirAddr(venc_stream->pstPack[0].pMbBlk));
                     video_frame->dma_mb_blk = venc_stream->pstPack[0].pMbBlk;
                 }
                 else
                 {
-                    // 多包：需要合并，仍然需要memcpy（极少情况）
-                    // 这种情况下回退到普通分配
-                    LOG_WARN("VideoMemoryPool", "多包帧 (%u 包)，无法使用零拷贝",
+                    LOG_WARN(LOG_TAG, "多包帧 (%u 包)，回退到普通分配",
                              venc_stream->u32PackCount);
 
                     // 释放资源
@@ -1303,7 +1285,7 @@ namespace app
                 video_frame->is_keyframe =
                     (venc_stream->pstPack[0].DataType.enH264EType == H264E_NALU_IDRSLICE ||
                      venc_stream->pstPack[0].DataType.enH265EType == H265E_NALU_IDRSLICE);
-                video_frame->is_dma_buffer = true; //  标记为DMA缓冲区
+                video_frame->is_dma_buffer = true;
 
                 // 释放系统资源
                 int venc_chn         = chn_id_;
@@ -1313,7 +1295,7 @@ namespace app
                     RK_S32 ret = RK_MPI_VENC_ReleaseStream(venc_chn, venc_stream);
                     if (ret != RK_SUCCESS)
                     {
-                        LOG_ERROR("DMABuffer", "RK_MPI_VENC_ReleaseStream 失败: 0x%x", ret);
+                        LOG_ERROR(LOG_TAG, "RK_MPI_VENC_ReleaseStream 失败: 0x%x", ret);
                         // 即使失败也要继续释放其他资源
                     }
 
@@ -1329,7 +1311,6 @@ namespace app
                     }
                 };
 
-                // 返回智能指针
                 frame = VideoFramePtr(video_frame,
                                       [](VideoFrame* f)
                                       {
@@ -1354,14 +1335,14 @@ namespace app
                     return VideoError::NOT_INITIALIZED;
                 }
 
-                LOG_INFO("Camera", "设置码率为 %d kbps", bitrate_kbps);
+                LOG_INFO(LOG_TAG, "设置码率为 %d kbps", bitrate_kbps);
 
                 // 获取当前编码器属性
                 VENC_CHN_ATTR_S channel_attr{};
                 RK_S32          ret = RK_MPI_VENC_GetChnAttr(chn_id_, &channel_attr);
                 if (ret != RK_SUCCESS)
                 {
-                    LOG_ERROR("Camera", "获取VENC通道属性失败: 0x%x", ret);
+                    LOG_ERROR(LOG_TAG, "获取VENC通道属性失败: 0x%x", ret);
                     return VideoError::ENCODE_FAILED;
                 }
 
@@ -1377,7 +1358,7 @@ namespace app
                     break;
 
                 case EncodeFormat::JPEG:
-                    LOG_WARN("Camera", "JPEG格式不支持设置码率");
+                    LOG_WARN(LOG_TAG, "JPEG格式不支持设置码率");
                     return VideoError::INVALID_PARAM;
                 }
 
@@ -1386,12 +1367,12 @@ namespace app
                 if (ret == RK_SUCCESS)
                 {
                     current_bitrate_ = bitrate_kbps;
-                    LOG_INFO("Camera", " 码率已更新为 %d kbps", bitrate_kbps);
+                    LOG_INFO(LOG_TAG, " 码率已更新为 %d kbps", bitrate_kbps);
                     return VideoError::NONE;
                 }
                 else
                 {
-                    LOG_ERROR("Camera", "设置码率失败: 0x%x", ret);
+                    LOG_ERROR(LOG_TAG, "设置码率失败: 0x%x", ret);
                     return VideoError::ENCODE_FAILED;
                 }
             }
@@ -1403,14 +1384,14 @@ namespace app
                     return VideoError::NOT_INITIALIZED;
                 }
 
-                LOG_INFO("Camera", "设置GOP为 %d", gop);
+                LOG_INFO(LOG_TAG, "设置GOP为 %d", gop);
 
                 // 获取当前编码器属性
                 VENC_CHN_ATTR_S channel_attr{};
                 RK_S32          ret = RK_MPI_VENC_GetChnAttr(chn_id_, &channel_attr);
                 if (ret != RK_SUCCESS)
                 {
-                    LOG_ERROR("Camera", "获取VENC通道属性失败: 0x%x", ret);
+                    LOG_ERROR(LOG_TAG, "获取VENC通道属性失败: 0x%x", ret);
                     return VideoError::ENCODE_FAILED;
                 }
 
@@ -1426,7 +1407,7 @@ namespace app
                     break;
 
                 case EncodeFormat::JPEG:
-                    LOG_INFO("Camera", "JPEG格式始终使用GOP=1");
+                    LOG_INFO(LOG_TAG, "JPEG格式始终使用GOP=1");
                     current_gop_ = 1;
                     return VideoError::NONE;
                 }
@@ -1436,12 +1417,12 @@ namespace app
                 if (ret == RK_SUCCESS)
                 {
                     current_gop_ = gop;
-                    LOG_INFO("Camera", " GOP已更新为 %d", gop);
+                    LOG_INFO(LOG_TAG, " GOP已更新为 %d", gop);
                     return VideoError::NONE;
                 }
                 else
                 {
-                    LOG_ERROR("Camera", "设置GOP失败: 0x%x", ret);
+                    LOG_ERROR(LOG_TAG, "设置GOP失败: 0x%x", ret);
                     return VideoError::ENCODE_FAILED;
                 }
             }
@@ -1456,11 +1437,11 @@ namespace app
                 // 限制JPEG质量范围 [1, 100]
                 quality = std::max(JPEG_MIN_QUALITY, std::min(JPEG_MAX_QUALITY, quality));
 
-                LOG_INFO("Camera", "设置JPEG质量为 %d", quality);
+                LOG_INFO(LOG_TAG, "设置JPEG质量为 %d", quality);
 
                 if (current_format_ != EncodeFormat::JPEG)
                 {
-                    LOG_WARN("Camera", "当前格式不是JPEG，质量设置已保存用于下次JPEG编码");
+                    LOG_WARN(LOG_TAG, "当前格式不是JPEG，质量设置已保存用于下次JPEG编码");
                     current_jpeg_quality_ = quality;
                     return VideoError::NONE;
                 }
@@ -1470,7 +1451,7 @@ namespace app
                 RK_S32          ret = RK_MPI_VENC_GetChnAttr(chn_id_, &channel_attr);
                 if (ret != RK_SUCCESS)
                 {
-                    LOG_ERROR("Camera", "获取VENC通道属性失败: 0x%x", ret);
+                    LOG_ERROR(LOG_TAG, "获取VENC通道属性失败: 0x%x", ret);
                     return VideoError::ENCODE_FAILED;
                 }
 
@@ -1488,70 +1469,25 @@ namespace app
                     if (ret == RK_SUCCESS)
                     {
                         current_jpeg_quality_ = quality;
-                        LOG_INFO("Camera", " JPEG质量已更新为 %d (QP: %d)", quality,
+                        LOG_INFO(LOG_TAG, " JPEG质量已更新为 %d (QP: %d)", quality,
                                  quality_param);
                         return VideoError::NONE;
                     }
                     else
                     {
-                        LOG_ERROR("Camera", "通过ChnAttr设置JPEG质量失败: 0x%x", ret);
+                        LOG_ERROR(LOG_TAG, "通过ChnAttr设置JPEG质量失败: 0x%x", ret);
                     }
                 }
                 else
                 {
-                    LOG_WARN("Camera", "JPEG编码器不在FixQP模式，无法调整质量");
+                    LOG_WARN(LOG_TAG, "JPEG编码器不在FixQP模式，无法调整质量");
                 }
 
                 current_jpeg_quality_ = quality;
-                LOG_INFO("Camera", " JPEG质量设置已保存: %d", quality);
+                LOG_INFO(LOG_TAG, " JPEG质量设置已保存: %d", quality);
                 return VideoError::NONE;
             }
 
-            // FileWrapper 实现
-            FileWrapper::FileWrapper(const std::string& filename, bool write) : filename_(filename)
-            {
-
-                const char* mode = write ? "wb" : "rb";
-                file_            = fopen(filename.c_str(), mode);
-
-                if (file_)
-                {
-                    valid_ = true;
-                    LOG_INFO("Camera", "文件已打开: %s", filename.c_str());
-                }
-                else
-                {
-                    LOG_ERROR("Camera", "打开文件失败: %s", filename.c_str());
-                }
-            }
-
-            FileWrapper::~FileWrapper()
-            {
-                if (file_)
-                {
-                    fclose(file_);
-                    LOG_INFO("Camera", "文件已关闭: %s", filename_.c_str());
-                }
-            }
-
-            bool FileWrapper::write(const void* data, size_t size)
-            {
-                if (!valid_ || !file_)
-                {
-                    return false;
-                }
-
-                size_t written = fwrite(data, 1, size, file_);
-                return written == size;
-            }
-
-            void FileWrapper::flush()
-            {
-                if (file_)
-                {
-                    fflush(file_);
-                }
-            }
 
             // ============================================================================
             // VideoSystem::Impl 实现类（Pimpl模式）
@@ -1567,20 +1503,20 @@ namespace app
                       memory_pool_(VideoMemoryPool::VideoMemoryPoolConfig{
                           config.fixed_block_size, config.fixed_pool_size, config.dynamic_pool_size,
                           64,                         // 对齐
-                          config.enable_dma_zero_copy // DMA零拷贝开关
+                          config.enable_dma_zero_copy
                       }),
                       quit_flag_(false), current_fps_(0.0f), photo_id_(0), record_id_(0),
                       photo_capturing_external_(photo_capturing_ref),
                       is_recording_external_(is_recording_ref),
                       is_webrtc_streaming_external_(is_webrtc_streaming_ref)
                 {
-                    LOG_INFO("Camera", "VideoSystem::Impl 已构造 (DMA: %s)",
+                    LOG_INFO(LOG_TAG, "VideoSystem::Impl 已构造 (DMA: %s)",
                              config.enable_dma_zero_copy ? "已启用" : "已禁用");
                 }
 
                 ~Impl()
                 {
-                    LOG_INFO("Camera", "VideoSystem::Impl 正在析构...");
+                    LOG_INFO(LOG_TAG, "VideoSystem::Impl 正在析构...");
                     shutdown();
                 }
 
@@ -1592,71 +1528,65 @@ namespace app
                 {
                     std::lock_guard<std::mutex> lock(mutex_);
 
-                    LOG_INFO("Camera", "========================================");
-                    LOG_INFO("Camera", "  初始化视频系统");
-                    LOG_INFO("Camera", "========================================");
-                    LOG_INFO("Camera", "配置:");
-                    LOG_INFO("Camera", "  分辨率: %dx%d @ %d fps", config_.width, config_.height,
+                    LOG_INFO(LOG_TAG, "========================================");
+                    LOG_INFO(LOG_TAG, "  初始化视频系统");
+                    LOG_INFO(LOG_TAG, "========================================");
+                    LOG_INFO(LOG_TAG, "配置:");
+                    LOG_INFO(LOG_TAG, "  分辨率: %dx%d @ %d fps", config_.width, config_.height,
                              config_.fps);
-                    LOG_INFO("Camera", "  格式: %d, 码率: %d kbps, GOP: %d",
+                    LOG_INFO(LOG_TAG, "  格式: %d, 码率: %d kbps, GOP: %d",
                              static_cast<int>(config_.format), config_.bitrate, config_.gop);
 
                     sync_ctx_ = sync_ctx;
 
                     // 创建输出目录
-                    mkdir(config_.photo_path.c_str(), DIRECTORY_PERMISSION);
-                    mkdir(config_.record_path.c_str(), DIRECTORY_PERMISSION);
+                    createDirectory(config_.photo_path);
+                    createDirectory(config_.record_path);
 
-                    // 步骤1: 初始化RKMPI系统
-                    LOG_INFO("Camera", "步骤1: 初始化RKMPI系统...");
+                    LOG_INFO(LOG_TAG, "初始化RKMPI系统...");
                     if (RK_MPI_SYS_Init() != RK_SUCCESS)
                     {
-                        LOG_ERROR("Camera", "RK_MPI_SYS_Init 失败");
+                        LOG_ERROR(LOG_TAG, "RK_MPI_SYS_Init 失败");
                         return VideoError::INIT_FAILED;
                     }
                     rkmpi_initialized_ = true;
 
-                    // 步骤2: 初始化ISP
-                    LOG_INFO("Camera", "步骤2: 初始化ISP...");
+                    LOG_INFO(LOG_TAG, "初始化ISP...");
                     isp_ = std::make_unique<ISPWrapper>(0, ISP_PATH);
                     if (!isp_->isValid())
                     {
-                        LOG_ERROR("Camera", "ISP初始化失败");
+                        LOG_ERROR(LOG_TAG, "ISP初始化失败");
                         return VideoError::INIT_FAILED;
                     }
 
-                    // 步骤3: 初始化VI设备
-                    LOG_INFO("Camera", "步骤3: 初始化VI设备...");
+                    LOG_INFO(LOG_TAG, "初始化VI设备...");
                     vi_dev_ = std::make_unique<VIDeviceWrapper>(0);
                     if (!vi_dev_->isValid())
                     {
-                        LOG_ERROR("Camera", "VI设备初始化失败");
+                        LOG_ERROR(LOG_TAG, "VI设备初始化失败");
                         return VideoError::INIT_FAILED;
                     }
 
-                    // 步骤4: 初始化VI通道
-                    LOG_INFO("Camera", "步骤4: 初始化VI通道...");
+                    LOG_INFO(LOG_TAG, "初始化VI通道...");
                     vi_chn_ =
                         std::make_unique<VIChannelWrapper>(0, 0, config_.width, config_.height);
                     if (!vi_chn_->isValid())
                     {
-                        LOG_ERROR("Camera", "VI通道初始化失败");
+                        LOG_ERROR(LOG_TAG, "VI通道初始化失败");
                         return VideoError::INIT_FAILED;
                     }
 
-                    // 步骤5: 初始化VENC编码器
-                    LOG_INFO("Camera", "步骤5: 初始化VENC编码器...");
+                    LOG_INFO(LOG_TAG, "初始化VENC编码器...");
                     venc_ =
                         std::make_unique<VENCWrapper>(0, config_.width, config_.height,
                                                       config_.format, config_.bitrate, config_.gop);
                     if (!venc_->isValid())
                     {
-                        LOG_ERROR("Camera", "VENC初始化失败");
+                        LOG_ERROR(LOG_TAG, "VENC初始化失败");
                         return VideoError::INIT_FAILED;
                     }
 
-                    // 步骤6: 绑定VI到VENC
-                    LOG_INFO("Camera", "步骤6: 绑定VI到VENC...");
+                    LOG_INFO(LOG_TAG, "绑定VI到VENC...");
                     MPP_CHN_S src_channel{};
                     MPP_CHN_S dest_channel{};
                     src_channel.enModId  = RK_ID_VI;
@@ -1669,14 +1599,14 @@ namespace app
 
                     if (RK_MPI_SYS_Bind(&src_channel, &dest_channel) != RK_SUCCESS)
                     {
-                        LOG_ERROR("Camera", "模块绑定失败");
+                        LOG_ERROR(LOG_TAG, "模块绑定失败");
                         return VideoError::INIT_FAILED;
                     }
                     modules_bound_ = true;
 
-                    LOG_INFO("Camera", "========================================");
-                    LOG_INFO("Camera", "视频系统初始化成功！");
-                    LOG_INFO("Camera", "========================================");
+                    LOG_INFO(LOG_TAG, "========================================");
+                    LOG_INFO(LOG_TAG, "视频系统初始化成功！");
+                    LOG_INFO(LOG_TAG, "========================================");
 
                     return VideoError::NONE;
                 }
@@ -1685,7 +1615,7 @@ namespace app
                 {
                     std::lock_guard<std::mutex> lock(mutex_);
 
-                    LOG_INFO("Camera", "关闭视频系统...");
+                    LOG_INFO(LOG_TAG, "关闭视频系统...");
 
                     // 停止流处理
                     stopStreamInternal();
@@ -1711,7 +1641,7 @@ namespace app
                         modules_bound_ = false;
                     }
 
-                    // RAII自动释放资源（按构造的逆序）
+                    // 自动释放资源（按构造的逆序）
                     venc_.reset();
                     vi_chn_.reset();
                     vi_dev_.reset();
@@ -1724,7 +1654,7 @@ namespace app
                         rkmpi_initialized_ = false;
                     }
 
-                    LOG_INFO("Camera", "视频系统关闭完成");
+                    LOG_INFO(LOG_TAG, "视频系统关闭完成");
                 }
 
                 // ========================================================================
@@ -1741,17 +1671,17 @@ namespace app
                 {
                     if (stream_thread_ && stream_thread_->joinable())
                     {
-                        LOG_WARN("Camera", "流已启动");
+                        LOG_WARN(LOG_TAG, "流已启动");
                         return VideoError::ALREADY_STARTED;
                     }
 
-                    LOG_INFO("Camera", "启动视频流...");
+                    LOG_INFO(LOG_TAG, "启动视频流...");
 
                     quit_flag_.store(false);
                     stream_thread_ =
                         std::make_unique<std::thread>(&Impl::streamProcessThread, this);
 
-                    LOG_INFO("Camera", " 视频流已启动");
+                    LOG_INFO(LOG_TAG, " 视频流已启动");
                     return VideoError::NONE;
                 }
 
@@ -1768,7 +1698,7 @@ namespace app
                         return VideoError::NOT_STARTED;
                     }
 
-                    LOG_INFO("Camera", "停止视频流...");
+                    LOG_INFO(LOG_TAG, "停止视频流...");
 
                     quit_flag_.store(true);
                     if (stream_thread_->joinable())
@@ -1777,13 +1707,13 @@ namespace app
                     }
                     stream_thread_.reset();
 
-                    LOG_INFO("Camera", " 视频流已停止");
+                    LOG_INFO(LOG_TAG, " 视频流已停止");
                     return VideoError::NONE;
                 }
 
                 void streamProcessThread()
                 {
-                    LOG_INFO("Camera", "流处理线程已启动 (DMA: %s)",
+                    LOG_INFO(LOG_TAG, "流处理线程已启动 (DMA: %s)",
                              config_.enable_dma_zero_copy ? "已启用" : "已禁用");
 
                     auto last_stat_time = std::chrono::steady_clock::now();
@@ -1794,15 +1724,12 @@ namespace app
                         VideoFramePtr frame;
                         VideoError    err;
 
-                        // 根据配置选择获取方式
                         if (config_.enable_dma_zero_copy)
                         {
-                            //  使用RKMPI缓冲区
                             err = venc_->getStreamZeroCopy(frame, 100);
                         }
                         else
                         {
-                            // 普通方式：内存池分配+memcpy
                             err = venc_->getStream(frame, memory_pool_, 100);
                         }
 
@@ -1815,7 +1742,7 @@ namespace app
                         {
                             if (err != VideoError::TIMEOUT)
                             {
-                                LOG_ERROR("Camera", "获取流失败: %d", static_cast<int>(err));
+                                LOG_ERROR(LOG_TAG, "获取流失败: %d", static_cast<int>(err));
                             }
                             continue;
                         }
@@ -1823,13 +1750,11 @@ namespace app
                         frame_count++;
                         stats_.frames_captured.fetch_add(1, std::memory_order_relaxed);
 
-                        // 统计DMA使用情况
                         if (frame->is_dma_buffer)
                         {
                             stats_.dma_frames.fetch_add(1, std::memory_order_relaxed);
                         }
 
-                        // 时间同步
                         if (sync_ctx_)
                         {
                             frame->timestamp =
@@ -1840,7 +1765,6 @@ namespace app
                             frame->timestamp = frame->pts;
                         }
 
-                        // 根据主状态分发帧
                         VideoMainState main_state = main_state_.load(std::memory_order_acquire);
 
                         switch (main_state)
@@ -1861,25 +1785,24 @@ namespace app
                             break;
                         }
 
-                        // 计算FPS
                         auto current_time = std::chrono::steady_clock::now();
                         auto elapsed      = std::chrono::duration_cast<std::chrono::microseconds>(
                                            current_time - last_stat_time)
                                            .count();
 
                         if (elapsed >= 1000000)
-                        { // 1秒
+                        {
                             current_fps_   = static_cast<float>(frame_count) * 1000000.0f / elapsed;
                             last_stat_time = current_time;
                             frame_count    = 0;
 
 #if DISPLAY_FPS
-                            LOG_INFO("Camera", "当前FPS: %.2f", current_fps_);
+                            LOG_INFO(LOG_TAG, "当前FPS: %.2f", current_fps_);
 #endif
                         }
                     }
 
-                    LOG_INFO("Camera", "流处理线程已停止");
+                    LOG_INFO(LOG_TAG, "流处理线程已停止");
                 }
 
                 // ========================================================================
@@ -1903,19 +1826,20 @@ namespace app
                                                          std::to_string(photo_id_++) + ".jpg"
                                                    : photo_filename_;
 
-                        // 使用FileWrapper保存
-                        FileWrapper file(filename, true);
+                        // 使用文件工具类保存
+                        FileWrapper file(filename, FileMode::WRITE);
                         if (file.isValid())
                         {
                             if (file.write(frame->data, frame->size))
                             {
-                                LOG_INFO("Camera", "照片已保存: %s (%zu 字节)", filename.c_str(),
+                                file.flush();
+                                LOG_INFO(LOG_TAG, "照片已保存: %s (%zu 字节)", filename.c_str(),
                                          frame->size);
                                 stats_.photos_taken.fetch_add(1, std::memory_order_relaxed);
                             }
                             else
                             {
-                                LOG_ERROR("Camera", "写入照片文件失败");
+                                LOG_ERROR(LOG_TAG, "写入照片文件失败");
                             }
                         }
 
@@ -1931,9 +1855,7 @@ namespace app
                             photo_filename_.clear();
                         }
 
-                        // 设置标志：通知需要恢复编码器（外部检测）
-                        // 不能在流线程中调用stopStreamInternal()，会导致死锁
-                        LOG_INFO("Camera", "拍照完成，将恢复H264编码器");
+                        LOG_INFO(LOG_TAG, "拍照完成，将恢复H264编码器");
                     }
                 }
 
@@ -1944,7 +1866,7 @@ namespace app
                         return VideoError::INVALID_STATE;
                     }
 
-                    LOG_INFO("Camera", "切换到JPEG编码器...");
+                    LOG_INFO(LOG_TAG, "切换到JPEG编码器...");
 
                     // 解绑模块
                     if (modules_bound_)
@@ -1963,17 +1885,14 @@ namespace app
                         modules_bound_ = false;
                     }
 
-                    // 销毁H264编码器
                     venc_.reset();
-
-                    // 创建JPEG编码器
                     venc_ = std::make_unique<VENCWrapper>(0, config_.width, config_.height,
                                                           EncodeFormat::JPEG, config_.bitrate,
                                                           config_.gop);
 
                     if (!venc_->isValid())
                     {
-                        LOG_ERROR("Camera", "创建JPEG编码器失败");
+                        LOG_ERROR(LOG_TAG, "JPEG编码器初始化失败");
                         return VideoError::INIT_FAILED;
                     }
 
@@ -1981,7 +1900,7 @@ namespace app
                     VideoError quality_err = venc_->setJPEGQuality(config_.quality);
                     if (quality_err != VideoError::NONE)
                     {
-                        LOG_WARN("Camera", "设置JPEG质量失败");
+                        LOG_WARN(LOG_TAG, "设置JPEG质量失败");
                     }
 
                     // 重新绑定
@@ -1997,12 +1916,12 @@ namespace app
 
                     if (RK_MPI_SYS_Bind(&src_channel, &dest_channel) != RK_SUCCESS)
                     {
-                        LOG_ERROR("Camera", "绑定模块失败");
+                        LOG_ERROR(LOG_TAG, "绑定模块失败");
                         return VideoError::INIT_FAILED;
                     }
                     modules_bound_ = true;
 
-                    LOG_INFO("Camera", " 已切换到JPEG编码器");
+                    LOG_INFO(LOG_TAG, " 已切换到JPEG编码器");
                     return VideoError::NONE;
                 }
 
@@ -2013,7 +1932,7 @@ namespace app
                         return VideoError::INVALID_STATE;
                     }
 
-                    LOG_INFO("Camera", "切换回H264编码器...");
+                    LOG_INFO(LOG_TAG, "切换回H264编码器...");
 
                     // 解绑模块
                     if (modules_bound_)
@@ -2032,17 +1951,14 @@ namespace app
                         modules_bound_ = false;
                     }
 
-                    // 销毁JPEG编码器
                     venc_.reset();
-
-                    // 重新创建H264编码器
                     venc_ =
                         std::make_unique<VENCWrapper>(0, config_.width, config_.height,
                                                       config_.format, config_.bitrate, config_.gop);
 
                     if (!venc_->isValid())
                     {
-                        LOG_ERROR("Camera", "创建H264编码器失败");
+                        LOG_ERROR(LOG_TAG, "H264编码器初始化失败");
                         return VideoError::INIT_FAILED;
                     }
 
@@ -2059,12 +1975,12 @@ namespace app
 
                     if (RK_MPI_SYS_Bind(&src_channel, &dest_channel) != RK_SUCCESS)
                     {
-                        LOG_ERROR("Camera", "绑定模块失败");
+                        LOG_ERROR(LOG_TAG, "绑定模块失败");
                         return VideoError::INIT_FAILED;
                     }
                     modules_bound_ = true;
 
-                    LOG_INFO("Camera", " 已切换回H264编码器");
+                    LOG_INFO(LOG_TAG, " 已切换回H264编码器");
                     return VideoError::NONE;
                 }
 
@@ -2080,7 +1996,7 @@ namespace app
                         return VideoError::NONE;
                     }
 
-                    LOG_INFO("Camera", "恢复H264编码器...");
+                    LOG_INFO(LOG_TAG, "恢复H264编码器...");
 
                     bool was_streaming = stream_thread_ && stream_thread_->joinable();
 
@@ -2094,7 +2010,7 @@ namespace app
                     VideoError err = switchToH264Encoder();
                     if (err != VideoError::NONE)
                     {
-                        LOG_ERROR("Camera", "恢复H264编码器失败");
+                        LOG_ERROR(LOG_TAG, "恢复H264编码器失败");
                         return err;
                     }
 
@@ -2105,7 +2021,7 @@ namespace app
                     }
 
                     photo_need_restore_encoder_ = false;
-                    LOG_INFO("Camera", " H264编码器已恢复");
+                    LOG_INFO(LOG_TAG, " H264编码器已恢复");
 
                     return VideoError::NONE;
                 }
@@ -2121,23 +2037,19 @@ namespace app
                     photo_capture_count_        = 0;
                     photo_need_restore_encoder_ = false;
 
-                    // 如果需要切换编码器且当前不是JPEG编码器
                     if (switch_encoder && config_.format != EncodeFormat::JPEG)
                     {
                         bool was_streaming = stream_thread_ && stream_thread_->joinable();
 
-                        // 停止视频流
                         if (was_streaming)
                         {
-                            LOG_INFO("Camera", "为编码器切换停止流...");
+                            LOG_INFO(LOG_TAG, "为编码器切换停止流...");
                             stopStreamInternal();
                         }
 
-                        // 切换到JPEG编码器
                         VideoError err = switchToJPEGEncoder();
                         if (err != VideoError::NONE)
                         {
-                            // 切换失败，恢复流
                             if (was_streaming)
                             {
                                 startStreamInternal();
@@ -2147,19 +2059,17 @@ namespace app
 
                         photo_need_restore_encoder_ = true;
 
-                        // 重新启动视频流
                         if (was_streaming)
                         {
-                            LOG_INFO("Camera", "使用JPEG编码器重启流...");
+                            LOG_INFO(LOG_TAG, "使用JPEG编码器重启流...");
                             startStreamInternal();
-                            // 等待流稳定
                             std::this_thread::sleep_for(std::chrono::milliseconds(STREAM_SLEEP_MS));
                         }
                     }
 
                     photo_capturing_.store(true, std::memory_order_release);
 
-                    LOG_INFO("Camera", "拍照已开始");
+                    LOG_INFO(LOG_TAG, "拍照已开始");
                     return VideoError::NONE;
                 }
 
@@ -2182,17 +2092,15 @@ namespace app
                         {
                             record_file_->flush();
 
-                            // 更新录像时长
                             auto elapsed =
                                 std::chrono::duration_cast<std::chrono::milliseconds>(
                                     std::chrono::steady_clock::now() - record_start_time_)
                                     .count();
                             stats_.record_duration_ms.store(elapsed, std::memory_order_relaxed);
 
-                            // 如果设置了时长限制，检查是否到达
                             if (record_duration_sec_ > 0 && elapsed >= record_duration_sec_ * 1000)
                             {
-                                LOG_INFO("Camera", "录像时长已达到，正在停止...");
+                                LOG_INFO(LOG_TAG, "录像时长已达到，正在停止...");
                                 stopRecordInternal();
                             }
                         }
@@ -2213,7 +2121,7 @@ namespace app
                                                             std::to_string(record_id_++) + ".h264"
                                                       : filename;
 
-                    record_file_ = std::make_unique<FileWrapper>(record_filename, true);
+                    record_file_ = std::make_unique<FileWrapper>(record_filename, FileMode::WRITE);
                     if (!record_file_->isValid())
                     {
                         record_file_.reset();
@@ -2224,7 +2132,7 @@ namespace app
                     record_start_time_   = std::chrono::steady_clock::now();
                     is_recording_.store(true, std::memory_order_release);
 
-                    LOG_INFO("Camera", "录像已启动: %s", record_filename.c_str());
+                    LOG_INFO(LOG_TAG, "录像已启动: %s", record_filename.c_str());
                     return VideoError::NONE;
                 }
 
@@ -2242,13 +2150,12 @@ namespace app
                     }
 
                     is_recording_.store(false, std::memory_order_release);
-                    is_recording_external_.store(false,
-                                                 std::memory_order_release); //  同步外部状态
+                    is_recording_external_.store(false, std::memory_order_release);
 
                     if (record_file_)
                     {
                         record_file_->flush();
-                        LOG_INFO("Camera", "录像已停止: %s", record_file_->getFilename().c_str());
+                        LOG_INFO(LOG_TAG, "录像已停止: %s", record_file_->getFilename().c_str());
                         record_file_.reset();
                     }
 
@@ -2278,7 +2185,7 @@ namespace app
                 {
                     std::lock_guard<std::mutex> lock(webrtc_mutex_);
                     webrtc_callback_ = callback;
-                    LOG_INFO("Camera", "WebRTC回调已设置");
+                    LOG_INFO(LOG_TAG, "WebRTC回调已设置");
                 }
 
                 VideoError startWebRTCStream()
@@ -2292,12 +2199,12 @@ namespace app
 
                     if (!webrtc_callback_)
                     {
-                        LOG_ERROR("Camera", "WebRTC回调未设置");
+                        LOG_ERROR(LOG_TAG, "WebRTC回调未设置");
                         return VideoError::INVALID_STATE;
                     }
 
                     is_webrtc_streaming_.store(true, std::memory_order_release);
-                    LOG_INFO("Camera", "WebRTC流已启动");
+                    LOG_INFO(LOG_TAG, "WebRTC流已启动");
 
                     return VideoError::NONE;
                 }
@@ -2316,9 +2223,8 @@ namespace app
                     }
 
                     is_webrtc_streaming_.store(false, std::memory_order_release);
-                    is_webrtc_streaming_external_.store(
-                        false, std::memory_order_release); //  同步外部状态
-                    LOG_INFO("Camera", "WebRTC流已停止");
+                    is_webrtc_streaming_external_.store(false, std::memory_order_release);
+                    LOG_INFO(LOG_TAG, "WebRTC流已停止");
 
                     return VideoError::NONE;
                 }
@@ -2339,7 +2245,7 @@ namespace app
 
                     main_state_.store(new_state, std::memory_order_release);
 
-                    LOG_INFO("Camera", "主状态: %d → %d", static_cast<int>(old_state),
+                    LOG_INFO(LOG_TAG, "主状态: %d -> %d", static_cast<int>(old_state),
                              static_cast<int>(new_state));
 
                     // 触发回调
@@ -2384,23 +2290,22 @@ namespace app
                     uint64_t total_frames = stats_.frames_captured.load(std::memory_order_relaxed);
                     uint64_t dma_frames   = stats_.dma_frames.load(std::memory_order_relaxed);
 
-                    LOG_INFO("Camera", "=== 视频系统统计 ===");
-                    LOG_INFO("Camera", "  已采集帧数: %zu", total_frames);
+                    LOG_INFO(LOG_TAG, "=== 视频系统统计 ===");
+                    LOG_INFO(LOG_TAG, "  已采集帧数: %zu", total_frames);
 
-                    // DMA零拷贝统计
                     if (config_.enable_dma_zero_copy && total_frames > 0)
                     {
                         double dma_rate = (double)dma_frames * 100.0 / total_frames;
-                        LOG_INFO("Camera", "  DMA零拷贝:   %zu (%.2f%%) 🚀", dma_frames, dma_rate);
-                        LOG_INFO("Camera", "  内存拷贝:     %zu (%.2f%%)",
+                        LOG_INFO(LOG_TAG, "  DMA帧:   %zu (%.2f%%)", dma_frames, dma_rate);
+                        LOG_INFO(LOG_TAG, "  普通帧:     %zu (%.2f%%)",
                                  total_frames - dma_frames, 100.0 - dma_rate);
                     }
 
-                    LOG_INFO("Camera", "  丢弃帧数:  %zu",
+                    LOG_INFO(LOG_TAG, "  丢弃帧数:  %zu",
                              stats_.frames_dropped.load(std::memory_order_relaxed));
-                    LOG_INFO("Camera", "  拍照次数:    %zu",
+                    LOG_INFO(LOG_TAG, "  拍照次数:    %zu",
                              stats_.photos_taken.load(std::memory_order_relaxed));
-                    LOG_INFO("Camera", "  录像时长: %zu ms",
+                    LOG_INFO(LOG_TAG, "  录像时长: %zu ms",
                              stats_.record_duration_ms.load(std::memory_order_relaxed));
 
                     memory_pool_.logStats();
@@ -2415,39 +2320,30 @@ namespace app
                 // 动态参数调整
                 // ========================================================================
 
-                VideoError setEncodingParams(int bitrate, int gop)
+                VideoError setEncodingParams(int bitrate = -1, int gop = -1)
                 {
-                    std::lock_guard<std::mutex> lock(mutex_);
-
-                    if (!venc_ || !venc_->isValid())
-                    {
-                        LOG_ERROR("Camera", "VENC未初始化");
-                        return VideoError::NOT_INITIALIZED;
-                    }
-
-                    LOG_INFO("Camera", "设置编码参数: 码率=%d kbps, GOP=%d", bitrate, gop);
+                    VideoError err = VideoError::NONE;
 
                     // 设置码率
-                    VideoError err = venc_->setBitrate(bitrate);
+                    if (bitrate >= 0)
+                    {
+                        err = setBitrate(bitrate);
                     if (err != VideoError::NONE)
                     {
-                        LOG_ERROR("Camera", "设置码率失败");
                         return err;
+                        }
                     }
 
                     // 设置GOP
-                    err = venc_->setGOP(gop);
+                    if (gop >= 0)
+                    {
+                        err = setGOP(gop);
                     if (err != VideoError::NONE)
                     {
-                        LOG_ERROR("Camera", "设置GOP失败");
                         return err;
+                        }
                     }
 
-                    // 更新配置
-                    config_.bitrate = bitrate;
-                    config_.gop     = gop;
-
-                    LOG_INFO("Camera", " 编码参数更新成功");
                     return VideoError::NONE;
                 }
 
@@ -2457,7 +2353,7 @@ namespace app
 
                     if (!venc_ || !venc_->isValid())
                     {
-                        LOG_ERROR("Camera", "VENC未初始化");
+                        LOG_ERROR(LOG_TAG, "VENC未初始化");
                         return VideoError::NOT_INITIALIZED;
                     }
 
@@ -2465,6 +2361,7 @@ namespace app
                     if (err == VideoError::NONE)
                     {
                         config_.bitrate = bitrate_kbps;
+                        LOG_INFO(LOG_TAG, "码率已更新为: %d kbps", bitrate_kbps);
                     }
                     return err;
                 }
@@ -2475,7 +2372,7 @@ namespace app
 
                     if (!venc_ || !venc_->isValid())
                     {
-                        LOG_ERROR("Camera", "VENC未初始化");
+                        LOG_ERROR(LOG_TAG, "VENC未初始化");
                         return VideoError::NOT_INITIALIZED;
                     }
 
@@ -2483,6 +2380,7 @@ namespace app
                     if (err == VideoError::NONE)
                     {
                         config_.gop = gop;
+                        LOG_INFO(LOG_TAG, "GOP已更新为: %d", gop);
                     }
                     return err;
                 }
@@ -2496,7 +2394,7 @@ namespace app
 
                     // 更新配置
                     config_.quality = quality;
-                    LOG_INFO("Camera", "JPEG质量设置为 %d", quality);
+                    LOG_INFO(LOG_TAG, "JPEG质量设置为 %d", quality);
 
                     // 如果VENC已初始化，立即应用
                     if (venc_ && venc_->isValid())
@@ -2516,47 +2414,41 @@ namespace app
                     std::lock_guard<std::mutex> lock(mutex_);
                     explain_url_   = url;
                     explain_token_ = token;
-                    LOG_INFO("Camera", "AI解析URL已设置: %s", url.c_str());
+                    LOG_INFO(LOG_TAG, "AI解析URL已设置: %s", url.c_str());
                 }
 
                 std::string explainImage(const std::string& question)
                 {
                     std::lock_guard<std::mutex> lock(mutex_);
 
-                    // 1. 检查URL是否设置
                     if (explain_url_.empty())
                     {
-                        LOG_ERROR("Camera", "AI解析URL未设置，请先调用setExplainUrl()");
+                        LOG_ERROR(LOG_TAG, "AI解析URL未设置，请先调用setExplainUrl()");
                         return R"({"success": false, "message": "AI解析URL未设置"})";
                     }
 
-                    // 2. 检查编码器是否有效
                     if (!venc_ || !venc_->isValid())
                     {
-                        LOG_ERROR("Camera", "编码器未初始化");
+                        LOG_ERROR(LOG_TAG, "编码器未初始化");
                         return R"({"success": false, "message": "编码器未初始化"})";
                     }
 
-                    // 3. 记录当前编码格式，判断是否需要切换
                     bool need_switch_encoder = (config_.format != EncodeFormat::JPEG);
                     bool was_streaming       = stream_thread_ && stream_thread_->joinable();
 
-                    // 4. 如果需要切换编码器，先停止流
                     if (need_switch_encoder && was_streaming)
                     {
-                        LOG_INFO("Camera", "为图像解析停止视频流...");
+                        LOG_INFO(LOG_TAG, "为图像解析停止视频流...");
                         stopStreamInternal();
                     }
 
-                    // 5. 切换到JPEG编码器（如果需要）
                     VideoError switch_err = VideoError::NONE;
                     if (need_switch_encoder)
                     {
                         switch_err = switchToJPEGEncoder();
                         if (switch_err != VideoError::NONE)
                         {
-                            LOG_ERROR("Camera", "切换到JPEG编码器失败");
-                            // 如果之前有流，尝试恢复
+                            LOG_ERROR(LOG_TAG, "切换到JPEG编码器失败");
                             if (was_streaming)
                             {
                                 startStreamInternal();
@@ -2564,18 +2456,15 @@ namespace app
                             return R"({"success": false, "message": "切换到JPEG编码器失败"})";
                         }
 
-                        // 等待编码器稳定
                         std::this_thread::sleep_for(std::chrono::milliseconds(STREAM_SLEEP_MS));
                     }
 
-                    // 6. 获取JPEG图像帧
                     VideoFramePtr jpeg_frame;
                     VideoError    get_frame_err = venc_->getStream(jpeg_frame, memory_pool_, 5000);
                     if (get_frame_err != VideoError::NONE || !jpeg_frame || !jpeg_frame->data ||
                         jpeg_frame->size == 0)
                     {
-                        LOG_ERROR("Camera", "获取JPEG图像失败: %d", static_cast<int>(get_frame_err));
-                        // 恢复编码器和流
+                        LOG_ERROR(LOG_TAG, "获取JPEG图像失败: %d", static_cast<int>(get_frame_err));
                         if (need_switch_encoder)
                         {
                             switchToH264Encoder();
@@ -2587,15 +2476,13 @@ namespace app
                         return R"({"success": false, "message": "获取JPEG图像失败"})";
                     }
 
-                    LOG_INFO("Camera", "获取JPEG图像成功: %zu 字节", jpeg_frame->size);
+                    LOG_INFO(LOG_TAG, "获取JPEG图像成功: %zu 字节", jpeg_frame->size);
 
-                    // 7. 准备HTTP请求
                     protocol::http::HttpClient http_client;
                     if (!http_client.isValid())
                     {
-                        LOG_ERROR("Camera", "HTTP客户端初始化失败");
-                        jpeg_frame.reset(); // 释放帧
-                        // 恢复编码器和流
+                        LOG_ERROR(LOG_TAG, "HTTP客户端初始化失败");
+                        jpeg_frame.reset();
                         if (need_switch_encoder)
                         {
                             switchToH264Encoder();
@@ -2607,42 +2494,36 @@ namespace app
                         return R"({"success": false, "message": "HTTP客户端初始化失败"})";
                     }
 
-                    // 8. 准备multipart表单字段
                     std::map<std::string, std::string> form_fields;
                     form_fields["question"] = question;
 
-                    // 9. 准备HTTP头部（可选：添加认证token）
                     std::map<std::string, std::string> headers;
                     if (!explain_token_.empty())
                     {
                         headers["Authorization"] = "Bearer " + explain_token_;
                     }
 
-                    // 10. 发送multipart POST请求
                     protocol::http::HttpResponse response = http_client.postMultipart(
                         explain_url_, form_fields, "file",
                         jpeg_frame->data, jpeg_frame->size, "camera.jpg", "image/jpeg", headers, 30000,
                         true);
 
-                    // 11. 释放JPEG帧
                     jpeg_frame.reset();
 
-                    // 12. 恢复编码器和流（如果需要）
                     if (need_switch_encoder)
                     {
-                        LOG_INFO("Camera", "恢复H264编码器...");
+                        LOG_INFO(LOG_TAG, "恢复H264编码器...");
                         switchToH264Encoder();
                         if (was_streaming)
                         {
-                            LOG_INFO("Camera", "恢复视频流...");
+                            LOG_INFO(LOG_TAG, "恢复视频流...");
                             startStreamInternal();
                         }
                     }
 
-                    // 13. 处理响应
                     if (!response.success)
                     {
-                        LOG_ERROR("Camera", "图像解析请求失败: status=%d, error=%s", response.status_code,
+                        LOG_ERROR(LOG_TAG, "图像解析请求失败: status=%d, error=%s", response.status_code,
                                   response.error_message.c_str());
                         std::string error_json = R"({"success": false, "message": ")";
                         error_json += response.error_message;
@@ -2652,10 +2533,9 @@ namespace app
                         return error_json;
                     }
 
-                    LOG_INFO("Camera", "图像解析成功: status=%d, response_size=%zu", response.status_code,
+                    LOG_INFO(LOG_TAG, "图像解析成功: status=%d, response_size=%zu", response.status_code,
                              response.body.size());
 
-                    // 14. 返回服务器响应
                     return response.body;
                 }
 
@@ -2663,13 +2543,12 @@ namespace app
                 VideoConfig     config_;
                 VideoMemoryPool memory_pool_;
 
-                // RAII资源包装器
+                // 资源包装器
                 std::unique_ptr<ISPWrapper>       isp_;
                 std::unique_ptr<VIDeviceWrapper>  vi_dev_;
                 std::unique_ptr<VIChannelWrapper> vi_chn_;
                 std::unique_ptr<VENCWrapper>      venc_;
 
-                // 时间同步
                 std::shared_ptr<sync_context_t> sync_ctx_;
 
                 // 流处理线程
@@ -2682,7 +2561,7 @@ namespace app
                 int               photo_capture_count_ = 0;
                 int               photo_id_;
                 std::string       photo_filename_;
-                bool photo_need_restore_encoder_ = false; // 拍照后是否需要恢复编码器
+                bool photo_need_restore_encoder_ = false;
 
                 // 录像状态
                 std::atomic<bool>                     is_recording_{false};
@@ -2716,10 +2595,10 @@ namespace app
                     std::atomic<uint64_t> frames_dropped{0};
                     std::atomic<uint64_t> photos_taken{0};
                     std::atomic<uint64_t> record_duration_ms{0};
-                    std::atomic<uint64_t> dma_frames{0}; // DMA零拷贝帧数
+                    std::atomic<uint64_t> dma_frames{0};
                 } stats_;
 
-                // 外部状态引用（用于同步Impl内部状态到外部）
+                // 外部状态引用
                 std::atomic<bool>& photo_capturing_external_;
                 std::atomic<bool>& is_recording_external_;
                 std::atomic<bool>& is_webrtc_streaming_external_;
@@ -2797,7 +2676,6 @@ namespace app
                 if (err == VideoError::NONE)
                 {
                     photo_capturing_.store(true, std::memory_order_release);
-                    // 注意：拍照完成后，Impl会自动重置photo_capturing_标志
                 }
                 return err;
             }
@@ -2842,26 +2720,6 @@ namespace app
                 pImpl_->setWebRTCVideoCallback(callback);
             }
 
-            VideoError VideoSystem::startWebRTCStream()
-            {
-                VideoError err = pImpl_->startWebRTCStream();
-                if (err == VideoError::NONE)
-                {
-                    is_webrtc_streaming_.store(true, std::memory_order_release);
-                }
-                return err;
-            }
-
-            VideoError VideoSystem::stopWebRTCStream()
-            {
-                VideoError err = pImpl_->stopWebRTCStream();
-                if (err == VideoError::NONE)
-                {
-                    is_webrtc_streaming_.store(false, std::memory_order_release);
-                }
-                return err;
-            }
-
             VideoError VideoSystem::startWebRTCMode()
             {
                 if (!isInitialized())
@@ -2886,23 +2744,32 @@ namespace app
                     }
                 }
 
-                // 启动WebRTC推流
-                err = startWebRTCStream();
-                if (err != VideoError::NONE)
+                // 启动WebRTC推流（直接调用Impl内部方法）
+                err = pImpl_->startWebRTCStream();
+                if (err == VideoError::NONE)
                 {
-                    return err;
+                    is_webrtc_streaming_.store(true, std::memory_order_release);
+                LOG_INFO(LOG_TAG, "WebRTC模式已启动");
+                }
+                else
+                {
+                    LOG_ERROR(LOG_TAG, "启动WebRTC推流失败");
                 }
 
-                LOG_INFO("Camera", "WebRTC模式已启动");
-                return VideoError::NONE;
+                return err;
             }
 
             VideoError VideoSystem::stopWebRTCMode()
             {
-                stopWebRTCStream();
+                // 停止WebRTC推流（直接调用Impl内部方法）
+                VideoError err = pImpl_->stopWebRTCStream();
+                if (err == VideoError::NONE)
+                {
+                    is_webrtc_streaming_.store(false, std::memory_order_release);
+                }
                 setMainState(VideoMainState::NONE);
 
-                LOG_INFO("Camera", "WebRTC模式已停止");
+                LOG_INFO(LOG_TAG, "WebRTC模式已停止");
                 return VideoError::NONE;
             }
 
@@ -2935,26 +2802,6 @@ namespace app
                 }
 
                 return pImpl_->setEncodingParams(bitrate, gop);
-            }
-
-            VideoError VideoSystem::setBitrate(int bitrate_kbps)
-            {
-                if (!isInitialized())
-                {
-                    return VideoError::NOT_INITIALIZED;
-                }
-
-                return pImpl_->setBitrate(bitrate_kbps);
-            }
-
-            VideoError VideoSystem::setGOP(int gop)
-            {
-                if (!isInitialized())
-                {
-                    return VideoError::NOT_INITIALIZED;
-                }
-
-                return pImpl_->setGOP(gop);
             }
 
             VideoError VideoSystem::setJPEGQuality(int quality)
@@ -3000,7 +2847,7 @@ namespace app
                 pImpl_->stats_.record_duration_ms.store(0, std::memory_order_relaxed);
                 pImpl_->stats_.dma_frames.store(0, std::memory_order_relaxed);
                 pImpl_->memory_pool_.resetStats();
-                LOG_INFO("Camera", "统计数据已重置");
+                LOG_INFO(LOG_TAG, "统计数据已重置");
             }
 
             void VideoSystem::logStats() const
@@ -3009,7 +2856,7 @@ namespace app
             }
 
             // ========================================================================
-            // ISP参数控制代理实现（转发到ISPWrapper）
+            // ISP参数控制实现
             // ========================================================================
 
             VideoError VideoSystem::setExposureMode(opMode_t mode)

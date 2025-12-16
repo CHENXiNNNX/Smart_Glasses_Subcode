@@ -1,16 +1,6 @@
 /**
  * @file http.hpp
- * @brief HTTP客户端 - 基于CURL的RAII封装
- * @details 特性：
- *          - RAII资源管理（智能指针封装CURL）
- *          - 异常安全的HTTP请求
- *          - 自动内存管理
- *          - 超时控制
- *          - SSL验证配置
- *          - 重试机制支持
- *
- * @author Smart_Glasses Team
- * @date 2025-01-29
+ * @brief HTTP客户端
  */
 
 #ifndef HTTP_HPP
@@ -34,7 +24,7 @@ namespace app
         {
 
             // ============================================================================
-            // RAII包装器（智能指针删除器）
+            // 包装器
             // ============================================================================
 
             /**
@@ -78,20 +68,17 @@ namespace app
 
             /**
              * @brief HTTP客户端
-             * @details 基于CURL的HTTP客户端封装，使用RAII管理资源
              */
             class HttpClient
             {
             public:
                 /**
                  * @brief 构造函数
-                 * @details 自动初始化CURL
                  */
                 HttpClient();
 
                 /**
                  * @brief 析构函数
-                 * @details RAII自动清理CURL资源
                  */
                 ~HttpClient() = default;
 
@@ -104,9 +91,9 @@ namespace app
                 /**
                  * @brief HTTP POST请求
                  * @param url 请求URL
-                 * @param post_data POST数据（通常是JSON字符串）
-                 * @param headers HTTP请求头（键值对）
-                 * @param timeout_ms 超时时间（毫秒）
+                 * @param post_data POST数据
+                 * @param headers HTTP请求头
+                 * @param timeout_ms 超时时间
                  * @param verify_ssl 是否验证SSL证书
                  * @return HTTP响应
                  */
@@ -117,8 +104,8 @@ namespace app
                 /**
                  * @brief HTTP GET请求
                  * @param url 请求URL
-                 * @param headers HTTP请求头（键值对）
-                 * @param timeout_ms 超时时间（毫秒）
+                 * @param headers HTTP请求头
+                 * @param timeout_ms 超时时间
                  * @param verify_ssl 是否验证SSL证书
                  * @return HTTP响应
                  */
@@ -127,16 +114,16 @@ namespace app
                                  bool verify_ssl);
 
                 /**
-                 * @brief HTTP POST multipart/form-data 请求（用于文件上传）
+                 * @brief HTTP POST multipart/form-data 请求
                  * @param url 请求URL
-                 * @param form_fields 表单字段（键值对，文本字段）
-                 * @param file_field_name 文件字段名称（默认为"file"）
+                 * @param form_fields 表单字段
+                 * @param file_field_name 文件字段名称
                  * @param file_data 文件数据指针
                  * @param file_size 文件数据大小
-                 * @param file_name 文件名（默认为"upload.bin"）
-                 * @param file_content_type 文件Content-Type（默认为"application/octet-stream"）
-                 * @param headers 额外的HTTP请求头（键值对）
-                 * @param timeout_ms 超时时间（毫秒）
+                 * @param file_name 文件名
+                 * @param file_content_type 文件Content-Type
+                 * @param headers 额外的HTTP请求头
+                 * @param timeout_ms 超时时间
                  * @param verify_ssl 是否验证SSL证书
                  * @return HTTP响应
                  */
@@ -153,11 +140,10 @@ namespace app
                 HttpClient& operator=(const HttpClient&) = delete;
 
             private:
-                CurlPtr curl_; // CURL句柄（RAII管理）
+                CurlPtr curl_;
 
                 /**
                  * @brief CURL写回调函数
-                 * @details 用于接收HTTP响应数据
                  */
                 static size_t writeCallback(void* contents, size_t size, size_t nmemb, void* userp);
             };
@@ -167,8 +153,7 @@ namespace app
             // ============================================================================
 
             /**
-             * @brief 确保CURL全局初始化（线程安全）
-             * @details 使用std::call_once确保只初始化一次
+             * @brief 确保CURL全局初始化
              */
             void ensureCurlGlobalInit();
 

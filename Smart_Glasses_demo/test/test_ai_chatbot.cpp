@@ -9,13 +9,18 @@
 using namespace app::tool::log;
 using namespace app::chatbot;
 
+namespace
+{
+    constexpr const char* LOG_TAG = "TEST_AI_CHATBOT";
+} // namespace
+
 // 全局标志，用于优雅退出
 std::atomic<bool> g_running{true};
 
 // 信号处理函数（Ctrl+C）
 void signalHandler(int signal) {
     (void)signal;
-    LOG_INFO("Main", "收到退出信号，正在关闭...");
+    LOG_INFO(LOG_TAG, "收到退出信号，正在关闭...");
     g_running = false;
 }
 
@@ -33,15 +38,15 @@ int main() {
     // 硬件设备初始化和网络检测配网
     ChatbotError err = chatbot.open();
     if (err != ChatbotError::NONE) {
-        LOG_ERROR("Main", "ChatbotSystem初始化失败: %s", errorToString(err));
+        LOG_ERROR(LOG_TAG, "ChatbotSystem初始化失败: %s", errorToString(err));
         Logger::getInstance().shutdown();
          return 1;
      }
      
-    LOG_INFO("Main", "========================================");
-    LOG_INFO("Main", "系统已就绪，等待唤醒词...");
-    LOG_INFO("Main", "按 Ctrl+C 退出程序");
-    LOG_INFO("Main", "========================================");
+    LOG_INFO(LOG_TAG, "========================================");
+    LOG_INFO(LOG_TAG, "系统已就绪，等待唤醒词...");
+    LOG_INFO(LOG_TAG, "按 Ctrl+C 退出程序");
+    LOG_INFO(LOG_TAG, "========================================");
     
     // 查询已保存的网络信息
     // chatbot.searchSavedNetwork();
@@ -53,7 +58,7 @@ int main() {
         // 检查系统状态
         ChatbotState state = chatbot.getState();
         if (state == ChatbotState::ERROR || state == ChatbotState::CLOSED) {
-            LOG_WARN("Main", "系统状态异常: %s，退出程序", stateToString(state));
+            LOG_WARN(LOG_TAG, "系统状态异常: %s，退出程序", stateToString(state));
                  break;
          }
     }
@@ -64,6 +69,6 @@ int main() {
     // 关闭日志系统
     Logger::getInstance().shutdown();
     
-    LOG_INFO("Main", "程序退出");
+    LOG_INFO(LOG_TAG, "程序退出");
      return 0;
  }

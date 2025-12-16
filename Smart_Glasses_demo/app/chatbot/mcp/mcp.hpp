@@ -283,7 +283,7 @@ namespace app
                 explicit McpServer(McpConfig config = McpConfig());
 
                 /**
-                 * @brief 析构函数（RAII自动清理所有资源）
+                 * @brief 析构函数
                  */
                 ~McpServer();
 
@@ -292,15 +292,15 @@ namespace app
                 // ========================================================================
 
                 /**
-                 * @brief 添加工具（智能指针，所有权转移）
-                 * @param tool 工具智能指针
+                 * @brief 添加工具
+                 * @param tool 工具指针
                  * @return McpError::NONE 成功
                  */
                 McpError add_tool(std::unique_ptr<McpTool> tool);
 
                 /**
-                 * @brief 添加工具（便捷方法）
-                 * @param name 工具名称（建议格式：self.module.function）
+                 * @brief 添加工具
+                 * @param name 工具名称
                  * @param description 工具描述
                  * @param properties 参数列表
                  * @param callback 回调函数
@@ -346,16 +346,16 @@ namespace app
                 // ========================================================================
 
                 /**
-                 * @brief 处理MCP消息（JSON对象）
+                 * @brief 处理MCP消息
                  * @param mcp_payload JSON-RPC 2.0消息
-                 * @return 响应消息（JSON字符串），空字符串表示无需响应
+                 * @return 响应消息，空字符串表示无需响应
                  */
                 std::string handle_message(const json& mcp_payload);
 
                 /**
-                 * @brief 处理MCP消息（JSON字符串）
+                 * @brief 处理MCP消息
                  * @param mcp_payload_str JSON字符串
-                 * @return 响应消息（JSON字符串）
+                 * @return 响应消息
                  */
                 std::string handle_message(const std::string& mcp_payload_str);
 
@@ -368,7 +368,8 @@ namespace app
                  * @param url AI解析服务器URL
                  * @param token 认证令牌（可选）
                  */
-                using VisionConfigCallback = std::function<void(const std::string& url, const std::string& token)>;
+                using VisionConfigCallback =
+                    std::function<void(const std::string& url, const std::string& token)>;
 
                 /**
                  * @brief 设置Vision配置回调
@@ -413,7 +414,7 @@ namespace app
 
                 /**
                  * @brief 获取工具使用统计
-                 * @return 工具名称 → 调用次数映射
+                 * @return 工具名称 -> 调用次数映射
                  */
                 std::map<std::string, uint64_t> getToolUsageStats() const;
 

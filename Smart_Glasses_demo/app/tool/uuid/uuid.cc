@@ -5,12 +5,12 @@
  */
 
 #include "uuid.hpp"
+#include "log/log.hpp"
 #include <algorithm>
 #include <array>
 #include <cctype>
 #include <fstream>
 #include <iomanip>
-#include <iostream>
 #include <random>
 #include <sstream>
 
@@ -20,6 +20,13 @@ namespace app
     {
         namespace uuid
         {
+
+            using namespace log;
+
+            namespace
+            {
+                constexpr const char* LOG_TAG = "UUID";
+            } // namespace
 
             // ============================================================================
             // 常量定义
@@ -150,7 +157,7 @@ namespace app
 
                 if (!uuid_value.empty())
                 {
-                    std::cout << "[UUID] Read UUID from config: " << uuid_value << std::endl;
+                    LOG_INFO(LOG_TAG, "从配置文件中读取UUID: %s", uuid_value.c_str());
                 }
 
                 return uuid_value;
@@ -160,7 +167,7 @@ namespace app
             {
                 if (!isValidUUID(uuid))
                 {
-                    std::cerr << "[UUID] ERROR: Invalid UUID format: " << uuid << std::endl;
+                    LOG_ERROR(LOG_TAG, "无效的UUID格式: %s", uuid.c_str());
                     return false;
                 }
 
@@ -180,8 +187,7 @@ namespace app
                 std::ofstream file(config_file, std::ios::trunc);
                 if (!file.is_open())
                 {
-                    std::cerr << "[UUID] ERROR: Failed to open config file for writing: "
-                              << config_file << std::endl;
+                    LOG_ERROR(LOG_TAG, "打开配置文件写入失败: %s", config_file.c_str());
                     return false;
                 }
 
@@ -190,7 +196,7 @@ namespace app
 
                 file.close();
 
-                std::cout << "[UUID] Saved UUID to config: " << config_file << std::endl;
+                LOG_INFO(LOG_TAG, "UUID已保存到配置文件: %s", config_file.c_str());
 
                 return true;
             }
@@ -202,19 +208,18 @@ namespace app
 
                 if (!existing_uuid.empty())
                 {
-                    std::cout << "[UUID] Using existing UUID from config" << std::endl;
+                    LOG_INFO(LOG_TAG, "使用配置文件中现有的UUID");
                     return existing_uuid;
                 }
 
                 // 配置文件中没有UUID，生成新的UUID
                 std::string new_uuid = s_generate_random_uuid();
-                std::cout << "[UUID] Generated new UUID: " << new_uuid << std::endl;
+                LOG_INFO(LOG_TAG, "生成新的UUID: %s", new_uuid.c_str());
 
                 // 将新生成的UUID保存到配置文件
                 if (!writeUUIDToConfig(new_uuid, config_file))
                 {
-                    std::cerr << "[UUID] WARNING: Failed to save UUID to config file, "
-                              << "UUID will not persist across restarts" << std::endl;
+                    LOG_WARN(LOG_TAG, "保存UUID到配置文件失败，UUID将在重启后丢失");
                 }
 
                 return new_uuid;
@@ -223,7 +228,7 @@ namespace app
             std::string generateNewUUID()
             {
                 std::string uuid = s_generate_random_uuid();
-                std::cout << "[UUID] Generated new random UUID: " << uuid << std::endl;
+                LOG_INFO(LOG_TAG, "生成新的随机UUID: %s", uuid.c_str());
                 return uuid;
             }
 
@@ -286,8 +291,8 @@ namespace app
                 // UUID应该有32个十六进制字符
                 if (clean_uuid.length() != UUID_HEX_ONLY_LENGTH)
                 {
-                    std::cerr << "[UUID] Invalid UUID format: expected " << UUID_HEX_ONLY_LENGTH
-                              << " hex digits, got " << clean_uuid.length() << std::endl;
+                    LOG_ERROR(LOG_TAG, "无效的UUID格式: 期望 %zu 个十六进制数字，实际得到 %zu",
+                              UUID_HEX_ONLY_LENGTH, clean_uuid.length());
                     return "";
                 }
 

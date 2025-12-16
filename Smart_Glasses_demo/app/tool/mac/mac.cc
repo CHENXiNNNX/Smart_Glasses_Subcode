@@ -4,7 +4,7 @@
  */
 
 #include "mac.hpp"
-#include <iostream>
+#include "log/log.hpp"
 #include <fstream>
 #include <vector>
 #include <algorithm>
@@ -31,6 +31,13 @@ namespace app
     {
         namespace mac
         {
+
+            using namespace log;
+
+            namespace
+            {
+                constexpr const char* LOG_TAG = "MAC";
+            } // namespace
 
             // ============================================================================
             // 静态函数
@@ -103,7 +110,7 @@ namespace app
                 dir = opendir("/sys/class/net/");
                 if (dir == nullptr)
                 {
-                    std::cerr << "[MAC] Failed to open /sys/class/net/ directory" << std::endl;
+                    LOG_ERROR(LOG_TAG, "打开 /sys/class/net/ 目录失败");
                     return "";
                 }
 
@@ -124,8 +131,8 @@ namespace app
                         mac_address = s_read_mac_from_sysfs(interface_name);
                         if (!mac_address.empty())
                         {
-                            std::cout << "[MAC] Found wireless interface: " << interface_name
-                                      << " with MAC: " << mac_address << std::endl;
+                            LOG_INFO(LOG_TAG, "发现无线网卡接口: %s, MAC: %s", interface_name.c_str(),
+                                     mac_address.c_str());
                             closedir(dir);
                             return mac_address;
                         }
@@ -139,8 +146,8 @@ namespace app
                             if (!temp_mac.empty())
                             {
                                 first_mac_address = temp_mac;
-                                std::cout << "[MAC] Found wired interface: " << interface_name
-                                          << " with MAC: " << first_mac_address << std::endl;
+                                LOG_INFO(LOG_TAG, "发现有线网卡接口: %s, MAC: %s", interface_name.c_str(),
+                                         first_mac_address.c_str());
                             }
                         }
                     }
@@ -151,12 +158,11 @@ namespace app
                 // 如果没有找到无线网卡，返回第一个可用的有线网卡MAC地址
                 if (!first_mac_address.empty())
                 {
-                    std::cout << "[MAC] Using first available MAC address: " << first_mac_address
-                              << std::endl;
+                    LOG_INFO(LOG_TAG, "使用第一个可用的MAC地址: %s", first_mac_address.c_str());
                     return first_mac_address;
                 }
 
-                std::cerr << "[MAC] No valid network interface found" << std::endl;
+                LOG_ERROR(LOG_TAG, "未找到有效的网络接口");
                 return "";
             }
 
@@ -164,7 +170,7 @@ namespace app
             {
                 if (interface_name.empty())
                 {
-                    std::cerr << "[MAC] Interface name is empty" << std::endl;
+                    LOG_ERROR(LOG_TAG, "接口名称为空");
                     return "";
                 }
 
@@ -172,13 +178,11 @@ namespace app
 
                 if (mac_address.empty())
                 {
-                    std::cerr << "[MAC] Failed to get MAC address for interface: " << interface_name
-                              << std::endl;
+                    LOG_ERROR(LOG_TAG, "获取接口 MAC 地址失败: %s", interface_name.c_str());
                 }
                 else
                 {
-                    std::cout << "[MAC] Interface " << interface_name
-                              << " MAC address: " << mac_address << std::endl;
+                    LOG_INFO(LOG_TAG, "接口 %s MAC地址: %s", interface_name.c_str(), mac_address.c_str());
                 }
 
                 return mac_address;
@@ -193,7 +197,7 @@ namespace app
                 dir = opendir("/sys/class/net/");
                 if (dir == nullptr)
                 {
-                    std::cerr << "[MAC] Failed to open /sys/class/net/ directory" << std::endl;
+                    LOG_ERROR(LOG_TAG, "打开 /sys/class/net/ 目录失败");
                     return interfaces;
                 }
 
@@ -269,7 +273,7 @@ namespace app
                     formatted[MAC_COLON_POS_3] != ':' || formatted[MAC_COLON_POS_4] != ':' ||
                     formatted[MAC_COLON_POS_5] != ':')
                 {
-                    std::cerr << "[MAC] Invalid MAC address format: " << formatted << std::endl;
+                    LOG_ERROR(LOG_TAG, "无效的MAC地址格式: %s", formatted.c_str());
                     return "";
                 }
 

@@ -1,15 +1,16 @@
 #include "sync.hpp"
+#include "../tool/log/log.hpp"
 #include <cinttypes>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
 
 namespace
 {
-    constexpr uint64_t MICROSECONDS_PER_SECOND     = 1000000ULL;
-    constexpr uint64_t NANOSECONDS_PER_MICROSECOND = 1000ULL;
+    constexpr const char* LOG_TAG                      = "SYNC";
+    constexpr uint64_t    MICROSECONDS_PER_SECOND      = 1000000ULL;
+    constexpr uint64_t    NANOSECONDS_PER_MICROSECOND  = 1000ULL;
 } // namespace
 
 // 初始化时间同步
@@ -32,8 +33,7 @@ int sync_init(sync_context_t* sync_ctx)
     sync_ctx->audio_drift    = 0.0;
     sync_ctx->video_drift    = 0.0;
 
-    printf("[SYNC] Time synchronization initialized, base time: %" PRIu64 " us\n",
-           sync_ctx->base_time_us);
+    LOG_INFO(LOG_TAG, "时间同步已初始化，基准时间: %" PRIu64 " us", sync_ctx->base_time_us);
     return 0;
 }
 
@@ -46,7 +46,7 @@ int sync_deinit(sync_context_t* sync_ctx)
     }
 
     std::memset(sync_ctx, 0, sizeof(sync_context_t));
-    printf("[SYNC] Time synchronization deinitialized\n");
+    LOG_INFO(LOG_TAG, "时间同步已去初始化");
     return 0;
 }
 
@@ -159,7 +159,6 @@ int sync_reset(sync_context_t* sync_ctx)
     sync_ctx->audio_drift   = 0.0;
     sync_ctx->video_drift   = 0.0;
 
-    printf("[SYNC] Time synchronization reset, new base time: %" PRIu64 " us\n",
-           sync_ctx->base_time_us);
+    LOG_INFO(LOG_TAG, "时间同步已重置，新基准时间: %" PRIu64 " us", sync_ctx->base_time_us);
     return 0;
 }

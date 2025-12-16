@@ -4,27 +4,14 @@
 #include <memory>
 #include <functional>
 #include <string>
-#include <iostream>
 #include <thread>
 #include <mutex>
-#include <condition_variable>
-#include <queue>
-#include <vector>
-#include <chrono>
 #include <atomic>
-#include <array>
-#include <cstring>
+#include <chrono>
 #include <rtc/rtc.hpp>
 #include <rtc/track.hpp>
-#include <rtc/rtp.hpp>
-#include <rtc/rtcpnackresponder.hpp>
-#include <rtc/rtppacketizer.hpp>
-#include <rtc/rembhandler.hpp>
-#include <rtc/global.hpp>
 #include "signaling.hpp"
 #include "../../media/media_config.hpp"
-#include "../../media/sync.hpp"
-#include "../../tool/memory/mem_pool.hpp"
 
 namespace app
 {
@@ -32,185 +19,21 @@ namespace app
     {
         namespace webrtc
         {
-
-            // 媒体缓冲区
-            class MediaBuffer
-            {
-            private:
-                uint8_t*                  data_;
-                size_t                    capacity_;
-                size_t                    size_;
-                tool::memory::MemoryPool* pool_;
-
-            public:
-                MediaBuffer(uint8_t* data, size_t capacity, tool::memory::MemoryPool* pool)
-                    : data_(data), capacity_(capacity), size_(0), pool_(pool)
-                {
-                }
-
-                ~MediaBuffer()
-                {
-                    if (data_ != nullptr && pool_ != nullptr)
-                    {
-                        pool_->deallocate(data_);
-                    }
-                }
-
-                MediaBuffer(const MediaBuffer&)            = delete;
-                MediaBuffer& operator=(const MediaBuffer&) = delete;
-
-                uint8_t* data()
-                {
-                    return data_;
-                }
-                const uint8_t* data() const
-                {
-                    return data_;
-                }
-
-                size_t size() const
-                {
-                    return size_;
-                }
-                size_t capacity() const
-                {
-                    return capacity_;
-                }
-
-                void setSize(size_t size)
-                {
-                    size_ = std::min(size, capacity_);
-                }
-
-                void reset()
-                {
-                    size_ = 0;
-                }
-
-                bool write(const uint8_t* src, size_t length)
-                {
-                    if (src == nullptr || length > capacity_)
-                    {
-                        return false;
-                    }
-                    std::memcpy(data_, src, length);
-                    size_ = length;
-                    return true;
-                }
-            };
-
-            using MediaBufferPtr = std::shared_ptr<MediaBuffer>;
-
-            // 音频缓冲区池
-            class AudioBufferPool
-            {
-            private:
-                static constexpr size_t AUDIO_BUFFER_SIZE = 4096; // 4KB缓冲区
-                static constexpr size_t POOL_SIZE         = 100;  // 预分配100个缓冲区
-                std::unique_ptr<tool::memory::MemoryPool> memPool_;
-                std::queue<MediaBufferPtr>                freeBuffers_;
-                std::mutex                                mutex_;
-
-            public:
-                AudioBufferPool();
-                ~AudioBufferPool();
-
-                MediaBufferPtr acquire();
-                void           release(MediaBufferPtr buffer);
-            };
-
-            // 视频缓冲区池
-            class VideoBufferPool
-            {
-            public:
-                VideoBufferPool();
-                ~VideoBufferPool();
-
-                MediaBufferPtr acquire(size_t requiredSize);
-                void           release(MediaBufferPtr buffer);
-
-            private:
-                // 分级缓冲区
-                static constexpr size_t SMALL_BUFFER_SIZE  = 64 * 1024;   // 64KB (P帧)
-                static constexpr size_t MEDIUM_BUFFER_SIZE = 256 * 1024;  // 256KB (小I帧)
-                static constexpr size_t LARGE_BUFFER_SIZE  = 1024 * 1024; // 1MB (大I帧)
-
-                static constexpr size_t SMALL_POOL_SIZE  = 30; // P帧较多
-                static constexpr size_t MEDIUM_POOL_SIZE = 10;
-                static constexpr size_t LARGE_POOL_SIZE  = 5;
-
-                std::unique_ptr<tool::memory::MemoryPool> memPool_;
-
-                std::queue<MediaBufferPtr> smallBuffers_;
-                std::queue<MediaBufferPtr> mediumBuffers_;
-                std::queue<MediaBufferPtr> largeBuffers_;
-
-                std::mutex mutex_;
-            };
-
-            // 任务优先级
-            enum class TaskPriority
-            {
-                HIGH   = 0, // 高优先级（音频）
-                NORMAL = 1, // 普通优先级（视频关键帧）
-                LOW    = 2  // 低优先级（视频P帧）
-            };
-
-            // 任务结构
-            struct Task
-            {
-                std::function<void()> func;
-                TaskPriority          priority;
-                uint64_t              timestamp;
-
-                // 优先级比较
-                bool operator<(const Task& other) const
-                {
-                    if (priority != other.priority)
-                    {
-                        return priority > other.priority; // 数值越小优先级越高
-                    }
-                    return timestamp > other.timestamp; // 先进先出
-                }
-            };
-
-            // 优先级任务队列
-            class PriorityTaskQueue
-            {
-            private:
-                void workerThread();
-
-                std::string               name_;
-                std::vector<std::thread>  workers_;
-                std::priority_queue<Task> tasks_;
-                std::mutex                mutex_;
-                std::condition_variable   condition_;
-                std::atomic<bool>         stop_{false};
-
-            public:
-                explicit PriorityTaskQueue(const std::string& name, size_t threadCount = 2);
-                ~PriorityTaskQueue();
-
-                void post(std::function<void()> func, TaskPriority priority);
-                void clear();
-
-                // 禁用拷贝和移动
-                PriorityTaskQueue(const PriorityTaskQueue&)            = delete;
-                PriorityTaskQueue& operator=(const PriorityTaskQueue&) = delete;
-            };
-
             /**
              * @brief WebRTC系统状态
              */
             enum class WebRTCState
             {
-                UNINITIALIZED = 0, // 尚未初始化
-                INITIALIZING,      // 正在初始化内部资源
-                CONNECTING,        // 正在建立PeerConnection(SDP协商+ICE候选交换)
-                CONNECTED,         // PeerConnection已建立
-                DISCONNECTING,     // 正在断开连接
-                DISCONNECTED,      // 已断开或尚未连接
-                FAILED             // 发生错误导致失败
+                IDLE = 0,       // 空闲状态
+                WAITING_CONNECT_REQUEST, // 等待连接请求
+                SDP_CONNECTING, // SDP协商中（发送offer）
+                SDP_CONNECTED,  // SDP协商完成（收到answer）
+                ICE_CONNECTING, // ICE候选交换中
+                ICE_CONNECTED,  // ICE连接建立
+                CONNECTED,      // WebRTC连接完全建立
+                DISCONNECTING,  // 正在断开连接
+                DISCONNECTED,   // 已断开连接
+                FAILED          // 发生错误
             };
 
             /**
@@ -219,100 +42,77 @@ namespace app
             enum class WebRTCError
             {
                 NONE = 0,               // 无错误
+                SIGNALING_FAILED,       // 信令失败
                 SDP_NEGOTIATION_FAILED, // SDP协商失败
                 ICE_CANDIDATE_FAILED,   // ICE候选交换失败
                 CONNECTION_FAILED,      // 连接失败
+                TIMEOUT,                // 超时
                 UNKNOWN                 // 未知错误
             };
 
+            /**
+             * @brief WebRTC配置
+             */
             struct WebRTCConfig
             {
-                // 功能开关
-                bool enableDataChannel  = false;
-                bool enableAudioSend    = false;
-                bool enableAudioReceive = false;
-                bool enableVideoSend    = false;
-                bool enableVideoReceive = false;
-
-                // 基本配置
-                std::string dataChannelLabel = "glasses_data_channel";
-
                 // 音频配置
                 struct
                 {
-                    std::string codec      = "opus";
-                    int         sampleRate = AUDIO_SAMPLE_RATE;
-                    int         channels   = AUDIO_CHANNELS;
+                    std::string codec        = "opus";
+                    int         sample_rate  = AUDIO_SAMPLE_RATE; // 48000
+                    int         channels     = AUDIO_CHANNELS;    // 1
+                    int         payload_type = 111;
+                    uint32_t    ssrc         = 2;
                 } audio;
 
                 // 视频配置
                 struct
                 {
-                    std::string codec  = "h264";
-                    int         width  = CAMERA_WIDTH;
-                    int         height = CAMERA_HEIGHT;
+                    std::string codec        = "h264";
+                    int         width        = CAMERA_WIDTH;
+                    int         height       = CAMERA_HEIGHT;
+                    int         payload_type = 103;
+                    uint32_t    ssrc         = 1;
                 } video;
 
                 // ICE服务器配置
                 struct
                 {
-                    std::vector<std::string> stunServers;
-                    std::vector<std::string> turnServers;
-                    bool                     useRelayOnly = false;
+                    std::vector<std::string> stun_servers = {"stun:stun.l.google.com:19302"};
+                    std::vector<std::string> turn_servers;
+                    bool                     use_relay_only = false;
                 } ice;
 
-                // SCTP配置
+                // ICE超时配置
                 struct
                 {
-                    size_t                    recvBufferSize          = 2 * 1024 * 1024;
-                    size_t                    sendBufferSize          = 2 * 1024 * 1024;
-                    size_t                    maxChunksOnQueue        = 20 * 1024;
-                    int                       initialCongestionWindow = 10;
-                    int                       maxBurst                = 10;
-                    int                       congestionControlModule = 0;
-                    std::chrono::milliseconds delayedSackTime{20};
-                    std::chrono::milliseconds minRetransmitTimeout{200};
-                    std::chrono::milliseconds maxRetransmitTimeout{10000};
-                    std::chrono::milliseconds initialRetransmitTimeout{1000};
-                    int                       maxRetransmitAttempts = 5;
-                    std::chrono::milliseconds heartbeatInterval{30000};
-                } sctp;
+                    int ice_timeout_ms = 15000; // 15秒ICE超时
+                } timeout;
 
                 // 性能配置
                 struct
                 {
-                    size_t audioThreadCount = 1; // 音频处理线程数
-                    size_t videoThreadCount = 2; // 视频处理线程数（编码和发送）
+                    size_t audio_thread_count = 1;
+                    size_t video_thread_count = 2;
                 } performance;
             };
 
             // 回调函数类型定义
             using StateCallback       = std::function<void(WebRTCState)>;
-            using DataMessageCallback = std::function<void(const std::string&)>;
+            using ErrorCallback       = std::function<void(WebRTCError, const std::string&)>;
             using AudioDataCallback   = std::function<void(const uint8_t*, size_t)>;
             using VideoDataCallback   = std::function<void(const uint8_t*, size_t, uint64_t)>;
 
             /**
-             * @brief WebRTC系统 - 现代C++实现
-             * @details 特性：
-             *          - RAII资源管理
-             *          - 零拷贝缓冲区池
-             *          - 优先级任务队列
-             *          - 完整的RTCP支持
-             *          - 状态机管理
+             * @brief WebRTC系统
              */
             class WebRTCSystem
             {
             public:
-                /**
-                 * @brief 构造函数
-                 * @param config WebRTC配置
-                 */
+                // ========================================================================
+                // 构造和析构
+                // ========================================================================
                 explicit WebRTCSystem(const WebRTCConfig& config = WebRTCConfig{});
-
-                /**
-                 * @brief 析构函数（RAII自动清理所有资源）
-                 */
                 ~WebRTCSystem();
 
                 // 禁用拷贝和移动
@@ -322,102 +122,83 @@ namespace app
                 WebRTCSystem& operator=(WebRTCSystem&&)      = delete;
 
                 // ========================================================================
-                // 初始化和关闭
+                // 生命周期管理
                 // ========================================================================
 
                 /**
                  * @brief 初始化WebRTC系统
-                 * @param signaling 信令模块（必须）
-                 * @return WebRTCError::NONE 成功
+                 * @param signaling 信令模块
+                 * @return 错误码
                  */
-                WebRTCError open(std::shared_ptr<Signaling> signaling);
+                WebRTCError initialize(std::shared_ptr<Signaling> signaling);
 
                 /**
                  * @brief 关闭WebRTC系统
                  */
-                void close();
+                void shutdown();
 
                 /**
                  * @brief 检查是否已初始化
                  */
-                bool isOpen() const;
+                bool isInitialized() const
+                {
+                    return initialized_.load();
+                }
 
                 // ========================================================================
-                // 连接管理
-                // ========================================================================
-
-                /**
-                 * @brief 创建PeerConnection
-                 * @return true 成功
-                 */
-                bool createConnection();
-
-                /**
-                 * @brief 关闭连接
-                 */
-                void closeConnection();
-
-                /**
-                 * @brief 检查是否已连接
-                 */
-                bool isConnected() const;
-
-                /**
-                 * @brief 检查ICE是否已连接
-                 */
-                bool isIceConnected() const;
-
-                // ========================================================================
-                // 信令处理
+                // 连接管理 - 设备端连接流程
                 // ========================================================================
 
                 /**
-                 * @brief 处理角色分配
-                 * @param role "offerer" 或 "answerer"
-                 * @param peer_device_id 对端设备ID
+                 * @brief 发送连接请求
+                 * 设备端发送get_connect消息到APP端，请求建立WebRTC连接
+                 * @param peer_id 对端设备ID
+                 * @param enable_message 是否开启消息通道
+                 * @param enable_audio 是否开启音频通道
+                 * @param enable_video 是否开启视频通道
+                 * @return 是否发送成功
                  */
-                void handleRole(const std::string& role, const std::string& peer_device_id);
+                bool sendConnectionRequest(const std::string& peer_id,
+                                         bool enable_message = true,
+                                         bool enable_audio = true,
+                                         bool enable_video = false);
 
                 /**
-                 * @brief 处理远程Offer
-                 * @param sdp SDP字符串
+                 * @brief 处理连接请求响应
+                 * 当APP端同意连接请求后，开始建立WebRTC连接
+                 * @param peer_id 对端设备ID
                  */
-                void handleOffer(const std::string& sdp);
+                void handleConnectionAccepted(const std::string& peer_id);
+
+                /**
+                 * @brief 断开连接
+                 */
+                void disconnect();
+
+                // ========================================================================
+                // 信令处理 
+                // ========================================================================
 
                 /**
                  * @brief 处理远程Answer
+                 * 设备端接收APP端发送的SDP Answer
                  * @param sdp SDP字符串
                  */
-                void handleAnswer(const std::string& sdp);
+                void handleRemoteAnswer(const std::string& sdp);
 
                 /**
-                 * @brief 处理远程ICE候选
+                 * @brief 处理ICE候选
+                 * 处理APP端发送的ICE候选信息
                  * @param candidate ICE候选字符串
                  */
                 void handleIceCandidate(const std::string& candidate);
-
-                // ========================================================================
-                // 数据通道
-                // ========================================================================
-
-                /**
-                 * @brief 发送数据通道消息
-                 * @param message 消息内容
-                 * @return true 成功
-                 */
-                bool sendDataMessage(const std::string& message);
-
-                /**
-                 * @brief 检查数据通道是否打开
-                 */
-                bool isDataChannelOpen() const;
 
                 // ========================================================================
                 // 媒体传输
                 // ========================================================================
 
                 /**
-                 * @brief 发送音频数据（Opus编码后）
+                 * @brief 发送音频数据
                  * @param data 音频数据指针
                  * @param size 数据大小
                  * @param timestamp 时间戳（微秒）
@@ -425,14 +206,20 @@ namespace app
                 void sendAudioData(const uint8_t* data, size_t size, uint64_t timestamp);
 
                 /**
-                 * @brief 发送视频数据（H264编码后）
+                 * @brief 发送视频数据
                  * @param data 视频数据指针
                  * @param size 数据大小
                  * @param timestamp 时间戳（微秒）
-                 * @param is_key_frame 是否为关键帧
+                 * @param is_keyframe 是否为关键帧
                  */
                 void sendVideoData(const uint8_t* data, size_t size, uint64_t timestamp,
-                                   bool is_key_frame = false);
+                                   bool is_keyframe = false);
+
+                /**
+                 * @brief 发送数据通道消息
+                 * @param message 消息内容
+                 */
+                bool sendDataMessage(const std::string& message);
 
                 // ========================================================================
                 // 状态查询
@@ -441,12 +228,52 @@ namespace app
                 /**
                  * @brief 获取当前状态
                  */
-                WebRTCState getState() const;
+                WebRTCState getState() const
+                {
+                    return current_state_.load();
+                }
 
                 /**
-                 * @brief 获取配置
+                 * @brief 获取对端设备ID
                  */
-                const WebRTCConfig& getConfig() const;
+                std::string getPeerId() const
+                {
+                    std::lock_guard<std::mutex> lock(state_mutex_);
+                    return peer_device_id_;
+                }
+
+                /**
+                 * @brief 检查是否已连接
+                 */
+                bool isConnected() const
+                {
+                    WebRTCState state = current_state_.load();
+                    return state == WebRTCState::ICE_CONNECTED || state == WebRTCState::CONNECTED;
+                }
+
+                // ========================================================================
+                // 状态转字符串辅助函数
+                // ========================================================================
+
+                /**
+                 * @brief 将WebRTCState转换为字符串
+                 */
+                static const char* stateToString(WebRTCState state);
+
+                /**
+                 * @brief 将PeerConnection::State转换为字符串
+                 */
+                static const char* peerConnectionStateToString(rtc::PeerConnection::State state);
+
+                /**
+                 * @brief 将IceState转换为字符串
+                 */
+                static const char* iceStateToString(rtc::PeerConnection::IceState state);
+
+                /**
+                 * @brief 检查是否正在连接中
+                 */
+                bool isConnecting() const;
 
                 // ========================================================================
                 // 回调设置
@@ -458,9 +285,9 @@ namespace app
                 void onStateChanged(StateCallback callback);
 
                 /**
-                 * @brief 设置数据通道消息回调
+                 * @brief 设置错误回调
                  */
-                void onDataMessage(DataMessageCallback callback);
+                void onError(ErrorCallback callback);
 
                 /**
                  * @brief 设置音频数据接收回调
@@ -487,6 +314,7 @@ namespace app
                     uint64_t video_packets_received = 0;
                     uint64_t audio_bytes_sent       = 0;
                     uint64_t video_bytes_sent       = 0;
+                    uint64_t connection_duration_ms = 0; // 连接持续时间
                 };
 
                 /**
@@ -499,91 +327,39 @@ namespace app
                  */
                 void resetStats();
 
-                /**
-                 * @brief 输出统计日志
-                 */
-                void logStats() const;
-
-                /**
-                 * @brief 获取当前码率（通过 REMB 反馈）
-                 * @return 当前码率（bps），0 表示未收到反馈
-                 */
-                uint32_t getCurrentBitrate() const
-                {
-                    return current_bitrate_.load();
-                }
-
             private:
                 // ========================================================================
-                // 内部方法
+                // 私有成员变量
                 // ========================================================================
 
-                // void setupPeerConnection();
-                void setupCallbacks();
-                void setupDataChannel();
-                void setupAudioTrack();
-                void setupVideoTrack();
-                void handleDataChannel();
-                void handleDataMessage(const std::string& message);
-                void handleAudioData(const uint8_t* data, size_t size);
-                void handleVideoData(const uint8_t* data, size_t size, uint64_t timestamp);
-                void setState(WebRTCState new_state);
-                void configureSctp();
-                void cleanup();
+                // 配置和初始化
+                WebRTCConfig      config_;
+                std::atomic<bool> initialized_{false};
 
-                // RTP解析器
-                bool parseRtpPacket(const uint8_t* rtp_data, size_t rtp_size,
-                                    const uint8_t*& payload_data, size_t& payload_size);
+                // 状态管理
+                std::atomic<WebRTCState> current_state_{WebRTCState::IDLE};
+                mutable std::mutex       state_mutex_;
+                std::string              peer_device_id_;
 
-                // 拥塞控制回调
-                void onRembReceived(unsigned int bitrate);
-
-                // ========================================================================
-                // 成员变量
-                // ========================================================================
-
-                // 配置
-                WebRTCConfig config_;
-
-                // 状态
-                std::atomic<WebRTCState> state_;
-                std::atomic<bool>        ice_connected_;
-                std::atomic<bool>        initialized_;
-
-                // 信令和连接
+                // WebRTC核心组件
                 std::shared_ptr<Signaling>           signaling_;
                 std::shared_ptr<rtc::PeerConnection> peer_connection_;
-                std::string                          role_;
-                std::string                          peer_device_id_;
+                std::shared_ptr<rtc::Track>          audio_track_;
+                std::shared_ptr<rtc::Track>          video_track_;
+                std::shared_ptr<rtc::DataChannel>    data_channel_;
 
-                // 数据通道
-                std::shared_ptr<rtc::DataChannel> data_channel_;
-
-                // 音频轨道
-                std::shared_ptr<rtc::Track>                  audio_track_;
+                // 媒体处理组件
                 std::shared_ptr<rtc::RtpPacketizationConfig> audio_rtp_config_;
                 std::shared_ptr<rtc::OpusRtpPacketizer>      audio_packetizer_;
                 std::shared_ptr<rtc::RtcpSrReporter>         audio_sr_reporter_;
                 std::shared_ptr<rtc::RtcpReceivingSession>   audio_rtcp_session_;
-                std::shared_ptr<rtc::RembHandler>            audio_remb_handler_;
 
-                // 视频轨道
-                std::shared_ptr<rtc::Track>                  video_track_;
                 std::shared_ptr<rtc::RtpPacketizationConfig> video_rtp_config_;
                 std::shared_ptr<rtc::H264RtpPacketizer>      video_packetizer_;
                 std::shared_ptr<rtc::RtcpSrReporter>         video_sr_reporter_;
                 std::shared_ptr<rtc::RtcpReceivingSession>   video_rtcp_session_;
-                std::shared_ptr<rtc::RembHandler>            video_remb_handler_;
 
-                // 优先级任务队列
-                std::unique_ptr<PriorityTaskQueue> audio_task_queue_;
-                std::unique_ptr<PriorityTaskQueue> video_task_queue_;
-
-                // 缓冲区池
-                std::unique_ptr<AudioBufferPool> audio_buffer_pool_;
-                std::unique_ptr<VideoBufferPool> video_buffer_pool_;
-
-                // 发送频率控制
+                // 发送控制
                 std::chrono::steady_clock::time_point last_audio_send_time_;
                 std::chrono::steady_clock::time_point last_video_send_time_;
                 static constexpr int AUDIO_SEND_INTERVAL_MS = AUDIO_FRAME_DURATION_MS;
@@ -592,19 +368,70 @@ namespace app
                 // 回调函数
                 mutable std::mutex  callback_mutex_;
                 StateCallback       state_callback_;
-                DataMessageCallback data_message_callback_;
+                ErrorCallback       error_callback_;
                 AudioDataCallback   audio_callback_;
                 VideoDataCallback   video_callback_;
 
                 // 统计信息
                 mutable std::mutex stats_mutex_;
                 Stats              stats_;
+                std::chrono::steady_clock::time_point connection_start_time_;
 
-                // 时间同步
-                sync_context_t sync_context_;
+                // ICE候选缓存
+                std::vector<std::string> pending_ice_candidates_;
+                std::mutex              ice_candidates_mutex_;
+                std::atomic<bool>       sdp_exchange_completed_{false};
 
-                // 码率控制
-                std::atomic<uint32_t> current_bitrate_{0};
+                // 连接请求相关
+                bool connection_request_sent_ = false;
+                ConnectionRequest current_connection_request_;  // 保存当前连接请求参数
+
+                // ========================================================================
+                // 私有方法
+                // ========================================================================
+
+                // 状态管理
+                void setState(WebRTCState new_state);
+                void handleStateTransition(WebRTCState old_state, WebRTCState new_state);
+
+                // WebRTC建立流程
+                void startWebRTCConnection();
+                void createPeerConnection();
+                void createLocalTracks();
+                void generateAndSendOffer();
+                void processRemoteAnswer(const std::string& sdp);
+                void flushPendingIceCandidates();
+
+                // 轨道管理
+                void setupAudioTrack(rtc::Description::Direction direction);
+                void setupVideoTrack(rtc::Description::Direction direction);
+                void configureTrackCallbacks();
+
+                // 数据通道管理
+                void setupDataChannel();
+                void configureDataChannelCallbacks();
+                void handleDataChannelMessage(const std::string& message);
+
+                // PeerConnection回调
+                void setupPeerConnectionCallbacks();
+                void onLocalDescriptionGenerated(rtc::Description desc);
+                void onIceCandidateGenerated(rtc::Candidate candidate);
+                void onPeerConnectionStateChange(rtc::PeerConnection::State state);
+                void onIceStateChange(rtc::PeerConnection::IceState state);
+
+                // 媒体数据处理
+                void handleAudioDataReceived(const uint8_t* data, size_t size);
+                void handleVideoDataReceived(const uint8_t* data, size_t size, uint64_t timestamp);
+
+                // 工具方法
+                void cleanup();
+                bool validateConfiguration() const;
+                bool parseRtpPacket(const uint8_t* rtp_data, size_t rtp_size,
+                                    const uint8_t*& payload_data, size_t& payload_size);
+
+                // 错误回调触发
+                void invokeErrorCallback(WebRTCError error, const std::string& message);
+
             };
 
         } // namespace webrtc

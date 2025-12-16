@@ -21,14 +21,14 @@ namespace app
 
             namespace
             {
-                constexpr const char* LOG_TAG                     = "HttpClient";
+                constexpr const char* LOG_TAG                     = "HTTP";
                 constexpr long        HTTP_SUCCESS_LOWER_BOUND    = 200;
                 constexpr long        HTTP_SUCCESS_UPPER_BOUND    = 300;
                 constexpr long        HTTP_CONNECT_TIMEOUT_FACTOR = 2;
             } // namespace
 
             // ============================================================================
-            // RAII删除器实现
+            // 删除器实现
             // ============================================================================
 
             void CurlDeleter::operator()(CURL* p) const
@@ -48,7 +48,7 @@ namespace app
             }
 
             // ============================================================================
-            // CURL全局初始化（线程安全，只初始化一次）
+            // CURL全局初始化
             // ============================================================================
 
             void ensureCurlGlobalInit()
@@ -60,7 +60,6 @@ namespace app
                                    curl_global_init(CURL_GLOBAL_DEFAULT);
                                    LOG_INFO(LOG_TAG, "CURL全局初始化完成");
 
-                                   // 注册清理函数（程序退出时调用）
                                    std::atexit(
                                        []()
                                        {
@@ -107,7 +106,7 @@ namespace app
                     return response;
                 }
 
-                // 构建HTTP头部（RAII管理）
+                // 构建HTTP头部
                 curl_slist* raw_headers = nullptr;
                 for (const auto& [key, value] : headers)
                 {
@@ -130,7 +129,7 @@ namespace app
                 curl_easy_setopt(curl_.get(), CURLOPT_CONNECTTIMEOUT_MS,
                                  static_cast<long>(timeout_ms / HTTP_CONNECT_TIMEOUT_FACTOR));
 
-                // 设置User-Agent（避免某些服务器拒绝请求）
+                // 设置User-Agent
                 curl_easy_setopt(curl_.get(), CURLOPT_USERAGENT, "SmartGlasses/1.0");
 
                 // 执行请求
@@ -149,7 +148,7 @@ namespace app
                 curl_easy_getinfo(curl_.get(), CURLINFO_RESPONSE_CODE, &http_code);
                 response.status_code = static_cast<int>(http_code);
 
-                // 判断成功（2xx状态码）
+                // 判断成功
                 response.success =
                     (http_code >= HTTP_SUCCESS_LOWER_BOUND && http_code < HTTP_SUCCESS_UPPER_BOUND);
 
@@ -175,7 +174,7 @@ namespace app
                     return response;
                 }
 
-                // 构建HTTP头部（RAII管理）
+                // 构建HTTP头部
                 curl_slist* raw_headers = nullptr;
                 for (const auto& [key, value] : headers)
                 {
@@ -217,7 +216,7 @@ namespace app
                 curl_easy_getinfo(curl_.get(), CURLINFO_RESPONSE_CODE, &http_code);
                 response.status_code = static_cast<int>(http_code);
 
-                // 判断成功（2xx状态码）
+                // 判断成功
                 response.success =
                     (http_code >= HTTP_SUCCESS_LOWER_BOUND && http_code < HTTP_SUCCESS_UPPER_BOUND);
 
@@ -234,7 +233,6 @@ namespace app
                 size_t total_size = size * nmemb;
                 auto*  str        = static_cast<std::string*>(userp);
 
-                // 预留空间，避免多次内存分配
                 str->reserve(str->size() + total_size);
                 str->append(static_cast<char*>(contents), total_size);
 
@@ -335,7 +333,7 @@ namespace app
                 curl_easy_getinfo(curl_.get(), CURLINFO_RESPONSE_CODE, &http_code);
                 response.status_code = static_cast<int>(http_code);
 
-                // 判断成功（2xx状态码）
+                // 判断成功
                 response.success =
                     (http_code >= HTTP_SUCCESS_LOWER_BOUND && http_code < HTTP_SUCCESS_UPPER_BOUND);
 

@@ -1,11 +1,6 @@
 /**
  * @file signaling.hpp
  * @brief WebRTC信令客户端
- * @details 负责WebRTC连接建立前的所有信令通信
- *          - 基于通用WebSocketClient
- *          - 房间管理
- *          - SDP/ICE交换
- *          - 配对管理
  */
 
 #ifndef SIGNALING_HPP
@@ -18,7 +13,11 @@
 #include <atomic>
 #include <mutex>
 #include "../websocket/websocket.hpp"
+#if __has_include(<nlohmann/json.hpp>)
 #include <nlohmann/json.hpp>
+#else
+#include "../../../third_party/libdatachannel/deps/json/single_include/nlohmann/json.hpp"
+#endif
 
 namespace app
 {
@@ -53,7 +52,7 @@ namespace app
             // ============================================================================
 
             /**
-             * @brief 信令错误码（与服务器错误码保持一致）
+             * @brief 信令错误码
              */
             enum class SignalingError
             {
@@ -78,9 +77,18 @@ namespace app
              */
             struct RoomInfo
             {
-                std::string roomId;     // 房间ID
-                int         num;        // 房间人数
-                std::string roomStatus; // 房间状态 (open/close)
+                std::string room_id; // 房间ID
+                int         num;     // 房间人数
+            };
+
+            /**
+             * @brief 连接请求数据
+             */
+            struct ConnectionRequest
+            {
+                bool message; // 是否开启消息通道
+                bool audio;   // 是否开启音频通道
+                bool video;   // 是否开启视频通道
             };
 
             // ============================================================================
@@ -107,12 +115,22 @@ namespace app
              * @brief WebRTC就绪回调（配对成功，可以开始WebRTC连接）
              */
             using WebRTCReadyCallback =
-                std::function<void(const std::string& role, const std::string& peerDeviceId)>;
+                std::function<void(const std::string& role, const std::string& peer_device_id)>;
 
             /**
              * @brief 房间信息变化回调
              */
             using RoomInfoCallback = std::function<void(const RoomInfo&)>;
+
+            /**
+             * @brief 连接请求接收回调
+             */
+            using ConnectionRequestCallback = std::function<void(const ConnectionRequest& request)>;
+
+            /**
+             * @brief 连接请求回应回调
+             */
+            using ConnectionResponseCallback = std::function<void(bool accepted)>;
 
             // ============================================================================
             // 信令客户端配置
@@ -123,8 +141,8 @@ namespace app
              */
             struct SignalingConfig
             {
-                std::string deviceId;  // 设备ID（如：glasses_123456）
-                std::string serverUrl; // 服务器地址（如：ws://192.168.2.17:8000）
+                std::string device_id;  // 设备ID（如：glasses_123456）
+                std::string server_url; // 服务器地址（如：ws://192.168.2.17:8000）
                 bool        auto_reconnect         = true; // 自动重连
                 int         reconnect_interval_ms  = 5000; // 重连间隔
                 int         max_reconnect_attempts = 0;    // 最大重连次数（0=无限）
@@ -136,7 +154,11 @@ namespace app
 
             /**
              * @brief WebRTC信令客户端
-             * @details 负责与信令服务器通信，处理房间管理、SDP/ICE交换
+             * @details 负责与信令服务器通信，处理房间管理、SDP/ICE交换、连接请求
+             *
+             * WebRTC角色规则：
+             * - 设备端始终作为offerer(发起方)，发送SDP offer
+             * - 接收APP端的SDP answer和ICE候选
              */
             class Signaling
             {
@@ -185,25 +207,26 @@ namespace app
                  */
                 bool requestRoomInfo();
 
+                /**
+                 * @brief 发送连接请求
+                 * @param peer_id 对端设备ID（如果为空则自动推导）
+                 * @param request 连接请求参数
+                 * @return true 发送成功，false 发送失败
+                 */
+                bool sendConnectionRequest(const std::string& peer_id, const ConnectionRequest& request);
+
                 // ========================================================================
                 // SDP和ICE消息发送
                 // ========================================================================
 
                 /**
-                 * @brief 发送SDP Offer
+                 * @brief 发送SDP Offer（设备端专用）
                  * @param sdp SDP内容
                  * @param target_device_id 目标设备ID
                  * @return true 发送成功，false 发送失败
                  */
                 bool sendOffer(const std::string& sdp, const std::string& target_device_id);
 
-                /**
-                 * @brief 发送SDP Answer
-                 * @param sdp SDP内容
-                 * @param target_device_id 目标设备ID
-                 * @return true 发送成功，false 发送失败
-                 */
-                bool sendAnswer(const std::string& sdp, const std::string& target_device_id);
 
                 /**
                  * @brief 发送ICE候选
@@ -231,7 +254,7 @@ namespace app
                  */
                 const std::string& getDeviceId() const
                 {
-                    return config_.deviceId;
+                    return config_.device_id;
                 }
 
                 /**
@@ -240,7 +263,7 @@ namespace app
                 const std::string& getPeerDeviceId() const
                 {
                     std::lock_guard<std::mutex> lock(mutex_);
-                    return peerDeviceId_;
+                    return peer_device_id_;
                 }
 
                 /**
@@ -258,7 +281,7 @@ namespace app
                 RoomInfo getRoomInfo() const
                 {
                     std::lock_guard<std::mutex> lock(mutex_);
-                    return roomInfo_;
+                    return room_info_;
                 }
 
                 /**
@@ -278,6 +301,15 @@ namespace app
                     return status_.load(std::memory_order_acquire) == SignalingStatus::PAIRED;
                 }
 
+                /**
+                 * @brief 检查是否为设备端
+                 */
+                bool isDevice() const
+                {
+                    return config_.device_id.find("glasses_") == 0;
+                }
+
+
                 // ========================================================================
                 // 回调设置
                 // ========================================================================
@@ -288,7 +320,7 @@ namespace app
                 void onStatusChanged(SignalingStatusCallback callback)
                 {
                     std::lock_guard<std::mutex> lock(callback_mutex_);
-                    statusCallback_ = callback;
+                    status_callback_ = callback;
                 }
 
                 /**
@@ -297,17 +329,18 @@ namespace app
                 void onOfferReceived(SignalingMessageCallback callback)
                 {
                     std::lock_guard<std::mutex> lock(callback_mutex_);
-                    offerCallback_ = callback;
+                    offer_callback_ = callback;
                 }
 
                 /**
-                 * @brief 设置Answer接收回调
+                 * @brief 设置Answer接收回调（设备端接收APP端的answer）
                  */
                 void onAnswerReceived(SignalingMessageCallback callback)
                 {
                     std::lock_guard<std::mutex> lock(callback_mutex_);
-                    answerCallback_ = callback;
+                    answer_callback_ = callback;
                 }
+
 
                 /**
                  * @brief 设置ICE候选接收回调
@@ -315,7 +348,7 @@ namespace app
                 void onIceCandidateReceived(SignalingMessageCallback callback)
                 {
                     std::lock_guard<std::mutex> lock(callback_mutex_);
-                    iceCandidateCallback_ = callback;
+                    ice_candidate_callback_ = callback;
                 }
 
                 /**
@@ -324,7 +357,7 @@ namespace app
                 void onWebRTCReady(WebRTCReadyCallback callback)
                 {
                     std::lock_guard<std::mutex> lock(callback_mutex_);
-                    webrtcReadyCallback_ = callback;
+                    webrtc_ready_callback_ = callback;
                 }
 
                 /**
@@ -333,7 +366,25 @@ namespace app
                 void onRoomInfoChanged(RoomInfoCallback callback)
                 {
                     std::lock_guard<std::mutex> lock(callback_mutex_);
-                    roomInfoCallback_ = callback;
+                    room_info_callback_ = callback;
+                }
+
+                /**
+                 * @brief 设置连接请求接收回调
+                 */
+                void onConnectionRequestReceived(ConnectionRequestCallback callback)
+                {
+                    std::lock_guard<std::mutex> lock(callback_mutex_);
+                    connection_request_callback_ = callback;
+                }
+
+                /**
+                 * @brief 设置连接请求回应回调
+                 */
+                void onConnectionResponseReceived(ConnectionResponseCallback callback)
+                {
+                    std::lock_guard<std::mutex> lock(callback_mutex_);
+                    connection_response_callback_ = callback;
                 }
 
                 /**
@@ -342,7 +393,7 @@ namespace app
                 void onError(SignalingErrorCallback callback)
                 {
                     std::lock_guard<std::mutex> lock(callback_mutex_);
-                    errorCallback_ = callback;
+                    error_callback_ = callback;
                 }
 
                 // ========================================================================
@@ -394,6 +445,16 @@ namespace app
                  * @brief 处理角色消息
                  */
                 void handleRoleMessage(const nlohmann::json& msg);
+
+                /**
+                 * @brief 处理连接请求消息
+                 */
+                void handleConnectionRequestMessage(const nlohmann::json& msg);
+
+                /**
+                 * @brief 处理连接请求回应消息
+                 */
+                void handleConnectionResponseMessage(const nlohmann::json& msg);
 
                 /**
                  * @brief 处理Offer消息
@@ -461,6 +522,16 @@ namespace app
                  */
                 void invokeRoomInfoCallback(const RoomInfo& info);
 
+                /**
+                 * @brief 触发连接请求回调
+                 */
+                void invokeConnectionRequestCallback(const ConnectionRequest& request);
+
+                /**
+                 * @brief 触发连接请求回应回调
+                 */
+                void invokeConnectionResponseCallback(bool accepted);
+
                 // ========================================================================
                 // 成员变量
                 // ========================================================================
@@ -470,18 +541,20 @@ namespace app
                 std::unique_ptr<websocket::WebSocketClient> ws_client_; // WebSocket客户端
 
                 mutable std::mutex mutex_;        // 保护共享数据
-                std::string        peerDeviceId_; // 对端设备ID
+                std::string        peer_device_id_; // 对端设备ID
                 std::string        role_;         // 角色（offerer/answerer）
-                RoomInfo           roomInfo_;     // 房间信息
+                RoomInfo           room_info_;     // 房间信息
 
-                std::mutex               callback_mutex_;       // 保护回调函数
-                SignalingStatusCallback  statusCallback_;       // 状态回调
-                SignalingMessageCallback offerCallback_;        // Offer回调
-                SignalingMessageCallback answerCallback_;       // Answer回调
-                SignalingMessageCallback iceCandidateCallback_; // ICE回调
-                WebRTCReadyCallback      webrtcReadyCallback_;  // WebRTC就绪回调
-                RoomInfoCallback         roomInfoCallback_;     // 房间信息回调
-                SignalingErrorCallback   errorCallback_;        // 错误回调
+                std::mutex                  callback_mutex_;              // 保护回调函数
+                SignalingStatusCallback     status_callback_;              // 状态回调
+                SignalingMessageCallback    offer_callback_;               // Offer回调
+                SignalingMessageCallback    answer_callback_;              // Answer回调
+                SignalingMessageCallback    ice_candidate_callback_;        // ICE回调
+                WebRTCReadyCallback         webrtc_ready_callback_;         // WebRTC就绪回调
+                RoomInfoCallback            room_info_callback_;            // 房间信息回调
+                ConnectionRequestCallback   connection_request_callback_;   // 连接请求回调
+                ConnectionResponseCallback  connection_response_callback_;  // 连接请求回应回调
+                SignalingErrorCallback      error_callback_;               // 错误回调
             };
 
         } // namespace webrtc
