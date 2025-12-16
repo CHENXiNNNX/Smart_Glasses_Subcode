@@ -1,0 +1,7 @@
+mpr20100.c  mpr20100.h 是提供的接口文件供调用，得到从驱动采集的数据，mpr20100_demo.c是使用实例
+touch_handle.c touch_handle.h调用mpr20100.c提供的接口实现单击 双击 滑动等功能touch_handle_demo.c是使用示例
+编译命令：
+    arm-rockchip830-linux-uclibcgnueabihf-gcc touch_handle_demo.c  mpr20100.c touch_handle.c -o touch_handle_demo
+    arm-rockchip830-linux-uclibcgnueabihf-gcc mpr20100_demo.c mpr20100.c -o mpr20100_demo
+
+

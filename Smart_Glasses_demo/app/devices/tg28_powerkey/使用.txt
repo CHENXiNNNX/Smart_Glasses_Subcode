@@ -1,0 +1,2 @@
+先加载tg28_powerkey.c驱动
+在运行test_demo.c应用，可以识别电源键的单击 双击
