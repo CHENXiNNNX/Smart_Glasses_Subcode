@@ -20,6 +20,14 @@ Smart_Glasses_demo/
 │   ├── media/                # 媒体处理模块
 │   │   ├── camera/           # 相机处理子模块
 │   │   └── audio/            # 音频处理子模块
+|   |
+|———|—— devices/              #此分支新增
+|   |   ├── icp20100/         #气压温度处理模块   
+|   |   |—— mpr121/           #按键触摸处理模块
+|   |   |—— qmi8658/          #六轴模块处理模块
+|   |   |__ tg28_powerkey/    #电源按键处理模块
+|   |
+|   |
 │   └── protocol/             # 通信协议模块
 │       ├── rtsp/             # RTSP协议实现
 │       ├── webrtc/           # WebRTC协议实现
