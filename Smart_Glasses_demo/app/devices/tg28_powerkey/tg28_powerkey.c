@@ -439,6 +439,89 @@ static int tg28_hw_init(struct tg28_dev *tg28)
     return 0;
 }
 
+
+
+
+
+/**
+ * pmic_i2c_reg_config - 配置指定I2C设备的电源管理寄存器
+ * @client: I2C设备客户端指针（标识BUS=3、ADDR=0x34的I2C设备）
+ * return: 0成功，负数内核错误码（如-EIO表示I2C通信失败）
+ */
+static int pmic_i2c_reg_config(struct tg28_dev *tg28)
+{
+    int ret;
+    u8 reg_val;  // 存储寄存器读取值
+    struct i2c_client      *client=tg28->client;
+ 
+
+    // 1) 配置VINDPM 输入电压限制4.36V：0x15寄存器写入0x06
+    ret = i2c_smbus_write_byte_data(client, 0x15, 0x06);
+    if (ret < 0) {
+        dev_err(&client->dev, "Write reg 0x15 failed, ret=%d\n", ret);
+        return ret;
+    }
+    dev_dbg(&client->dev, "Reg 0x15 write 0x06 success\n");
+
+    // 2) 输入限流500mA：0x16寄存器写入0x03（保守值）
+    ret = i2c_smbus_write_byte_data(client, 0x16, 0x03);
+    if (ret < 0) {
+        dev_err(&client->dev, "Write reg 0x16 failed, ret=%d\n", ret);
+        return ret;
+    }
+    dev_dbg(&client->dev, "Reg 0x16 write 0x03 success (500mA limit)\n");
+
+    // 3) 预充/快充配置：0x61写0x04 预充电电流限制100mA  0x62写0x0B  直流充电电流限制500mA
+    ret = i2c_smbus_write_byte_data(client, 0x61, 0x04);
+    if (ret < 0) {
+        dev_err(&client->dev, "Write reg 0x61 failed, ret=%d\n", ret);
+        return ret;
+    }
+    dev_dbg(&client->dev, "Reg 0x61 write 0x04 success\n");
+
+    ret = i2c_smbus_write_byte_data(client, 0x62, 0x0B);
+    if (ret < 0) {
+        dev_err(&client->dev, "Write reg 0x62 failed, ret=%d\n", ret);
+        return ret;
+    }
+    dev_dbg(&client->dev, "Reg 0x62 write 0x0B success\n");
+
+    // 4) 终止电流：读改写0x63（保留高4位，低4位设0x04）
+    reg_val = i2c_smbus_read_byte_data(client, 0x63);
+   
+    if (reg_val < 0) {  // 读失败返回负数（内核接口特性）
+        dev_err(&client->dev, "Read reg 0x63 failed, ret=%d\n", reg_val);
+        return reg_val;
+    }
+    // 位操作：保留高4位（0xF0），低4位设为0x04
+    reg_val = (reg_val & 0xF0) | 0x04;
+    ret = i2c_smbus_write_byte_data(client, 0x63, reg_val);
+    if (ret < 0) {
+        dev_err(&client->dev, "Write reg 0x63 failed, ret=%d\n", ret);
+        return ret;
+    }
+    dev_dbg(&client->dev, "Reg 0x63 read-modify-write success (new val=0x%02X)\n", reg_val);
+
+    // 5) ADC全开：0x30寄存器写入0x1F
+    ret = i2c_smbus_write_byte_data(client, 0x30, 0x1F);
+    if (ret < 0) {
+        dev_err(&client->dev, "Write reg 0x30 failed, ret=%d\n", ret);
+        return ret;
+    }
+    dev_dbg(&client->dev, "Reg 0x30 write 0x1F success (ADC all on)\n");
+
+    // 额外配置：0x14寄存器写入0x05
+    ret = i2c_smbus_write_byte_data(client, 0x14, 0x05);
+    if (ret < 0) {
+        dev_err(&client->dev, "Write reg 0x14 failed, ret=%d\n", ret);
+        return ret;
+    }
+    dev_dbg(&client->dev, "Reg 0x14 write 0x05 success\n");
+
+    dev_info(&client->dev, "All PMIC reg config success!\n");
+    return 0;
+}
+
 /* ========================== 6. 驱动框架（Probe/Remove） ========================== */
 static int tg28_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
@@ -495,6 +578,12 @@ static int tg28_probe(struct i2c_client *client, const struct i2c_device_id *id)
     // 硬件初始化
     ret = tg28_hw_init(tg28);
     if (ret) {
+        input_unregister_device(input);
+        return ret;
+    }
+    ret = pmic_i2c_reg_config(tg28);
+    if(ret<0)
+    {
         input_unregister_device(input);
         return ret;
     }
