@@ -1,6 +1,7 @@
 #include "app/media/audio/audio.hpp"
 #include "app/tool/log/log.hpp"
 #include "app/tool/file/file.hpp"
+#include "app/media/sync.hpp"
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -38,9 +39,18 @@ int main()
 
     AudioSystem audio_system(config);
 
-    if (audio_system.initialize() != AudioError::NONE)
+    // 创建同步上下文
+    auto sync_ctx = std::make_shared<sync_context_t>();
+    if (sync_init(sync_ctx.get()) != 0)
+    {
+        LOG_ERROR(LOG_TAG, "同步上下文初始化失败");
+        return -1;
+    }
+
+    if (audio_system.initialize(sync_ctx) != AudioError::NONE)
     {
         LOG_ERROR(LOG_TAG, "音频系统初始化失败");
+        sync_deinit(sync_ctx.get());
         return -1;
     }
 
@@ -137,6 +147,7 @@ int main()
 
     audio_system.stopStream(StreamDirection::OUTPUT);
     audio_system.shutdown();
+    sync_deinit(sync_ctx.get());
 
     return 0;
 }

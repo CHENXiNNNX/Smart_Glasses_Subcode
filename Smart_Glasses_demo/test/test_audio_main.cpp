@@ -246,17 +246,25 @@ namespace
      
      AudioSystem audio_system(config);
      
+     // 创建同步上下文
+     auto sync_ctx = std::make_shared<sync_context_t>();
+     if (sync_init(sync_ctx.get()) != 0) {
+         LOG_ERROR(LOG_TAG, "同步上下文初始化失败");
+         return false;
+     }
+     
      // 初始化音频系统
-     if (audio_system.initialize() != AudioError::NONE) {
+     if (audio_system.initialize(sync_ctx) != AudioError::NONE) {
          LOG_ERROR(LOG_TAG, "音频系统初始化失败");
+         sync_deinit(sync_ctx.get());
          return false;
      }
      
      LOG_INFO(LOG_TAG, "2.1 开始录音（3秒）...");
      
-     // 开始录音
-     if (audio_system.startRecord() != AudioError::NONE) {
-         LOG_ERROR(LOG_TAG, "启动录音失败");
+     // 启动录音流
+     if (audio_system.startStream(StreamDirection::INPUT) != AudioError::NONE) {
+         LOG_ERROR(LOG_TAG, "启动录音流失败");
          return false;
      }
      
@@ -278,7 +286,7 @@ namespace
          }
      }
      
-     audio_system.stopRecord();
+     audio_system.stopStream(StreamDirection::INPUT);
      
      LOG_INFO(LOG_TAG, "录制完成，共 %zu 帧", recorded_frames.size());
      
@@ -339,7 +347,7 @@ namespace
      LOG_INFO(LOG_TAG, "2.3 解码Opus并播放...");
      
      // 开始播放
-     if (audio_system.startPlayback() != AudioError::NONE) {
+     if (audio_system.startStream(StreamDirection::OUTPUT) != AudioError::NONE) {
          LOG_ERROR(LOG_TAG, "启动播放失败");
          return false;
      }
@@ -358,7 +366,7 @@ namespace
      // 等待播放完成
      std::this_thread::sleep_for(std::chrono::seconds(2));
      
-     audio_system.stopPlayback();
+     audio_system.stopStream(StreamDirection::OUTPUT);
      
      LOG_INFO(LOG_TAG, "✅ Opus编解码和播放测试通过");
      return true;
@@ -380,8 +388,16 @@ namespace
      
      AudioSystem audio_system(config);
      
-     if (audio_system.initialize() != AudioError::NONE) {
+     // 创建同步上下文
+     auto sync_ctx = std::make_shared<sync_context_t>();
+     if (sync_init(sync_ctx.get()) != 0) {
+         LOG_ERROR(LOG_TAG, "同步上下文初始化失败");
+         return false;
+     }
+     
+     if (audio_system.initialize(sync_ctx) != AudioError::NONE) {
          LOG_ERROR(LOG_TAG, "音频系统初始化失败");
+         sync_deinit(sync_ctx.get());
          return false;
      }
      
@@ -462,8 +478,16 @@ namespace
      
      AudioSystem audio_system(config);
      
-     if (audio_system.initialize() != AudioError::NONE) {
+     // 创建同步上下文
+     auto sync_ctx = std::make_shared<sync_context_t>();
+     if (sync_init(sync_ctx.get()) != 0) {
+         LOG_ERROR(LOG_TAG, "同步上下文初始化失败");
+         return false;
+     }
+     
+     if (audio_system.initialize(sync_ctx) != AudioError::NONE) {
          LOG_ERROR(LOG_TAG, "音频系统初始化失败");
+         sync_deinit(sync_ctx.get());
          return false;
      }
      
@@ -482,7 +506,7 @@ namespace
          {220.0, "A3音符"}      // 低八度A
      };
      
-     if (audio_system.startPlayback() != AudioError::NONE) {
+     if (audio_system.startStream(StreamDirection::OUTPUT) != AudioError::NONE) {
          LOG_ERROR(LOG_TAG, "启动播放失败");
          return false;
      }
@@ -537,7 +561,7 @@ namespace
      // 恢复正常音量
      audio_system.setOutputVolume(1.0f);
      
-     audio_system.stopPlayback();
+     audio_system.stopStream(StreamDirection::OUTPUT);
      
      LOG_INFO(LOG_TAG, "✅ 正弦波生成和音量控制测试通过");
      return true;
@@ -559,8 +583,16 @@ namespace
      
      AudioSystem audio_system(config);
      
-     if (audio_system.initialize() != AudioError::NONE) {
+     // 创建同步上下文
+     auto sync_ctx = std::make_shared<sync_context_t>();
+     if (sync_init(sync_ctx.get()) != 0) {
+         LOG_ERROR(LOG_TAG, "同步上下文初始化失败");
+         return false;
+     }
+     
+     if (audio_system.initialize(sync_ctx) != AudioError::NONE) {
          LOG_ERROR(LOG_TAG, "音频系统初始化失败");
+         sync_deinit(sync_ctx.get());
          return false;
      }
      
@@ -682,8 +714,16 @@ namespace
      
      AudioSystem audio_system(config);
      
-     if (audio_system.initialize() != AudioError::NONE) {
+     // 创建同步上下文
+     auto sync_ctx = std::make_shared<sync_context_t>();
+     if (sync_init(sync_ctx.get()) != 0) {
+         LOG_ERROR(LOG_TAG, "同步上下文初始化失败");
+         return false;
+     }
+     
+     if (audio_system.initialize(sync_ctx) != AudioError::NONE) {
          LOG_ERROR(LOG_TAG, "启用3A的音频系统初始化失败");
+         sync_deinit(sync_ctx.get());
          return false;
      }
      
@@ -703,15 +743,15 @@ namespace
      
      LOG_INFO(LOG_TAG, "6.2 启用3A算法录音测试（5秒）...");
      
-     if (audio_system.startRecord() != AudioError::NONE) {
-         LOG_ERROR(LOG_TAG, "启动录音失败");
+     if (audio_system.startStream(StreamDirection::INPUT) != AudioError::NONE) {
+         LOG_ERROR(LOG_TAG, "启动录音流失败");
          return false;
      }
      
      // 录音5秒，3A算法会在录音回调中自动应用
      std::this_thread::sleep_for(std::chrono::seconds(5));
      
-     audio_system.stopRecord();
+     audio_system.stopStream(StreamDirection::INPUT);
      
      // 收集处理后的帧
      std::vector<AudioFramePtr> processed_frames;

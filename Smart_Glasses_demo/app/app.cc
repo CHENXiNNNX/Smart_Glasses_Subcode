@@ -789,10 +789,10 @@ namespace app
         }
 
         // 初始化视频系统
-        if (!initVideo(1920, 1080))
-        {
-            return;
-        }
+        // if (!initVideo(1920, 1080))
+        // {
+        //     return;
+        // }
 
         // 初始化网络
         if (!initNetwork())
