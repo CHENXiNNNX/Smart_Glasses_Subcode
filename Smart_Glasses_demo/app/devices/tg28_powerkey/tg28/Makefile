@@ -11,9 +11,9 @@
 #	make -C $(KERNELDIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) M=$(PWD) modules
 #clean:
 #	make -C $(KERNELDIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) M=$(PWD) clean
-# 驱动模块名（仅改这1处）
-
-MODULE_NAME := leds-ws2812-pwm
+# 驱动模块名（修改1/2）
+MODULE_NAME := tg28_powerkey
+#MODULE_NAME := leds-ws2812-pwm
 
 # 基础配置（无需修改）
 SHELL := /bin/bash
@@ -27,6 +27,9 @@ PWD         := $(shell pwd)
 obj-m += $(MODULE_NAME).o
 # 关键：添加EXTRA_CFLAGS关闭C90语法警告
 EXTRA_CFLAGS += -Wno-declaration-after-statement
+# 驱动模块名（修改2/2）
+KBUILD_EXTRA_SYMBOLS :=/home/yuanwang/workspace/Smart_Glasses_Subcode/Smart_Glasses_demo/app/devices/tg28_powerkey/ws2812/Module.symvers
+
 
 # 编译目标
 all:
@@ -42,3 +45,4 @@ all:
 clean:
 	make -C $(KERNEL_SRC) O=$(KERNEL_OBJ) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) M=$(PWD) clean
 	rm -rf .*.cmd *.mod.c *.o *.ko .tmp_versions modules.order Module.symvers
+	

@@ -1,2 +1,4 @@
-先加载tg28_powerkey.c驱动
-在运行test_demo.c应用，可以识别电源键的单击 双击
+驱动：先加载 ws2812/leds-ws2812-pwm.ko 再加载tg28/tg28_powerkey.ko驱动,leds-ws2812-pwm.ko驱动为tg28_powerkey.ko驱动提供灯的操作函数,
+      编译成模块时tg28_powerkey.ko依赖编译leds-ws2812-pwm.ko产生的Module.symvers
+      
+应用：在运行test_demo.c应用，可以识别电源键的单击 双击  test_demo.c使用tg28_powerkey_demo.h提供的接口函数
