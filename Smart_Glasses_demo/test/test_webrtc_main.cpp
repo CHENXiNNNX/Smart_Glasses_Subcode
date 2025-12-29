@@ -16,7 +16,7 @@ using namespace app::tool::log;
 #define LOG_TAG "MAIN"
 
 const std::string device_id = "glasses_123456";
-const std::string server_url = "ws://10.93.1.49:8000";
+const std::string server_url = "ws://192.168.50.70:8000";
 
 int main() {
     // 日志系统初始化
@@ -168,7 +168,7 @@ int main() {
     
     // 设置房间信息变化回调
     signaling->onRoomInfoChanged([](const app::protocol::webrtc::RoomInfo& room_info) {
-        LOG_INFO(LOG_TAG, "房间信息变化: 房间ID=%s, 人数=%d", 
+        LOG_INFO(LOG_TAG, "房间信息变化: 房间ID=%s, 人数=%d",
                  room_info.room_id.c_str(), room_info.num);
     });
     
@@ -226,7 +226,7 @@ int main() {
             if (peer_id.empty()) {
                 LOG_ERROR(LOG_TAG, "未配对，无法获取对端设备ID");
             } else {
-                if (!webrtc->sendConnectionRequest(peer_id, true, true, false)) {
+                if (!webrtc->sendConnectionRequest(peer_id, true, true, true)) {
                     LOG_ERROR(LOG_TAG, "发送连接请求失败");
                 } else {
                     LOG_INFO(LOG_TAG, "连接请求已发送到: %s", peer_id.c_str());

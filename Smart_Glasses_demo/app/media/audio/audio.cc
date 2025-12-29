@@ -490,11 +490,11 @@ namespace app
 
             AudioSystem::~AudioSystem()
             {
-                shutdown();
+                deinit();
                 LOG_INFO(LOG_TAG, "音频系统已销毁");
             }
 
-            AudioError AudioSystem::initialize(std::shared_ptr<sync_context_t> sync_ctx)
+            AudioError AudioSystem::init(std::shared_ptr<sync_context_t> sync_ctx)
             {
                 if (pImpl_->initialized.load())
                 {
@@ -621,7 +621,7 @@ namespace app
                 return AudioError::NONE;
             }
 
-            void AudioSystem::shutdown()
+            void AudioSystem::deinit()
             {
                 if (!pImpl_->initialized.load()) return;
 

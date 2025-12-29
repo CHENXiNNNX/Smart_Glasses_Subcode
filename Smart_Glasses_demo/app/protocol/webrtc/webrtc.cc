@@ -36,11 +36,11 @@ namespace app
 
             WebRTCSystem::~WebRTCSystem()
             {
-                shutdown();
+                deinit();
                 LOG_INFO(LOG_TAG, "WebRTC系统销毁完成");
             }
 
-            WebRTCError WebRTCSystem::initialize(std::shared_ptr<Signaling> signaling)
+            WebRTCError WebRTCSystem::init(std::shared_ptr<Signaling> signaling)
             {
                 if (!signaling)
                 {
@@ -148,7 +148,7 @@ namespace app
                 return WebRTCError::NONE;
             }
 
-            void WebRTCSystem::shutdown()
+            void WebRTCSystem::deinit()
             {
                 if (!initialized_.load())
                 {

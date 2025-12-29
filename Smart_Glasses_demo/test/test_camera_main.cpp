@@ -45,7 +45,7 @@ std::atomic<bool> g_quit{false};
              LOG_ERROR(LOG_TAG, "无法创建目录: %s", path.c_str());
              return false;
          }
-         LOG_INFO(LOG_TAG, "✓ 创建目录: %s", path.c_str());
+         LOG_INFO(LOG_TAG, "创建目录: %s", path.c_str());
      }
      return true;
  }
@@ -103,7 +103,7 @@ std::atomic<bool> g_quit{false};
          LOG_ERROR(LOG_TAG, "同步上下文初始化失败");
          return -1;
      }
-     LOG_INFO(LOG_TAG, "✓ 同步上下文初始化成功");
+     LOG_INFO(LOG_TAG, "同步上下文初始化成功");
      
      // ========================================
      // 创建测试目录
@@ -145,7 +145,7 @@ std::atomic<bool> g_quit{false};
          sync_deinit(sync_ctx.get());
          return -1;
      }
-     LOG_INFO(LOG_TAG, "✓ VideoSystem 初始化成功");
+     LOG_INFO(LOG_TAG, "VideoSystem 初始化成功");
      
      // 启动视频流
      if (video.startStream() != VideoError::NONE) {
@@ -154,7 +154,7 @@ std::atomic<bool> g_quit{false};
          sync_deinit(sync_ctx.get());
          return -1;
      }
-     LOG_INFO(LOG_TAG, "✓ 视频流启动成功");
+     LOG_INFO(LOG_TAG, "视频流启动成功");
      
      // 等待流稳定
      std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -172,7 +172,7 @@ std::atomic<bool> g_quit{false};
      if (video.takePhoto() == VideoError::NONE) {
          LOG_INFO(LOG_TAG, "拍照开始...");
          if (waitForPhotoComplete(video)) {
-             LOG_INFO(LOG_TAG, "✓ 单次拍照成功");
+             LOG_INFO(LOG_TAG, "单次拍照成功");
              LOG_INFO(LOG_TAG, "  照片保存路径: %s", photo_base.c_str());
          } else {
              LOG_WARN(LOG_TAG, "⚠ 拍照超时");
@@ -199,7 +199,7 @@ std::atomic<bool> g_quit{false};
          if (video.takePhoto() == VideoError::NONE) {
              if (waitForPhotoComplete(video, 3000)) {
                  success_count++;
-                 LOG_INFO(LOG_TAG, "  ✓ 拍照 %d 成功", i);
+                 LOG_INFO(LOG_TAG, "  拍照 %d 成功", i);
              } else {
                  LOG_WARN(LOG_TAG, "  ⚠ 拍照 %d 超时", i);
              }
@@ -253,7 +253,7 @@ std::atomic<bool> g_quit{false};
          // 拍照
          if (video.takePhoto() == VideoError::NONE) {
              if (waitForPhotoComplete(video)) {
-                 LOG_INFO(LOG_TAG, "  ✓ 质量%d 拍照成功", test.quality);
+                 LOG_INFO(LOG_TAG, "  质量%d 拍照成功", test.quality);
              }
              video.restoreH264Encoder();
              std::this_thread::sleep_for(std::chrono::milliseconds(300));
@@ -262,7 +262,7 @@ std::atomic<bool> g_quit{false};
      
      // 恢复默认质量
      video.setJPEGQuality(95);
-     LOG_INFO(LOG_TAG, "✓ 质量测试完成，已恢复默认质量95");
+     LOG_INFO(LOG_TAG, "质量测试完成，已恢复默认质量95");
      
      //  // ========================================
      //  // 测试 4: ISP参数配置测试
@@ -281,7 +281,7 @@ std::atomic<bool> g_quit{false};
      //  waitForPhotoComplete(video);
      //  video.restoreH264Encoder();
      //  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-     //  LOG_INFO(LOG_TAG, "✓ 基准照片保存");
+     //  LOG_INFO(LOG_TAG, "基准照片保存");
      
      //  // 4.2 曝光控制测试
      //  LOG_INFO(LOG_TAG, "\n4.2 曝光控制测试");
@@ -294,7 +294,7 @@ std::atomic<bool> g_quit{false};
      //  waitForPhotoComplete(video);
      //  video.restoreH264Encoder();
      //  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-     //  LOG_INFO(LOG_TAG, "  ✓ 自动曝光照片保存");
+     //  LOG_INFO(LOG_TAG, "  自动曝光照片保存");
      
      //  // 手动曝光 - 高曝光（增大增益范围）
      //  LOG_INFO(LOG_TAG, "  测试：手动高曝光（高增益）");
@@ -306,7 +306,7 @@ std::atomic<bool> g_quit{false};
      //  waitForPhotoComplete(video);
      //  video.restoreH264Encoder();
      //  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-     //  LOG_INFO(LOG_TAG, "  ✓ 高曝光照片保存（增益4-16x，时间10-50ms）");
+     //  LOG_INFO(LOG_TAG, "  高曝光照片保存（增益4-16x，时间10-50ms）");
      
      //  // 手动曝光 - 低曝光
      //  LOG_INFO(LOG_TAG, "  测试：手动低曝光（低增益）");
@@ -317,7 +317,7 @@ std::atomic<bool> g_quit{false};
      //  waitForPhotoComplete(video);
      //  video.restoreH264Encoder();
      //  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-     //  LOG_INFO(LOG_TAG, "  ✓ 低曝光照片保存（增益1-2x，时间1-5ms）");
+     //  LOG_INFO(LOG_TAG, "  低曝光照片保存（增益1-2x，时间1-5ms）");
      
      //  // 恢复自动曝光
      //  video.setExposureMode(OP_AUTO);
@@ -334,7 +334,7 @@ std::atomic<bool> g_quit{false};
      //  waitForPhotoComplete(video);
      //  video.restoreH264Encoder();
      //  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-     //  LOG_INFO(LOG_TAG, "  ✓ 自动白平衡照片保存");
+     //  LOG_INFO(LOG_TAG, "  自动白平衡照片保存");
      
      //  // 手动白平衡 - 暖色调（色温2800K）
      //  LOG_INFO(LOG_TAG, "  测试：暖色调白平衡（2800K）");
@@ -345,7 +345,7 @@ std::atomic<bool> g_quit{false};
      //  waitForPhotoComplete(video);
      //  video.restoreH264Encoder();
      //  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-     //  LOG_INFO(LOG_TAG, "  ✓ 暖色调照片保存");
+     //  LOG_INFO(LOG_TAG, "  暖色调照片保存");
      
      //  // 手动白平衡 - 冷色调（色温6500K）
      //  LOG_INFO(LOG_TAG, "  测试：冷色调白平衡（6500K）");
@@ -355,7 +355,7 @@ std::atomic<bool> g_quit{false};
      //  waitForPhotoComplete(video);
      //  video.restoreH264Encoder();
      //  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-     //  LOG_INFO(LOG_TAG, "  ✓ 冷色调照片保存");
+     //  LOG_INFO(LOG_TAG, "  冷色调照片保存");
      
      //  // 恢复自动白平衡
      //  video.setWhiteBalanceMode(OP_AUTO);
@@ -372,7 +372,7 @@ std::atomic<bool> g_quit{false};
      //  waitForPhotoComplete(video);
      //  video.restoreH264Encoder();
      //  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-     //  LOG_INFO(LOG_TAG, "  ✓ 高亮度照片保存");
+     //  LOG_INFO(LOG_TAG, "  高亮度照片保存");
      
      //  // 低亮度
      //  LOG_INFO(LOG_TAG, "  测试：低亮度（20）");
@@ -382,7 +382,7 @@ std::atomic<bool> g_quit{false};
      //  waitForPhotoComplete(video);
      //  video.restoreH264Encoder();
      //  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-     //  LOG_INFO(LOG_TAG, "  ✓ 低亮度照片保存");
+     //  LOG_INFO(LOG_TAG, "  低亮度照片保存");
      
      //  // 恢复默认亮度
      //  video.setBrightness(50);
@@ -395,7 +395,7 @@ std::atomic<bool> g_quit{false};
      //  waitForPhotoComplete(video);
      //  video.restoreH264Encoder();
      //  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-     //  LOG_INFO(LOG_TAG, "  ✓ 高对比度照片保存");
+     //  LOG_INFO(LOG_TAG, "  高对比度照片保存");
      
      //  // 低对比度
      //  LOG_INFO(LOG_TAG, "  测试：低对比度（20）");
@@ -405,7 +405,7 @@ std::atomic<bool> g_quit{false};
      //  waitForPhotoComplete(video);
      //  video.restoreH264Encoder();
      //  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-     //  LOG_INFO(LOG_TAG, "  ✓ 低对比度照片保存");
+     //  LOG_INFO(LOG_TAG, "  低对比度照片保存");
      
      //  // 恢复默认对比度
      //  video.setContrast(50);
@@ -418,7 +418,7 @@ std::atomic<bool> g_quit{false};
      //  waitForPhotoComplete(video);
      //  video.restoreH264Encoder();
      //  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-     //  LOG_INFO(LOG_TAG, "  ✓ 高饱和度照片保存");
+     //  LOG_INFO(LOG_TAG, "  高饱和度照片保存");
      
      //  // 低饱和度（接近黑白）
      //  LOG_INFO(LOG_TAG, "  测试：低饱和度（10）");
@@ -428,7 +428,7 @@ std::atomic<bool> g_quit{false};
      //  waitForPhotoComplete(video);
      //  video.restoreH264Encoder();
      //  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-     //  LOG_INFO(LOG_TAG, "  ✓ 低饱和度照片保存");
+     //  LOG_INFO(LOG_TAG, "  低饱和度照片保存");
      
      //  // 恢复默认饱和度
      //  video.setSaturation(50);
@@ -444,7 +444,7 @@ std::atomic<bool> g_quit{false};
      //  waitForPhotoComplete(video);
      //  video.restoreH264Encoder();
      //  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-     //  LOG_INFO(LOG_TAG, "  ✓ 高锐度照片保存");
+     //  LOG_INFO(LOG_TAG, "  高锐度照片保存");
      
      //  // 低锐度（柔和）
      //  LOG_INFO(LOG_TAG, "  测试：低锐度（10）");
@@ -454,7 +454,7 @@ std::atomic<bool> g_quit{false};
      //  waitForPhotoComplete(video);
      //  video.restoreH264Encoder();
      //  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-     //  LOG_INFO(LOG_TAG, "  ✓ 低锐度照片保存");
+     //  LOG_INFO(LOG_TAG, "  低锐度照片保存");
      
      //  // 恢复默认锐度
      //  video.setSharpness(50);
@@ -470,7 +470,7 @@ std::atomic<bool> g_quit{false};
      //  waitForPhotoComplete(video);
      //  video.restoreH264Encoder();
      //  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-     //  LOG_INFO(LOG_TAG, "  ✓ 除雾照片保存");
+     //  LOG_INFO(LOG_TAG, "  除雾照片保存");
      
      //  // 禁用除雾
      //  video.setDehazeLevel(0);
@@ -490,7 +490,7 @@ std::atomic<bool> g_quit{false};
      //  waitForPhotoComplete(video);
      //  video.restoreH264Encoder();
      //  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-     //  LOG_INFO(LOG_TAG, "  ✓ 组合效果照片保存");
+     //  LOG_INFO(LOG_TAG, "  组合效果照片保存");
      
      //  // 恢复所有默认ISP参数
      //  LOG_INFO(LOG_TAG, "\n恢复所有ISP参数为默认值...");
@@ -502,7 +502,7 @@ std::atomic<bool> g_quit{false};
      //  video.setSharpness(50);
      //  video.setDehazeLevel(0);
      //  std::this_thread::sleep_for(std::chrono::seconds(1));
-     //  LOG_INFO(LOG_TAG, "✓ ISP参数测试完成，已恢复默认值");
+     //  LOG_INFO(LOG_TAG, "ISP参数测试完成，已恢复默认值");
      
      // ========================================
      // 测试 5: H264录像测试
@@ -520,7 +520,7 @@ std::atomic<bool> g_quit{false};
      if (video.startRecord(short_video, 5) == VideoError::NONE) {
          LOG_INFO(LOG_TAG, "  开始录制...");
          waitForRecordComplete(video);
-         LOG_INFO(LOG_TAG, "  ✓ 短录像保存: %s", short_video.c_str());
+         LOG_INFO(LOG_TAG, "  短录像保存: %s", short_video.c_str());
      } else {
          LOG_ERROR(LOG_TAG, "  ✗ 短录像启动失败");
      }
@@ -542,7 +542,7 @@ std::atomic<bool> g_quit{false};
              LOG_INFO(LOG_TAG, "  录制中... %d/10秒, FPS: %.2f", elapsed, video.getCurrentFPS());
          }
          
-         LOG_INFO(LOG_TAG, "  ✓ 中等时长录像保存: %s", medium_video.c_str());
+         LOG_INFO(LOG_TAG, "  中等时长录像保存: %s", medium_video.c_str());
      } else {
          LOG_ERROR(LOG_TAG, "  ✗ 中等时长录像启动失败");
      }
@@ -574,7 +574,7 @@ std::atomic<bool> g_quit{false};
          std::string video_path = video_base + test.filename;
          if (video.startRecord(video_path, 5) == VideoError::NONE) {
              waitForRecordComplete(video);
-             LOG_INFO(LOG_TAG, "    ✓ %d kbps 录像保存: %s", test.bitrate_kbps, test.filename.c_str());
+             LOG_INFO(LOG_TAG, "    %d kbps 录像保存: %s", test.bitrate_kbps, test.filename.c_str());
          } else {
              LOG_ERROR(LOG_TAG, "    ✗ %d kbps 录像失败", test.bitrate_kbps);
          }
@@ -584,7 +584,7 @@ std::atomic<bool> g_quit{false};
      
      // 恢复默认码率
      video.setEncodingParams(6 * 1024, -1);
-     LOG_INFO(LOG_TAG, "✓ 录像测试完成");
+     LOG_INFO(LOG_TAG, "录像测试完成");
      
      // ========================================
      // 统计信息

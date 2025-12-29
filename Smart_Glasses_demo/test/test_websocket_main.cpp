@@ -74,8 +74,8 @@ void testFullConnection() {
         return;
     }
     
-    std::cout << "✓ 设备ID: " << device_id << std::endl;
-    std::cout << "✓ 客户端ID: " << client_id << std::endl;
+    std::cout << "设备ID: " << device_id << std::endl;
+    std::cout << "客户端ID: " << client_id << std::endl;
     
     // ========== 步骤2: 设备激活 ==========
     printSeparator("步骤2: 设备激活（阻塞式等待）");
@@ -96,7 +96,7 @@ void testFullConnection() {
         // 设置回调
         activation.setStatusCallback([](ActivationStatus status, const ActivationResult& /*result*/) {
             if (status == ActivationStatus::ACTIVATED) {
-                std::cout << "\n[回调] ✓ 设备已激活！" << std::endl;
+                std::cout << "\n[回调] 设备已激活！" << std::endl;
             }
         });
         
@@ -115,7 +115,7 @@ void testFullConnection() {
             return;
         }
     } else {
-        std::cout << "✓ 设备已激活" << std::endl;
+        std::cout << "设备已激活" << std::endl;
     }
     
     // ========== 步骤3: 创建协议处理器 ==========
@@ -219,14 +219,14 @@ void testFullConnection() {
         return;
     }
     
-    std::cout << "✓ 连接请求已发送" << std::endl;
+    std::cout << "连接请求已发送" << std::endl;
     
     // 等待连接和握手完成
     std::cout << "\n等待连接和握手完成..." << std::endl;
     int wait_count = 0;
     while (wait_count < 100) {  // 最多等待10秒
         if (ws_client.isHandshaked()) {
-            std::cout << "\n✓ WebSocket已连接并握手成功！" << std::endl;
+            std::cout << "\nWebSocket已连接并握手成功！" << std::endl;
             break;
         }
         
@@ -260,7 +260,7 @@ void testFullConnection() {
     
     WebSocketError send_err = ws_client.sendText(listen_msg);
     if (send_err == WebSocketError::NONE) {
-        std::cout << "✓ Listen消息已发送" << std::endl;
+        std::cout << "Listen消息已发送" << std::endl;
     } else {
         std::cerr << "✗ 发送失败" << std::endl;
     }
@@ -301,10 +301,10 @@ void testFullConnection() {
     // 断开连接
     printSeparator("断开连接");
     ws_client.disconnect();
-    std::cout << "\n✓ 已断开连接" << std::endl;
+    std::cout << "\n已断开连接" << std::endl;
     
     printSeparator("测试完成");
-    std::cout << "\n✓ 完整连接流程测试成功！" << std::endl;
+    std::cout << "\n完整连接流程测试成功！" << std::endl;
 }
 
 // 测试2：仅测试WebSocket连接（跳过激活，假设已激活）
@@ -354,7 +354,7 @@ void testWebSocketOnly() {
     int wait_count = 0;
     while (wait_count < 100) {
         if (ws_client->isHandshaked()) {
-            std::cout << "✓ 连接成功！" << std::endl;
+            std::cout << "连接成功！" << std::endl;
             break;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -362,7 +362,7 @@ void testWebSocketOnly() {
     }
     
     if (ws_client->isHandshaked()) {
-        std::cout << "\n✓ WebSocket连接测试成功！" << std::endl;
+        std::cout << "\nWebSocket连接测试成功！" << std::endl;
         std::cout << "保持连接10秒..." << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(10000));
     } else {

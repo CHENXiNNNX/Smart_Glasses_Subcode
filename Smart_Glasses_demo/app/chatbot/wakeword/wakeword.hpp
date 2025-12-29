@@ -127,7 +127,7 @@ namespace app
                  * @brief 初始化唤醒词检测器
                  * @return WakewordError::NONE 成功
                  */
-                WakewordError initialize();
+                WakewordError init();
 
                 /**
                  * @brief 启用/禁用检测

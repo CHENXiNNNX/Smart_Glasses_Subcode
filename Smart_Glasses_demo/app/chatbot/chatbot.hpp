@@ -187,28 +187,28 @@ namespace app
 
             // 激活管理
             ChatbotError getDeviceId();
-            ChatbotError initializeActivation();   // 初始化激活管理器
-            ChatbotError deinitializeActivation(); // 释放激活管理器
+            ChatbotError initActivation();   // 初始化激活管理器
+            ChatbotError deinitActivation(); // 释放激活管理器
             ChatbotError checkActivation();        // 激活检测
 
             // MCP工具管理
-            ChatbotError initializeMCP();   // 初始化MCP服务器并注册工具
-            ChatbotError deinitializeMCP(); // 释放MCP服务器
+            ChatbotError initMCP();   // 初始化MCP服务器并注册工具
+            ChatbotError deinitMCP(); // 释放MCP服务器
 
             // 协议处理器管理
-            ChatbotError initializeProtocol();     // 初始化协议处理器
-            ChatbotError deinitializeProtocol();   // 释放协议处理器
+            ChatbotError initProtocol();     // 初始化协议处理器
+            ChatbotError deinitProtocol();   // 释放协议处理器
             void         setupProtocolCallbacks(); // 设置协议回调
 
             // WebSocket连接管理
-            ChatbotError initializeWebSocket();     // 初始化WebSocket客户端
-            ChatbotError deinitializeWebSocket();   // 释放WebSocket客户端
+            ChatbotError initWebSocket();     // 初始化WebSocket客户端
+            ChatbotError deinitWebSocket();   // 释放WebSocket客户端
             ChatbotError connectAIServer();
             void         setupWebSocketCallbacks(); // 设置WebSocket回调
 
             // 唤醒词管理
-            ChatbotError initializeWakeword();         // 初始化唤醒词检测器
-            ChatbotError deinitializeWakeword();       // 释放唤醒词检测器
+            ChatbotError initWakeword();         // 初始化唤醒词检测器
+            ChatbotError deinitWakeword();       // 释放唤醒词检测器
             void         setupWakewordCallbacks();     // 设置唤醒词回调
             void         setupWakewordAudioCallback(); // 设置音频系统的唤醒词回调
             void setupAIAudioCallback();
@@ -217,9 +217,9 @@ namespace app
             explicit ChatbotSystem(const ChatbotConfig& config = ChatbotConfig());
             ~ChatbotSystem();
 
-            // AI聊天机器人系统的打开和关闭
-            ChatbotError open();
-            void         close();
+            // AI聊天机器人系统的初始化和释放
+            ChatbotError init();
+            void         deinit();
 
             // 设置外部音频系统
             void setAudioSystem(app::media::audio::AudioSystem* audio_system);

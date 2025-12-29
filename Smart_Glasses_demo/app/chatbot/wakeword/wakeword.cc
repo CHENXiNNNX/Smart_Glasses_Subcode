@@ -254,7 +254,7 @@ namespace app
                 // 初始化
                 // ========================================================================
 
-                WakewordError initialize()
+                WakewordError init()
                 {
                     if (initialized_.load(std::memory_order_acquire))
                     {
@@ -523,9 +523,9 @@ namespace app
             // 初始化和控制
             // ========================================================================
 
-            WakewordError WakewordDetector::initialize()
+            WakewordError WakewordDetector::init()
             {
-                return pImpl_->initialize();
+                return pImpl_->init();
             }
 
             void WakewordDetector::setEnabled(bool enabled)

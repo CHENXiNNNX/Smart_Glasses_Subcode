@@ -38,7 +38,7 @@ namespace app
 
         ChatbotSystem::~ChatbotSystem()
         {
-            close();
+            deinit();
             LOG_INFO(LOG_TAG, "ChatbotSystem destroyed");
         }
 
@@ -103,7 +103,7 @@ namespace app
         // 激活管理器初始化
         // ============================================================================
 
-        ChatbotError ChatbotSystem::initializeActivation()
+        ChatbotError ChatbotSystem::initActivation()
         {
             // 获取设备信息
             ChatbotError err = getDeviceId();
@@ -132,7 +132,7 @@ namespace app
             }
         }
 
-        ChatbotError ChatbotSystem::deinitializeActivation()
+        ChatbotError ChatbotSystem::deinitActivation()
         {
             if (activation_manager_)
             {
@@ -205,7 +205,7 @@ namespace app
         // MCP工具注册
         // ============================================================================
 
-        ChatbotError ChatbotSystem::initializeMCP()
+        ChatbotError ChatbotSystem::initMCP()
         {
             try
             {
@@ -242,7 +242,7 @@ namespace app
             }
         }
 
-        ChatbotError ChatbotSystem::deinitializeMCP()
+        ChatbotError ChatbotSystem::deinitMCP()
         {
             if (mcp_server_)
             {
@@ -256,7 +256,7 @@ namespace app
         // 协议处理器初始化
         // ============================================================================
 
-        ChatbotError ChatbotSystem::initializeProtocol()
+        ChatbotError ChatbotSystem::initProtocol()
         {
             try
             {
@@ -282,7 +282,7 @@ namespace app
             }
         }
 
-        ChatbotError ChatbotSystem::deinitializeProtocol()
+        ChatbotError ChatbotSystem::deinitProtocol()
         {
             if (protocol_handler_)
             {
@@ -499,9 +499,9 @@ namespace app
         // WebSocket连接初始化
         // ============================================================================
 
-        ChatbotError ChatbotSystem::initializeWebSocket()
+        ChatbotError ChatbotSystem::initWebSocket()
         {
-            ChatbotError err = initializeProtocol();
+            ChatbotError err = initProtocol();
             if (err != ChatbotError::NONE)
             {
                 LOG_ERROR(LOG_TAG, "协议处理器初始化失败");
@@ -552,14 +552,14 @@ namespace app
             }
         }
 
-        ChatbotError ChatbotSystem::deinitializeWebSocket()
+        ChatbotError ChatbotSystem::deinitWebSocket()
         {
             if (ws_client_)
             {
                 ws_client_->disconnect();
                 ws_client_.reset();
                 LOG_INFO(LOG_TAG, "WebSocket客户端已释放");
-                deinitializeProtocol();
+                deinitProtocol();
             }
 
             return ChatbotError::NONE;
@@ -731,7 +731,7 @@ namespace app
         // 唤醒词检测器初始化
         // ============================================================================
 
-        ChatbotError ChatbotSystem::initializeWakeword()
+        ChatbotError ChatbotSystem::initWakeword()
         {
             if (!audio_system_)
             {
@@ -753,7 +753,7 @@ namespace app
                 wakeword_detector_ = std::make_unique<wakeword::WakewordDetector>(ww_cfg);
 
                 // 初始化唤醒词检测器
-                wakeword::WakewordError ww_err = wakeword_detector_->initialize();
+                wakeword::WakewordError ww_err = wakeword_detector_->init();
                 if (ww_err != wakeword::WakewordError::NONE)
                 {
                     LOG_ERROR(LOG_TAG, "唤醒词检测器初始化失败");
@@ -786,7 +786,7 @@ namespace app
             }
         }
 
-        ChatbotError ChatbotSystem::deinitializeWakeword()
+        ChatbotError ChatbotSystem::deinitWakeword()
         {
             if (wakeword_detector_)
             {
@@ -847,7 +847,7 @@ namespace app
                         state_.store(ChatbotState::CONNECTING);
 
                         // 初始化WebSocket客户端
-                        ChatbotError err = initializeWebSocket();
+                        ChatbotError err = initWebSocket();
                         if (err != ChatbotError::NONE)
                         {
                             LOG_ERROR(LOG_TAG, "WebSocket客户端初始化失败");
@@ -975,7 +975,7 @@ namespace app
         }
 
         // 初始化ChatbotSystem
-        ChatbotError ChatbotSystem::open()
+        ChatbotError ChatbotSystem::init()
         {
             // 检查音频系统是否已设置
             if (!audio_system_)
@@ -988,7 +988,7 @@ namespace app
             state_.store(ChatbotState::INITIALIZING);
 
             // 初始化激活管理器
-            ChatbotError err = initializeActivation();
+            ChatbotError err = initActivation();
             if (err != ChatbotError::NONE)
             {
                 return err;
@@ -1002,7 +1002,7 @@ namespace app
             }
 
             // 注册MCP工具
-            err = initializeMCP();
+            err = initMCP();
             if (err != ChatbotError::NONE)
             {
                 LOG_ERROR(LOG_TAG, "MCP工具注册失败");
@@ -1010,7 +1010,7 @@ namespace app
             }
 
             // 初始化唤醒词检测器
-            err = initializeWakeword();
+            err = initWakeword();
             if (err != ChatbotError::NONE)
             {
                 LOG_ERROR(LOG_TAG, "唤醒词检测器初始化失败");
@@ -1020,7 +1020,7 @@ namespace app
             return ChatbotError::NONE;
         }
 
-        void ChatbotSystem::close()
+        void ChatbotSystem::deinit()
         {
             if (state_.load() == ChatbotState::CLOSED)
             {
@@ -1029,10 +1029,10 @@ namespace app
             LOG_INFO(LOG_TAG, "正在关闭ChatbotSystem...");
             state_.store(ChatbotState::CLOSED);
 
-            deinitializeWakeword();   // 关闭唤醒词检测器
-            deinitializeWebSocket();  // 关闭WebSocket客户端
-            deinitializeMCP();        // 关闭MCP服务器
-            deinitializeActivation(); // 关闭激活管理器
+            deinitWakeword();   // 关闭唤醒词检测器
+            deinitWebSocket();  // 关闭WebSocket客户端
+            deinitMCP();        // 关闭MCP服务器
+            deinitActivation(); // 关闭激活管理器
 
             audio_system_ = nullptr;
 

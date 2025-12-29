@@ -41,7 +41,7 @@ namespace app
     // 初始化日志
     bool App::initLog()
     {
-        bool log_err = Logger::getInstance().initialize(LogConfig());
+        bool log_err = Logger::getInstance().init(LogConfig());
         if (!log_err)
         {
             LOG_ERROR(LOG_TAG, "初始化日志失败");
@@ -53,7 +53,7 @@ namespace app
     // 释放日志系统
     bool App::deinitLog()
     {
-        bool log_err = Logger::getInstance().shutdown();
+        bool log_err = Logger::getInstance().deinit();
         if (!log_err)
         {
             LOG_ERROR(LOG_TAG, "释放日志失败");
@@ -115,7 +115,7 @@ namespace app
         wifi_manager_ = std::make_unique<wifi::WifiManager>(wifi_config);
 
         // 初始化WiFi管理器
-        wifi::WifiError wifi_err = wifi_manager_->initialize();
+        wifi::WifiError wifi_err = wifi_manager_->init();
         if (wifi_err != wifi::WifiError::NONE)
         {
             LOG_ERROR(LOG_TAG, "  WiFi管理器初始化失败");
@@ -131,7 +131,7 @@ namespace app
     {
         if (wifi_manager_)
         {
-            wifi_manager_->shutdown();
+            wifi_manager_->deinit();
             wifi_manager_.reset();
         }
         return true;
@@ -360,7 +360,7 @@ namespace app
         audio_system_ = std::make_unique<audio::AudioSystem>(audio_config);
 
         // 初始化音频系统并传入同步上下文
-        audio::AudioError audio_err = audio_system_->initialize(sync_ctx_);
+        audio::AudioError audio_err = audio_system_->init(sync_ctx_);
         if (audio_err != audio::AudioError::NONE)
         {
             LOG_ERROR(LOG_TAG, "  音频系统初始化失败");
@@ -395,7 +395,7 @@ namespace app
         }
 
         // 关闭音频系统
-        audio_system_->shutdown();
+        audio_system_->deinit();
         audio_system_.reset();
 
         return true;
@@ -413,7 +413,7 @@ namespace app
         video_system_ = std::make_unique<video::VideoSystem>(video_config);
 
         // 初始化视频系统并传入同步上下文
-        video::VideoError video_err = video_system_->initialize(sync_ctx_);
+        video::VideoError video_err = video_system_->init(sync_ctx_);
         if (video_err != video::VideoError::NONE)
         {
             LOG_ERROR(LOG_TAG, "  视频系统初始化失败");
@@ -432,7 +432,7 @@ namespace app
             return true;
         }
 
-        video_system_->shutdown();
+        video_system_->deinit();
         video_system_.reset();
         return true;
     }
@@ -738,8 +738,8 @@ namespace app
             chatbot_system_->setWebRTCSystem(webrtc_.get());
         }
 
-        // 打开聊天机器人系统
-        chatbot::ChatbotError chatbot_err = chatbot_system_->open();
+        // 初始化聊天机器人系统
+        chatbot::ChatbotError chatbot_err = chatbot_system_->init();
         if (chatbot_err != chatbot::ChatbotError::NONE)
         {
             LOG_ERROR(LOG_TAG, "  聊天机器人系统初始化失败: %s", chatbot::errorToString(chatbot_err));
@@ -759,8 +759,8 @@ namespace app
             return true;
         }
 
-        // 关闭聊天机器人系统
-        chatbot_system_->close();
+        // 释放聊天机器人系统
+        chatbot_system_->deinit();
         chatbot_system_.reset();
 
         LOG_INFO(LOG_TAG, "  聊天机器人系统已释放");

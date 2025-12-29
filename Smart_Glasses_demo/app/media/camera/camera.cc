@@ -10,6 +10,7 @@
 #include "../../tool/mac/mac.hpp"
 #include "../../tool/uuid/uuid.hpp"
 #include "../../tool/file/file.hpp"
+#include "../../protocol/rtsp/rtsp.h"
 #include <cstring>
 #include <algorithm>
 #include <chrono>
@@ -17,6 +18,7 @@
 #include <vector>
 #include <map>
 #include <fstream>
+#include <thread>
 
 namespace app
 {
@@ -252,7 +254,7 @@ namespace app
                     auto pool_ptr  = dynamic_pool_.get();
                     frame->deleter = [pool_ptr, mem](int) { pool_ptr->deallocate(mem); };
 
-                    return VideoFramePtr(frame, [mem](VideoFrame* f) {
+                    return VideoFramePtr(frame, [](VideoFrame* f) {
                         if (f && f->deleter) { f->~VideoFrame(); f->deleter(0); }
                     });
                 }
@@ -895,7 +897,8 @@ namespace app
             {
             public:
                 Impl(const VideoConfig& config, std::atomic<bool>& photo_capturing_ref,
-                     std::atomic<bool>& is_recording_ref, std::atomic<bool>& is_webrtc_streaming_ref)
+                     std::atomic<bool>& is_recording_ref, std::atomic<bool>& is_webrtc_streaming_ref,
+                     std::atomic<bool>& is_rtsp_streaming_ref)
                     : config_(config),
                       memory_pool_(VideoMemoryPool::VideoMemoryPoolConfig{
                           config.fixed_block_size, config.fixed_pool_size, config.dynamic_pool_size,
@@ -904,11 +907,12 @@ namespace app
                       quit_flag_(false), current_fps_(0.0f), photo_id_(0), record_id_(0),
                       photo_capturing_external_(photo_capturing_ref),
                       is_recording_external_(is_recording_ref),
-                      is_webrtc_streaming_external_(is_webrtc_streaming_ref) {}
+                      is_webrtc_streaming_external_(is_webrtc_streaming_ref),
+                      is_rtsp_streaming_external_(is_rtsp_streaming_ref) {}
 
-                ~Impl() { shutdown(); }
+                ~Impl() { deinit(); }
 
-                VideoError initialize(std::shared_ptr<sync_context_t> sync_ctx)
+                VideoError init(std::shared_ptr<sync_context_t> sync_ctx)
                 {
                     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -950,7 +954,7 @@ namespace app
                     return VideoError::NONE;
                 }
 
-                void shutdown()
+                void deinit()
                 {
                     std::lock_guard<std::mutex> lock(mutex_);
                     LOG_INFO(LOG_TAG, "关闭视频系统...");
@@ -958,6 +962,7 @@ namespace app
                     stopStreamInternal();
                     stopRecordInternal();
                     stopWebRTCInternal();
+                    stopRTSPInternal();
 
                     if (modules_bound_)
                     {
@@ -1033,6 +1038,7 @@ namespace app
                         case VideoMainState::PHOTO:   handlePhotoFrame(frame); break;
                         case VideoMainState::RECORD:  handleRecordFrame(frame); break;
                         case VideoMainState::WEBRTC:  handleWebRTCFrame(frame); break;
+                        case VideoMainState::RTSP:    handleRTSPFrame(frame); break;
                         default: break;
                         }
 
@@ -1232,6 +1238,18 @@ namespace app
                     if (webrtc_callback_) webrtc_callback_(frame);
                 }
 
+                void handleRTSPFrame(VideoFramePtr& frame)
+                {
+                    if (!is_rtsp_streaming_.load()) return;
+                    std::lock_guard<std::mutex> lock(rtsp_mutex_);
+                    if (rtsp_demo_ && rtsp_session_)
+                    {
+                        uint64_t ts = rtsp_get_reltime();
+                        rtsp_tx_video(rtsp_session_, frame->data, static_cast<int>(frame->size), ts);
+                        rtsp_do_event(rtsp_demo_);
+                    }
+                }
+
                 void setWebRTCVideoCallback(WebRTCVideoCallback callback)
                 {
                     std::lock_guard<std::mutex> lock(webrtc_mutex_);
@@ -1258,6 +1276,93 @@ namespace app
                     if (!is_webrtc_streaming_.load()) return VideoError::NOT_STARTED;
                     is_webrtc_streaming_.store(false);
                     is_webrtc_streaming_external_.store(false);
+                    return VideoError::NONE;
+                }
+
+                VideoError startRTSPStream(int port, const std::string& path)
+                {
+                    if (is_rtsp_streaming_.load()) return VideoError::ALREADY_STARTED;
+                    std::lock_guard<std::mutex> lock(rtsp_mutex_);
+
+                    rtsp_demo_ = rtsp_new_demo(port);
+                    if (!rtsp_demo_)
+                    {
+                        LOG_ERROR(LOG_TAG, "创建RTSP服务器失败");
+                        return VideoError::INIT_FAILED;
+                    }
+
+                    rtsp_session_ = rtsp_new_session(rtsp_demo_, path.c_str());
+                    if (!rtsp_session_)
+                    {
+                        LOG_ERROR(LOG_TAG, "创建RTSP会话失败");
+                        rtsp_del_demo(rtsp_demo_);
+                        rtsp_demo_ = nullptr;
+                        return VideoError::INIT_FAILED;
+                    }
+
+                    // 根据编码格式设置视频编码器
+                    int codec_id = RTSP_CODEC_ID_VIDEO_H264;
+                    if (config_.format == EncodeFormat::H265)
+                        codec_id = RTSP_CODEC_ID_VIDEO_H265;
+                    else if (config_.format == EncodeFormat::JPEG)
+                    {
+                        LOG_ERROR(LOG_TAG, "RTSP不支持JPEG格式");
+                        rtsp_del_session(rtsp_session_);
+                        rtsp_del_demo(rtsp_demo_);
+                        rtsp_session_ = nullptr;
+                        rtsp_demo_ = nullptr;
+                        return VideoError::NOT_SUPPORTED;
+                    }
+
+                    // 设置视频编码器（SPS/PPS会在第一帧自动提取）
+                    if (rtsp_set_video(rtsp_session_, codec_id, nullptr, 0) != 0)
+                    {
+                        LOG_ERROR(LOG_TAG, "设置RTSP视频编码器失败");
+                        rtsp_del_session(rtsp_session_);
+                        rtsp_del_demo(rtsp_demo_);
+                        rtsp_session_ = nullptr;
+                        rtsp_demo_ = nullptr;
+                        return VideoError::INIT_FAILED;
+                    }
+
+                    // 同步时间戳
+                    rtsp_sync_video_ts(rtsp_session_, rtsp_get_reltime(), rtsp_get_ntptime());
+
+                    rtsp_port_ = port;
+                    rtsp_path_ = path;
+                    is_rtsp_streaming_.store(true);
+                    is_rtsp_streaming_external_.store(true);
+
+                    LOG_INFO(LOG_TAG, "RTSP推流已启动: rtsp://<ip>:%d%s", port, path.c_str());
+                    return VideoError::NONE;
+                }
+
+                VideoError stopRTSPStream()
+                {
+                    std::lock_guard<std::mutex> lock(rtsp_mutex_);
+                    return stopRTSPInternal();
+                }
+
+                VideoError stopRTSPInternal()
+                {
+                    if (!is_rtsp_streaming_.load()) return VideoError::NOT_STARTED;
+
+                    if (rtsp_session_)
+                    {
+                        rtsp_del_session(rtsp_session_);
+                        rtsp_session_ = nullptr;
+                    }
+
+                    if (rtsp_demo_)
+                    {
+                        rtsp_del_demo(rtsp_demo_);
+                        rtsp_demo_ = nullptr;
+                    }
+
+                    is_rtsp_streaming_.store(false);
+                    is_rtsp_streaming_external_.store(false);
+
+                    LOG_INFO(LOG_TAG, "RTSP推流已停止");
                     return VideoError::NONE;
                 }
 
@@ -1420,6 +1525,13 @@ namespace app
                 WebRTCVideoCallback webrtc_callback_;
                 std::mutex          webrtc_mutex_;
 
+                std::atomic<bool>   is_rtsp_streaming_{false};
+                rtsp_demo_handle    rtsp_demo_ = nullptr;
+                rtsp_session_handle rtsp_session_ = nullptr;
+                int                 rtsp_port_ = 554;
+                std::string         rtsp_path_ = "/live/0";
+                std::mutex          rtsp_mutex_;
+
                 std::atomic<VideoMainState>    main_state_{VideoMainState::NONE};
                 std::atomic<VideoControlState> control_state_{VideoControlState::IDLE};
 
@@ -1440,6 +1552,7 @@ namespace app
                 std::atomic<bool>& photo_capturing_external_;
                 std::atomic<bool>& is_recording_external_;
                 std::atomic<bool>& is_webrtc_streaming_external_;
+                std::atomic<bool>& is_rtsp_streaming_external_;
 
                 std::string explain_url_;
                 std::string explain_token_;
@@ -1449,20 +1562,20 @@ namespace app
 
             // VideoSystem公开接口
             VideoSystem::VideoSystem(const VideoConfig& config)
-                : pImpl_(std::make_unique<Impl>(config, photo_capturing_, is_recording_, is_webrtc_streaming_)) {}
+                : pImpl_(std::make_unique<Impl>(config, photo_capturing_, is_recording_, is_webrtc_streaming_, is_rtsp_streaming_)) {}
 
-            VideoSystem::~VideoSystem() { shutdown(); }
+            VideoSystem::~VideoSystem() { deinit(); }
 
-            VideoError VideoSystem::initialize(std::shared_ptr<sync_context_t> sync_ctx)
+            VideoError VideoSystem::init(std::shared_ptr<sync_context_t> sync_ctx)
             {
-                VideoError err = pImpl_->initialize(sync_ctx);
+                VideoError err = pImpl_->init(sync_ctx);
                 if (err == VideoError::NONE) is_initialized_.store(true);
                 return err;
             }
 
-            void VideoSystem::shutdown()
+            void VideoSystem::deinit()
             {
-                if (is_initialized_.load()) { pImpl_->shutdown(); is_initialized_.store(false); }
+                if (is_initialized_.load()) { pImpl_->deinit(); is_initialized_.store(false); }
             }
 
             VideoError VideoSystem::startStream()
@@ -1524,6 +1637,28 @@ namespace app
             {
                 pImpl_->stopWebRTCStream();
                 is_webrtc_streaming_.store(false);
+                setMainState(VideoMainState::NONE);
+                return VideoError::NONE;
+            }
+
+            VideoError VideoSystem::startRTSPMode(int port, const std::string& path)
+            {
+                if (!isInitialized()) return VideoError::NOT_INITIALIZED;
+                setMainState(VideoMainState::RTSP);
+                if (!isStreaming())
+                {
+                    VideoError err = startStream();
+                    if (err != VideoError::NONE) return err;
+                }
+                VideoError err = pImpl_->startRTSPStream(port, path);
+                if (err == VideoError::NONE) is_rtsp_streaming_.store(true);
+                return err;
+            }
+
+            VideoError VideoSystem::stopRTSPMode()
+            {
+                pImpl_->stopRTSPStream();
+                is_rtsp_streaming_.store(false);
                 setMainState(VideoMainState::NONE);
                 return VideoError::NONE;
             }

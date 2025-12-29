@@ -259,12 +259,12 @@ namespace app
                  * @brief 初始化WiFi管理器
                  * @return WifiError::NONE 成功
                  */
-                WifiError initialize();
+                WifiError init();
 
                 /**
                  * @brief 关闭WiFi管理器
                  */
-                void shutdown();
+                void deinit();
 
                 // ========================================================================
                 // WiFi扫描操作

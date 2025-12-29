@@ -62,6 +62,9 @@ target_include_directories(app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/tool/log
     ${CMAKE_CURRENT_SOURCE_DIR}/tool/mac
     ${CMAKE_CURRENT_SOURCE_DIR}/tool/memory
+    # rknn headers
+    ${CMAKE_CURRENT_SOURCE_DIR}/rknn
+    ${PROJECT_SOURCE_DIR}/third_party/rknpu2/include
     # libdatachannel headers
     ${PROJECT_SOURCE_DIR}/third_party/libdatachannel/include
     ${PROJECT_SOURCE_DIR}/third_party/libdatachannel/deps/json/single_include

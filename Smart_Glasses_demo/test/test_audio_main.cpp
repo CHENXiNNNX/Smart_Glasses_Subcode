@@ -183,7 +183,7 @@ namespace
          return false;
      }
      
-     LOG_INFO(LOG_TAG, "✓ 固定池分配和回退机制正常");
+     LOG_INFO(LOG_TAG, "固定池分配和回退机制正常");
      
      // 测试1.2：动态池大帧分配
      LOG_INFO(LOG_TAG, "1.2 动态池大帧分配测试...");
@@ -198,7 +198,7 @@ namespace
          dynamic_frames.push_back(frame);
      }
      
-     LOG_INFO(LOG_TAG, "✓ 动态池分配正常");
+     LOG_INFO(LOG_TAG, "动态池分配正常");
      
      // 测试1.3：内存回收和重用
      LOG_INFO(LOG_TAG, "1.3 内存回收和重用测试...");
@@ -212,7 +212,7 @@ namespace
          return false;
      }
      
-     LOG_INFO(LOG_TAG, "✓ 内存回收和重用正常");
+     LOG_INFO(LOG_TAG, "内存回收和重用正常");
      
      // 输出统计信息
      AudioMemoryPool::Stats stats;

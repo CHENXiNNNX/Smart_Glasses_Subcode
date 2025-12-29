@@ -193,8 +193,8 @@
                  ~Impl();
  
                  // 初始化和关闭
-                 WifiError initialize();
-                 void      shutdown();
+                 WifiError init();
+                 void      deinit();
  
                  // 扫描
                  WifiError scanNetworks(const WifiScanCallback& callback, std::vector<WifiInfo>* networks);
@@ -339,14 +339,14 @@
  
              WifiManager::Impl::~Impl()
              {
-                 shutdown();
+                 deinit();
              }
  
              // ============================================================================
              // 初始化和关闭
              // ============================================================================
  
-             WifiError WifiManager::Impl::initialize()
+             WifiError WifiManager::Impl::init()
              {
                  std::lock_guard<std::mutex> lock(mutex_);
  
@@ -476,7 +476,7 @@
                  return WifiError::NONE;
              }
  
-             void WifiManager::Impl::shutdown()
+             void WifiManager::Impl::deinit()
              {
                  LOG_INFO(LOG_TAG, "Shutting down WiFi manager...");
  
@@ -1783,14 +1783,14 @@
  
              WifiManager::~WifiManager() = default;
  
-             WifiError WifiManager::initialize()
-             {
-                 return pImpl_->initialize();
-             }
+            WifiError WifiManager::init()
+            {
+                return pImpl_->init();
+            }
  
-             void WifiManager::shutdown()
+             void WifiManager::deinit()
              {
-                 pImpl_->shutdown();
+                 pImpl_->deinit();
              }
  
              WifiError WifiManager::scanNetworks(const WifiScanCallback& callback,

@@ -260,7 +260,7 @@ bool handleListenMessage(const json& j) {
 
 ### 问题1修复后
 - ✅ AI对话正常启动
-- ✅ 系统状态显示 `AI Stream: ✓ Active`
+- ✅ 系统状态显示 `AI Stream: Active`
 - ✅ 可以进行完整的AI对话流程
 
 ### 问题2修复后

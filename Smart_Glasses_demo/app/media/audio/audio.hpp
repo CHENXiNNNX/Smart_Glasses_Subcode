@@ -392,8 +392,8 @@ namespace app
                 explicit AudioSystem(const AudioConfig& config = AudioConfig());
                 ~AudioSystem();
 
-                AudioError initialize(std::shared_ptr<sync_context_t> sync_ctx = nullptr);
-                void       shutdown();
+                AudioError init(std::shared_ptr<sync_context_t> sync_ctx = nullptr);
+                void       deinit();
                 bool       isInitialized() const;
 
                 AudioError         setMainState(AudioMainState state);

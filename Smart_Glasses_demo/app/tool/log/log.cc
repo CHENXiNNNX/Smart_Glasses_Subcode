@@ -55,7 +55,7 @@ namespace app
 
             Logger::~Logger()
             {
-                shutdown();
+                deinit();
             }
 
             Logger& Logger::getInstance()
@@ -64,7 +64,7 @@ namespace app
                 return instance;
             }
 
-            bool Logger::initialize(const LogConfig& config)
+            bool Logger::init(const LogConfig& config)
             {
                 if (initialized_.load())
                 {
@@ -158,7 +158,7 @@ namespace app
                 return true;
             }
 
-            bool Logger::shutdown()
+            bool Logger::deinit()
             {
                 if (!initialized_.load())
                 {

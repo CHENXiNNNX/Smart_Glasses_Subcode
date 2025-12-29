@@ -110,10 +110,18 @@ add_custom_command(
     COMMENT "Copying cacert.pem to bin directory"
 )
 
-# 引用AIChat_demo中的库 - 已迁移到内部模块，暂时注释
-# set(AI_CHAT_CLIENT_PATH "${PROJECT_SOURCE_DIR}/../AIChat_demo/Client" CACHE PATH "Path to AIChat_demo Client")
-# add_subdirectory(${AI_CHAT_CLIENT_PATH} ${CMAKE_BINARY_DIR}/AIChat_build)
-# target_link_libraries(main AIchat-c-interface AIChatCore)
+# 复制RKNN模型文件到输出目录
+add_custom_command(
+    TARGET main POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_PATH}/model
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${PROJECT_SOURCE_DIR}/assets/models/detection.rknn
+            ${OUTPUT_PATH}/model/detection.rknn
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${PROJECT_SOURCE_DIR}/assets/models/recognition.rknn
+            ${OUTPUT_PATH}/model/recognition.rknn
+    COMMENT "Copying RKNN model files to bin/model directory"
+)
 
 # Ensure pkg-config is available
 find_package(PkgConfig REQUIRED)
@@ -205,6 +213,9 @@ set(MPP_LIB ${MPP_ROOT}/lib)
 set(IVA_INC ${IVA_ROOT}/include)
 set(IVA_LIB ${IVA_ROOT}/lib)
 
+# RTSP库路径
+set(RTSP_LIB ${SDK_PATH}/media/common_algorithm/common_algorithm/misc/lib/arm-rockchip830-linux-uclibcgnueabihf)
+
 target_link_directories(main PRIVATE 
     ${ROCKIT_LIB}
     ${RKAIQ_LIB}
@@ -212,10 +223,11 @@ target_link_directories(main PRIVATE
     ${MPP_LIB}              # MPP库
     ${IVA_LIB}              # IVA库
     ${SAMPLE_COMM_LIB}      # Sample comm库
+    ${RTSP_LIB}             # RTSP库
 )
 
 set(CMAKE_EXE_LINKER_FLAGS
-    "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath-link,${ROCKIT_LIB}:${RKAIQ_LIB}:${RGA_LIB}:${MPP_LIB}:${IVA_LIB}:${SAMPLE_COMM_LIB}:${CMAKE_SYSROOT}/usr/lib"
+    "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath-link,${ROCKIT_LIB}:${RKAIQ_LIB}:${RGA_LIB}:${MPP_LIB}:${IVA_LIB}:${SAMPLE_COMM_LIB}:${RTSP_LIB}:${CMAKE_SYSROOT}/usr/lib"
 )
 
 target_include_directories(main PRIVATE
@@ -247,6 +259,7 @@ target_link_libraries(main
     rockchip_mpp         
     rockiva               
     sample_comm          
+    rtsp                  # RTSP库
     pthread
     dl
     m

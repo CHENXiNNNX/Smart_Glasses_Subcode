@@ -130,12 +130,12 @@ namespace app
                  * @param signaling 信令模块
                  * @return 错误码
                  */
-                WebRTCError initialize(std::shared_ptr<Signaling> signaling);
+                WebRTCError init(std::shared_ptr<Signaling> signaling);
 
                 /**
                  * @brief 关闭WebRTC系统
                  */
-                void shutdown();
+                void deinit();
 
                 /**
                  * @brief 检查是否已初始化

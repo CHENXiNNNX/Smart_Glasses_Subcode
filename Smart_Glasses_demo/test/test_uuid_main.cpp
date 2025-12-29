@@ -27,7 +27,7 @@
      std::cout << "\n调用 generateUUID() ..." << std::endl;
      std::string uuid1 = generateUUID();
      
-     std::cout << "\n✓ UUID已生成并保存: " << uuid1 << std::endl;
+     std::cout << "\nUUID已生成并保存: " << uuid1 << std::endl;
  }
  
  // 测试2：第二次调用应该读取已有的UUID（不重复生成）
@@ -37,8 +37,8 @@
      std::cout << "\n再次调用 generateUUID() ..." << std::endl;
      std::string uuid2 = generateUUID();
      
-     std::cout << "\n✓ 读取到已有的UUID: " << uuid2 << std::endl;
-     std::cout << "✓ 验证：UUID未重复生成" << std::endl;
+     std::cout << "\n读取到已有的UUID: " << uuid2 << std::endl;
+     std::cout << "验证：UUID未重复生成" << std::endl;
  }
  
  // 测试3：直接读取配置文件中的UUID
@@ -49,8 +49,8 @@
      std::string uuid = readUUIDFromConfig(DEFAULT_CONFIG_FILE);
      
      if (!uuid.empty()) {
-         std::cout << "\n✓ 成功读取UUID: " << uuid << std::endl;
-         std::cout << "✓ UUID格式有效: " << (isValidUUID(uuid) ? "是" : "否") << std::endl;
+         std::cout << "\n成功读取UUID: " << uuid << std::endl;
+         std::cout << "UUID格式有效: " << (isValidUUID(uuid) ? "是" : "否") << std::endl;
      } else {
          std::cout << "\n✗ 读取失败：配置文件为空或格式错误" << std::endl;
      }
@@ -78,8 +78,8 @@
      }
      
      if (all_same) {
-         std::cout << "\n✓ 验证通过：所有UUID完全相同" << std::endl;
-         std::cout << "✓ UUID不会重复生成" << std::endl;
+         std::cout << "\n验证通过：所有UUID完全相同" << std::endl;
+         std::cout << "UUID不会重复生成" << std::endl;
      } else {
          std::cout << "\n✗ 验证失败：UUID不一致" << std::endl;
      }
@@ -96,11 +96,11 @@
          std::cout << "  临时UUID " << (i+1) << ": " << uuid << std::endl;
      }
      
-     std::cout << "\n✓ 这些UUID不会保存到配置文件" << std::endl;
+     std::cout << "\n这些UUID不会保存到配置文件" << std::endl;
      
      // 验证配置文件中的UUID未改变
      std::string config_uuid = readUUIDFromConfig(DEFAULT_CONFIG_FILE);
-     std::cout << "✓ 配置文件中的UUID仍为: " << config_uuid << std::endl;
+     std::cout << "配置文件中的UUID仍为: " << config_uuid << std::endl;
  }
  
  // 测试6：格式化功能
@@ -115,7 +115,7 @@
      std::cout << "格式化后的UUID:       " << formatted << std::endl;
      
      if (!formatted.empty()) {
-         std::cout << "✓ 格式化成功" << std::endl;
+         std::cout << "格式化成功" << std::endl;
      }
  }
  
@@ -152,9 +152,9 @@
          
          // 测试总结
          printSeparator("测试总结");
-         std::cout << "\n  ✓ 所有测试执行完成" << std::endl;
-         std::cout << "  ✓ UUID持久化功能正常工作" << std::endl;
-         std::cout << "  ✓ UUID不会重复生成" << std::endl;
+         std::cout << "\n  所有测试执行完成" << std::endl;
+         std::cout << "  UUID持久化功能正常工作" << std::endl;
+         std::cout << "  UUID不会重复生成" << std::endl;
          std::cout << std::endl;
          
      } catch (const std::exception& e) {

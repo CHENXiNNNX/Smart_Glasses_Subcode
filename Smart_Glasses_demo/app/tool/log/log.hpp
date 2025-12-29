@@ -119,13 +119,13 @@ namespace app
                  * @param config 日志配置
                  * @return true-成功, false-失败
                  */
-                bool initialize(const LogConfig& config = LogConfig());
+                bool init(const LogConfig& config = LogConfig());
 
                 /**
                  * @brief 关闭日志系统
                  * @return true-成功, false-失败
                  */
-                bool shutdown();
+                bool deinit();
 
                 /**
                  * @brief 写入日志（格式化）

@@ -13,7 +13,7 @@ install(FILES ${JPEG_TURBO_PATH}/lib_uclibc/libturbojpeg.a DESTINATION lib)
 
 # rknn runtime
 set(RKNN_PATH ${CMAKE_CURRENT_SOURCE_DIR}/rknpu2)
-set(LIBRKNNRT ${RKNN_PATH}/${CMAKE_SYSTEM_NAME}/armhf-uclibc/librknnmrt.a PARENT_SCOPE) 
+set(LIBRKNNRT ${RKNN_PATH}/${CMAKE_SYSTEM_NAME}/armhf-uclibc/librknnmrt.so PARENT_SCOPE) 
 set(LIBRKNNRT_INCLUDES ${RKNN_PATH}/include PARENT_SCOPE)
 install(FILES ${LIBRKNNRT} DESTINATION lib)
 

@@ -390,7 +390,8 @@ namespace app
                 NONE = 0, // 空闲状态
                 PHOTO,    // 拍照模式
                 RECORD,   // 录像模式
-                WEBRTC    // WebRTC推流模式
+                WEBRTC,   // WebRTC推流模式
+                RTSP      // RTSP推流模式
             };
 
             // ============================================================================
@@ -855,12 +856,12 @@ namespace app
                  * @brief 初始化视频系统
                  * @param sync_ctx 时间同步上下文
                  */
-                VideoError initialize(std::shared_ptr<sync_context_t> sync_ctx = nullptr);
+                VideoError init(std::shared_ptr<sync_context_t> sync_ctx = nullptr);
 
                 /**
                  * @brief 关闭视频系统
                  */
-                void shutdown();
+                void deinit();
 
                 /**
                  * @brief 检查是否已初始化
@@ -966,6 +967,30 @@ namespace app
                  * @brief 停止WebRTC模式
                  */
                 VideoError stopWebRTCMode();
+
+                // ========================================================================
+                // RTSP推流
+                // ========================================================================
+
+                /**
+                 * @brief 启动RTSP推流模式
+                 * @param port RTSP服务器端口（默认554）
+                 * @param path RTSP路径（默认"/live/0"）
+                 */
+                VideoError startRTSPMode(int port = 554, const std::string& path = "/live/0");
+
+                /**
+                 * @brief 停止RTSP推流模式
+                 */
+                VideoError stopRTSPMode();
+
+                /**
+                 * @brief 检查是否正在RTSP推流
+                 */
+                bool isRTSPStreaming() const
+                {
+                    return is_rtsp_streaming_.load();
+                }
 
                 // ========================================================================
                 // 状态机管理
@@ -1162,6 +1187,7 @@ namespace app
                 std::atomic<bool> photo_capturing_{false};
                 std::atomic<bool> is_recording_{false};
                 std::atomic<bool> is_webrtc_streaming_{false};
+                std::atomic<bool> is_rtsp_streaming_{false};
             };
 
         } // namespace camera
