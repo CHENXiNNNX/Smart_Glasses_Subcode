@@ -26,14 +26,14 @@ namespace app
          */
         enum class RKNNError
         {
-            NONE = 0,              // 成功
-            INIT_FAILED = -1,      // 初始化失败
-            QUERY_FAILED = -2,     // 查询失败
+            NONE                = 0,  // 成功
+            INIT_FAILED         = -1, // 初始化失败
+            QUERY_FAILED        = -2, // 查询失败
             MEMORY_ALLOC_FAILED = -3, // 内存分配失败
-            SET_IO_MEM_FAILED = -4,   // 设置IO内存失败
-            RUN_FAILED = -5,       // 推理失败
-            INVALID_STATE = -6,    // 无效状态
-            INVALID_PARAM = -7     // 无效参数
+            SET_IO_MEM_FAILED   = -4, // 设置IO内存失败
+            RUN_FAILED          = -5, // 推理失败
+            INVALID_STATE       = -6, // 无效状态
+            INVALID_PARAM       = -7  // 无效参数
         };
 
         /**
@@ -55,7 +55,7 @@ namespace app
             /**
              * @brief 禁用拷贝构造和赋值
              */
-            RKNNModel(const RKNNModel&) = delete;
+            RKNNModel(const RKNNModel&)            = delete;
             RKNNModel& operator=(const RKNNModel&) = delete;
 
             /**
@@ -74,19 +74,28 @@ namespace app
              * @brief 检查模型是否已初始化
              * @return true 已初始化，false 未初始化
              */
-            bool isInitialized() const { return initialized_; }
+            bool isInitialized() const
+            {
+                return initialized_;
+            }
 
             /**
              * @brief 获取模型输入数量
              * @return 输入数量
              */
-            uint32_t getInputNum() const { return io_num_.n_input; }
+            uint32_t getInputNum() const
+            {
+                return io_num_.n_input;
+            }
 
             /**
              * @brief 获取模型输出数量
              * @return 输出数量
              */
-            uint32_t getOutputNum() const { return io_num_.n_output; }
+            uint32_t getOutputNum() const
+            {
+                return io_num_.n_output;
+            }
 
             /**
              * @brief 获取输入属性
@@ -106,19 +115,28 @@ namespace app
              * @brief 获取模型输入宽度
              * @return 输入宽度
              */
-            int getModelWidth() const { return model_width_; }
+            int getModelWidth() const
+            {
+                return model_width_;
+            }
 
             /**
              * @brief 获取模型输入高度
              * @return 输入高度
              */
-            int getModelHeight() const { return model_height_; }
+            int getModelHeight() const
+            {
+                return model_height_;
+            }
 
             /**
              * @brief 获取模型输入通道数
              * @return 输入通道数
              */
-            int getModelChannel() const { return model_channel_; }
+            int getModelChannel() const
+            {
+                return model_channel_;
+            }
 
             /**
              * @brief 设置输入数据
@@ -162,7 +180,10 @@ namespace app
              * @brief 检查输出是否为量化模型
              * @return true 是量化模型，false 不是
              */
-            bool isQuantized() const { return is_quant_; }
+            bool isQuantized() const
+            {
+                return is_quant_;
+            }
 
             /**
              * @brief 从内存池分配临时缓冲区（用于预处理等）
@@ -215,9 +236,9 @@ namespace app
             std::vector<rknn_tensor_mem*> output_mems_;
 
             // 模型信息
-            int model_width_;
-            int model_height_;
-            int model_channel_;
+            int  model_width_;
+            int  model_height_;
+            int  model_channel_;
             bool is_quant_;
 
             // 初始化状态
@@ -231,4 +252,3 @@ namespace app
 } // namespace app
 
 #endif // RKNN_HPP
-

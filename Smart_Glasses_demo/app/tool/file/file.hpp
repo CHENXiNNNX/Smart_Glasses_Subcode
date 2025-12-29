@@ -24,17 +24,17 @@ namespace app
 
             enum class FileError
             {
-                NONE = 0,            // 无错误
-                INVALID_PARAM,       // 无效参数
-                FILE_NOT_FOUND,      // 文件不存在
-                FILE_OPEN_FAILED,    // 文件打开失败
-                FILE_READ_FAILED,    // 文件读取失败
-                FILE_WRITE_FAILED,   // 文件写入失败
-                FILE_CLOSE_FAILED,   // 文件关闭失败
-                DIR_CREATE_FAILED,   // 目录创建失败
-                PERMISSION_DENIED,   // 权限不足
-                DISK_FULL,           // 磁盘已满
-                UNKNOWN              // 未知错误
+                NONE = 0,          // 无错误
+                INVALID_PARAM,     // 无效参数
+                FILE_NOT_FOUND,    // 文件不存在
+                FILE_OPEN_FAILED,  // 文件打开失败
+                FILE_READ_FAILED,  // 文件读取失败
+                FILE_WRITE_FAILED, // 文件写入失败
+                FILE_CLOSE_FAILED, // 文件关闭失败
+                DIR_CREATE_FAILED, // 目录创建失败
+                PERMISSION_DENIED, // 权限不足
+                DISK_FULL,         // 磁盘已满
+                UNKNOWN            // 未知错误
             };
 
             // ============================================================================
@@ -43,10 +43,10 @@ namespace app
 
             enum class FileMode
             {
-                READ,        // 只读模式 ("rb")
-                WRITE,       // 写入模式，覆盖 ("wb")
-                APPEND,      // 追加模式 ("ab")
-                READ_WRITE   // 读写模式 ("r+b")
+                READ,      // 只读模式 ("rb")
+                WRITE,     // 写入模式，覆盖 ("wb")
+                APPEND,    // 追加模式 ("ab")
+                READ_WRITE // 读写模式 ("r+b")
             };
 
             // ============================================================================
@@ -164,10 +164,10 @@ namespace app
                 }
 
             private:
-                std::string filename_;  // 文件路径
-                FILE*       file_;      // 文件指针
-                bool        valid_;     // 是否有效
-                FileMode    mode_;      // 打开模式
+                std::string filename_;   // 文件路径
+                FILE*       file_;       // 文件指针
+                bool        valid_;      // 是否有效
+                FileMode    mode_;       // 打开模式
                 FileError   last_error_; // 最后的错误码
 
                 /**
@@ -353,4 +353,3 @@ namespace app
 } // namespace app
 
 #endif // FILE_HPP
-

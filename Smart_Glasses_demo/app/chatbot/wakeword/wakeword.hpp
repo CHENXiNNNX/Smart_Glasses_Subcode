@@ -67,9 +67,9 @@ namespace app
                 std::string model_file;    // 模型文件路径
 
                 // 检测参数
-                float sensitivity = 0.5f; // 灵敏度
-                float audio_gain  = 1.0f; // 音频增益
-                bool apply_frontend = false; // 是否应用前端处理
+                float sensitivity    = 0.5f;  // 灵敏度
+                float audio_gain     = 1.0f;  // 音频增益
+                bool  apply_frontend = false; // 是否应用前端处理
 
                 // 音频缓冲
                 size_t max_buffer_size  = 4096;  // 最大缓冲区大小

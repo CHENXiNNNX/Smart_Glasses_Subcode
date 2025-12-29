@@ -33,8 +33,8 @@ namespace app
         {
             class Signaling;
             class WebRTCSystem;
-        }
-    } // namespace protocol
+        } // namespace webrtc
+    }     // namespace protocol
 
     namespace chatbot
     {

@@ -13,12 +13,13 @@
 using namespace app::media::camera;
 using namespace app::tool::log;
 
-namespace {
-    constexpr const char* LOG_TAG = "MAIN";
-    constexpr int STATS_INTERVAL_SEC = 5;
-    std::atomic<bool> g_running{true};
-    VideoSystem* g_video_system = nullptr;
-}
+namespace
+{
+    constexpr const char* LOG_TAG            = "MAIN";
+    constexpr int         STATS_INTERVAL_SEC = 5;
+    std::atomic<bool>     g_running{true};
+    VideoSystem*          g_video_system = nullptr;
+} // namespace
 
 static void signal_handler(int sig)
 {
@@ -43,10 +44,10 @@ int main(int argc, char* argv[])
 
     // 创建视频配置
     VideoConfig config;
-    config.width  = CAMERA_WIDTH;
-    config.height = CAMERA_HEIGHT;
-    config.fps    = CAMERA_FPS;
-    config.format = EncodeFormat::H264;
+    config.width   = CAMERA_WIDTH;
+    config.height  = CAMERA_HEIGHT;
+    config.fps     = CAMERA_FPS;
+    config.format  = EncodeFormat::H264;
     config.bitrate = H264_Default_Bitrate;
     config.gop     = H264_Default_Gop;
 
@@ -65,7 +66,7 @@ int main(int argc, char* argv[])
     LOG_INFO(LOG_TAG, "视频系统初始化成功");
 
     // 启动RTSP推流
-    int rtsp_port = RTSP_PORT;
+    int         rtsp_port = RTSP_PORT;
     std::string rtsp_path = RTSP_PATH;
 
     // 可以从命令行参数读取端口和路径
@@ -96,12 +97,13 @@ int main(int argc, char* argv[])
 
         if (video_system.isRTSPStreaming())
         {
-            float fps = video_system.getCurrentFPS();
+            float              fps = video_system.getCurrentFPS();
             VideoSystem::Stats stats;
             video_system.getStats(stats);
 
             LOG_INFO(LOG_TAG, "RTSP推流中 - FPS: %.2f, 总帧数: %zu, 丢弃帧数: %zu",
-                     static_cast<double>(fps), stats.frames_captured.load(), stats.frames_dropped.load());
+                     static_cast<double>(fps), stats.frames_captured.load(),
+                     stats.frames_dropped.load());
         }
         else
         {
@@ -119,4 +121,3 @@ int main(int argc, char* argv[])
     LOG_INFO(LOG_TAG, "程序退出");
     return 0;
 }
-

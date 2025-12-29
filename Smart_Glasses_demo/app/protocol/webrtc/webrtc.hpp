@@ -24,16 +24,16 @@ namespace app
              */
             enum class WebRTCState
             {
-                IDLE = 0,       // 空闲状态
+                IDLE = 0,                // 空闲状态
                 WAITING_CONNECT_REQUEST, // 等待连接请求
-                SDP_CONNECTING, // SDP协商中（发送offer）
-                SDP_CONNECTED,  // SDP协商完成（收到answer）
-                ICE_CONNECTING, // ICE候选交换中
-                ICE_CONNECTED,  // ICE连接建立
-                CONNECTED,      // WebRTC连接完全建立
-                DISCONNECTING,  // 正在断开连接
-                DISCONNECTED,   // 已断开连接
-                FAILED          // 发生错误
+                SDP_CONNECTING,          // SDP协商中（发送offer）
+                SDP_CONNECTED,           // SDP协商完成（收到answer）
+                ICE_CONNECTING,          // ICE候选交换中
+                ICE_CONNECTED,           // ICE连接建立
+                CONNECTED,               // WebRTC连接完全建立
+                DISCONNECTING,           // 正在断开连接
+                DISCONNECTED,            // 已断开连接
+                FAILED                   // 发生错误
             };
 
             /**
@@ -98,10 +98,10 @@ namespace app
             };
 
             // 回调函数类型定义
-            using StateCallback       = std::function<void(WebRTCState)>;
-            using ErrorCallback       = std::function<void(WebRTCError, const std::string&)>;
-            using AudioDataCallback   = std::function<void(const uint8_t*, size_t)>;
-            using VideoDataCallback   = std::function<void(const uint8_t*, size_t, uint64_t)>;
+            using StateCallback     = std::function<void(WebRTCState)>;
+            using ErrorCallback     = std::function<void(WebRTCError, const std::string&)>;
+            using AudioDataCallback = std::function<void(const uint8_t*, size_t)>;
+            using VideoDataCallback = std::function<void(const uint8_t*, size_t, uint64_t)>;
 
             /**
              * @brief WebRTC系统
@@ -158,10 +158,8 @@ namespace app
                  * @param enable_video 是否开启视频通道
                  * @return 是否发送成功
                  */
-                bool sendConnectionRequest(const std::string& peer_id,
-                                         bool enable_message = true,
-                                         bool enable_audio = true,
-                                         bool enable_video = false);
+                bool sendConnectionRequest(const std::string& peer_id, bool enable_message = true,
+                                           bool enable_audio = true, bool enable_video = false);
 
                 /**
                  * @brief 处理连接请求响应
@@ -176,7 +174,7 @@ namespace app
                 void disconnect();
 
                 // ========================================================================
-                // 信令处理 
+                // 信令处理
                 // ========================================================================
 
                 /**
@@ -366,25 +364,25 @@ namespace app
                 static constexpr int VIDEO_SEND_INTERVAL_MS = 1000 / CAMERA_FPS;
 
                 // 回调函数
-                mutable std::mutex  callback_mutex_;
-                StateCallback       state_callback_;
-                ErrorCallback       error_callback_;
-                AudioDataCallback   audio_callback_;
-                VideoDataCallback   video_callback_;
+                mutable std::mutex callback_mutex_;
+                StateCallback      state_callback_;
+                ErrorCallback      error_callback_;
+                AudioDataCallback  audio_callback_;
+                VideoDataCallback  video_callback_;
 
                 // 统计信息
-                mutable std::mutex stats_mutex_;
-                Stats              stats_;
+                mutable std::mutex                    stats_mutex_;
+                Stats                                 stats_;
                 std::chrono::steady_clock::time_point connection_start_time_;
 
                 // ICE候选缓存
                 std::vector<std::string> pending_ice_candidates_;
-                std::mutex              ice_candidates_mutex_;
-                std::atomic<bool>       sdp_exchange_completed_{false};
+                std::mutex               ice_candidates_mutex_;
+                std::atomic<bool>        sdp_exchange_completed_{false};
 
                 // 连接请求相关
-                bool connection_request_sent_ = false;
-                ConnectionRequest current_connection_request_;  // 保存当前连接请求参数
+                bool              connection_request_sent_ = false;
+                ConnectionRequest current_connection_request_; // 保存当前连接请求参数
 
                 // ========================================================================
                 // 私有方法
@@ -431,7 +429,6 @@ namespace app
 
                 // 错误回调触发
                 void invokeErrorCallback(WebRTCError error, const std::string& message);
-
             };
 
         } // namespace webrtc

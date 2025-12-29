@@ -33,8 +33,8 @@ namespace app
         {
             class Signaling;
             class WebRTCSystem;
-        }
-    } // namespace protocol
+        } // namespace webrtc
+    }     // namespace protocol
     namespace chatbot
     {
         class ChatbotSystem;
@@ -72,11 +72,11 @@ namespace app
                      */
                     static int
                     registerAllTools(McpServer&                           mcp_server,
-                                     app::media::audio::AudioSystem*      audio_system  = nullptr,
-                                     app::media::camera::VideoSystem*     video_system  = nullptr,
-                                     app::network::wifi::WifiManager*     wifi_manager  = nullptr,
-                                     app::protocol::webrtc::Signaling*    signaling     = nullptr,
-                                     app::protocol::webrtc::WebRTCSystem* webrtc_system = nullptr,
+                                     app::media::audio::AudioSystem*      audio_system   = nullptr,
+                                     app::media::camera::VideoSystem*     video_system   = nullptr,
+                                     app::network::wifi::WifiManager*     wifi_manager   = nullptr,
+                                     app::protocol::webrtc::Signaling*    signaling      = nullptr,
+                                     app::protocol::webrtc::WebRTCSystem* webrtc_system  = nullptr,
                                      app::chatbot::ChatbotSystem*         chatbot_system = nullptr);
 
                     /**
@@ -92,8 +92,9 @@ namespace app
                      * @param audio_system 音频系统指针
                      * @return 注册的工具数量
                      */
-                    static int registerAudioTools(McpServer&                      mcp_server,
-                                                  app::media::audio::AudioSystem* audio_system = nullptr);
+                    static int
+                    registerAudioTools(McpServer&                      mcp_server,
+                                       app::media::audio::AudioSystem* audio_system = nullptr);
 
                     /**
                      * @brief 注册视频工具

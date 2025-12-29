@@ -40,8 +40,8 @@ namespace app
         {
             class Signaling;
             class WebRTCSystem;
-        }
-    } // namespace protocol
+        } // namespace webrtc
+    }     // namespace protocol
 } // namespace app
 
 namespace app
@@ -189,29 +189,29 @@ namespace app
             ChatbotError getDeviceId();
             ChatbotError initActivation();   // 初始化激活管理器
             ChatbotError deinitActivation(); // 释放激活管理器
-            ChatbotError checkActivation();        // 激活检测
+            ChatbotError checkActivation();  // 激活检测
 
             // MCP工具管理
             ChatbotError initMCP();   // 初始化MCP服务器并注册工具
             ChatbotError deinitMCP(); // 释放MCP服务器
 
             // 协议处理器管理
-            ChatbotError initProtocol();     // 初始化协议处理器
-            ChatbotError deinitProtocol();   // 释放协议处理器
+            ChatbotError initProtocol();           // 初始化协议处理器
+            ChatbotError deinitProtocol();         // 释放协议处理器
             void         setupProtocolCallbacks(); // 设置协议回调
 
             // WebSocket连接管理
-            ChatbotError initWebSocket();     // 初始化WebSocket客户端
-            ChatbotError deinitWebSocket();   // 释放WebSocket客户端
+            ChatbotError initWebSocket();   // 初始化WebSocket客户端
+            ChatbotError deinitWebSocket(); // 释放WebSocket客户端
             ChatbotError connectAIServer();
             void         setupWebSocketCallbacks(); // 设置WebSocket回调
 
             // 唤醒词管理
-            ChatbotError initWakeword();         // 初始化唤醒词检测器
-            ChatbotError deinitWakeword();       // 释放唤醒词检测器
+            ChatbotError initWakeword();               // 初始化唤醒词检测器
+            ChatbotError deinitWakeword();             // 释放唤醒词检测器
             void         setupWakewordCallbacks();     // 设置唤醒词回调
             void         setupWakewordAudioCallback(); // 设置音频系统的唤醒词回调
-            void setupAIAudioCallback();
+            void         setupAIAudioCallback();
 
         public:
             explicit ChatbotSystem(const ChatbotConfig& config = ChatbotConfig());

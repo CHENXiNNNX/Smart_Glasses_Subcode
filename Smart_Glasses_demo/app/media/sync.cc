@@ -8,9 +8,9 @@
 
 namespace
 {
-    constexpr const char* LOG_TAG                      = "SYNC";
-    constexpr uint64_t    MICROSECONDS_PER_SECOND      = 1000000ULL;
-    constexpr uint64_t    NANOSECONDS_PER_MICROSECOND  = 1000ULL;
+    constexpr const char* LOG_TAG                     = "SYNC";
+    constexpr uint64_t    MICROSECONDS_PER_SECOND     = 1000000ULL;
+    constexpr uint64_t    NANOSECONDS_PER_MICROSECOND = 1000ULL;
 } // namespace
 
 // 初始化时间同步

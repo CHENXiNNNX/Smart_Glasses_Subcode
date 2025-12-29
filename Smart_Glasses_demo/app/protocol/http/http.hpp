@@ -127,13 +127,14 @@ namespace app
                  * @param verify_ssl 是否验证SSL证书
                  * @return HTTP响应
                  */
-                HttpResponse postMultipart(
-                    const std::string& url, const std::map<std::string, std::string>& form_fields,
-                    const std::string& file_field_name, const void* file_data, size_t file_size,
-                    const std::string& file_name = "upload.bin",
-                    const std::string& file_content_type = "application/octet-stream",
-                    const std::map<std::string, std::string>& headers = {}, int timeout_ms = 10000,
-                    bool verify_ssl = true);
+                HttpResponse
+                postMultipart(const std::string&                        url,
+                              const std::map<std::string, std::string>& form_fields,
+                              const std::string& file_field_name, const void* file_data,
+                              size_t file_size, const std::string& file_name = "upload.bin",
+                              const std::string& file_content_type = "application/octet-stream",
+                              const std::map<std::string, std::string>& headers = {},
+                              int timeout_ms = 10000, bool verify_ssl = true);
 
                 // 禁止拷贝和赋值
                 HttpClient(const HttpClient&)            = delete;

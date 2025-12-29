@@ -263,14 +263,10 @@ namespace app
                     }
 
                     LOG_INFO(LOG_TAG, "Initializing...");
-                    LOG_DEBUG(LOG_TAG, "  Resource: %s",
-                              config_.resource_file.c_str());
-                    LOG_DEBUG(LOG_TAG, "  Model: %s",
-                              config_.model_file.c_str());
-                    LOG_DEBUG(LOG_TAG, "  Sensitivity: %.2f",
-                              (double)config_.sensitivity);
-                    LOG_DEBUG(LOG_TAG, "  Audio Gain: %.2f",
-                              (double)config_.audio_gain);
+                    LOG_DEBUG(LOG_TAG, "  Resource: %s", config_.resource_file.c_str());
+                    LOG_DEBUG(LOG_TAG, "  Model: %s", config_.model_file.c_str());
+                    LOG_DEBUG(LOG_TAG, "  Sensitivity: %.2f", (double)config_.sensitivity);
+                    LOG_DEBUG(LOG_TAG, "  Audio Gain: %.2f", (double)config_.audio_gain);
 
                     try
                     {
@@ -302,8 +298,7 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR(LOG_TAG, "✗ Failed to create detector: %s",
-                                  e.what());
+                        LOG_ERROR(LOG_TAG, "✗ Failed to create detector: %s", e.what());
 
                         // 触发错误回调
                         invokeErrorCallback(WakewordError::DETECTOR_ERROR, e.what());
@@ -414,14 +409,12 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR(LOG_TAG, "Wakeword callback exception: %s",
-                                      e.what());
+                            LOG_ERROR(LOG_TAG, "Wakeword callback exception: %s", e.what());
                             invokeErrorCallback(WakewordError::CALLBACK_EXCEPTION, e.what());
                         }
                         catch (...)
                         {
-                            LOG_ERROR(LOG_TAG,
-                                      "Wakeword callback unknown exception");
+                            LOG_ERROR(LOG_TAG, "Wakeword callback unknown exception");
                             invokeErrorCallback(WakewordError::CALLBACK_EXCEPTION,
                                                 "Unknown exception");
                         }
@@ -444,13 +437,11 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR(LOG_TAG, "Error callback exception: %s",
-                                      e.what());
+                            LOG_ERROR(LOG_TAG, "Error callback exception: %s", e.what());
                         }
                         catch (...)
                         {
-                            LOG_ERROR(LOG_TAG,
-                                      "Error callback unknown exception");
+                            LOG_ERROR(LOG_TAG, "Error callback unknown exception");
                         }
                     }
                 }
@@ -465,8 +456,7 @@ namespace app
                     {
                         detector_->setSensitivity(sensitivity);
                         config_.sensitivity = sensitivity;
-                        LOG_DEBUG(LOG_TAG, "Sensitivity set to %.2f",
-                                  (double)sensitivity);
+                        LOG_DEBUG(LOG_TAG, "Sensitivity set to %.2f", (double)sensitivity);
                     }
                 }
 
@@ -476,8 +466,7 @@ namespace app
                     {
                         detector_->setAudioGain(gain);
                         config_.audio_gain = gain;
-                        LOG_DEBUG(LOG_TAG, "Audio gain set to %.2f",
-                                  (double)gain);
+                        LOG_DEBUG(LOG_TAG, "Audio gain set to %.2f", (double)gain);
                     }
                 }
 

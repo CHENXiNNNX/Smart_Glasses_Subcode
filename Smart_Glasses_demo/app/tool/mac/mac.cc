@@ -131,8 +131,8 @@ namespace app
                         mac_address = s_read_mac_from_sysfs(interface_name);
                         if (!mac_address.empty())
                         {
-                            LOG_INFO(LOG_TAG, "发现无线网卡接口: %s, MAC: %s", interface_name.c_str(),
-                                     mac_address.c_str());
+                            LOG_INFO(LOG_TAG, "发现无线网卡接口: %s, MAC: %s",
+                                     interface_name.c_str(), mac_address.c_str());
                             closedir(dir);
                             return mac_address;
                         }
@@ -146,8 +146,8 @@ namespace app
                             if (!temp_mac.empty())
                             {
                                 first_mac_address = temp_mac;
-                                LOG_INFO(LOG_TAG, "发现有线网卡接口: %s, MAC: %s", interface_name.c_str(),
-                                         first_mac_address.c_str());
+                                LOG_INFO(LOG_TAG, "发现有线网卡接口: %s, MAC: %s",
+                                         interface_name.c_str(), first_mac_address.c_str());
                             }
                         }
                     }
@@ -182,7 +182,8 @@ namespace app
                 }
                 else
                 {
-                    LOG_INFO(LOG_TAG, "接口 %s MAC地址: %s", interface_name.c_str(), mac_address.c_str());
+                    LOG_INFO(LOG_TAG, "接口 %s MAC地址: %s", interface_name.c_str(),
+                             mac_address.c_str());
                 }
 
                 return mac_address;

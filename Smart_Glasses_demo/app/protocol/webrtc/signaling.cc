@@ -229,7 +229,8 @@ namespace app
                 return false;
             }
 
-            bool Signaling::sendConnectionRequest(const std::string& peer_id, const ConnectionRequest& request)
+            bool Signaling::sendConnectionRequest(const std::string&       peer_id,
+                                                  const ConnectionRequest& request)
             {
                 SignalingStatus current = status_.load(std::memory_order_acquire);
                 if (current != SignalingStatus::JOINED && current != SignalingStatus::PAIRED)
@@ -253,17 +254,17 @@ namespace app
                 json message = {{"type", "get_connect"},
                                 {"from", config_.device_id},
                                 {"to", target_device_id},
-                                {"data", {
-                                    {"message", request.message},
-                                    {"audio", request.audio},
-                                    {"video", request.video}
-                                }},
+                                {"data",
+                                 {{"message", request.message},
+                                  {"audio", request.audio},
+                                  {"video", request.video}}},
                                 {"time", getCurrentTimestamp()}};
 
                 if (sendMessage(message))
                 {
                     LOG_INFO(LOG_TAG, "发送连接请求到 %s (message=%d, audio=%d, video=%d)",
-                             target_device_id.c_str(), request.message, request.audio, request.video);
+                             target_device_id.c_str(), request.message, request.audio,
+                             request.video);
                     return true;
                 }
 
@@ -294,7 +295,7 @@ namespace app
                 LOG_INFO(LOG_TAG, "SDP内容:");
                 // 按行打印SDP以便阅读
                 std::istringstream sdp_stream(sdp);
-                std::string line;
+                std::string        line;
                 while (std::getline(sdp_stream, line))
                 {
                     if (!line.empty())
@@ -318,7 +319,6 @@ namespace app
 
                 return false;
             }
-
 
             bool Signaling::sendIceCandidate(const std::string& candidate,
                                              const std::string& target_device_id)
@@ -531,11 +531,11 @@ namespace app
 
             void Signaling::handleConnectionResponseMessage(const json& msg)
             {
-                bool respond = msg.value("respond", false);
-                std::string from = msg.value("from", "unknown");
-                
-                LOG_INFO(LOG_TAG, "收到连接请求回应 from=%s, respond=%s",
-                         from.c_str(), respond ? "true(同意)" : "false(拒绝)");
+                bool        respond = msg.value("respond", false);
+                std::string from    = msg.value("from", "unknown");
+
+                LOG_INFO(LOG_TAG, "收到连接请求回应 from=%s, respond=%s", from.c_str(),
+                         respond ? "true(同意)" : "false(拒绝)");
 
                 // 触发连接请求回应回调
                 invokeConnectionResponseCallback(respond);
@@ -546,7 +546,7 @@ namespace app
                 // 打印接收到的Offer SDP内容
                 if (msg.contains("data") && msg["data"].contains("sdp"))
                 {
-                    std::string sdp = msg["data"]["sdp"].get<std::string>();
+                    std::string sdp  = msg["data"]["sdp"].get<std::string>();
                     std::string from = msg.value("from", "unknown");
 
                     LOG_INFO(LOG_TAG, "========== 收到 OFFER SDP ==========");
@@ -556,7 +556,7 @@ namespace app
                     LOG_INFO(LOG_TAG, "SDP内容:");
                     // 按行打印SDP以便阅读
                     std::istringstream sdp_stream(sdp);
-                    std::string line;
+                    std::string        line;
                     while (std::getline(sdp_stream, line))
                     {
                         if (!line.empty())
@@ -588,7 +588,7 @@ namespace app
                 // 打印接收到的Answer SDP内容
                 if (msg.contains("data") && msg["data"].contains("sdp"))
                 {
-                    std::string sdp = msg["data"]["sdp"].get<std::string>();
+                    std::string sdp  = msg["data"]["sdp"].get<std::string>();
                     std::string from = msg.value("from", "unknown");
 
                     LOG_INFO(LOG_TAG, "========== 收到 ANSWER SDP ==========");
@@ -598,7 +598,7 @@ namespace app
                     LOG_INFO(LOG_TAG, "SDP内容:");
                     // 按行打印SDP以便阅读
                     std::istringstream sdp_stream(sdp);
-                    std::string line;
+                    std::string        line;
                     while (std::getline(sdp_stream, line))
                     {
                         if (!line.empty())
@@ -631,7 +631,7 @@ namespace app
                 if (msg.contains("data") && msg["data"].contains("candidate"))
                 {
                     std::string candidate = msg["data"]["candidate"].get<std::string>();
-                    std::string from = msg.value("from", "unknown");
+                    std::string from      = msg.value("from", "unknown");
 
                     LOG_INFO(LOG_TAG, "========== 收到 ICE候选 ==========");
                     LOG_INFO(LOG_TAG, "发送方设备: %s", from.c_str());
@@ -682,8 +682,8 @@ namespace app
                     room_info_ = info;
                 }
 
-                LOG_INFO(LOG_TAG, "房间信息更新 - 房间ID: %s, 人数: %d",
-                         info.room_id.c_str(), info.num);
+                LOG_INFO(LOG_TAG, "房间信息更新 - 房间ID: %s, 人数: %d", info.room_id.c_str(),
+                         info.num);
 
                 // 根据房间信息更新连接状态
                 if (info.num == 2)

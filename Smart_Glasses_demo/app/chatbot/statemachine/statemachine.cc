@@ -15,9 +15,9 @@
 
 namespace
 {
-    constexpr const char* LOG_TAG                         = "STATEMACHINE";
-    constexpr uint64_t    MICROSECONDS_PER_MILLISECOND    = 1000ULL;
-    constexpr double      MICROSECONDS_TO_SECONDS         = 1'000'000.0;
+    constexpr const char* LOG_TAG                           = "STATEMACHINE";
+    constexpr uint64_t    MICROSECONDS_PER_MILLISECOND      = 1000ULL;
+    constexpr double      MICROSECONDS_TO_SECONDS           = 1'000'000.0;
     constexpr double      INVALID_TRANSITION_WARN_THRESHOLD = 1.0;
     constexpr double      CALLBACK_EXCEPTION_WARN_THRESHOLD = 0.1;
 } // namespace
@@ -176,8 +176,7 @@ namespace app
 
                     if (old_value != enable)
                     {
-                        LOG_INFO(LOG_TAG, "Audio upload: %s",
-                                 enable ? "ENABLED" : "DISABLED");
+                        LOG_INFO(LOG_TAG, "Audio upload: %s", enable ? "ENABLED" : "DISABLED");
 
                         // 触发音频上传控制回调（异常安全）
                         invokeAudioUploadCallback(enable);
@@ -380,8 +379,7 @@ namespace app
 
                     if (is_timeout)
                     {
-                        LOG_WARN(LOG_TAG,
-                                 "State timeout: %s (elapsed: %llu ms, timeout: %llu ms)",
+                        LOG_WARN(LOG_TAG, "State timeout: %s (elapsed: %llu ms, timeout: %llu ms)",
                                  AIStateMachine::stateToString(current).c_str(), elapsed_ms,
                                  timeout_ms);
 
@@ -641,8 +639,7 @@ namespace app
                 // 仅记录日志，状态保持LISTENING
                 if (is_final)
                 {
-                    LOG_INFO(LOG_TAG, "STT final: \"%s\", waiting for TTS start...",
-                             text.c_str());
+                    LOG_INFO(LOG_TAG, "STT final: \"%s\", waiting for TTS start...", text.c_str());
                 }
             }
 

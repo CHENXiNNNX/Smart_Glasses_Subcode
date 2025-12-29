@@ -26,10 +26,10 @@ namespace app
     namespace chatbot
     {
 
-            namespace
-            {
-                constexpr const char* LOG_TAG = "CHATBOT";
-            } // namespace
+        namespace
+        {
+            constexpr const char* LOG_TAG = "CHATBOT";
+        } // namespace
 
         ChatbotSystem::ChatbotSystem(const ChatbotConfig& config) : config_(config)
         {
@@ -228,8 +228,8 @@ namespace app
 
                 // 注册所有MCP工具
                 int tool_count = mcp_tool::McpToolManager::registerAllTools(
-                    *mcp_server_, audio_system_, video_system_, wifi_manager_,
-                    signaling_, webrtc_system_, this);
+                    *mcp_server_, audio_system_, video_system_, wifi_manager_, signaling_,
+                    webrtc_system_, this);
                 LOG_INFO(LOG_TAG, "MCP工具注册完成，共注册 %d 个工具", tool_count);
 
                 return ChatbotError::NONE;
@@ -311,11 +311,8 @@ namespace app
                 });
 
             // 设置STT消息回调
-            protocol_handler_->setSTTCallback(
-                [this](const protocol_handle::STTMessage& msg)
-                {
-                    (void)msg;
-                });
+            protocol_handler_->setSTTCallback([this](const protocol_handle::STTMessage& msg)
+                                              { (void)msg; });
 
             // 设置LLM消息回调
             protocol_handler_->setLLMCallback(
@@ -333,9 +330,11 @@ namespace app
                     if (msg.state == protocol_handle::TTSState::START)
                     {
                         // TTS开始：确保播放已启动
-                        if (audio_system_ && !audio_system_->isStreamRunning(app::media::audio::StreamDirection::OUTPUT))
+                        if (audio_system_ && !audio_system_->isStreamRunning(
+                                                 app::media::audio::StreamDirection::OUTPUT))
                         {
-                            app::media::audio::AudioError err = audio_system_->startStream(app::media::audio::StreamDirection::OUTPUT);
+                            app::media::audio::AudioError err = audio_system_->startStream(
+                                app::media::audio::StreamDirection::OUTPUT);
                             if (err != app::media::audio::AudioError::NONE)
                             {
                                 LOG_ERROR(LOG_TAG, "启动播放失败: %d", static_cast<int>(err));
@@ -352,7 +351,8 @@ namespace app
                             // 确保AI音频流正在运行
                             if (!audio_system_->isStreamActive(app::media::audio::StreamType::AI))
                             {
-                                app::media::audio::AudioError err = audio_system_->startStream(app::media::audio::StreamType::AI);
+                                app::media::audio::AudioError err =
+                                    audio_system_->startStream(app::media::audio::StreamType::AI);
                                 if (err != app::media::audio::AudioError::NONE)
                                 {
                                     LOG_ERROR(LOG_TAG, "启动AI音频流失败: %d",
@@ -403,7 +403,8 @@ namespace app
                                 }
 
                                 // 检查AI音频流是否还在运行
-                                if (!audio_system_ || !audio_system_->isStreamActive(app::media::audio::StreamType::AI))
+                                if (!audio_system_ || !audio_system_->isStreamActive(
+                                                          app::media::audio::StreamType::AI))
                                 {
                                     state_.store(ChatbotState::READY);
                                     return;
@@ -600,9 +601,8 @@ namespace app
                         return false;
                     }
 
-                    const uint8_t* opus_data =
-                        reinterpret_cast<const uint8_t*>(data) + 16;
-                    size_t opus_size = size - 16;
+                    const uint8_t* opus_data = reinterpret_cast<const uint8_t*>(data) + 16;
+                    size_t         opus_size = size - 16;
 
                     // 解码Opus音频数据
                     app::media::audio::AudioFramePtr frame =
@@ -620,7 +620,8 @@ namespace app
                     // 如果播放未启动，自动启动播放
                     if (!audio_system_->isStreamRunning(app::media::audio::StreamDirection::OUTPUT))
                     {
-                        app::media::audio::AudioError err = audio_system_->startStream(app::media::audio::StreamDirection::OUTPUT);
+                        app::media::audio::AudioError err =
+                            audio_system_->startStream(app::media::audio::StreamDirection::OUTPUT);
                         if (err != app::media::audio::AudioError::NONE)
                         {
                             LOG_ERROR(LOG_TAG, "启动播放失败: %d", static_cast<int>(err));
@@ -816,19 +817,20 @@ namespace app
                     {
 
                         LOG_INFO(LOG_TAG, "========================================");
-                        LOG_INFO(LOG_TAG, "       唤醒词检测到！Hotword %d",
-                                 hotword_index);
+                        LOG_INFO(LOG_TAG, "       唤醒词检测到！Hotword %d", hotword_index);
                         LOG_INFO(LOG_TAG, "========================================");
 
                         // // 检查WebRTC是否正在连接或已连接，如果是则忽略唤醒词
                         // if (webrtc_system_)
                         // {
                         //     auto webrtc_state = webrtc_system_->getState();
-                        //     if (webrtc_state != app::protocol::webrtc::WebRTCState::UNINITIALIZED &&
-                        //         webrtc_state != app::protocol::webrtc::WebRTCState::DISCONNECTED &&
-                        //         webrtc_state != app::protocol::webrtc::WebRTCState::FAILED)
+                        //     if (webrtc_state != app::protocol::webrtc::WebRTCState::UNINITIALIZED
+                        //     &&
+                        //         webrtc_state != app::protocol::webrtc::WebRTCState::DISCONNECTED
+                        //         && webrtc_state != app::protocol::webrtc::WebRTCState::FAILED)
                         //     {
-                        //         LOG_WARN(LOG_TAG, "WebRTC正在连接或已连接，忽略唤醒词。WebRTC状态: %d",
+                        //         LOG_WARN(LOG_TAG,
+                        //         "WebRTC正在连接或已连接，忽略唤醒词。WebRTC状态: %d",
                         //                  static_cast<int>(webrtc_state));
                         //         return;
                         //     }

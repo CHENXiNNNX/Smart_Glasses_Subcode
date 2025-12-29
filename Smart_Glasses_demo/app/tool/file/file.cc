@@ -44,8 +44,8 @@ namespace app
             }
 
             FileWrapper::FileWrapper(FileWrapper&& other) noexcept
-                : filename_(std::move(other.filename_)), file_(other.file_),
-                  valid_(other.valid_), mode_(other.mode_), last_error_(other.last_error_)
+                : filename_(std::move(other.filename_)), file_(other.file_), valid_(other.valid_),
+                  mode_(other.mode_), last_error_(other.last_error_)
             {
                 other.file_  = nullptr;
                 other.valid_ = false;
@@ -134,8 +134,8 @@ namespace app
                 if (written != size)
                 {
                     last_error_ = FileError::FILE_WRITE_FAILED;
-                    LOG_ERROR(LOG_TAG, "写入文件失败: %s (期望: %zu, 实际: %zu)",
-                              filename_.c_str(), size, written);
+                    LOG_ERROR(LOG_TAG, "写入文件失败: %s (期望: %zu, 实际: %zu)", filename_.c_str(),
+                              size, written);
                     return false;
                 }
 
@@ -316,7 +316,7 @@ namespace app
                 }
 
                 // 递归创建父目录
-                std::string path = dir_path;
+                std::string              path = dir_path;
                 std::vector<std::string> dirs;
 
                 // 分解路径
@@ -335,9 +335,8 @@ namespace app
                 std::reverse(dirs.begin(), dirs.end());
 
                 return std::all_of(dirs.begin(), dirs.end(),
-                                    [mode](const std::string& dir) {
-                                        return createDirectorySingle(dir, mode);
-                                    });
+                                   [mode](const std::string& dir)
+                                   { return createDirectorySingle(dir, mode); });
             }
 
             bool createDirectory(const std::string& dir_path)
@@ -431,7 +430,7 @@ namespace app
                     return false;
                 }
 
-                constexpr size_t BUFFER_SIZE = 64 * 1024; // 64KB
+                constexpr size_t     BUFFER_SIZE = 64 * 1024; // 64KB
                 std::vector<uint8_t> buffer(BUFFER_SIZE);
 
                 size_t read_count = 0;
@@ -528,7 +527,7 @@ namespace app
             std::string getExtension(const std::string& filepath)
             {
                 std::string filename = getFilename(filepath);
-                size_t pos          = filename.find_last_of('.');
+                size_t      pos      = filename.find_last_of('.');
                 if (pos == std::string::npos || pos == filename.length() - 1)
                 {
                     return "";
@@ -575,7 +574,7 @@ namespace app
 
                 // 移除多余的斜杠
                 std::string normalized;
-                bool last_was_slash = false;
+                bool        last_was_slash = false;
                 for (char c : result)
                 {
                     if (c == '/')
@@ -605,4 +604,3 @@ namespace app
         } // namespace file
     }     // namespace tool
 } // namespace app
-

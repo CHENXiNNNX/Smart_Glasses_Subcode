@@ -21,9 +21,9 @@ namespace app
 
             namespace
             {
-                constexpr const char* LOG_TAG                      = "MCP";
+                constexpr const char* LOG_TAG                        = "MCP";
                 constexpr double      SUCCESS_RATE_WARNING_THRESHOLD = 95.0;
-            }
+            } // namespace
 
             // ============================================================================
             // Property 实现

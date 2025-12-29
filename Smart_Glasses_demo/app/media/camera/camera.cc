@@ -40,7 +40,7 @@ namespace app
                 constexpr int         JPEG_QP_DIVISOR      = 100;
                 constexpr int         STREAM_SLEEP_MS      = 100;
                 constexpr double      BYTES_PER_MEGABYTE   = 1024.0 * 1024.0;
-            }
+            } // namespace
 
             // VideoMemoryPool::FixedPool
             VideoMemoryPool::FixedPool::FixedPool(size_t block_sz, size_t block_cnt)
@@ -68,7 +68,8 @@ namespace app
 
             int VideoMemoryPool::FixedPool::allocateBlock()
             {
-                int bitmap_count = static_cast<int>((block_count + BITS_PER_WORD - 1) / BITS_PER_WORD);
+                int bitmap_count =
+                    static_cast<int>((block_count + BITS_PER_WORD - 1) / BITS_PER_WORD);
 
                 for (int bitmap_index = 0; bitmap_index < bitmap_count; bitmap_index++)
                 {
@@ -78,15 +79,18 @@ namespace app
                     int      max_blocks    = std::min(static_cast<int>(BITS_PER_WORD),
                                                       static_cast<int>(block_count) - base_index);
 
-                    if (max_blocks <= 0) break;
+                    if (max_blocks <= 0)
+                        break;
 
                     while (bitmap != UINT64_MAX)
                     {
                         uint64_t inverted = ~bitmap;
-                        if (inverted == 0) break;
+                        if (inverted == 0)
+                            break;
 
                         int free_bit = __builtin_ctzll(inverted);
-                        if (free_bit >= max_blocks) break;
+                        if (free_bit >= max_blocks)
+                            break;
 
                         uint64_t new_bitmap = bitmap | (1ULL << free_bit);
                         if (bitmap_atomic.compare_exchange_weak(bitmap, new_bitmap,
@@ -115,8 +119,10 @@ namespace app
 
             uint8_t* VideoMemoryPool::FixedPool::getBlockPtr(int index) const
             {
-                if (index < 0 || index >= static_cast<int>(block_count)) return nullptr;
-                return const_cast<uint8_t*>(buffer.data() + (static_cast<size_t>(index) * block_size));
+                if (index < 0 || index >= static_cast<int>(block_count))
+                    return nullptr;
+                return const_cast<uint8_t*>(buffer.data() +
+                                            (static_cast<size_t>(index) * block_size));
             }
 
             // VideoMemoryPool::DMAPool
@@ -139,7 +145,8 @@ namespace app
                             blocks[i].mb_blk = nullptr;
                         }
                     }
-                    else break;
+                    else
+                        break;
                 }
                 LOG_INFO(LOG_TAG, "DMA池: %zu块", MAX_DMA_BLOCKS);
             }
@@ -160,7 +167,8 @@ namespace app
 
             VideoFrame* VideoMemoryPool::DMAPool::allocateDMAFrame(size_t size)
             {
-                if (size > block_size) return nullptr;
+                if (size > block_size)
+                    return nullptr;
 
                 std::lock_guard<std::mutex> lock(mutex);
 
@@ -177,7 +185,8 @@ namespace app
                         frame->is_dma_buffer = true;
                         frame->dma_mb_blk    = blocks[i].mb_blk;
 
-                        frame->deleter = [this](int block_idx) {
+                        frame->deleter = [this](int block_idx)
+                        {
                             std::lock_guard<std::mutex> lock(mutex);
                             if (block_idx >= 0 && block_idx < static_cast<int>(MAX_DMA_BLOCKS))
                                 blocks[block_idx].in_use = false;
@@ -190,10 +199,11 @@ namespace app
 
             void VideoMemoryPool::DMAPool::deallocateDMAFrame(VideoFrame* frame)
             {
-                if (!frame) return;
+                if (!frame)
+                    return;
 
                 std::lock_guard<std::mutex> lock(mutex);
-                int block_idx = frame->frame_index;
+                int                         block_idx = frame->frame_index;
                 if (block_idx >= 0 && block_idx < static_cast<int>(MAX_DMA_BLOCKS))
                     blocks[block_idx].in_use = false;
             }
@@ -203,16 +213,22 @@ namespace app
             {
                 LOG_INFO(LOG_TAG, "初始化视频内存池...");
 
-                fixed_pool_ = std::make_unique<FixedPool>(config.fixed_block_size, config.fixed_block_count);
-                dynamic_pool_ = std::make_unique<tool::memory::MemoryPool>(config.dynamic_pool_size, config.alignment, 1.5);
+                fixed_pool_ =
+                    std::make_unique<FixedPool>(config.fixed_block_size, config.fixed_block_count);
+                dynamic_pool_ = std::make_unique<tool::memory::MemoryPool>(config.dynamic_pool_size,
+                                                                           config.alignment, 1.5);
 
                 if (config.enable_dma)
                     dma_pool_ = std::make_unique<DMAPool>(config.fixed_block_size);
 
-                LOG_INFO(LOG_TAG, "视频内存池初始化完成 (DMA: %s)", config.enable_dma ? "开" : "关");
+                LOG_INFO(LOG_TAG, "视频内存池初始化完成 (DMA: %s)",
+                         config.enable_dma ? "开" : "关");
             }
 
-            VideoMemoryPool::~VideoMemoryPool() { logStats(); }
+            VideoMemoryPool::~VideoMemoryPool()
+            {
+                logStats();
+            }
 
             VideoFramePtr VideoMemoryPool::allocate(size_t size)
             {
@@ -232,11 +248,15 @@ namespace app
                         frame_obj->frame_index = block_index;
 
                         auto pool_ptr      = fixed_pool_.get();
-                        frame_obj->deleter = [pool_ptr](int idx) { pool_ptr->deallocateBlock(idx); };
+                        frame_obj->deleter = [pool_ptr](int idx)
+                        { pool_ptr->deallocateBlock(idx); };
 
-                        return VideoFramePtr(frame_obj, [](VideoFrame* f) {
-                            if (f && f->deleter && f->frame_index >= 0) f->deleter(f->frame_index);
-                        });
+                        return VideoFramePtr(frame_obj,
+                                             [](VideoFrame* f)
+                                             {
+                                                 if (f && f->deleter && f->frame_index >= 0)
+                                                     f->deleter(f->frame_index);
+                                             });
                     }
                 }
 
@@ -254,9 +274,15 @@ namespace app
                     auto pool_ptr  = dynamic_pool_.get();
                     frame->deleter = [pool_ptr, mem](int) { pool_ptr->deallocate(mem); };
 
-                    return VideoFramePtr(frame, [](VideoFrame* f) {
-                        if (f && f->deleter) { f->~VideoFrame(); f->deleter(0); }
-                    });
+                    return VideoFramePtr(frame,
+                                         [](VideoFrame* f)
+                                         {
+                                             if (f && f->deleter)
+                                             {
+                                                 f->~VideoFrame();
+                                                 f->deleter(0);
+                                             }
+                                         });
                 }
 
                 // DMA池
@@ -266,9 +292,16 @@ namespace app
                     if (dma_frame)
                     {
                         stats_.dma_pool_hits.fetch_add(1, std::memory_order_relaxed);
-                        return VideoFramePtr(dma_frame, [](VideoFrame* f) {
-                            if (f) { if (f->deleter && f->frame_index >= 0) f->deleter(f->frame_index); delete f; }
-                        });
+                        return VideoFramePtr(dma_frame,
+                                             [](VideoFrame* f)
+                                             {
+                                                 if (f)
+                                                 {
+                                                     if (f->deleter && f->frame_index >= 0)
+                                                         f->deleter(f->frame_index);
+                                                     delete f;
+                                                 }
+                                             });
                     }
                 }
 
@@ -279,11 +312,14 @@ namespace app
 
             void VideoMemoryPool::getStats(Stats& out_stats) const
             {
-                out_stats.fixed_pool_hits    = stats_.fixed_pool_hits.load(std::memory_order_relaxed);
-                out_stats.dynamic_pool_hits  = stats_.dynamic_pool_hits.load(std::memory_order_relaxed);
-                out_stats.dma_pool_hits      = stats_.dma_pool_hits.load(std::memory_order_relaxed);
-                out_stats.total_allocations  = stats_.total_allocations.load(std::memory_order_relaxed);
-                out_stats.allocation_failures = stats_.allocation_failures.load(std::memory_order_relaxed);
+                out_stats.fixed_pool_hits = stats_.fixed_pool_hits.load(std::memory_order_relaxed);
+                out_stats.dynamic_pool_hits =
+                    stats_.dynamic_pool_hits.load(std::memory_order_relaxed);
+                out_stats.dma_pool_hits = stats_.dma_pool_hits.load(std::memory_order_relaxed);
+                out_stats.total_allocations =
+                    stats_.total_allocations.load(std::memory_order_relaxed);
+                out_stats.allocation_failures =
+                    stats_.allocation_failures.load(std::memory_order_relaxed);
             }
 
             void VideoMemoryPool::resetStats()
@@ -298,15 +334,17 @@ namespace app
             void VideoMemoryPool::logStats() const
             {
                 uint64_t total = stats_.total_allocations.load(std::memory_order_relaxed);
-                if (total == 0) return;
+                if (total == 0)
+                    return;
 
                 uint64_t fixed   = stats_.fixed_pool_hits.load();
                 uint64_t dynamic = stats_.dynamic_pool_hits.load();
                 uint64_t dma     = stats_.dma_pool_hits.load();
                 uint64_t fail    = stats_.allocation_failures.load();
 
-                LOG_INFO(LOG_TAG, "内存池统计: 总=%zu, 固定=%zu(%.1f%%), 动态=%zu, DMA=%zu, 失败=%zu",
-                         total, fixed, (double)fixed * 100.0 / total, dynamic, dma, fail);
+                LOG_INFO(LOG_TAG,
+                         "内存池统计: 总=%zu, 固定=%zu(%.1f%%), 动态=%zu, DMA=%zu, 失败=%zu", total,
+                         fixed, (double)fixed * 100.0 / total, dynamic, dma, fail);
             }
 
             // ISPWrapper
@@ -366,33 +404,41 @@ namespace app
 
             VideoError ISPWrapper::setExposureMode(opMode_t mode)
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 return (rk_aiq_uapi2_setExpMode(aiq_ctx_, mode) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::getExposureMode(opMode_t& mode) const
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 return (rk_aiq_uapi2_getExpMode(aiq_ctx_, &mode) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::setExpGainRange(float min_gain, float max_gain)
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 paRange_t gain{min_gain, max_gain};
                 return (rk_aiq_uapi2_setExpGainRange(aiq_ctx_, &gain) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::getExpGainRange(float& min_gain, float& max_gain) const
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 paRange_t gain{};
                 if (rk_aiq_uapi2_getExpGainRange(aiq_ctx_, &gain) == XCAM_RETURN_NO_ERROR)
                 {
-                    min_gain = gain.min; max_gain = gain.max;
+                    min_gain = gain.min;
+                    max_gain = gain.max;
                     return VideoError::NONE;
                 }
                 return VideoError::RKMPI_ERROR;
@@ -400,19 +446,23 @@ namespace app
 
             VideoError ISPWrapper::setExpTimeRange(float min_time, float max_time)
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 paRange_t time{min_time, max_time};
                 return (rk_aiq_uapi2_setExpTimeRange(aiq_ctx_, &time) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::getExpTimeRange(float& min_time, float& max_time) const
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 paRange_t time{};
                 if (rk_aiq_uapi2_getExpTimeRange(aiq_ctx_, &time) == XCAM_RETURN_NO_ERROR)
                 {
-                    min_time = time.min; max_time = time.max;
+                    min_time = time.min;
+                    max_time = time.max;
                     return VideoError::NONE;
                 }
                 return VideoError::RKMPI_ERROR;
@@ -420,40 +470,50 @@ namespace app
 
             VideoError ISPWrapper::lockAE(bool lock)
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 return (rk_aiq_uapi2_setAeLock(aiq_ctx_, lock) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::setWhiteBalanceMode(opMode_t mode)
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 return (rk_aiq_uapi2_setWBMode(aiq_ctx_, mode) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::getWhiteBalanceMode(opMode_t& mode) const
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 return (rk_aiq_uapi2_getWBMode(aiq_ctx_, &mode) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::setWhiteBalanceGain(float r_gain, float b_gain)
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 rk_aiq_wb_gain_t gain{r_gain, b_gain, 1.0f, 1.0f};
                 return (rk_aiq_uapi2_setMWBGain(aiq_ctx_, &gain) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::getWhiteBalanceGain(float& r_gain, float& b_gain) const
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 rk_aiq_wb_gain_t gain;
                 if (rk_aiq_uapi2_getWBGain(aiq_ctx_, &gain) == XCAM_RETURN_NO_ERROR)
                 {
-                    r_gain = gain.rgain; b_gain = gain.bgain;
+                    r_gain = gain.rgain;
+                    b_gain = gain.bgain;
                     return VideoError::NONE;
                 }
                 return VideoError::RKMPI_ERROR;
@@ -461,111 +521,142 @@ namespace app
 
             VideoError ISPWrapper::setColorTemperature(unsigned int ct)
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 return (rk_aiq_uapi2_setMWBCT(aiq_ctx_, ct) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::getColorTemperature(unsigned int& ct) const
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 return (rk_aiq_uapi2_getWBCT(aiq_ctx_, &ct) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::lockAWB(bool lock)
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
-                return ((lock ? rk_aiq_uapi2_lockAWB(aiq_ctx_) : rk_aiq_uapi2_unlockAWB(aiq_ctx_)) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
+                return ((lock ? rk_aiq_uapi2_lockAWB(aiq_ctx_)
+                              : rk_aiq_uapi2_unlockAWB(aiq_ctx_)) == XCAM_RETURN_NO_ERROR)
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::setBrightness(unsigned int level)
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 return (rk_aiq_uapi2_setBrightness(aiq_ctx_, level) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::getBrightness(unsigned int& level) const
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 return (rk_aiq_uapi2_getBrightness(aiq_ctx_, &level) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::setContrast(unsigned int level)
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 return (rk_aiq_uapi2_setContrast(aiq_ctx_, level) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::getContrast(unsigned int& level) const
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 return (rk_aiq_uapi2_getContrast(aiq_ctx_, &level) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::setSaturation(unsigned int level)
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 return (rk_aiq_uapi2_setSaturation(aiq_ctx_, level) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::getSaturation(unsigned int& level) const
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 return (rk_aiq_uapi2_getSaturation(aiq_ctx_, &level) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::setHue(unsigned int level)
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 return (rk_aiq_uapi2_setHue(aiq_ctx_, level) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::getHue(unsigned int& level) const
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 return (rk_aiq_uapi2_getHue(aiq_ctx_, &level) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::setSharpness(unsigned int level)
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 return (rk_aiq_uapi2_setSharpness(aiq_ctx_, level) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::getSharpness(unsigned int& level) const
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 return (rk_aiq_uapi2_getSharpness(aiq_ctx_, &level) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             VideoError ISPWrapper::setDehazeLevel(unsigned int level)
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 if (rk_aiq_uapi2_setDehazeEnable(aiq_ctx_, level > 0) != XCAM_RETURN_NO_ERROR)
                     return VideoError::RKMPI_ERROR;
                 if (level > 0)
                     return (rk_aiq_uapi2_setMDehazeStrth(aiq_ctx_, level) == XCAM_RETURN_NO_ERROR)
-                        ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                               ? VideoError::NONE
+                               : VideoError::RKMPI_ERROR;
                 return VideoError::NONE;
             }
 
             VideoError ISPWrapper::getDehazeLevel(unsigned int& level) const
             {
-                if (!aiq_ctx_) return VideoError::NOT_INITIALIZED;
+                if (!aiq_ctx_)
+                    return VideoError::NOT_INITIALIZED;
                 return (rk_aiq_uapi2_getMDehazeStrth(aiq_ctx_, &level) == XCAM_RETURN_NO_ERROR)
-                    ? VideoError::NONE : VideoError::RKMPI_ERROR;
+                           ? VideoError::NONE
+                           : VideoError::RKMPI_ERROR;
             }
 
             // VIDeviceWrapper
@@ -580,19 +671,31 @@ namespace app
                 if (ret == RK_ERR_VI_NOT_CONFIG)
                 {
                     ret = RK_MPI_VI_SetDevAttr(dev_id, &dev_attr);
-                    if (ret != RK_SUCCESS) { LOG_ERROR(LOG_TAG, "SetDevAttr失败: 0x%x", ret); return; }
+                    if (ret != RK_SUCCESS)
+                    {
+                        LOG_ERROR(LOG_TAG, "SetDevAttr失败: 0x%x", ret);
+                        return;
+                    }
                 }
 
                 ret = RK_MPI_VI_GetDevIsEnable(dev_id);
                 if (ret != RK_SUCCESS)
                 {
                     ret = RK_MPI_VI_EnableDev(dev_id);
-                    if (ret != RK_SUCCESS) { LOG_ERROR(LOG_TAG, "EnableDev失败: 0x%x", ret); return; }
+                    if (ret != RK_SUCCESS)
+                    {
+                        LOG_ERROR(LOG_TAG, "EnableDev失败: 0x%x", ret);
+                        return;
+                    }
 
                     bind_pipe.u32Num    = 1;
                     bind_pipe.PipeId[0] = dev_id;
-                    ret = RK_MPI_VI_SetDevBindPipe(dev_id, &bind_pipe);
-                    if (ret != RK_SUCCESS) { RK_MPI_VI_DisableDev(dev_id); return; }
+                    ret                 = RK_MPI_VI_SetDevBindPipe(dev_id, &bind_pipe);
+                    if (ret != RK_SUCCESS)
+                    {
+                        RK_MPI_VI_DisableDev(dev_id);
+                        return;
+                    }
                 }
 
                 valid_ = true;
@@ -601,7 +704,8 @@ namespace app
 
             VIDeviceWrapper::~VIDeviceWrapper()
             {
-                if (valid_) RK_MPI_VI_DisableDev(dev_id_);
+                if (valid_)
+                    RK_MPI_VI_DisableDev(dev_id_);
             }
 
             // VIChannelWrapper
@@ -620,10 +724,18 @@ namespace app
                 vi_chn_attr.u32Depth              = 0;
 
                 RK_S32 ret = RK_MPI_VI_SetChnAttr(dev_id, chn_id, &vi_chn_attr);
-                if (ret != RK_SUCCESS) { LOG_ERROR(LOG_TAG, "SetChnAttr失败: 0x%x", ret); return; }
+                if (ret != RK_SUCCESS)
+                {
+                    LOG_ERROR(LOG_TAG, "SetChnAttr失败: 0x%x", ret);
+                    return;
+                }
 
                 ret = RK_MPI_VI_EnableChn(dev_id, chn_id);
-                if (ret != RK_SUCCESS) { LOG_ERROR(LOG_TAG, "EnableChn失败: 0x%x", ret); return; }
+                if (ret != RK_SUCCESS)
+                {
+                    LOG_ERROR(LOG_TAG, "EnableChn失败: 0x%x", ret);
+                    return;
+                }
 
                 valid_ = true;
                 LOG_INFO(LOG_TAG, "VI通道初始化成功");
@@ -631,11 +743,13 @@ namespace app
 
             VIChannelWrapper::~VIChannelWrapper()
             {
-                if (valid_) RK_MPI_VI_DisableChn(dev_id_, chn_id_);
+                if (valid_)
+                    RK_MPI_VI_DisableChn(dev_id_, chn_id_);
             }
 
             // VENCWrapper
-            VENCWrapper::VENCWrapper(int chn_id, int width, int height, EncodeFormat format, int bitrate, int gop)
+            VENCWrapper::VENCWrapper(int chn_id, int width, int height, EncodeFormat format,
+                                     int bitrate, int gop)
                 : chn_id_(chn_id), current_format_(format), current_width_(width),
                   current_height_(height), current_bitrate_(bitrate), current_gop_(gop),
                   current_jpeg_quality_(JPEG_DEFAULT_QUALITY)
@@ -648,7 +762,7 @@ namespace app
                 switch (format)
                 {
                 case EncodeFormat::H264:
-                    codec_type = RK_VIDEO_ID_AVC;
+                    codec_type                              = RK_VIDEO_ID_AVC;
                     venc_attr.stRcAttr.enRcMode             = VENC_RC_MODE_H264CBR;
                     venc_attr.stRcAttr.stH264Cbr.u32BitRate = bitrate;
                     venc_attr.stRcAttr.stH264Cbr.u32Gop     = gop;
@@ -656,19 +770,19 @@ namespace app
                     venc_attr.stVencAttr.u32BufSize         = bitrate * 2 * 1024;
                     break;
                 case EncodeFormat::H265:
-                    codec_type = RK_VIDEO_ID_HEVC;
+                    codec_type                              = RK_VIDEO_ID_HEVC;
                     venc_attr.stRcAttr.enRcMode             = VENC_RC_MODE_H265CBR;
                     venc_attr.stRcAttr.stH265Cbr.u32BitRate = bitrate;
                     venc_attr.stRcAttr.stH265Cbr.u32Gop     = gop;
                     venc_attr.stVencAttr.u32BufSize         = width * height * 3 / 2;
                     break;
                 case EncodeFormat::JPEG:
-                    codec_type = RK_VIDEO_ID_MJPEG;
-                    venc_attr.stRcAttr.enRcMode                  = VENC_RC_MODE_MJPEGFIXQP;
-                    venc_attr.stRcAttr.stMjpegFixQp.u32Qfactor   = 70;
-                    venc_attr.stVencAttr.stAttrJpege.bSupportDCF = RK_FALSE;
+                    codec_type                                     = RK_VIDEO_ID_MJPEG;
+                    venc_attr.stRcAttr.enRcMode                    = VENC_RC_MODE_MJPEGFIXQP;
+                    venc_attr.stRcAttr.stMjpegFixQp.u32Qfactor     = 70;
+                    venc_attr.stVencAttr.stAttrJpege.bSupportDCF   = RK_FALSE;
                     venc_attr.stVencAttr.stAttrJpege.enReceiveMode = VENC_PIC_RECEIVE_SINGLE;
-                    venc_attr.stVencAttr.u32BufSize              = width * height * 3;
+                    venc_attr.stVencAttr.u32BufSize                = width * height * 3;
                     break;
                 }
 
@@ -682,7 +796,11 @@ namespace app
                 venc_attr.stVencAttr.enMirror        = MIRROR_NONE;
 
                 RK_S32 ret = RK_MPI_VENC_CreateChn(chn_id, &venc_attr);
-                if (ret != RK_SUCCESS) { LOG_ERROR(LOG_TAG, "CreateChn失败: 0x%x", ret); return; }
+                if (ret != RK_SUCCESS)
+                {
+                    LOG_ERROR(LOG_TAG, "CreateChn失败: 0x%x", ret);
+                    return;
+                }
 
                 VENC_RECV_PIC_PARAM_S recv_param{};
                 recv_param.s32RecvPicNum = -1;
@@ -708,19 +826,23 @@ namespace app
                 }
             }
 
-            VideoError VENCWrapper::getStream(VideoFramePtr& frame, VideoMemoryPool& pool, int timeout_ms)
+            VideoError VENCWrapper::getStream(VideoFramePtr& frame, VideoMemoryPool& pool,
+                                              int timeout_ms)
             {
-                if (!valid_) return VideoError::NOT_INITIALIZED;
+                if (!valid_)
+                    return VideoError::NOT_INITIALIZED;
 
                 VENC_STREAM_S venc_stream{};
                 venc_stream.pstPack = static_cast<VENC_PACK_S*>(malloc(sizeof(VENC_PACK_S)));
-                if (!venc_stream.pstPack) return VideoError::ALLOC_FAILED;
+                if (!venc_stream.pstPack)
+                    return VideoError::ALLOC_FAILED;
 
                 RK_S32 ret = RK_MPI_VENC_GetStream(chn_id_, &venc_stream, timeout_ms);
                 if (ret != RK_SUCCESS)
                 {
                     free(venc_stream.pstPack);
-                    return (ret == RK_ERR_VENC_BUSY) ? VideoError::TIMEOUT : VideoError::ENCODE_FAILED;
+                    return (ret == RK_ERR_VENC_BUSY) ? VideoError::TIMEOUT
+                                                     : VideoError::ENCODE_FAILED;
                 }
 
                 if (venc_stream.u32PackCount == 0 || !venc_stream.pstPack)
@@ -753,10 +875,11 @@ namespace app
                     }
                 }
 
-                frame->size        = total_size;
-                frame->pts         = venc_stream.pstPack[0].u64PTS;
-                frame->is_keyframe = (venc_stream.pstPack[0].DataType.enH264EType == H264E_NALU_IDRSLICE ||
-                                      venc_stream.pstPack[0].DataType.enH265EType == H265E_NALU_IDRSLICE);
+                frame->size = total_size;
+                frame->pts  = venc_stream.pstPack[0].u64PTS;
+                frame->is_keyframe =
+                    (venc_stream.pstPack[0].DataType.enH264EType == H264E_NALU_IDRSLICE ||
+                     venc_stream.pstPack[0].DataType.enH265EType == H265E_NALU_IDRSLICE);
                 frame->is_dma_buffer = false;
 
                 RK_MPI_VENC_ReleaseStream(chn_id_, &venc_stream);
@@ -767,18 +890,24 @@ namespace app
 
             VideoError VENCWrapper::getStreamZeroCopy(VideoFramePtr& frame, int timeout_ms)
             {
-                if (!valid_) return VideoError::NOT_INITIALIZED;
+                if (!valid_)
+                    return VideoError::NOT_INITIALIZED;
 
                 auto* venc_stream    = new VENC_STREAM_S();
                 venc_stream->pstPack = static_cast<VENC_PACK_S*>(malloc(sizeof(VENC_PACK_S)));
-                if (!venc_stream->pstPack) { delete venc_stream; return VideoError::ALLOC_FAILED; }
+                if (!venc_stream->pstPack)
+                {
+                    delete venc_stream;
+                    return VideoError::ALLOC_FAILED;
+                }
 
                 RK_S32 ret = RK_MPI_VENC_GetStream(chn_id_, venc_stream, timeout_ms);
                 if (ret != RK_SUCCESS)
                 {
                     free(venc_stream->pstPack);
                     delete venc_stream;
-                    return (ret == RK_ERR_VENC_BUSY) ? VideoError::TIMEOUT : VideoError::ENCODE_FAILED;
+                    return (ret == RK_ERR_VENC_BUSY) ? VideoError::TIMEOUT
+                                                     : VideoError::ENCODE_FAILED;
                 }
 
                 if (venc_stream->u32PackCount == 0 || !venc_stream->pstPack)
@@ -797,7 +926,8 @@ namespace app
 
                 if (venc_stream->u32PackCount == 1)
                 {
-                    video_frame->data       = static_cast<uint8_t*>(RK_MPI_MB_Handle2VirAddr(venc_stream->pstPack[0].pMbBlk));
+                    video_frame->data = static_cast<uint8_t*>(
+                        RK_MPI_MB_Handle2VirAddr(venc_stream->pstPack[0].pMbBlk));
                     video_frame->dma_mb_blk = venc_stream->pstPack[0].pMbBlk;
                 }
                 else
@@ -809,82 +939,123 @@ namespace app
                     return VideoError::ENCODE_FAILED;
                 }
 
-                video_frame->size        = total_size;
-                video_frame->pts         = venc_stream->pstPack[0].u64PTS;
-                video_frame->is_keyframe = (venc_stream->pstPack[0].DataType.enH264EType == H264E_NALU_IDRSLICE ||
-                                            venc_stream->pstPack[0].DataType.enH265EType == H265E_NALU_IDRSLICE);
+                video_frame->size = total_size;
+                video_frame->pts  = venc_stream->pstPack[0].u64PTS;
+                video_frame->is_keyframe =
+                    (venc_stream->pstPack[0].DataType.enH264EType == H264E_NALU_IDRSLICE ||
+                     venc_stream->pstPack[0].DataType.enH265EType == H265E_NALU_IDRSLICE);
                 video_frame->is_dma_buffer = true;
 
-                int venc_chn = chn_id_;
-                video_frame->deleter = [venc_chn, venc_stream](int) {
+                int venc_chn         = chn_id_;
+                video_frame->deleter = [venc_chn, venc_stream](int)
+                {
                     RK_MPI_VENC_ReleaseStream(venc_chn, venc_stream);
-                    if (venc_stream) { free(venc_stream->pstPack); delete venc_stream; }
+                    if (venc_stream)
+                    {
+                        free(venc_stream->pstPack);
+                        delete venc_stream;
+                    }
                 };
 
-                frame = VideoFramePtr(video_frame, [](VideoFrame* f) {
-                    if (f) { if (f->deleter) f->deleter(0); delete f; }
-                });
+                frame = VideoFramePtr(video_frame,
+                                      [](VideoFrame* f)
+                                      {
+                                          if (f)
+                                          {
+                                              if (f->deleter)
+                                                  f->deleter(0);
+                                              delete f;
+                                          }
+                                      });
 
                 return VideoError::NONE;
             }
 
             VideoError VENCWrapper::setBitrate(int bitrate_kbps)
             {
-                if (!valid_) return VideoError::NOT_INITIALIZED;
+                if (!valid_)
+                    return VideoError::NOT_INITIALIZED;
 
                 VENC_CHN_ATTR_S channel_attr{};
-                RK_S32 ret = RK_MPI_VENC_GetChnAttr(chn_id_, &channel_attr);
-                if (ret != RK_SUCCESS) return VideoError::ENCODE_FAILED;
+                RK_S32          ret = RK_MPI_VENC_GetChnAttr(chn_id_, &channel_attr);
+                if (ret != RK_SUCCESS)
+                    return VideoError::ENCODE_FAILED;
 
                 switch (current_format_)
                 {
-                case EncodeFormat::H264: channel_attr.stRcAttr.stH264Cbr.u32BitRate = bitrate_kbps; break;
-                case EncodeFormat::H265: channel_attr.stRcAttr.stH265Cbr.u32BitRate = bitrate_kbps; break;
-                case EncodeFormat::JPEG: return VideoError::INVALID_PARAM;
+                case EncodeFormat::H264:
+                    channel_attr.stRcAttr.stH264Cbr.u32BitRate = bitrate_kbps;
+                    break;
+                case EncodeFormat::H265:
+                    channel_attr.stRcAttr.stH265Cbr.u32BitRate = bitrate_kbps;
+                    break;
+                case EncodeFormat::JPEG:
+                    return VideoError::INVALID_PARAM;
                 }
 
                 ret = RK_MPI_VENC_SetChnAttr(chn_id_, &channel_attr);
-                if (ret == RK_SUCCESS) { current_bitrate_ = bitrate_kbps; return VideoError::NONE; }
+                if (ret == RK_SUCCESS)
+                {
+                    current_bitrate_ = bitrate_kbps;
+                    return VideoError::NONE;
+                }
                 return VideoError::ENCODE_FAILED;
             }
 
             VideoError VENCWrapper::setGOP(int gop)
             {
-                if (!valid_) return VideoError::NOT_INITIALIZED;
+                if (!valid_)
+                    return VideoError::NOT_INITIALIZED;
 
                 VENC_CHN_ATTR_S channel_attr{};
-                RK_S32 ret = RK_MPI_VENC_GetChnAttr(chn_id_, &channel_attr);
-                if (ret != RK_SUCCESS) return VideoError::ENCODE_FAILED;
+                RK_S32          ret = RK_MPI_VENC_GetChnAttr(chn_id_, &channel_attr);
+                if (ret != RK_SUCCESS)
+                    return VideoError::ENCODE_FAILED;
 
                 switch (current_format_)
                 {
-                case EncodeFormat::H264: channel_attr.stRcAttr.stH264Cbr.u32Gop = gop; break;
-                case EncodeFormat::H265: channel_attr.stRcAttr.stH265Cbr.u32Gop = gop; break;
-                case EncodeFormat::JPEG: current_gop_ = 1; return VideoError::NONE;
+                case EncodeFormat::H264:
+                    channel_attr.stRcAttr.stH264Cbr.u32Gop = gop;
+                    break;
+                case EncodeFormat::H265:
+                    channel_attr.stRcAttr.stH265Cbr.u32Gop = gop;
+                    break;
+                case EncodeFormat::JPEG:
+                    current_gop_ = 1;
+                    return VideoError::NONE;
                 }
 
                 ret = RK_MPI_VENC_SetChnAttr(chn_id_, &channel_attr);
-                if (ret == RK_SUCCESS) { current_gop_ = gop; return VideoError::NONE; }
+                if (ret == RK_SUCCESS)
+                {
+                    current_gop_ = gop;
+                    return VideoError::NONE;
+                }
                 return VideoError::ENCODE_FAILED;
             }
 
             VideoError VENCWrapper::setJPEGQuality(int quality)
             {
-                if (!valid_) return VideoError::NOT_INITIALIZED;
+                if (!valid_)
+                    return VideoError::NOT_INITIALIZED;
 
                 quality = std::max(JPEG_MIN_QUALITY, std::min(JPEG_MAX_QUALITY, quality));
                 current_jpeg_quality_ = quality;
 
-                if (current_format_ != EncodeFormat::JPEG) return VideoError::NONE;
+                if (current_format_ != EncodeFormat::JPEG)
+                    return VideoError::NONE;
 
                 VENC_CHN_ATTR_S channel_attr{};
-                RK_S32 ret = RK_MPI_VENC_GetChnAttr(chn_id_, &channel_attr);
-                if (ret != RK_SUCCESS) return VideoError::ENCODE_FAILED;
+                RK_S32          ret = RK_MPI_VENC_GetChnAttr(chn_id_, &channel_attr);
+                if (ret != RK_SUCCESS)
+                    return VideoError::ENCODE_FAILED;
 
                 if (channel_attr.stRcAttr.enRcMode == VENC_RC_MODE_MJPEGFIXQP)
                 {
-                    int quality_param = std::max(JPEG_MIN_QUALITY,
-                        std::min(JPEG_QP_SCALE, (quality * JPEG_QP_SCALE + JPEG_QP_OFFSET) / JPEG_QP_DIVISOR));
+                    int quality_param = std::max(
+                        JPEG_MIN_QUALITY,
+                        std::min(JPEG_QP_SCALE,
+                                 (quality * JPEG_QP_SCALE + JPEG_QP_OFFSET) / JPEG_QP_DIVISOR));
                     channel_attr.stRcAttr.stMjpegFixQp.u32Qfactor = quality_param;
                     RK_MPI_VENC_SetChnAttr(chn_id_, &channel_attr);
                 }
@@ -897,26 +1068,32 @@ namespace app
             {
             public:
                 Impl(const VideoConfig& config, std::atomic<bool>& photo_capturing_ref,
-                     std::atomic<bool>& is_recording_ref, std::atomic<bool>& is_webrtc_streaming_ref,
+                     std::atomic<bool>& is_recording_ref,
+                     std::atomic<bool>& is_webrtc_streaming_ref,
                      std::atomic<bool>& is_rtsp_streaming_ref)
                     : config_(config),
                       memory_pool_(VideoMemoryPool::VideoMemoryPoolConfig{
                           config.fixed_block_size, config.fixed_pool_size, config.dynamic_pool_size,
-                          64, config.enable_dma_zero_copy
-                      }),
+                          64, config.enable_dma_zero_copy}),
                       quit_flag_(false), current_fps_(0.0f), photo_id_(0), record_id_(0),
                       photo_capturing_external_(photo_capturing_ref),
                       is_recording_external_(is_recording_ref),
                       is_webrtc_streaming_external_(is_webrtc_streaming_ref),
-                      is_rtsp_streaming_external_(is_rtsp_streaming_ref) {}
+                      is_rtsp_streaming_external_(is_rtsp_streaming_ref)
+                {
+                }
 
-                ~Impl() { deinit(); }
+                ~Impl()
+                {
+                    deinit();
+                }
 
                 VideoError init(std::shared_ptr<sync_context_t> sync_ctx)
                 {
                     std::lock_guard<std::mutex> lock(mutex_);
 
-                    LOG_INFO(LOG_TAG, "初始化视频系统 (%dx%d @ %dfps)", config_.width, config_.height, config_.fps);
+                    LOG_INFO(LOG_TAG, "初始化视频系统 (%dx%d @ %dfps)", config_.width,
+                             config_.height, config_.fps);
 
                     sync_ctx_ = sync_ctx;
                     createDirectory(config_.photo_path);
@@ -930,17 +1107,23 @@ namespace app
                     rkmpi_initialized_ = true;
 
                     isp_ = std::make_unique<ISPWrapper>(0, ISP_PATH);
-                    if (!isp_->isValid()) return VideoError::INIT_FAILED;
+                    if (!isp_->isValid())
+                        return VideoError::INIT_FAILED;
 
                     vi_dev_ = std::make_unique<VIDeviceWrapper>(0);
-                    if (!vi_dev_->isValid()) return VideoError::INIT_FAILED;
+                    if (!vi_dev_->isValid())
+                        return VideoError::INIT_FAILED;
 
-                    vi_chn_ = std::make_unique<VIChannelWrapper>(0, 0, config_.width, config_.height);
-                    if (!vi_chn_->isValid()) return VideoError::INIT_FAILED;
+                    vi_chn_ =
+                        std::make_unique<VIChannelWrapper>(0, 0, config_.width, config_.height);
+                    if (!vi_chn_->isValid())
+                        return VideoError::INIT_FAILED;
 
-                    venc_ = std::make_unique<VENCWrapper>(0, config_.width, config_.height,
-                                                          config_.format, config_.bitrate, config_.gop);
-                    if (!venc_->isValid()) return VideoError::INIT_FAILED;
+                    venc_ =
+                        std::make_unique<VENCWrapper>(0, config_.width, config_.height,
+                                                      config_.format, config_.bitrate, config_.gop);
+                    if (!venc_->isValid())
+                        return VideoError::INIT_FAILED;
 
                     MPP_CHN_S src{RK_ID_VI, 0, 0}, dest{RK_ID_VENC, 0, 0};
                     if (RK_MPI_SYS_Bind(&src, &dest) != RK_SUCCESS)
@@ -976,7 +1159,11 @@ namespace app
                     vi_dev_.reset();
                     isp_.reset();
 
-                    if (rkmpi_initialized_) { RK_MPI_SYS_Exit(); rkmpi_initialized_ = false; }
+                    if (rkmpi_initialized_)
+                    {
+                        RK_MPI_SYS_Exit();
+                        rkmpi_initialized_ = false;
+                    }
 
                     LOG_INFO(LOG_TAG, "视频系统已关闭");
                 }
@@ -989,9 +1176,11 @@ namespace app
 
                 VideoError startStreamInternal()
                 {
-                    if (stream_thread_ && stream_thread_->joinable()) return VideoError::ALREADY_STARTED;
+                    if (stream_thread_ && stream_thread_->joinable())
+                        return VideoError::ALREADY_STARTED;
                     quit_flag_.store(false);
-                    stream_thread_ = std::make_unique<std::thread>(&Impl::streamProcessThread, this);
+                    stream_thread_ =
+                        std::make_unique<std::thread>(&Impl::streamProcessThread, this);
                     LOG_INFO(LOG_TAG, "视频流已启动");
                     return VideoError::NONE;
                 }
@@ -1004,7 +1193,8 @@ namespace app
 
                 VideoError stopStreamInternal()
                 {
-                    if (!stream_thread_ || !stream_thread_->joinable()) return VideoError::NOT_STARTED;
+                    if (!stream_thread_ || !stream_thread_->joinable())
+                        return VideoError::NOT_STARTED;
                     quit_flag_.store(true);
                     stream_thread_->join();
                     stream_thread_.reset();
@@ -1021,49 +1211,67 @@ namespace app
                     {
                         VideoFramePtr frame;
                         VideoError    err = config_.enable_dma_zero_copy
-                            ? venc_->getStreamZeroCopy(frame, 100)
-                            : venc_->getStream(frame, memory_pool_, 100);
+                                                ? venc_->getStreamZeroCopy(frame, 100)
+                                                : venc_->getStream(frame, memory_pool_, 100);
 
-                        if (err == VideoError::TIMEOUT) continue;
-                        if (err != VideoError::NONE || !frame) continue;
+                        if (err == VideoError::TIMEOUT)
+                            continue;
+                        if (err != VideoError::NONE || !frame)
+                            continue;
 
                         frame_count++;
                         stats_.frames_captured.fetch_add(1);
-                        if (frame->is_dma_buffer) stats_.dma_frames.fetch_add(1);
+                        if (frame->is_dma_buffer)
+                            stats_.dma_frames.fetch_add(1);
 
-                        frame->timestamp = sync_ctx_ ? sync_get_timestamp(sync_ctx_.get(), frame->pts, false) : frame->pts;
+                        frame->timestamp =
+                            sync_ctx_ ? sync_get_timestamp(sync_ctx_.get(), frame->pts, false)
+                                      : frame->pts;
 
                         switch (main_state_.load())
                         {
-                        case VideoMainState::PHOTO:   handlePhotoFrame(frame); break;
-                        case VideoMainState::RECORD:  handleRecordFrame(frame); break;
-                        case VideoMainState::WEBRTC:  handleWebRTCFrame(frame); break;
-                        case VideoMainState::RTSP:    handleRTSPFrame(frame); break;
-                        default: break;
+                        case VideoMainState::PHOTO:
+                            handlePhotoFrame(frame);
+                            break;
+                        case VideoMainState::RECORD:
+                            handleRecordFrame(frame);
+                            break;
+                        case VideoMainState::WEBRTC:
+                            handleWebRTCFrame(frame);
+                            break;
+                        case VideoMainState::RTSP:
+                            handleRTSPFrame(frame);
+                            break;
+                        default:
+                            break;
                         }
 
                         auto current_time = std::chrono::steady_clock::now();
-                        auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(current_time - last_stat_time).count();
+                        auto elapsed      = std::chrono::duration_cast<std::chrono::microseconds>(
+                                           current_time - last_stat_time)
+                                           .count();
 
                         if (elapsed >= 1000000)
                         {
-                            current_fps_ = static_cast<float>(frame_count) * 1000000.0f / elapsed;
+                            current_fps_   = static_cast<float>(frame_count) * 1000000.0f / elapsed;
                             last_stat_time = current_time;
-                            frame_count = 0;
+                            frame_count    = 0;
                         }
                     }
                 }
 
                 void handlePhotoFrame(VideoFramePtr& frame)
                 {
-                    if (!photo_capturing_.load()) return;
+                    if (!photo_capturing_.load())
+                        return;
 
                     photo_capture_count_++;
                     if (photo_capture_count_ >= config_.photo_capture_frames)
                     {
                         std::string filename = photo_filename_.empty()
-                            ? config_.photo_path + "photo_" + std::to_string(photo_id_++) + ".jpg"
-                            : photo_filename_;
+                                                   ? config_.photo_path + "photo_" +
+                                                         std::to_string(photo_id_++) + ".jpg"
+                                                   : photo_filename_;
 
                         FileWrapper file(filename, FileMode::WRITE);
                         if (file.isValid() && file.write(frame->data, frame->size))
@@ -1074,7 +1282,7 @@ namespace app
                         }
 
                         photo_capture_count_ = 0;
-                        bool expected = true;
+                        bool expected        = true;
                         if (photo_capturing_.compare_exchange_strong(expected, false))
                         {
                             photo_capturing_external_.store(false);
@@ -1094,13 +1302,16 @@ namespace app
 
                     venc_.reset();
                     venc_ = std::make_unique<VENCWrapper>(0, config_.width, config_.height,
-                                                          EncodeFormat::JPEG, config_.bitrate, config_.gop);
-                    if (!venc_->isValid()) return VideoError::INIT_FAILED;
+                                                          EncodeFormat::JPEG, config_.bitrate,
+                                                          config_.gop);
+                    if (!venc_->isValid())
+                        return VideoError::INIT_FAILED;
 
                     venc_->setJPEGQuality(config_.quality);
 
                     MPP_CHN_S src{RK_ID_VI, 0, 0}, dest{RK_ID_VENC, 0, 0};
-                    if (RK_MPI_SYS_Bind(&src, &dest) != RK_SUCCESS) return VideoError::INIT_FAILED;
+                    if (RK_MPI_SYS_Bind(&src, &dest) != RK_SUCCESS)
+                        return VideoError::INIT_FAILED;
                     modules_bound_ = true;
 
                     return VideoError::NONE;
@@ -1116,12 +1327,15 @@ namespace app
                     }
 
                     venc_.reset();
-                    venc_ = std::make_unique<VENCWrapper>(0, config_.width, config_.height,
-                                                          config_.format, config_.bitrate, config_.gop);
-                    if (!venc_->isValid()) return VideoError::INIT_FAILED;
+                    venc_ =
+                        std::make_unique<VENCWrapper>(0, config_.width, config_.height,
+                                                      config_.format, config_.bitrate, config_.gop);
+                    if (!venc_->isValid())
+                        return VideoError::INIT_FAILED;
 
                     MPP_CHN_S src{RK_ID_VI, 0, 0}, dest{RK_ID_VENC, 0, 0};
-                    if (RK_MPI_SYS_Bind(&src, &dest) != RK_SUCCESS) return VideoError::INIT_FAILED;
+                    if (RK_MPI_SYS_Bind(&src, &dest) != RK_SUCCESS)
+                        return VideoError::INIT_FAILED;
                     modules_bound_ = true;
 
                     return VideoError::NONE;
@@ -1129,36 +1343,43 @@ namespace app
 
                 VideoError restoreH264Encoder()
                 {
-                    if (!photo_need_restore_encoder_) return VideoError::NONE;
+                    if (!photo_need_restore_encoder_)
+                        return VideoError::NONE;
 
                     bool was_streaming = stream_thread_ && stream_thread_->joinable();
-                    if (was_streaming) stopStreamInternal();
+                    if (was_streaming)
+                        stopStreamInternal();
 
                     VideoError err = switchToH264Encoder();
-                    if (err != VideoError::NONE) return err;
+                    if (err != VideoError::NONE)
+                        return err;
 
-                    if (was_streaming) startStreamInternal();
+                    if (was_streaming)
+                        startStreamInternal();
                     photo_need_restore_encoder_ = false;
                     return VideoError::NONE;
                 }
 
                 VideoError takePhoto(const std::string& filename, bool switch_encoder)
                 {
-                    if (photo_capturing_.load()) return VideoError::ALREADY_STARTED;
+                    if (photo_capturing_.load())
+                        return VideoError::ALREADY_STARTED;
 
-                    photo_filename_      = filename;
-                    photo_capture_count_ = 0;
+                    photo_filename_             = filename;
+                    photo_capture_count_        = 0;
                     photo_need_restore_encoder_ = false;
 
                     if (switch_encoder && config_.format != EncodeFormat::JPEG)
                     {
                         bool was_streaming = stream_thread_ && stream_thread_->joinable();
-                        if (was_streaming) stopStreamInternal();
+                        if (was_streaming)
+                            stopStreamInternal();
 
                         VideoError err = switchToJPEGEncoder();
                         if (err != VideoError::NONE)
                         {
-                            if (was_streaming) startStreamInternal();
+                            if (was_streaming)
+                                startStreamInternal();
                             return err;
                         }
 
@@ -1176,7 +1397,8 @@ namespace app
 
                 void handleRecordFrame(VideoFramePtr& frame)
                 {
-                    if (!is_recording_.load()) return;
+                    if (!is_recording_.load())
+                        return;
 
                     std::lock_guard<std::mutex> lock(record_mutex_);
                     if (record_file_ && record_file_->isValid())
@@ -1184,8 +1406,10 @@ namespace app
                         if (record_file_->write(frame->data, frame->size))
                         {
                             record_file_->flush();
-                            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-                                std::chrono::steady_clock::now() - record_start_time_).count();
+                            auto elapsed =
+                                std::chrono::duration_cast<std::chrono::milliseconds>(
+                                    std::chrono::steady_clock::now() - record_start_time_)
+                                    .count();
                             stats_.record_duration_ms.store(elapsed);
 
                             if (record_duration_sec_ > 0 && elapsed >= record_duration_sec_ * 1000)
@@ -1197,14 +1421,20 @@ namespace app
                 VideoError startRecord(const std::string& filename, int duration_sec)
                 {
                     std::lock_guard<std::mutex> lock(record_mutex_);
-                    if (is_recording_.load()) return VideoError::ALREADY_STARTED;
+                    if (is_recording_.load())
+                        return VideoError::ALREADY_STARTED;
 
                     std::string record_filename = filename.empty()
-                        ? config_.record_path + "record_" + std::to_string(record_id_++) + ".h264"
-                        : filename;
+                                                      ? config_.record_path + "record_" +
+                                                            std::to_string(record_id_++) + ".h264"
+                                                      : filename;
 
                     record_file_ = std::make_unique<FileWrapper>(record_filename, FileMode::WRITE);
-                    if (!record_file_->isValid()) { record_file_.reset(); return VideoError::FILE_OPEN_FAILED; }
+                    if (!record_file_->isValid())
+                    {
+                        record_file_.reset();
+                        return VideoError::FILE_OPEN_FAILED;
+                    }
 
                     record_duration_sec_ = duration_sec;
                     record_start_time_   = std::chrono::steady_clock::now();
@@ -1222,30 +1452,39 @@ namespace app
 
                 VideoError stopRecordInternal()
                 {
-                    if (!is_recording_.load()) return VideoError::NOT_STARTED;
+                    if (!is_recording_.load())
+                        return VideoError::NOT_STARTED;
 
                     is_recording_.store(false);
                     is_recording_external_.store(false);
 
-                    if (record_file_) { record_file_->flush(); record_file_.reset(); }
+                    if (record_file_)
+                    {
+                        record_file_->flush();
+                        record_file_.reset();
+                    }
                     return VideoError::NONE;
                 }
 
                 void handleWebRTCFrame(VideoFramePtr& frame)
                 {
-                    if (!is_webrtc_streaming_.load()) return;
+                    if (!is_webrtc_streaming_.load())
+                        return;
                     std::lock_guard<std::mutex> lock(webrtc_mutex_);
-                    if (webrtc_callback_) webrtc_callback_(frame);
+                    if (webrtc_callback_)
+                        webrtc_callback_(frame);
                 }
 
                 void handleRTSPFrame(VideoFramePtr& frame)
                 {
-                    if (!is_rtsp_streaming_.load()) return;
+                    if (!is_rtsp_streaming_.load())
+                        return;
                     std::lock_guard<std::mutex> lock(rtsp_mutex_);
                     if (rtsp_demo_ && rtsp_session_)
                     {
                         uint64_t ts = rtsp_get_reltime();
-                        rtsp_tx_video(rtsp_session_, frame->data, static_cast<int>(frame->size), ts);
+                        rtsp_tx_video(rtsp_session_, frame->data, static_cast<int>(frame->size),
+                                      ts);
                         rtsp_do_event(rtsp_demo_);
                     }
                 }
@@ -1258,9 +1497,11 @@ namespace app
 
                 VideoError startWebRTCStream()
                 {
-                    if (is_webrtc_streaming_.load()) return VideoError::ALREADY_STARTED;
+                    if (is_webrtc_streaming_.load())
+                        return VideoError::ALREADY_STARTED;
                     std::lock_guard<std::mutex> lock(webrtc_mutex_);
-                    if (!webrtc_callback_) return VideoError::INVALID_STATE;
+                    if (!webrtc_callback_)
+                        return VideoError::INVALID_STATE;
                     is_webrtc_streaming_.store(true);
                     return VideoError::NONE;
                 }
@@ -1273,7 +1514,8 @@ namespace app
 
                 VideoError stopWebRTCInternal()
                 {
-                    if (!is_webrtc_streaming_.load()) return VideoError::NOT_STARTED;
+                    if (!is_webrtc_streaming_.load())
+                        return VideoError::NOT_STARTED;
                     is_webrtc_streaming_.store(false);
                     is_webrtc_streaming_external_.store(false);
                     return VideoError::NONE;
@@ -1281,7 +1523,8 @@ namespace app
 
                 VideoError startRTSPStream(int port, const std::string& path)
                 {
-                    if (is_rtsp_streaming_.load()) return VideoError::ALREADY_STARTED;
+                    if (is_rtsp_streaming_.load())
+                        return VideoError::ALREADY_STARTED;
                     std::lock_guard<std::mutex> lock(rtsp_mutex_);
 
                     rtsp_demo_ = rtsp_new_demo(port);
@@ -1310,7 +1553,7 @@ namespace app
                         rtsp_del_session(rtsp_session_);
                         rtsp_del_demo(rtsp_demo_);
                         rtsp_session_ = nullptr;
-                        rtsp_demo_ = nullptr;
+                        rtsp_demo_    = nullptr;
                         return VideoError::NOT_SUPPORTED;
                     }
 
@@ -1321,7 +1564,7 @@ namespace app
                         rtsp_del_session(rtsp_session_);
                         rtsp_del_demo(rtsp_demo_);
                         rtsp_session_ = nullptr;
-                        rtsp_demo_ = nullptr;
+                        rtsp_demo_    = nullptr;
                         return VideoError::INIT_FAILED;
                     }
 
@@ -1345,7 +1588,8 @@ namespace app
 
                 VideoError stopRTSPInternal()
                 {
-                    if (!is_rtsp_streaming_.load()) return VideoError::NOT_STARTED;
+                    if (!is_rtsp_streaming_.load())
+                        return VideoError::NOT_STARTED;
 
                     if (rtsp_session_)
                     {
@@ -1369,10 +1613,12 @@ namespace app
                 VideoError setMainState(VideoMainState new_state)
                 {
                     std::lock_guard<std::mutex> lock(mutex_);
-                    VideoMainState old_state = main_state_.load();
-                    if (old_state == new_state) return VideoError::NONE;
+                    VideoMainState              old_state = main_state_.load();
+                    if (old_state == new_state)
+                        return VideoError::NONE;
                     main_state_.store(new_state);
-                    if (main_state_callback_) main_state_callback_(old_state, new_state);
+                    if (main_state_callback_)
+                        main_state_callback_(old_state, new_state);
                     return VideoError::NONE;
                 }
 
@@ -1406,31 +1652,48 @@ namespace app
                     memory_pool_.logStats();
                 }
 
-                float getCurrentFPS() const { return current_fps_; }
+                float getCurrentFPS() const
+                {
+                    return current_fps_;
+                }
 
                 VideoError setEncodingParams(int bitrate, int gop)
                 {
                     VideoError err = VideoError::NONE;
-                    if (bitrate >= 0) { err = setBitrate(bitrate); if (err != VideoError::NONE) return err; }
-                    if (gop >= 0)     { err = setGOP(gop);         if (err != VideoError::NONE) return err; }
+                    if (bitrate >= 0)
+                    {
+                        err = setBitrate(bitrate);
+                        if (err != VideoError::NONE)
+                            return err;
+                    }
+                    if (gop >= 0)
+                    {
+                        err = setGOP(gop);
+                        if (err != VideoError::NONE)
+                            return err;
+                    }
                     return VideoError::NONE;
                 }
 
                 VideoError setBitrate(int bitrate_kbps)
                 {
                     std::lock_guard<std::mutex> lock(mutex_);
-                    if (!venc_ || !venc_->isValid()) return VideoError::NOT_INITIALIZED;
+                    if (!venc_ || !venc_->isValid())
+                        return VideoError::NOT_INITIALIZED;
                     VideoError err = venc_->setBitrate(bitrate_kbps);
-                    if (err == VideoError::NONE) config_.bitrate = bitrate_kbps;
+                    if (err == VideoError::NONE)
+                        config_.bitrate = bitrate_kbps;
                     return err;
                 }
 
                 VideoError setGOP(int gop)
                 {
                     std::lock_guard<std::mutex> lock(mutex_);
-                    if (!venc_ || !venc_->isValid()) return VideoError::NOT_INITIALIZED;
+                    if (!venc_ || !venc_->isValid())
+                        return VideoError::NOT_INITIALIZED;
                     VideoError err = venc_->setGOP(gop);
-                    if (err == VideoError::NONE) config_.gop = gop;
+                    if (err == VideoError::NONE)
+                        config_.gop = gop;
                     return err;
                 }
 
@@ -1439,7 +1702,8 @@ namespace app
                     std::lock_guard<std::mutex> lock(mutex_);
                     quality = std::max(JPEG_MIN_QUALITY, std::min(JPEG_MAX_QUALITY, quality));
                     config_.quality = quality;
-                    if (venc_ && venc_->isValid()) return venc_->setJPEGQuality(quality);
+                    if (venc_ && venc_->isValid())
+                        return venc_->setJPEGQuality(quality);
                     return VideoError::NONE;
                 }
 
@@ -1454,39 +1718,56 @@ namespace app
                 {
                     std::lock_guard<std::mutex> lock(mutex_);
 
-                    if (explain_url_.empty()) return R"({"success":false,"message":"AI URL未设置"})";
-                    if (!venc_ || !venc_->isValid()) return R"({"success":false,"message":"编码器未初始化"})";
+                    if (explain_url_.empty())
+                        return R"({"success":false,"message":"AI URL未设置"})";
+                    if (!venc_ || !venc_->isValid())
+                        return R"({"success":false,"message":"编码器未初始化"})";
 
-                    bool need_switch = (config_.format != EncodeFormat::JPEG);
+                    bool need_switch   = (config_.format != EncodeFormat::JPEG);
                     bool was_streaming = stream_thread_ && stream_thread_->joinable();
 
-                    if (need_switch && was_streaming) stopStreamInternal();
+                    if (need_switch && was_streaming)
+                        stopStreamInternal();
                     if (need_switch && switchToJPEGEncoder() != VideoError::NONE)
                     {
-                        if (was_streaming) startStreamInternal();
+                        if (was_streaming)
+                            startStreamInternal();
                         return R"({"success":false,"message":"切换JPEG编码器失败"})";
                     }
 
                     std::this_thread::sleep_for(std::chrono::milliseconds(STREAM_SLEEP_MS));
 
                     VideoFramePtr jpeg_frame;
-                    if (venc_->getStream(jpeg_frame, memory_pool_, 5000) != VideoError::NONE || !jpeg_frame)
+                    if (venc_->getStream(jpeg_frame, memory_pool_, 5000) != VideoError::NONE ||
+                        !jpeg_frame)
                     {
-                        if (need_switch) { switchToH264Encoder(); if (was_streaming) startStreamInternal(); }
+                        if (need_switch)
+                        {
+                            switchToH264Encoder();
+                            if (was_streaming)
+                                startStreamInternal();
+                        }
                         return R"({"success":false,"message":"获取JPEG失败"})";
                     }
 
-                    protocol::http::HttpClient http_client;
+                    protocol::http::HttpClient         http_client;
                     std::map<std::string, std::string> form_fields{{"question", question}};
                     std::map<std::string, std::string> headers;
-                    if (!explain_token_.empty()) headers["Authorization"] = "Bearer " + explain_token_;
+                    if (!explain_token_.empty())
+                        headers["Authorization"] = "Bearer " + explain_token_;
 
-                    auto response = http_client.postMultipart(explain_url_, form_fields, "file",
-                        jpeg_frame->data, jpeg_frame->size, "camera.jpg", "image/jpeg", headers, 30000, true);
+                    auto response = http_client.postMultipart(
+                        explain_url_, form_fields, "file", jpeg_frame->data, jpeg_frame->size,
+                        "camera.jpg", "image/jpeg", headers, 30000, true);
 
                     jpeg_frame.reset();
 
-                    if (need_switch) { switchToH264Encoder(); if (was_streaming) startStreamInternal(); }
+                    if (need_switch)
+                    {
+                        switchToH264Encoder();
+                        if (was_streaming)
+                            startStreamInternal();
+                    }
 
                     if (!response.success)
                         return R"({"success":false,"message":")" + response.error_message + R"("})";
@@ -1514,22 +1795,22 @@ namespace app
                 std::string       photo_filename_;
                 bool              photo_need_restore_encoder_ = false;
 
-                std::atomic<bool>            is_recording_{false};
-                std::unique_ptr<FileWrapper> record_file_;
-                int                          record_id_;
-                int                          record_duration_sec_ = 0;
+                std::atomic<bool>                     is_recording_{false};
+                std::unique_ptr<FileWrapper>          record_file_;
+                int                                   record_id_;
+                int                                   record_duration_sec_ = 0;
                 std::chrono::steady_clock::time_point record_start_time_;
-                std::mutex                   record_mutex_;
+                std::mutex                            record_mutex_;
 
                 std::atomic<bool>   is_webrtc_streaming_{false};
                 WebRTCVideoCallback webrtc_callback_;
                 std::mutex          webrtc_mutex_;
 
                 std::atomic<bool>   is_rtsp_streaming_{false};
-                rtsp_demo_handle    rtsp_demo_ = nullptr;
+                rtsp_demo_handle    rtsp_demo_    = nullptr;
                 rtsp_session_handle rtsp_session_ = nullptr;
-                int                 rtsp_port_ = 554;
-                std::string         rtsp_path_ = "/live/0";
+                int                 rtsp_port_    = 554;
+                std::string         rtsp_path_    = "/live/0";
                 std::mutex          rtsp_mutex_;
 
                 std::atomic<VideoMainState>    main_state_{VideoMainState::NONE};
@@ -1541,7 +1822,8 @@ namespace app
                 bool rkmpi_initialized_ = false;
                 bool modules_bound_     = false;
 
-                struct {
+                struct
+                {
                     std::atomic<uint64_t> frames_captured{0};
                     std::atomic<uint64_t> frames_dropped{0};
                     std::atomic<uint64_t> photos_taken{0};
@@ -1562,74 +1844,103 @@ namespace app
 
             // VideoSystem公开接口
             VideoSystem::VideoSystem(const VideoConfig& config)
-                : pImpl_(std::make_unique<Impl>(config, photo_capturing_, is_recording_, is_webrtc_streaming_, is_rtsp_streaming_)) {}
+                : pImpl_(std::make_unique<Impl>(config, photo_capturing_, is_recording_,
+                                                is_webrtc_streaming_, is_rtsp_streaming_))
+            {
+            }
 
-            VideoSystem::~VideoSystem() { deinit(); }
+            VideoSystem::~VideoSystem()
+            {
+                deinit();
+            }
 
             VideoError VideoSystem::init(std::shared_ptr<sync_context_t> sync_ctx)
             {
                 VideoError err = pImpl_->init(sync_ctx);
-                if (err == VideoError::NONE) is_initialized_.store(true);
+                if (err == VideoError::NONE)
+                    is_initialized_.store(true);
                 return err;
             }
 
             void VideoSystem::deinit()
             {
-                if (is_initialized_.load()) { pImpl_->deinit(); is_initialized_.store(false); }
+                if (is_initialized_.load())
+                {
+                    pImpl_->deinit();
+                    is_initialized_.store(false);
+                }
             }
 
             VideoError VideoSystem::startStream()
             {
                 VideoError err = pImpl_->startStream();
-                if (err == VideoError::NONE) is_streaming_.store(true);
+                if (err == VideoError::NONE)
+                    is_streaming_.store(true);
                 return err;
             }
 
             VideoError VideoSystem::stopStream()
             {
                 VideoError err = pImpl_->stopStream();
-                if (err == VideoError::NONE) is_streaming_.store(false);
+                if (err == VideoError::NONE)
+                    is_streaming_.store(false);
                 return err;
             }
 
             VideoError VideoSystem::takePhoto(const std::string& filename, bool switch_encoder)
             {
-                if (!isInitialized()) return VideoError::NOT_INITIALIZED;
+                if (!isInitialized())
+                    return VideoError::NOT_INITIALIZED;
                 VideoError err = pImpl_->takePhoto(filename, switch_encoder);
-                if (err == VideoError::NONE) photo_capturing_.store(true);
+                if (err == VideoError::NONE)
+                    photo_capturing_.store(true);
                 return err;
             }
 
             VideoError VideoSystem::restoreH264Encoder()
             {
-                if (!isInitialized()) return VideoError::NOT_INITIALIZED;
+                if (!isInitialized())
+                    return VideoError::NOT_INITIALIZED;
                 return pImpl_->restoreH264Encoder();
             }
 
             VideoError VideoSystem::startRecord(const std::string& filename, int duration_sec)
             {
-                if (!isInitialized()) return VideoError::NOT_INITIALIZED;
+                if (!isInitialized())
+                    return VideoError::NOT_INITIALIZED;
                 VideoError err = pImpl_->startRecord(filename, duration_sec);
-                if (err == VideoError::NONE) is_recording_.store(true);
+                if (err == VideoError::NONE)
+                    is_recording_.store(true);
                 return err;
             }
 
             VideoError VideoSystem::stopRecord()
             {
                 VideoError err = pImpl_->stopRecord();
-                if (err == VideoError::NONE) is_recording_.store(false);
+                if (err == VideoError::NONE)
+                    is_recording_.store(false);
                 return err;
             }
 
-            void VideoSystem::setWebRTCVideoCallback(WebRTCVideoCallback callback) { pImpl_->setWebRTCVideoCallback(callback); }
+            void VideoSystem::setWebRTCVideoCallback(WebRTCVideoCallback callback)
+            {
+                pImpl_->setWebRTCVideoCallback(callback);
+            }
 
             VideoError VideoSystem::startWebRTCMode()
             {
-                if (!isInitialized()) return VideoError::NOT_INITIALIZED;
+                if (!isInitialized())
+                    return VideoError::NOT_INITIALIZED;
                 setMainState(VideoMainState::WEBRTC);
-                if (!isStreaming()) { VideoError err = startStream(); if (err != VideoError::NONE) return err; }
+                if (!isStreaming())
+                {
+                    VideoError err = startStream();
+                    if (err != VideoError::NONE)
+                        return err;
+                }
                 VideoError err = pImpl_->startWebRTCStream();
-                if (err == VideoError::NONE) is_webrtc_streaming_.store(true);
+                if (err == VideoError::NONE)
+                    is_webrtc_streaming_.store(true);
                 return err;
             }
 
@@ -1643,15 +1954,18 @@ namespace app
 
             VideoError VideoSystem::startRTSPMode(int port, const std::string& path)
             {
-                if (!isInitialized()) return VideoError::NOT_INITIALIZED;
+                if (!isInitialized())
+                    return VideoError::NOT_INITIALIZED;
                 setMainState(VideoMainState::RTSP);
                 if (!isStreaming())
                 {
                     VideoError err = startStream();
-                    if (err != VideoError::NONE) return err;
+                    if (err != VideoError::NONE)
+                        return err;
                 }
                 VideoError err = pImpl_->startRTSPStream(port, path);
-                if (err == VideoError::NONE) is_rtsp_streaming_.store(true);
+                if (err == VideoError::NONE)
+                    is_rtsp_streaming_.store(true);
                 return err;
             }
 
@@ -1666,39 +1980,148 @@ namespace app
             VideoError VideoSystem::setMainState(VideoMainState state)
             {
                 VideoError err = pImpl_->setMainState(state);
-                if (err == VideoError::NONE) main_state_.store(state);
+                if (err == VideoError::NONE)
+                    main_state_.store(state);
                 return err;
             }
 
-            void VideoSystem::setMainStateCallback(StateChangeCallback<VideoMainState> callback) { pImpl_->setMainStateCallback(callback); }
-            void VideoSystem::setControlStateCallback(StateChangeCallback<VideoControlState> callback) { pImpl_->setControlStateCallback(callback); }
+            void VideoSystem::setMainStateCallback(StateChangeCallback<VideoMainState> callback)
+            {
+                pImpl_->setMainStateCallback(callback);
+            }
+            void
+            VideoSystem::setControlStateCallback(StateChangeCallback<VideoControlState> callback)
+            {
+                pImpl_->setControlStateCallback(callback);
+            }
 
-            VideoError VideoSystem::setEncodingParams(int bitrate, int gop) { return isInitialized() ? pImpl_->setEncodingParams(bitrate, gop) : VideoError::NOT_INITIALIZED; }
-            VideoError VideoSystem::setJPEGQuality(int quality) { return isInitialized() ? pImpl_->setJPEGQuality(quality) : VideoError::NOT_INITIALIZED; }
+            VideoError VideoSystem::setEncodingParams(int bitrate, int gop)
+            {
+                return isInitialized() ? pImpl_->setEncodingParams(bitrate, gop)
+                                       : VideoError::NOT_INITIALIZED;
+            }
+            VideoError VideoSystem::setJPEGQuality(int quality)
+            {
+                return isInitialized() ? pImpl_->setJPEGQuality(quality)
+                                       : VideoError::NOT_INITIALIZED;
+            }
 
-            void        VideoSystem::setExplainUrl(const std::string& url, const std::string& token) { pImpl_->setExplainUrl(url, token); }
-            std::string VideoSystem::explainImage(const std::string& question) { return isInitialized() ? pImpl_->explainImage(question) : R"({"success":false})"; }
+            void VideoSystem::setExplainUrl(const std::string& url, const std::string& token)
+            {
+                pImpl_->setExplainUrl(url, token);
+            }
+            std::string VideoSystem::explainImage(const std::string& question)
+            {
+                return isInitialized() ? pImpl_->explainImage(question) : R"({"success":false})";
+            }
 
-            float VideoSystem::getCurrentFPS() const { return pImpl_->getCurrentFPS(); }
-            void  VideoSystem::getStats(Stats& out_stats) const { pImpl_->getStats(out_stats); }
-            void  VideoSystem::resetStats() { pImpl_->stats_.frames_captured.store(0); pImpl_->stats_.frames_dropped.store(0); pImpl_->stats_.photos_taken.store(0); pImpl_->stats_.record_duration_ms.store(0); pImpl_->stats_.dma_frames.store(0); pImpl_->memory_pool_.resetStats(); }
-            void  VideoSystem::logStats() const { pImpl_->logStats(); }
+            float VideoSystem::getCurrentFPS() const
+            {
+                return pImpl_->getCurrentFPS();
+            }
+            void VideoSystem::getStats(Stats& out_stats) const
+            {
+                pImpl_->getStats(out_stats);
+            }
+            void VideoSystem::resetStats()
+            {
+                pImpl_->stats_.frames_captured.store(0);
+                pImpl_->stats_.frames_dropped.store(0);
+                pImpl_->stats_.photos_taken.store(0);
+                pImpl_->stats_.record_duration_ms.store(0);
+                pImpl_->stats_.dma_frames.store(0);
+                pImpl_->memory_pool_.resetStats();
+            }
+            void VideoSystem::logStats() const
+            {
+                pImpl_->logStats();
+            }
 
             // ISP参数控制
-            VideoError VideoSystem::setExposureMode(opMode_t mode) { return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid()) ? pImpl_->isp_->setExposureMode(mode) : VideoError::NOT_INITIALIZED; }
-            VideoError VideoSystem::setExpGainRange(float min, float max) { return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid()) ? pImpl_->isp_->setExpGainRange(min, max) : VideoError::NOT_INITIALIZED; }
-            VideoError VideoSystem::setExpTimeRange(float min, float max) { return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid()) ? pImpl_->isp_->setExpTimeRange(min, max) : VideoError::NOT_INITIALIZED; }
-            VideoError VideoSystem::lockAE(bool lock) { return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid()) ? pImpl_->isp_->lockAE(lock) : VideoError::NOT_INITIALIZED; }
-            VideoError VideoSystem::setWhiteBalanceMode(opMode_t mode) { return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid()) ? pImpl_->isp_->setWhiteBalanceMode(mode) : VideoError::NOT_INITIALIZED; }
-            VideoError VideoSystem::setWhiteBalanceGain(float r, float b) { return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid()) ? pImpl_->isp_->setWhiteBalanceGain(r, b) : VideoError::NOT_INITIALIZED; }
-            VideoError VideoSystem::setColorTemperature(unsigned int ct) { return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid()) ? pImpl_->isp_->setColorTemperature(ct) : VideoError::NOT_INITIALIZED; }
-            VideoError VideoSystem::lockAWB(bool lock) { return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid()) ? pImpl_->isp_->lockAWB(lock) : VideoError::NOT_INITIALIZED; }
-            VideoError VideoSystem::setBrightness(unsigned int level) { return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid()) ? pImpl_->isp_->setBrightness(level) : VideoError::NOT_INITIALIZED; }
-            VideoError VideoSystem::setContrast(unsigned int level) { return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid()) ? pImpl_->isp_->setContrast(level) : VideoError::NOT_INITIALIZED; }
-            VideoError VideoSystem::setSaturation(unsigned int level) { return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid()) ? pImpl_->isp_->setSaturation(level) : VideoError::NOT_INITIALIZED; }
-            VideoError VideoSystem::setHue(unsigned int level) { return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid()) ? pImpl_->isp_->setHue(level) : VideoError::NOT_INITIALIZED; }
-            VideoError VideoSystem::setSharpness(unsigned int level) { return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid()) ? pImpl_->isp_->setSharpness(level) : VideoError::NOT_INITIALIZED; }
-            VideoError VideoSystem::setDehazeLevel(unsigned int level) { return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid()) ? pImpl_->isp_->setDehazeLevel(level) : VideoError::NOT_INITIALIZED; }
+            VideoError VideoSystem::setExposureMode(opMode_t mode)
+            {
+                return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid())
+                           ? pImpl_->isp_->setExposureMode(mode)
+                           : VideoError::NOT_INITIALIZED;
+            }
+            VideoError VideoSystem::setExpGainRange(float min, float max)
+            {
+                return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid())
+                           ? pImpl_->isp_->setExpGainRange(min, max)
+                           : VideoError::NOT_INITIALIZED;
+            }
+            VideoError VideoSystem::setExpTimeRange(float min, float max)
+            {
+                return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid())
+                           ? pImpl_->isp_->setExpTimeRange(min, max)
+                           : VideoError::NOT_INITIALIZED;
+            }
+            VideoError VideoSystem::lockAE(bool lock)
+            {
+                return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid())
+                           ? pImpl_->isp_->lockAE(lock)
+                           : VideoError::NOT_INITIALIZED;
+            }
+            VideoError VideoSystem::setWhiteBalanceMode(opMode_t mode)
+            {
+                return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid())
+                           ? pImpl_->isp_->setWhiteBalanceMode(mode)
+                           : VideoError::NOT_INITIALIZED;
+            }
+            VideoError VideoSystem::setWhiteBalanceGain(float r, float b)
+            {
+                return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid())
+                           ? pImpl_->isp_->setWhiteBalanceGain(r, b)
+                           : VideoError::NOT_INITIALIZED;
+            }
+            VideoError VideoSystem::setColorTemperature(unsigned int ct)
+            {
+                return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid())
+                           ? pImpl_->isp_->setColorTemperature(ct)
+                           : VideoError::NOT_INITIALIZED;
+            }
+            VideoError VideoSystem::lockAWB(bool lock)
+            {
+                return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid())
+                           ? pImpl_->isp_->lockAWB(lock)
+                           : VideoError::NOT_INITIALIZED;
+            }
+            VideoError VideoSystem::setBrightness(unsigned int level)
+            {
+                return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid())
+                           ? pImpl_->isp_->setBrightness(level)
+                           : VideoError::NOT_INITIALIZED;
+            }
+            VideoError VideoSystem::setContrast(unsigned int level)
+            {
+                return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid())
+                           ? pImpl_->isp_->setContrast(level)
+                           : VideoError::NOT_INITIALIZED;
+            }
+            VideoError VideoSystem::setSaturation(unsigned int level)
+            {
+                return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid())
+                           ? pImpl_->isp_->setSaturation(level)
+                           : VideoError::NOT_INITIALIZED;
+            }
+            VideoError VideoSystem::setHue(unsigned int level)
+            {
+                return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid())
+                           ? pImpl_->isp_->setHue(level)
+                           : VideoError::NOT_INITIALIZED;
+            }
+            VideoError VideoSystem::setSharpness(unsigned int level)
+            {
+                return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid())
+                           ? pImpl_->isp_->setSharpness(level)
+                           : VideoError::NOT_INITIALIZED;
+            }
+            VideoError VideoSystem::setDehazeLevel(unsigned int level)
+            {
+                return (isInitialized() && pImpl_->isp_ && pImpl_->isp_->isValid())
+                           ? pImpl_->isp_->setDehazeLevel(level)
+                           : VideoError::NOT_INITIALIZED;
+            }
 
         } // namespace camera
     }     // namespace media

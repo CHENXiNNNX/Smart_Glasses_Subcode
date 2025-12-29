@@ -68,7 +68,8 @@ namespace app
                 signaling_->onWebRTCReady(
                     [this](const std::string& role, const std::string& peer_id)
                     {
-                        LOG_INFO(LOG_TAG, "配对成功，角色: %s, 对端: %s", role.c_str(), peer_id.c_str());
+                        LOG_INFO(LOG_TAG, "配对成功，角色: %s, 对端: %s", role.c_str(),
+                                 peer_id.c_str());
                         // 如果当前状态允许，可以准备建立连接
                         // 注意：实际连接建立需要等待连接请求或主动发送连接请求
                     });
@@ -102,10 +103,12 @@ namespace app
                             std::lock_guard<std::mutex> lock(state_mutex_);
                             current_connection_request_ = request;
                         }
-                        
+
                         // 设备端收到连接请求后，同意并开始建立连接
-                        LOG_INFO(LOG_TAG, "收到连接请求 (message=%d, audio=%d, video=%d)，开始建立WebRTC连接",
-                                 request.message, request.audio, request.video);
+                        LOG_INFO(
+                            LOG_TAG,
+                            "收到连接请求 (message=%d, audio=%d, video=%d)，开始建立WebRTC连接",
+                            request.message, request.audio, request.video);
                         // 从信令模块获取对端ID
                         std::string peer_id = signaling_->getPeerDeviceId();
                         if (!peer_id.empty())
@@ -139,7 +142,8 @@ namespace app
                         {
                             LOG_WARN(LOG_TAG, "APP端拒绝连接请求");
                             setState(WebRTCState::FAILED);
-                            invokeErrorCallback(WebRTCError::CONNECTION_FAILED, "APP端拒绝连接请求");
+                            invokeErrorCallback(WebRTCError::CONNECTION_FAILED,
+                                                "APP端拒绝连接请求");
                         }
                     });
 
@@ -174,8 +178,7 @@ namespace app
             }
 
             bool WebRTCSystem::sendConnectionRequest(const std::string& peer_id,
-                                                     bool enable_message,
-                                                     bool enable_audio,
+                                                     bool enable_message, bool enable_audio,
                                                      bool enable_video)
             {
                 if (!isInitialized() || !signaling_)
@@ -201,7 +204,7 @@ namespace app
                 {
                     std::lock_guard<std::mutex> lock(state_mutex_);
                     current_connection_request_ = request;
-                    peer_device_id_ = peer_id;
+                    peer_device_id_             = peer_id;
                 }
 
                 if (signaling_->sendConnectionRequest(peer_id, request))
@@ -234,8 +237,7 @@ namespace app
                 }
 
                 WebRTCState current = current_state_.load();
-                if (current == WebRTCState::WAITING_CONNECT_REQUEST ||
-                    current == WebRTCState::IDLE)
+                if (current == WebRTCState::WAITING_CONNECT_REQUEST || current == WebRTCState::IDLE)
                 {
                     LOG_INFO(LOG_TAG, "连接请求已接受，开始建立WebRTC连接");
                     startWebRTCConnection();
@@ -332,7 +334,7 @@ namespace app
                 {
                     auto sample_time = std::chrono::duration<double, std::micro>(timestamp);
                     audio_track_->sendFrame(reinterpret_cast<const std::byte*>(data), size,
-                                             sample_time);
+                                            sample_time);
 
                     // 更新统计
                     {
@@ -372,7 +374,7 @@ namespace app
                 {
                     auto sample_time = std::chrono::duration<double, std::micro>(timestamp);
                     video_track_->sendFrame(reinterpret_cast<const std::byte*>(data), size,
-                                             sample_time);
+                                            sample_time);
 
                     // 更新统计
                     {
@@ -393,8 +395,7 @@ namespace app
                 return state == WebRTCState::WAITING_CONNECT_REQUEST ||
                        state == WebRTCState::SDP_CONNECTING ||
                        state == WebRTCState::SDP_CONNECTED ||
-                       state == WebRTCState::ICE_CONNECTING ||
-                       state == WebRTCState::ICE_CONNECTED;
+                       state == WebRTCState::ICE_CONNECTING || state == WebRTCState::ICE_CONNECTED;
             }
 
             void WebRTCSystem::onStateChanged(StateCallback callback)
@@ -424,7 +425,7 @@ namespace app
             WebRTCSystem::Stats WebRTCSystem::getStats() const
             {
                 std::lock_guard<std::mutex> lock(stats_mutex_);
-                Stats result = stats_;
+                Stats                       result = stats_;
 
                 // 计算连接持续时间
                 if (connection_start_time_ != std::chrono::steady_clock::time_point{} &&
@@ -458,7 +459,8 @@ namespace app
                 }
             }
 
-            void WebRTCSystem::handleStateTransition(WebRTCState /* old_state */, WebRTCState new_state)
+            void WebRTCSystem::handleStateTransition(WebRTCState /* old_state */,
+                                                     WebRTCState new_state)
             {
                 // 通知外部状态变化
                 {
@@ -526,9 +528,9 @@ namespace app
                 }
 
                 // 配置选项
-                rtc_config.iceTransportPolicy = config_.ice.use_relay_only
-                                                    ? rtc::TransportPolicy::Relay
-                                                    : rtc::TransportPolicy::All;
+                rtc_config.iceTransportPolicy     = config_.ice.use_relay_only
+                                                        ? rtc::TransportPolicy::Relay
+                                                        : rtc::TransportPolicy::All;
                 rtc_config.disableAutoNegotiation = true;
 
                 peer_connection_ = std::make_shared<rtc::PeerConnection>(rtc_config);
@@ -622,7 +624,8 @@ namespace app
                     return;
                 }
 
-                LOG_INFO(LOG_TAG, "开始发送缓存的ICE候选，数量: %zu", pending_ice_candidates_.size());
+                LOG_INFO(LOG_TAG, "开始发送缓存的ICE候选，数量: %zu",
+                         pending_ice_candidates_.size());
 
                 std::string peer_id;
                 {
@@ -653,7 +656,8 @@ namespace app
                 try
                 {
                     LOG_INFO(LOG_TAG, "创建音频轨道 (opus, %dHz, %d通道, direction=%d)",
-                             config_.audio.sample_rate, config_.audio.channels, static_cast<int>(direction));
+                             config_.audio.sample_rate, config_.audio.channels,
+                             static_cast<int>(direction));
 
                     auto audio_desc = rtc::Description::Audio("audio", direction);
                     audio_desc.addOpusCodec(config_.audio.payload_type);
@@ -719,7 +723,8 @@ namespace app
                 try
                 {
                     LOG_INFO(LOG_TAG, "创建视频轨道 (h264, %dx%d, direction=%d)",
-                             config_.video.width, config_.video.height, static_cast<int>(direction));
+                             config_.video.width, config_.video.height,
+                             static_cast<int>(direction));
 
                     auto video_desc = rtc::Description::Video("video", direction);
                     video_desc.addH264Codec(config_.video.payload_type);
@@ -768,9 +773,9 @@ namespace app
                             {
                                 if (std::holds_alternative<rtc::binary>(data))
                                 {
-                                    auto& binary = std::get<rtc::binary>(data);
-                                    const uint8_t* payload = nullptr;
-                                    size_t payload_size = 0;
+                                    auto&          binary       = std::get<rtc::binary>(data);
+                                    const uint8_t* payload      = nullptr;
+                                    size_t         payload_size = 0;
 
                                     if (parseRtpPacket(
                                             reinterpret_cast<const uint8_t*>(binary.data()),
@@ -795,24 +800,23 @@ namespace app
                 // 音频接收回调
                 if (audio_track_)
                 {
-                    audio_track_->onMessage([this](rtc::message_variant data)
-                                             {
-                                                 if (std::holds_alternative<rtc::binary>(data))
-                                                 {
-                                                     auto&          binary = std::get<rtc::binary>(data);
-                                                     const uint8_t* payload_data;
-                                                     size_t         payload_size;
+                    audio_track_->onMessage(
+                        [this](rtc::message_variant data)
+                        {
+                            if (std::holds_alternative<rtc::binary>(data))
+                            {
+                                auto&          binary = std::get<rtc::binary>(data);
+                                const uint8_t* payload_data;
+                                size_t         payload_size;
 
-                                                     if (parseRtpPacket(
-                                                             reinterpret_cast<const uint8_t*>(binary.data()),
-                                                             binary.size(), payload_data, payload_size))
-                                                     {
-                                                         handleAudioDataReceived(payload_data, payload_size);
-                                                     }
-                                                 }
-                                             });
+                                if (parseRtpPacket(reinterpret_cast<const uint8_t*>(binary.data()),
+                                                   binary.size(), payload_data, payload_size))
+                                {
+                                    handleAudioDataReceived(payload_data, payload_size);
+                                }
+                            }
+                        });
                 }
-
             }
 
             void WebRTCSystem::setupPeerConnectionCallbacks()
@@ -822,19 +826,21 @@ namespace app
 
                 // 本地描述生成回调
                 peer_connection_->onLocalDescription(
-                    [this](rtc::Description desc) { onLocalDescriptionGenerated(std::move(desc)); });
+                    [this](rtc::Description desc)
+                    { onLocalDescriptionGenerated(std::move(desc)); });
 
                 // ICE候选生成回调
                 peer_connection_->onLocalCandidate(
-                    [this](rtc::Candidate candidate) { onIceCandidateGenerated(std::move(candidate)); });
+                    [this](rtc::Candidate candidate)
+                    { onIceCandidateGenerated(std::move(candidate)); });
 
                 // 连接状态变化回调
-                peer_connection_->onStateChange(
-                    [this](rtc::PeerConnection::State state) { onPeerConnectionStateChange(state); });
+                peer_connection_->onStateChange([this](rtc::PeerConnection::State state)
+                                                { onPeerConnectionStateChange(state); });
 
                 // ICE状态变化回调
-                peer_connection_->onIceStateChange(
-                    [this](rtc::PeerConnection::IceState state) { onIceStateChange(state); });
+                peer_connection_->onIceStateChange([this](rtc::PeerConnection::IceState state)
+                                                   { onIceStateChange(state); });
 
                 // DataChannel接收回调
                 peer_connection_->onDataChannel(
@@ -894,7 +900,7 @@ namespace app
                     std::lock_guard<std::mutex> lock(ice_candidates_mutex_);
                     pending_ice_candidates_.push_back(candidate_str);
                     LOG_DEBUG(LOG_TAG, "缓存ICE候选，当前缓存数: %zu",
-                             pending_ice_candidates_.size());
+                              pending_ice_candidates_.size());
                 }
             }
 
@@ -905,14 +911,15 @@ namespace app
                 switch (state)
                 {
                 case rtc::PeerConnection::State::Connected:
+                {
+                    WebRTCState current = current_state_.load();
+                    if (current == WebRTCState::ICE_CONNECTED ||
+                        current == WebRTCState::ICE_CONNECTING)
                     {
-                        WebRTCState current = current_state_.load();
-                        if (current == WebRTCState::ICE_CONNECTED || current == WebRTCState::ICE_CONNECTING)
-                        {
-                            setState(WebRTCState::CONNECTED);
-                        }
+                        setState(WebRTCState::CONNECTED);
                     }
-                    break;
+                }
+                break;
                 case rtc::PeerConnection::State::Failed:
                     setState(WebRTCState::FAILED);
                     invokeErrorCallback(WebRTCError::CONNECTION_FAILED, "PeerConnection失败");
@@ -1027,14 +1034,14 @@ namespace app
                     break;
                 case rtc::PeerConnection::IceState::Connected:
                 case rtc::PeerConnection::IceState::Completed:
+                {
+                    if (current_state == WebRTCState::ICE_CONNECTING ||
+                        current_state == WebRTCState::SDP_CONNECTED)
                     {
-                        if (current_state == WebRTCState::ICE_CONNECTING || 
-                            current_state == WebRTCState::SDP_CONNECTED)
-                        {
-                            setState(WebRTCState::ICE_CONNECTED);
-                        }
+                        setState(WebRTCState::ICE_CONNECTED);
                     }
-                    break;
+                }
+                break;
                 case rtc::PeerConnection::IceState::Failed:
                     setState(WebRTCState::FAILED);
                     invokeErrorCallback(WebRTCError::ICE_CANDIDATE_FAILED, "ICE连接失败");
@@ -1313,7 +1320,6 @@ namespace app
 
                 return payload_size > 0;
             }
-
 
             void WebRTCSystem::invokeErrorCallback(WebRTCError error, const std::string& message)
             {

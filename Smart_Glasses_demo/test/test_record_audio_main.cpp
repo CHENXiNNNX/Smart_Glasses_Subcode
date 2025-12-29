@@ -94,8 +94,8 @@ int main()
 
     std::vector<uint8_t> pcm_data(wav_data.begin() + WAV_HEADER_SIZE, wav_data.end());
 
-    int frame_size_samples = config.sample_rate * config.frame_duration_ms / 1000;
-    size_t frame_size_bytes = frame_size_samples * config.channels * sizeof(int16_t);
+    int    frame_size_samples = config.sample_rate * config.frame_duration_ms / 1000;
+    size_t frame_size_bytes   = frame_size_samples * config.channels * sizeof(int16_t);
 
     if (audio_system.startStream(StreamDirection::OUTPUT) != AudioError::NONE)
     {
@@ -105,13 +105,14 @@ int main()
     }
 
     AudioMemoryPool temp_pool(config.mem_pool_config);
-    size_t total_frames = 0;
-    size_t offset = 0;
+    size_t          total_frames = 0;
+    size_t          offset       = 0;
 
     while (offset < pcm_data.size())
     {
         const size_t remaining = pcm_data.size() - offset;
-        const size_t current_frame_size = (remaining < frame_size_bytes) ? remaining : frame_size_bytes;
+        const size_t current_frame_size =
+            (remaining < frame_size_bytes) ? remaining : frame_size_bytes;
 
         auto frame = temp_pool.allocate(current_frame_size);
         if (!frame)
@@ -121,7 +122,7 @@ int main()
         }
 
         std::memcpy(frame->data, pcm_data.data() + offset, current_frame_size);
-        frame->size = current_frame_size;
+        frame->size      = current_frame_size;
         frame->timestamp = 0;
 
         audio_system.pushPlaybackFrame(frame);
@@ -132,7 +133,7 @@ int main()
     }
 
     double estimated_duration = (double)total_frames * config.frame_duration_ms / 1000.0;
-    int wait_seconds = static_cast<int>(estimated_duration) + 1;
+    int    wait_seconds       = static_cast<int>(estimated_duration) + 1;
     std::this_thread::sleep_for(std::chrono::seconds(wait_seconds));
 
     audio_system.stopStream(StreamDirection::OUTPUT);
@@ -140,4 +141,3 @@ int main()
 
     return 0;
 }
-

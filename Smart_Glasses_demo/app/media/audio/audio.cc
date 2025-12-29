@@ -24,46 +24,53 @@ namespace app
             {
                 struct WAVHeader
                 {
-                    char     riff[4]          = {'R', 'I', 'F', 'F'};
+                    char     riff[4] = {'R', 'I', 'F', 'F'};
                     uint32_t file_size;
-                    char     wave[4]          = {'W', 'A', 'V', 'E'};
-                    char     fmt[4]           = {'f', 'm', 't', ' '};
-                    uint32_t fmt_size         = 16;
-                    uint16_t audio_format     = 1;
+                    char     wave[4]      = {'W', 'A', 'V', 'E'};
+                    char     fmt[4]       = {'f', 'm', 't', ' '};
+                    uint32_t fmt_size     = 16;
+                    uint16_t audio_format = 1;
                     uint16_t num_channels;
                     uint32_t sample_rate;
                     uint32_t byte_rate;
                     uint16_t block_align;
-                    uint16_t bits_per_sample  = 16;
-                    char     data[4]          = {'d', 'a', 't', 'a'};
+                    uint16_t bits_per_sample = 16;
+                    char     data[4]         = {'d', 'a', 't', 'a'};
                     uint32_t data_size;
                 };
 
-                bool writeWAVHeader(FileWrapper& file, int sample_rate, int channels, size_t data_size)
+                bool writeWAVHeader(FileWrapper& file, int sample_rate, int channels,
+                                    size_t data_size)
                 {
                     WAVHeader header{};
                     header.num_channels    = static_cast<uint16_t>(channels);
                     header.sample_rate     = static_cast<uint32_t>(sample_rate);
                     header.bits_per_sample = 16;
-                    header.block_align     = static_cast<uint16_t>(channels * header.bits_per_sample / 8);
-                    header.byte_rate       = header.sample_rate * header.block_align;
-                    header.data_size       = static_cast<uint32_t>(data_size);
-                    header.file_size       = static_cast<uint32_t>(sizeof(WAVHeader) - 8 + data_size);
+                    header.block_align =
+                        static_cast<uint16_t>(channels * header.bits_per_sample / 8);
+                    header.byte_rate = header.sample_rate * header.block_align;
+                    header.data_size = static_cast<uint32_t>(data_size);
+                    header.file_size = static_cast<uint32_t>(sizeof(WAVHeader) - 8 + data_size);
                     return file.write(&header, sizeof(WAVHeader));
                 }
 
                 bool updateWAVHeader(FileWrapper& file, size_t data_size)
                 {
                     long current_pos = file.getPosition();
-                    if (current_pos < 0) return false;
+                    if (current_pos < 0)
+                        return false;
 
-                    if (!file.seek(4, SEEK_SET)) return false;
+                    if (!file.seek(4, SEEK_SET))
+                        return false;
                     uint32_t file_size = static_cast<uint32_t>(sizeof(WAVHeader) - 8 + data_size);
-                    if (!file.write(&file_size, sizeof(uint32_t))) return false;
+                    if (!file.write(&file_size, sizeof(uint32_t)))
+                        return false;
 
-                    if (!file.seek(40, SEEK_SET)) return false;
+                    if (!file.seek(40, SEEK_SET))
+                        return false;
                     uint32_t data_size_32 = static_cast<uint32_t>(data_size);
-                    if (!file.write(&data_size_32, sizeof(uint32_t))) return false;
+                    if (!file.write(&data_size_32, sizeof(uint32_t)))
+                        return false;
 
                     file.seek(current_pos, SEEK_SET);
                     return true;
@@ -80,7 +87,7 @@ namespace app
                 constexpr float       VOLUME_TO_GAIN_FACTOR     = 0.02F;
                 constexpr double      SAMPLE_RATE_INPUT_HZ      = 48000.0;
                 constexpr double      SAMPLE_RATE_TARGET_HZ     = 16000.0;
-                constexpr double      RESAMPLE_RATIO            = SAMPLE_RATE_TARGET_HZ / SAMPLE_RATE_INPUT_HZ;
+                constexpr double      RESAMPLE_RATIO = SAMPLE_RATE_TARGET_HZ / SAMPLE_RATE_INPUT_HZ;
                 constexpr float       PCM_NORMALIZE_DENOMINATOR = 32768.0F;
                 constexpr float       PCM_CLAMP_NUMERATOR       = 32767.0F;
                 constexpr float       PCM_CLAMP_MIN             = -1.0F;
@@ -96,7 +103,7 @@ namespace app
                 constexpr double      MEMORY_EXPANSION_FACTOR   = 2.0;
                 constexpr size_t      FLOAT_BUFFER_SAMPLES      = 2048;
                 constexpr int         PCM_STATS_SAMPLE_LIMIT    = 10;
-            }
+            } // namespace
 
             // AudioMemoryPool::FixedPool
             AudioMemoryPool::FixedPool::FixedPool(size_t block_count)
@@ -114,37 +121,43 @@ namespace app
                     frame_objects[i].fixed_pool_index   = static_cast<int>(i);
                 }
 
-                LOG_INFO(LOG_TAG, "固定内存池: %zu块 × %zu字节 = %.2fKB",
-                         actual_block_count, BLOCK_SIZE, (actual_block_count * BLOCK_SIZE) / BYTES_PER_KIB);
+                LOG_INFO(LOG_TAG, "固定内存池: %zu块 × %zu字节 = %.2fKB", actual_block_count,
+                         BLOCK_SIZE, (actual_block_count * BLOCK_SIZE) / BYTES_PER_KIB);
             }
 
             uint8_t* AudioMemoryPool::FixedPool::getBlockPtr(int index)
             {
-                if (index < 0 || index >= static_cast<int>(actual_block_count)) return nullptr;
+                if (index < 0 || index >= static_cast<int>(actual_block_count))
+                    return nullptr;
                 return blocks[static_cast<size_t>(index)].data();
             }
 
             int AudioMemoryPool::FixedPool::allocateBlock()
             {
                 int bits_per_word = static_cast<int>(BITS_PER_WORD);
-                int bitmap_count  = static_cast<int>((actual_block_count + BITS_PER_WORD - 1) / BITS_PER_WORD);
+                int bitmap_count =
+                    static_cast<int>((actual_block_count + BITS_PER_WORD - 1) / BITS_PER_WORD);
 
                 for (int bitmap_index = 0; bitmap_index < bitmap_count; ++bitmap_index)
                 {
-                    auto&    bitmap_atomic = allocation_bitmap.at(static_cast<size_t>(bitmap_index));
-                    uint64_t bitmap        = bitmap_atomic.load(std::memory_order_acquire);
+                    auto& bitmap_atomic = allocation_bitmap.at(static_cast<size_t>(bitmap_index));
+                    uint64_t bitmap     = bitmap_atomic.load(std::memory_order_acquire);
 
                     int base_index = bitmap_index * bits_per_word;
-                    int max_blocks = std::min(bits_per_word, static_cast<int>(actual_block_count) - base_index);
-                    if (max_blocks <= 0) break;
+                    int max_blocks =
+                        std::min(bits_per_word, static_cast<int>(actual_block_count) - base_index);
+                    if (max_blocks <= 0)
+                        break;
 
                     while (bitmap != UINT64_MAX)
                     {
                         uint64_t inverted = ~bitmap;
-                        if (inverted == 0U) break;
+                        if (inverted == 0U)
+                            break;
 
                         int free_bit = __builtin_ctzll(inverted);
-                        if (free_bit >= max_blocks) break;
+                        if (free_bit >= max_blocks)
+                            break;
 
                         uint64_t new_bitmap = bitmap | (1ULL << free_bit);
                         if (bitmap_atomic.compare_exchange_weak(bitmap, new_bitmap,
@@ -168,7 +181,8 @@ namespace app
                 int      bitmap_index  = index / bits_per_word;
                 int      bit_position  = index % bits_per_word;
                 uint64_t mask          = ~(1ULL << bit_position);
-                allocation_bitmap.at(static_cast<size_t>(bitmap_index)).fetch_and(mask, std::memory_order_release);
+                allocation_bitmap.at(static_cast<size_t>(bitmap_index))
+                    .fetch_and(mask, std::memory_order_release);
             }
 
             // AudioMemoryPool
@@ -181,7 +195,8 @@ namespace app
                 {
                     dynamic_pool_ = std::make_unique<tool::memory::MemoryPool>(
                         config_.dynamic_pool_size, CACHE_LINE_ALIGNMENT, MEMORY_EXPANSION_FACTOR);
-                    LOG_INFO(LOG_TAG, "  动态池: %.2fMB", config_.dynamic_pool_size / BYTES_PER_MIB);
+                    LOG_INFO(LOG_TAG, "  动态池: %.2fMB",
+                             config_.dynamic_pool_size / BYTES_PER_MIB);
                 }
             }
 
@@ -218,10 +233,12 @@ namespace app
 
             AudioFramePtr AudioMemoryPool::allocateFromFixed(size_t size)
             {
-                if (size > config_.fixed_block_size) return nullptr;
+                if (size > config_.fixed_block_size)
+                    return nullptr;
 
                 int block_index = fixed_pool_->allocateBlock();
-                if (block_index < 0) return nullptr;
+                if (block_index < 0)
+                    return nullptr;
 
                 AudioFrame* frame         = &fixed_pool_->frame_objects[block_index];
                 frame->data               = fixed_pool_->getBlockPtr(block_index);
@@ -232,23 +249,31 @@ namespace app
                 frame->fixed_pool_index   = block_index;
 
                 auto* pool_ptr = fixed_pool_.get();
-                return std::shared_ptr<AudioFrame>(frame, [pool_ptr](AudioFrame* f) {
-                    if (f && f->is_from_fixed_pool && f->fixed_pool_index >= 0)
-                        pool_ptr->deallocateBlock(f->fixed_pool_index);
-                });
+                return std::shared_ptr<AudioFrame>(
+                    frame,
+                    [pool_ptr](AudioFrame* f)
+                    {
+                        if (f && f->is_from_fixed_pool && f->fixed_pool_index >= 0)
+                            pool_ptr->deallocateBlock(f->fixed_pool_index);
+                    });
             }
 
             AudioFramePtr AudioMemoryPool::allocateFromDynamic(size_t size)
             {
-                if (!dynamic_pool_) return nullptr;
+                if (!dynamic_pool_)
+                    return nullptr;
 
                 void* buffer = dynamic_pool_->allocate(size);
-                if (!buffer) return nullptr;
+                if (!buffer)
+                    return nullptr;
 
-                auto frame = std::shared_ptr<AudioFrame>(new AudioFrame(), [this](AudioFrame* f) {
-                    if (f->data && dynamic_pool_) dynamic_pool_->deallocate(f->data);
-                    delete f;
-                });
+                auto frame = std::shared_ptr<AudioFrame>(new AudioFrame(),
+                                                         [this](AudioFrame* f)
+                                                         {
+                                                             if (f->data && dynamic_pool_)
+                                                                 dynamic_pool_->deallocate(f->data);
+                                                             delete f;
+                                                         });
 
                 frame->data               = static_cast<uint8_t*>(buffer);
                 frame->capacity           = size;
@@ -278,14 +303,16 @@ namespace app
             void AudioMemoryPool::logStats() const
             {
                 uint64_t total = stats_.total_allocations.load();
-                if (total == 0) return;
+                if (total == 0)
+                    return;
 
                 uint64_t fixed_hits   = stats_.fixed_pool_hits.load();
                 uint64_t dynamic_hits = stats_.dynamic_pool_hits.load();
                 uint64_t failures     = stats_.allocation_failures.load();
                 double   fixed_rate   = (double)fixed_hits / total * 100.0;
 
-                LOG_INFO(LOG_TAG, "内存池统计: 总分配=%llu, 固定池=%llu(%.1f%%), 动态池=%llu, 失败=%llu",
+                LOG_INFO(LOG_TAG,
+                         "内存池统计: 总分配=%llu, 固定池=%llu(%.1f%%), 动态池=%llu, 失败=%llu",
                          total, fixed_hits, fixed_rate, dynamic_hits, failures);
 
                 if (fixed_rate < FIXED_POOL_WARN_THRESHOLD && total > FIXED_POOL_MIN_SAMPLES)
@@ -341,7 +368,7 @@ namespace app
                 std::shared_ptr<sync_context_t> sync_ctx;
 
                 std::unique_ptr<FileWrapper>          record_file_;
-                int                                   record_id_ = 0;
+                int                                   record_id_           = 0;
                 int                                   record_duration_sec_ = 0;
                 std::chrono::steady_clock::time_point record_start_time_;
                 std::mutex                            record_file_mutex_;
@@ -350,54 +377,60 @@ namespace app
 
                 Stats stats;
 
-                alignas(CACHE_LINE_ALIGNMENT) std::array<uint8_t, OPUS_MAX_FRAME_BYTES> temp_opus_buffer;
-                alignas(CACHE_LINE_ALIGNMENT) std::array<float, FLOAT_BUFFER_SAMPLES>   temp_float_buffer_in;
-                alignas(CACHE_LINE_ALIGNMENT) std::array<float, FLOAT_BUFFER_SAMPLES>   temp_float_buffer_out;
+                alignas(CACHE_LINE_ALIGNMENT)
+                    std::array<uint8_t, OPUS_MAX_FRAME_BYTES> temp_opus_buffer;
+                alignas(CACHE_LINE_ALIGNMENT)
+                    std::array<float, FLOAT_BUFFER_SAMPLES> temp_float_buffer_in;
+                alignas(CACHE_LINE_ALIGNMENT)
+                    std::array<float, FLOAT_BUFFER_SAMPLES> temp_float_buffer_out;
 
                 explicit Impl(const AudioConfig& cfg) : config(cfg) {}
                 ~Impl() = default;
 
                 static int recordCallback(const void* input_buffer, void* output_buffer,
-                                          unsigned long frames_per_buffer,
+                                          unsigned long                   frames_per_buffer,
                                           const PaStreamCallbackTimeInfo* time_info,
                                           PaStreamCallbackFlags status_flags, void* user_data);
 
                 static int playbackCallback(const void* input_buffer, void* output_buffer,
-                                            unsigned long frames_per_buffer,
+                                            unsigned long                   frames_per_buffer,
                                             const PaStreamCallbackTimeInfo* time_info,
                                             PaStreamCallbackFlags status_flags, void* user_data);
 
                 struct PaStreamConfig
                 {
-                    double               sample_rate;
-                    int                  frame_duration_ms;
-                    PaStreamParameters*  input_params;
-                    PaStreamParameters*  output_params;
-                    PaStreamCallback*    callback;
-                    AudioControlState    control_state;
-                    std::atomic<bool>*   running_flag;
-                    PaStreamPtr*         stream_ptr;
-                    const char*          direction_name;
+                    double              sample_rate;
+                    int                 frame_duration_ms;
+                    PaStreamParameters* input_params;
+                    PaStreamParameters* output_params;
+                    PaStreamCallback*   callback;
+                    AudioControlState   control_state;
+                    std::atomic<bool>*  running_flag;
+                    PaStreamPtr*        stream_ptr;
+                    const char*         direction_name;
                 };
 
                 AudioError openAndStartPaStream(const PaStreamConfig& config)
                 {
-                    int frames_per_buffer = config.sample_rate / MS_PER_SEC * config.frame_duration_ms;
+                    int frames_per_buffer =
+                        config.sample_rate / MS_PER_SEC * config.frame_duration_ms;
 
                     PaStream* stream = nullptr;
-                    PaError   err    = Pa_OpenStream(&stream, config.input_params, config.output_params,
-                                                   config.sample_rate, frames_per_buffer, paClipOff,
-                                                   config.callback, this);
+                    PaError err = Pa_OpenStream(&stream, config.input_params, config.output_params,
+                                                config.sample_rate, frames_per_buffer, paClipOff,
+                                                config.callback, this);
                     if (err != paNoError)
                     {
-                        LOG_ERROR(LOG_TAG, "打开%s流失败: %s", config.direction_name, Pa_GetErrorText(err));
+                        LOG_ERROR(LOG_TAG, "打开%s流失败: %s", config.direction_name,
+                                  Pa_GetErrorText(err));
                         return AudioError::STREAM_OPEN_FAILED;
                     }
 
                     err = Pa_StartStream(stream);
                     if (err != paNoError)
                     {
-                        LOG_ERROR(LOG_TAG, "启动%s流失败: %s", config.direction_name, Pa_GetErrorText(err));
+                        LOG_ERROR(LOG_TAG, "启动%s流失败: %s", config.direction_name,
+                                  Pa_GetErrorText(err));
                         Pa_CloseStream(stream);
                         return AudioError::STREAM_START_FAILED;
                     }
@@ -418,35 +451,51 @@ namespace app
                 StreamTypeConfig getStreamTypeConfig(StreamType type)
                 {
                     return (type == StreamType::AI)
-                        ? StreamTypeConfig{AudioMainState::AI, &is_ai_streaming, "AI"}
-                        : StreamTypeConfig{AudioMainState::WEBRTC, &is_webrtc_streaming, "WebRTC"};
+                               ? StreamTypeConfig{AudioMainState::AI, &is_ai_streaming, "AI"}
+                               : StreamTypeConfig{AudioMainState::WEBRTC, &is_webrtc_streaming,
+                                                  "WebRTC"};
                 }
 
                 void setMainState(AudioMainState new_state)
                 {
-                    AudioMainState old_state = main_state.exchange(new_state, std::memory_order_acq_rel);
+                    AudioMainState old_state =
+                        main_state.exchange(new_state, std::memory_order_acq_rel);
                     if (old_state != new_state)
                     {
-                        LOG_INFO(LOG_TAG, "主状态: %d -> %d", static_cast<int>(old_state), static_cast<int>(new_state));
+                        LOG_INFO(LOG_TAG, "主状态: %d -> %d", static_cast<int>(old_state),
+                                 static_cast<int>(new_state));
                         std::unique_lock<std::mutex> lock(callback_mutex, std::try_to_lock);
                         if (lock.owns_lock() && main_state_callback)
                         {
-                            try { main_state_callback(old_state, new_state); }
-                            catch (const std::exception& e) { LOG_ERROR(LOG_TAG, "主状态回调异常: %s", e.what()); }
+                            try
+                            {
+                                main_state_callback(old_state, new_state);
+                            }
+                            catch (const std::exception& e)
+                            {
+                                LOG_ERROR(LOG_TAG, "主状态回调异常: %s", e.what());
+                            }
                         }
                     }
                 }
 
                 void setControlState(AudioControlState new_state)
                 {
-                    AudioControlState old_state = control_state.exchange(new_state, std::memory_order_acq_rel);
+                    AudioControlState old_state =
+                        control_state.exchange(new_state, std::memory_order_acq_rel);
                     if (old_state != new_state)
                     {
                         std::unique_lock<std::mutex> lock(callback_mutex, std::try_to_lock);
                         if (lock.owns_lock() && control_state_callback)
                         {
-                            try { control_state_callback(old_state, new_state); }
-                            catch (const std::exception& e) { LOG_ERROR(LOG_TAG, "控制状态回调异常: %s", e.what()); }
+                            try
+                            {
+                                control_state_callback(old_state, new_state);
+                            }
+                            catch (const std::exception& e)
+                            {
+                                LOG_ERROR(LOG_TAG, "控制状态回调异常: %s", e.what());
+                            }
                         }
                     }
                 }
@@ -456,8 +505,14 @@ namespace app
                     std::lock_guard<std::mutex> lock(callback_mutex);
                     if (ai_audio_callback)
                     {
-                        try { ai_audio_callback(std::move(frame)); }
-                        catch (const std::exception& e) { LOG_ERROR(LOG_TAG, "AI回调异常: %s", e.what()); }
+                        try
+                        {
+                            ai_audio_callback(std::move(frame));
+                        }
+                        catch (const std::exception& e)
+                        {
+                            LOG_ERROR(LOG_TAG, "AI回调异常: %s", e.what());
+                        }
                     }
                 }
 
@@ -466,8 +521,14 @@ namespace app
                     std::lock_guard<std::mutex> lock(callback_mutex);
                     if (webrtc_audio_callback)
                     {
-                        try { webrtc_audio_callback(std::move(frame)); }
-                        catch (const std::exception& e) { LOG_ERROR(LOG_TAG, "WebRTC回调异常: %s", e.what()); }
+                        try
+                        {
+                            webrtc_audio_callback(std::move(frame));
+                        }
+                        catch (const std::exception& e)
+                        {
+                            LOG_ERROR(LOG_TAG, "WebRTC回调异常: %s", e.what());
+                        }
                     }
                 }
 
@@ -476,14 +537,21 @@ namespace app
                     std::lock_guard<std::mutex> lock(callback_mutex);
                     if (wakeword_callback)
                     {
-                        try { wakeword_callback(data, length); }
-                        catch (const std::exception& e) { LOG_ERROR(LOG_TAG, "唤醒词回调异常: %s", e.what()); }
+                        try
+                        {
+                            wakeword_callback(data, length);
+                        }
+                        catch (const std::exception& e)
+                        {
+                            LOG_ERROR(LOG_TAG, "唤醒词回调异常: %s", e.what());
+                        }
                     }
                 }
             };
 
             // AudioSystem
-            AudioSystem::AudioSystem(const AudioConfig& config) : pImpl_(std::make_unique<Impl>(config))
+            AudioSystem::AudioSystem(const AudioConfig& config)
+                : pImpl_(std::make_unique<Impl>(config))
             {
                 LOG_INFO(LOG_TAG, "音频系统已创建");
             }
@@ -506,7 +574,8 @@ namespace app
                 pImpl_->sync_ctx = std::move(sync_ctx);
                 createDirectory(pImpl_->config.record_path);
 
-                pImpl_->mem_pool = std::make_unique<AudioMemoryPool>(pImpl_->config.mem_pool_config);
+                pImpl_->mem_pool =
+                    std::make_unique<AudioMemoryPool>(pImpl_->config.mem_pool_config);
 
                 PaError err = Pa_Initialize();
                 if (err != paNoError)
@@ -521,8 +590,9 @@ namespace app
                 bool all_initialized = true;
 
                 // WebRTC编码器
-                OpusEncoder* webrtc_enc = opus_encoder_create(pImpl_->config.sample_rate,
-                    pImpl_->config.channels, OPUS_APPLICATION_VOIP, &opus_error);
+                OpusEncoder* webrtc_enc =
+                    opus_encoder_create(pImpl_->config.sample_rate, pImpl_->config.channels,
+                                        OPUS_APPLICATION_VOIP, &opus_error);
                 if (opus_error == OPUS_OK && webrtc_enc)
                 {
                     pImpl_->webrtc_encoder.reset(webrtc_enc);
@@ -531,17 +601,19 @@ namespace app
                     opus_encoder_ctl(webrtc_enc, OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));
                     LOG_INFO(LOG_TAG, "  WebRTC编码器: 48kHz, 64kbps");
                 }
-                else all_initialized = false;
+                else
+                    all_initialized = false;
 
                 // WebRTC解码器
                 OpusDecoder* webrtc_dec = opus_decoder_create(pImpl_->config.sample_rate,
-                    pImpl_->config.channels, &opus_error);
+                                                              pImpl_->config.channels, &opus_error);
                 if (opus_error == OPUS_OK && webrtc_dec)
                 {
                     pImpl_->webrtc_decoder.reset(webrtc_dec);
                     LOG_INFO(LOG_TAG, "  WebRTC解码器: 48kHz");
                 }
-                else all_initialized = false;
+                else
+                    all_initialized = false;
 
                 // TTS解码器
                 OpusDecoder* tts_dec = opus_decoder_create(OPUS_TTS_SAMPLE_RATE, 1, &opus_error);
@@ -550,10 +622,12 @@ namespace app
                     pImpl_->tts_decoder.reset(tts_dec);
                     LOG_INFO(LOG_TAG, "  TTS解码器: 48kHz");
                 }
-                else all_initialized = false;
+                else
+                    all_initialized = false;
 
                 // AI编码器
-                OpusEncoder* ai_enc = opus_encoder_create(OPUS_AI_SAMPLE_RATE, 1, OPUS_APPLICATION_VOIP, &opus_error);
+                OpusEncoder* ai_enc =
+                    opus_encoder_create(OPUS_AI_SAMPLE_RATE, 1, OPUS_APPLICATION_VOIP, &opus_error);
                 if (opus_error == OPUS_OK && ai_enc)
                 {
                     pImpl_->ai_encoder.reset(ai_enc);
@@ -562,7 +636,8 @@ namespace app
                     opus_encoder_ctl(ai_enc, OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));
                     LOG_INFO(LOG_TAG, "  AI编码器: 16kHz, 32kbps");
                 }
-                else all_initialized = false;
+                else
+                    all_initialized = false;
 
                 // 重采样器
                 SRC_STATE* ai_resampler = src_new(SRC_SINC_BEST_QUALITY, 1, &src_error);
@@ -571,7 +646,8 @@ namespace app
                     pImpl_->ai_resampler.reset(ai_resampler);
                     LOG_INFO(LOG_TAG, "  AI重采样器: 48kHz->16kHz");
                 }
-                else all_initialized = false;
+                else
+                    all_initialized = false;
 
                 SRC_STATE* wakeword_resampler = src_new(SRC_SINC_FASTEST, 1, &src_error);
                 if (wakeword_resampler)
@@ -579,7 +655,8 @@ namespace app
                     pImpl_->wakeword_resampler.reset(wakeword_resampler);
                     LOG_INFO(LOG_TAG, "  唤醒词重采样器: 48kHz->16kHz");
                 }
-                else all_initialized = false;
+                else
+                    all_initialized = false;
 
                 if (!all_initialized)
                 {
@@ -597,8 +674,10 @@ namespace app
                 // 3A算法
                 if (pImpl_->config.enable_denoise || pImpl_->config.enable_agc)
                 {
-                    int frame_size = pImpl_->config.sample_rate * pImpl_->config.frame_duration_ms / MS_PER_SEC;
-                    SpeexPreprocessState* speex = speex_preprocess_state_init(frame_size, pImpl_->config.sample_rate);
+                    int frame_size =
+                        pImpl_->config.sample_rate * pImpl_->config.frame_duration_ms / MS_PER_SEC;
+                    SpeexPreprocessState* speex =
+                        speex_preprocess_state_init(frame_size, pImpl_->config.sample_rate);
                     if (speex)
                     {
                         pImpl_->speex_state.reset(speex);
@@ -611,7 +690,8 @@ namespace app
                             float agc_level = pImpl_->config.agc_level;
                             speex_preprocess_ctl(speex, SPEEX_PREPROCESS_SET_AGC_LEVEL, &agc_level);
                         }
-                        LOG_INFO(LOG_TAG, "  3A: 降噪=%s, AGC=%s", denoise ? "开" : "关", agc ? "开" : "关");
+                        LOG_INFO(LOG_TAG, "  3A: 降噪=%s, AGC=%s", denoise ? "开" : "关",
+                                 agc ? "开" : "关");
                     }
                 }
 
@@ -623,7 +703,8 @@ namespace app
 
             void AudioSystem::deinit()
             {
-                if (!pImpl_->initialized.load()) return;
+                if (!pImpl_->initialized.load())
+                    return;
 
                 stopRecord();
                 LOG_INFO(LOG_TAG, "关闭音频系统...");
@@ -634,26 +715,47 @@ namespace app
                 clearPlaybackQueue();
                 Pa_Terminate();
 
-                if (pImpl_->mem_pool) pImpl_->mem_pool->logStats();
+                if (pImpl_->mem_pool)
+                    pImpl_->mem_pool->logStats();
 
                 pImpl_->initialized.store(false);
                 LOG_INFO(LOG_TAG, "音频系统已关闭");
             }
 
-            bool AudioSystem::isInitialized() const { return pImpl_->initialized.load(); }
+            bool AudioSystem::isInitialized() const
+            {
+                return pImpl_->initialized.load();
+            }
 
-            AudioError     AudioSystem::setMainState(AudioMainState state) { pImpl_->setMainState(state); return AudioError::NONE; }
-            AudioMainState AudioSystem::getMainState() const { return pImpl_->main_state.load(); }
+            AudioError AudioSystem::setMainState(AudioMainState state)
+            {
+                pImpl_->setMainState(state);
+                return AudioError::NONE;
+            }
+            AudioMainState AudioSystem::getMainState() const
+            {
+                return pImpl_->main_state.load();
+            }
 
-            AudioError        AudioSystem::setControlState(AudioControlState state) { pImpl_->setControlState(state); return AudioError::NONE; }
-            AudioControlState AudioSystem::getControlState() const { return pImpl_->control_state.load(); }
+            AudioError AudioSystem::setControlState(AudioControlState state)
+            {
+                pImpl_->setControlState(state);
+                return AudioError::NONE;
+            }
+            AudioControlState AudioSystem::getControlState() const
+            {
+                return pImpl_->control_state.load();
+            }
 
             AudioError AudioSystem::setFunctionState(AudioFunctionState state)
             {
                 pImpl_->function_state.exchange(state);
                 return AudioError::NONE;
             }
-            AudioFunctionState AudioSystem::getFunctionState() const { return pImpl_->function_state.load(); }
+            AudioFunctionState AudioSystem::getFunctionState() const
+            {
+                return pImpl_->function_state.load();
+            }
 
             void AudioSystem::setOutputVolume(int volume)
             {
@@ -661,7 +763,10 @@ namespace app
                 pImpl_->output_volume.store(volume, std::memory_order_relaxed);
                 LOG_INFO(LOG_TAG, "音量: %d%%", volume);
             }
-            int AudioSystem::getOutputVolume() const { return pImpl_->output_volume.load(std::memory_order_relaxed); }
+            int AudioSystem::getOutputVolume() const
+            {
+                return pImpl_->output_volume.load(std::memory_order_relaxed);
+            }
 
             void AudioSystem::setAIAudioCallback(AudioFrameCallback callback)
             {
@@ -687,7 +792,8 @@ namespace app
                 pImpl_->main_state_callback = std::move(callback);
             }
 
-            void AudioSystem::setControlStateCallback(StateChangeCallback<AudioControlState> callback)
+            void
+            AudioSystem::setControlStateCallback(StateChangeCallback<AudioControlState> callback)
             {
                 std::lock_guard<std::mutex> lock(pImpl_->callback_mutex);
                 pImpl_->control_state_callback = std::move(callback);
@@ -709,19 +815,25 @@ namespace app
 
             AudioError AudioSystem::startRecord(const std::string& filename, int duration_sec)
             {
-                if (!pImpl_->initialized.load()) return AudioError::NOT_INITIALIZED;
+                if (!pImpl_->initialized.load())
+                    return AudioError::NOT_INITIALIZED;
 
                 std::lock_guard<std::mutex> lock(pImpl_->record_file_mutex_);
-                if (pImpl_->is_recording_to_file_.load()) return AudioError::ALREADY_RUNNING;
+                if (pImpl_->is_recording_to_file_.load())
+                    return AudioError::ALREADY_RUNNING;
 
-                std::string record_filename = filename.empty()
-                    ? pImpl_->config.record_path + "record_" + std::to_string(pImpl_->record_id_++) + ".wav"
-                    : filename;
+                std::string record_filename =
+                    filename.empty() ? pImpl_->config.record_path + "record_" +
+                                           std::to_string(pImpl_->record_id_++) + ".wav"
+                                     : filename;
 
-                if (record_filename.size() < 4 || record_filename.substr(record_filename.size() - 4) != ".wav")
-                    if (record_filename.back() != '/') record_filename += ".wav";
+                if (record_filename.size() < 4 ||
+                    record_filename.substr(record_filename.size() - 4) != ".wav")
+                    if (record_filename.back() != '/')
+                        record_filename += ".wav";
 
-                pImpl_->record_file_ = std::make_unique<FileWrapper>(record_filename, FileMode::WRITE);
+                pImpl_->record_file_ =
+                    std::make_unique<FileWrapper>(record_filename, FileMode::WRITE);
                 if (!pImpl_->record_file_->isValid())
                 {
                     LOG_ERROR(LOG_TAG, "创建录音文件失败: %s", record_filename.c_str());
@@ -729,7 +841,8 @@ namespace app
                     return AudioError::STREAM_OPEN_FAILED;
                 }
 
-                if (!writeWAVHeader(*pImpl_->record_file_, pImpl_->config.sample_rate, pImpl_->config.channels, 0))
+                if (!writeWAVHeader(*pImpl_->record_file_, pImpl_->config.sample_rate,
+                                    pImpl_->config.channels, 0))
                 {
                     pImpl_->record_file_.reset();
                     return AudioError::STREAM_OPEN_FAILED;
@@ -747,7 +860,8 @@ namespace app
             AudioError AudioSystem::stopRecord()
             {
                 std::lock_guard<std::mutex> lock(pImpl_->record_file_mutex_);
-                if (!pImpl_->is_recording_to_file_.load()) return AudioError::NONE;
+                if (!pImpl_->is_recording_to_file_.load())
+                    return AudioError::NONE;
 
                 pImpl_->is_recording_to_file_.store(false);
 
@@ -766,20 +880,27 @@ namespace app
                 return AudioError::NONE;
             }
 
-            bool AudioSystem::isRecording() const { return pImpl_->is_recording_to_file_.load(); }
+            bool AudioSystem::isRecording() const
+            {
+                return pImpl_->is_recording_to_file_.load();
+            }
 
             AudioFramePtr AudioSystem::getRecordedFrame(std::chrono::milliseconds timeout)
             {
                 std::unique_lock<std::mutex> lock(pImpl_->record_queue_mutex);
                 if (pImpl_->record_queue.empty())
                 {
-                    if (!pImpl_->record_queue_cv.wait_for(lock, timeout, [this]() {
-                        return !pImpl_->record_queue.empty() || !pImpl_->is_recording.load();
-                    }))
+                    if (!pImpl_->record_queue_cv.wait_for(
+                            lock, timeout,
+                            [this]() {
+                                return !pImpl_->record_queue.empty() ||
+                                       !pImpl_->is_recording.load();
+                            }))
                         return nullptr;
                 }
 
-                if (pImpl_->record_queue.empty()) return nullptr;
+                if (pImpl_->record_queue.empty())
+                    return nullptr;
 
                 AudioFramePtr frame = std::move(pImpl_->record_queue.front());
                 pImpl_->record_queue.pop();
@@ -788,7 +909,8 @@ namespace app
 
             void AudioSystem::pushPlaybackFrame(AudioFramePtr frame)
             {
-                if (!frame) return;
+                if (!frame)
+                    return;
 
                 std::lock_guard<std::mutex> lock(pImpl_->playback_queue_mutex);
                 if (pImpl_->playback_queue.size() >= pImpl_->config.max_playback_queue_size)
@@ -806,7 +928,8 @@ namespace app
                 out_stats.frames_dropped.store(pImpl_->stats.frames_dropped.load());
                 out_stats.encode_count.store(pImpl_->stats.encode_count.load());
                 out_stats.decode_count.store(pImpl_->stats.decode_count.load());
-                if (pImpl_->mem_pool) pImpl_->mem_pool->getStats(out_stats.mem_stats);
+                if (pImpl_->mem_pool)
+                    pImpl_->mem_pool->getStats(out_stats.mem_stats);
             }
 
             void AudioSystem::resetStats()
@@ -816,7 +939,8 @@ namespace app
                 pImpl_->stats.frames_dropped.store(0);
                 pImpl_->stats.encode_count.store(0);
                 pImpl_->stats.decode_count.store(0);
-                if (pImpl_->mem_pool) pImpl_->mem_pool->resetStats();
+                if (pImpl_->mem_pool)
+                    pImpl_->mem_pool->resetStats();
             }
 
             void AudioSystem::logStats() const
@@ -825,23 +949,29 @@ namespace app
                          pImpl_->stats.frames_recorded.load(), pImpl_->stats.frames_played.load(),
                          pImpl_->stats.frames_dropped.load(), pImpl_->stats.encode_count.load(),
                          pImpl_->stats.decode_count.load());
-                if (pImpl_->mem_pool) pImpl_->mem_pool->logStats();
+                if (pImpl_->mem_pool)
+                    pImpl_->mem_pool->logStats();
             }
 
             // 录音回调
             int AudioSystem::Impl::recordCallback(const void* input_buffer, void* output_buffer,
-                                                  unsigned long frames_per_buffer,
+                                                  unsigned long                   frames_per_buffer,
                                                   const PaStreamCallbackTimeInfo* time_info,
-                                                  PaStreamCallbackFlags status_flags, void* user_data)
+                                                  PaStreamCallbackFlags           status_flags,
+                                                  void*                           user_data)
             {
-                (void)output_buffer; (void)time_info; (void)status_flags;
+                (void)output_buffer;
+                (void)time_info;
+                (void)status_flags;
 
-                auto*       impl             = static_cast<Impl*>(user_data);
-                const auto* input            = static_cast<const int16_t*>(input_buffer);
-                size_t      frame_size_bytes = frames_per_buffer * impl->config.channels * sizeof(int16_t);
+                auto*       impl  = static_cast<Impl*>(user_data);
+                const auto* input = static_cast<const int16_t*>(input_buffer);
+                size_t      frame_size_bytes =
+                    frames_per_buffer * impl->config.channels * sizeof(int16_t);
 
                 auto frame = impl->mem_pool->allocate(frame_size_bytes);
-                if (!frame) return paContinue;
+                if (!frame)
+                    return paContinue;
 
                 std::memcpy(frame->data, input, frame_size_bytes);
                 frame->size      = frame_size_bytes;
@@ -851,7 +981,8 @@ namespace app
                     speex_preprocess_run(impl->speex_state.get(), frame->getData<int16_t>());
 
                 // 唤醒词检测
-                if (!impl->is_ai_streaming.load() && impl->wakeword_callback && impl->wakeword_resampler)
+                if (!impl->is_ai_streaming.load() && impl->wakeword_callback &&
+                    impl->wakeword_resampler)
                 {
                     SRC_DATA src_data{};
                     float*   input_float  = impl->temp_float_buffer_in.data();
@@ -859,7 +990,8 @@ namespace app
 
                     const int16_t* pcm_data = frame->getData<int16_t>();
                     std::transform(pcm_data, pcm_data + frames_per_buffer, input_float,
-                        [](int16_t s) { return static_cast<float>(s) / PCM_NORMALIZE_DENOMINATOR; });
+                                   [](int16_t s)
+                                   { return static_cast<float>(s) / PCM_NORMALIZE_DENOMINATOR; });
 
                     src_data.data_in       = input_float;
                     src_data.input_frames  = static_cast<long>(frames_per_buffer);
@@ -868,18 +1000,27 @@ namespace app
                     src_data.src_ratio     = RESAMPLE_RATIO;
                     src_data.end_of_input  = 0;
 
-                    if (src_process(impl->wakeword_resampler.get(), &src_data) == 0 && src_data.output_frames_gen > 0)
+                    if (src_process(impl->wakeword_resampler.get(), &src_data) == 0 &&
+                        src_data.output_frames_gen > 0)
                     {
-                        for (long i = 0; i < src_data.output_frames_gen && impl->wakeword_resample_buffer.size() < WAKEWORD_BUFFER_MAX; ++i)
+                        for (long i = 0;
+                             i < src_data.output_frames_gen &&
+                             impl->wakeword_resample_buffer.size() < WAKEWORD_BUFFER_MAX;
+                             ++i)
                         {
-                            float clamped = std::clamp(output_float[i], PCM_CLAMP_MIN, PCM_CLAMP_MAX);
-                            impl->wakeword_resample_buffer.push_back(static_cast<int16_t>(clamped * PCM_CLAMP_NUMERATOR));
+                            float clamped =
+                                std::clamp(output_float[i], PCM_CLAMP_MIN, PCM_CLAMP_MAX);
+                            impl->wakeword_resample_buffer.push_back(
+                                static_cast<int16_t>(clamped * PCM_CLAMP_NUMERATOR));
                         }
 
-                        while (impl->wakeword_resample_buffer.size() >= static_cast<size_t>(TARGET_FRAME_SAMPLES))
+                        while (impl->wakeword_resample_buffer.size() >=
+                               static_cast<size_t>(TARGET_FRAME_SAMPLES))
                         {
-                            impl->invokeWakewordCallback(impl->wakeword_resample_buffer.data(), TARGET_FRAME_SAMPLES);
-                            impl->wakeword_resample_buffer.erase(impl->wakeword_resample_buffer.begin(),
+                            impl->invokeWakewordCallback(impl->wakeword_resample_buffer.data(),
+                                                         TARGET_FRAME_SAMPLES);
+                            impl->wakeword_resample_buffer.erase(
+                                impl->wakeword_resample_buffer.begin(),
                                 impl->wakeword_resample_buffer.begin() + TARGET_FRAME_SAMPLES);
                         }
                     }
@@ -911,8 +1052,10 @@ namespace app
 
                             if (impl->record_duration_sec_ > 0)
                             {
-                                auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-                                    std::chrono::steady_clock::now() - impl->record_start_time_).count();
+                                auto elapsed =
+                                    std::chrono::duration_cast<std::chrono::milliseconds>(
+                                        std::chrono::steady_clock::now() - impl->record_start_time_)
+                                        .count();
                                 if (elapsed >= impl->record_duration_sec_ * 1000)
                                     impl->is_recording_to_file_.store(false);
                             }
@@ -924,9 +1067,10 @@ namespace app
                 if (impl->main_state.load() == AudioMainState::WEBRTC &&
                     impl->is_webrtc_streaming.load() && impl->webrtc_encoder)
                 {
-                    uint8_t* opus_buffer  = impl->temp_opus_buffer.data();
-                    int      encoded_bytes = opus_encode(impl->webrtc_encoder.get(), frame->getData<int16_t>(),
-                        frames_per_buffer, opus_buffer, impl->temp_opus_buffer.size());
+                    uint8_t* opus_buffer = impl->temp_opus_buffer.data();
+                    int      encoded_bytes =
+                        opus_encode(impl->webrtc_encoder.get(), frame->getData<int16_t>(),
+                                    frames_per_buffer, opus_buffer, impl->temp_opus_buffer.size());
 
                     if (encoded_bytes > 0)
                     {
@@ -935,9 +1079,10 @@ namespace app
                         {
                             std::memcpy(encoded_frame->data, opus_buffer, encoded_bytes);
                             encoded_frame->size = encoded_bytes;
-                            encoded_frame->timestamp = impl->sync_ctx
-                                ? sync_get_timestamp(impl->sync_ctx.get(), get_nowus(), true)
-                                : get_nowus();
+                            encoded_frame->timestamp =
+                                impl->sync_ctx
+                                    ? sync_get_timestamp(impl->sync_ctx.get(), get_nowus(), true)
+                                    : get_nowus();
                             impl->invokeWebRTCCallback(encoded_frame);
                             impl->stats.encode_count.fetch_add(1);
                         }
@@ -945,8 +1090,8 @@ namespace app
                 }
 
                 // AI编码
-                if (impl->main_state.load() == AudioMainState::AI &&
-                    impl->is_ai_streaming.load() && impl->ai_encoder && impl->ai_resampler)
+                if (impl->main_state.load() == AudioMainState::AI && impl->is_ai_streaming.load() &&
+                    impl->ai_encoder && impl->ai_resampler)
                 {
                     SRC_DATA src_data{};
                     float*   input_float  = impl->temp_float_buffer_in.data();
@@ -954,7 +1099,8 @@ namespace app
 
                     const int16_t* pcm_data = frame->getData<int16_t>();
                     std::transform(pcm_data, pcm_data + frames_per_buffer, input_float,
-                        [](int16_t s) { return static_cast<float>(s) / PCM_NORMALIZE_DENOMINATOR; });
+                                   [](int16_t s)
+                                   { return static_cast<float>(s) / PCM_NORMALIZE_DENOMINATOR; });
 
                     src_data.data_in       = input_float;
                     src_data.input_frames  = static_cast<long>(frames_per_buffer);
@@ -965,17 +1111,23 @@ namespace app
 
                     if (src_process(impl->ai_resampler.get(), &src_data) == 0)
                     {
-                        for (long i = 0; i < src_data.output_frames_gen && impl->ai_resample_buffer.size() < AI_BUFFER_MAX_SAMPLES; ++i)
+                        for (long i = 0; i < src_data.output_frames_gen &&
+                                         impl->ai_resample_buffer.size() < AI_BUFFER_MAX_SAMPLES;
+                             ++i)
                         {
-                            float clamped = std::clamp(output_float[i], PCM_CLAMP_MIN, PCM_CLAMP_MAX);
-                            impl->ai_resample_buffer.push_back(static_cast<int16_t>(clamped * PCM_CLAMP_NUMERATOR));
+                            float clamped =
+                                std::clamp(output_float[i], PCM_CLAMP_MIN, PCM_CLAMP_MAX);
+                            impl->ai_resample_buffer.push_back(
+                                static_cast<int16_t>(clamped * PCM_CLAMP_NUMERATOR));
                         }
 
-                        while (impl->ai_resample_buffer.size() >= static_cast<size_t>(TARGET_FRAME_SAMPLES))
+                        while (impl->ai_resample_buffer.size() >=
+                               static_cast<size_t>(TARGET_FRAME_SAMPLES))
                         {
                             uint8_t* opus_buffer   = impl->temp_opus_buffer.data();
-                            int      encoded_bytes = opus_encode(impl->ai_encoder.get(), impl->ai_resample_buffer.data(),
-                                TARGET_FRAME_SAMPLES, opus_buffer, impl->temp_opus_buffer.size());
+                            int      encoded_bytes = opus_encode(
+                                     impl->ai_encoder.get(), impl->ai_resample_buffer.data(),
+                                     TARGET_FRAME_SAMPLES, opus_buffer, impl->temp_opus_buffer.size());
 
                             if (encoded_bytes > 0)
                             {
@@ -990,7 +1142,8 @@ namespace app
                                 }
                             }
                             impl->ai_resample_buffer.erase(impl->ai_resample_buffer.begin(),
-                                impl->ai_resample_buffer.begin() + TARGET_FRAME_SAMPLES);
+                                                           impl->ai_resample_buffer.begin() +
+                                                               TARGET_FRAME_SAMPLES);
                         }
                     }
                 }
@@ -1002,9 +1155,12 @@ namespace app
             int AudioSystem::Impl::playbackCallback(const void* input_buffer, void* output_buffer,
                                                     unsigned long frames_per_buffer,
                                                     const PaStreamCallbackTimeInfo* time_info,
-                                                    PaStreamCallbackFlags status_flags, void* user_data)
+                                                    PaStreamCallbackFlags           status_flags,
+                                                    void*                           user_data)
             {
-                (void)input_buffer; (void)time_info; (void)status_flags;
+                (void)input_buffer;
+                (void)time_info;
+                (void)status_flags;
 
                 auto*  impl           = static_cast<Impl*>(user_data);
                 auto*  output         = static_cast<int16_t*>(output_buffer);
@@ -1027,7 +1183,7 @@ namespace app
 
                 const int16_t* src = frame->getData<int16_t>();
                 std::transform(src, src + samples_to_copy, output,
-                    [gain](int16_t s) { return static_cast<int16_t>(s * gain); });
+                               [gain](int16_t s) { return static_cast<int16_t>(s * gain); });
 
                 if (samples_to_copy < samples_needed)
                     std::fill_n(std::next(output, static_cast<std::ptrdiff_t>(samples_to_copy)),
@@ -1055,7 +1211,8 @@ namespace app
 
                 if (direction == StreamDirection::INPUT)
                 {
-                    if (pImpl_->is_recording.load()) return AudioError::ALREADY_RUNNING;
+                    if (pImpl_->is_recording.load())
+                        return AudioError::ALREADY_RUNNING;
 
                     input_params.device = Pa_GetDefaultInputDevice();
                     if (input_params.device == paNoDevice)
@@ -1064,11 +1221,12 @@ namespace app
                         return AudioError::DEVICE_NOT_FOUND;
                     }
 
-                    input_params.channelCount              = pImpl_->config.channels;
-                    input_params.sampleFormat              = paInt16;
-                    input_params.suggestedLatency          = Pa_GetDeviceInfo(input_params.device)->defaultLowInputLatency;
+                    input_params.channelCount = pImpl_->config.channels;
+                    input_params.sampleFormat = paInt16;
+                    input_params.suggestedLatency =
+                        Pa_GetDeviceInfo(input_params.device)->defaultLowInputLatency;
                     input_params.hostApiSpecificStreamInfo = nullptr;
-                    input_params_ptr = &input_params;
+                    input_params_ptr                       = &input_params;
 
                     pa_config.sample_rate       = pImpl_->config.sample_rate;
                     pa_config.frame_duration_ms = pImpl_->config.frame_duration_ms;
@@ -1082,7 +1240,8 @@ namespace app
                 }
                 else
                 {
-                    if (pImpl_->is_playing.load()) return AudioError::ALREADY_RUNNING;
+                    if (pImpl_->is_playing.load())
+                        return AudioError::ALREADY_RUNNING;
 
                     output_params.device = Pa_GetDefaultOutputDevice();
                     if (output_params.device == paNoDevice)
@@ -1091,11 +1250,12 @@ namespace app
                         return AudioError::DEVICE_NOT_FOUND;
                     }
 
-                    output_params.channelCount              = pImpl_->config.channels;
-                    output_params.sampleFormat              = paInt16;
-                    output_params.suggestedLatency          = Pa_GetDeviceInfo(output_params.device)->defaultLowOutputLatency;
+                    output_params.channelCount = pImpl_->config.channels;
+                    output_params.sampleFormat = paInt16;
+                    output_params.suggestedLatency =
+                        Pa_GetDeviceInfo(output_params.device)->defaultLowOutputLatency;
                     output_params.hostApiSpecificStreamInfo = nullptr;
-                    output_params_ptr = &output_params;
+                    output_params_ptr                       = &output_params;
 
                     pa_config.sample_rate       = pImpl_->config.sample_rate;
                     pa_config.frame_duration_ms = pImpl_->config.frame_duration_ms;
@@ -1118,7 +1278,8 @@ namespace app
             {
                 if (direction == StreamDirection::INPUT)
                 {
-                    if (!pImpl_->is_recording.load()) return AudioError::NONE;
+                    if (!pImpl_->is_recording.load())
+                        return AudioError::NONE;
 
                     pImpl_->is_recording.store(false);
                     pImpl_->record_stream.reset();
@@ -1129,7 +1290,8 @@ namespace app
                 }
                 else
                 {
-                    if (!pImpl_->is_playing.load()) return AudioError::NONE;
+                    if (!pImpl_->is_playing.load())
+                        return AudioError::NONE;
 
                     pImpl_->is_playing.store(false);
                     pImpl_->playback_stream.reset();
@@ -1141,24 +1303,26 @@ namespace app
 
             bool AudioSystem::isStreamRunning(StreamDirection direction) const
             {
-                return (direction == StreamDirection::INPUT)
-                    ? pImpl_->is_recording.load()
-                    : pImpl_->is_playing.load();
+                return (direction == StreamDirection::INPUT) ? pImpl_->is_recording.load()
+                                                             : pImpl_->is_playing.load();
             }
 
             // 编解码
             AudioFramePtr AudioSystem::encodeOpus(const int16_t* pcm_data, size_t pcm_size)
             {
-                if (!pImpl_->webrtc_encoder) return nullptr;
+                if (!pImpl_->webrtc_encoder)
+                    return nullptr;
 
                 int  frame_size    = pcm_size / sizeof(int16_t) / pImpl_->config.channels;
                 auto encoded_frame = pImpl_->mem_pool->allocate(OPUS_MAX_FRAME_BYTES);
-                if (!encoded_frame) return nullptr;
+                if (!encoded_frame)
+                    return nullptr;
 
                 int encoded_bytes = opus_encode(pImpl_->webrtc_encoder.get(), pcm_data, frame_size,
-                    encoded_frame->data, encoded_frame->capacity);
+                                                encoded_frame->data, encoded_frame->capacity);
 
-                if (encoded_bytes < 0) return nullptr;
+                if (encoded_bytes < 0)
+                    return nullptr;
 
                 encoded_frame->size = encoded_bytes;
                 pImpl_->stats.encode_count.fetch_add(1);
@@ -1167,53 +1331,67 @@ namespace app
 
             AudioFramePtr AudioSystem::decodeOpus(const uint8_t* opus_data, size_t opus_size)
             {
-                OpusDecoder* decoder            = pImpl_->tts_decoder ? pImpl_->tts_decoder.get() : pImpl_->webrtc_decoder.get();
-                int          target_sample_rate = pImpl_->tts_decoder ? OPUS_TTS_SAMPLE_RATE : pImpl_->config.sample_rate;
+                OpusDecoder* decoder =
+                    pImpl_->tts_decoder ? pImpl_->tts_decoder.get() : pImpl_->webrtc_decoder.get();
+                int target_sample_rate =
+                    pImpl_->tts_decoder ? OPUS_TTS_SAMPLE_RATE : pImpl_->config.sample_rate;
 
-                if (!decoder) return nullptr;
+                if (!decoder)
+                    return nullptr;
 
-                int    frame_size = target_sample_rate / MS_PER_SEC * pImpl_->config.frame_duration_ms;
-                size_t pcm_size   = static_cast<size_t>(frame_size) * pImpl_->config.channels * sizeof(int16_t);
+                int frame_size = target_sample_rate / MS_PER_SEC * pImpl_->config.frame_duration_ms;
+                size_t pcm_size =
+                    static_cast<size_t>(frame_size) * pImpl_->config.channels * sizeof(int16_t);
 
                 auto decoded_frame = pImpl_->mem_pool->allocate(pcm_size);
-                if (!decoded_frame) return nullptr;
+                if (!decoded_frame)
+                    return nullptr;
 
                 int decoded_samples = opus_decode(decoder, opus_data, opus_size,
-                    decoded_frame->getData<int16_t>(), frame_size, 0);
+                                                  decoded_frame->getData<int16_t>(), frame_size, 0);
 
-                if (decoded_samples < 0) return nullptr;
+                if (decoded_samples < 0)
+                    return nullptr;
 
                 static std::atomic<int> decode_count{0};
-                int count = decode_count.fetch_add(1);
+                int                     count = decode_count.fetch_add(1);
                 if (count < PCM_STATS_SAMPLE_LIMIT)
                 {
-                    const int16_t* pcm = decoded_frame->getData<int16_t>();
+                    const int16_t* pcm    = decoded_frame->getData<int16_t>();
                     auto [min_it, max_it] = std::minmax_element(pcm, pcm + decoded_samples);
-                    LOG_INFO(LOG_TAG, "PCM#%d: 样本=%d, 范围=[%d,%d]", count, decoded_samples, *min_it, *max_it);
+                    LOG_INFO(LOG_TAG, "PCM#%d: 样本=%d, 范围=[%d,%d]", count, decoded_samples,
+                             *min_it, *max_it);
                 }
 
-                decoded_frame->size = static_cast<size_t>(decoded_samples) * pImpl_->config.channels * sizeof(int16_t);
+                decoded_frame->size = static_cast<size_t>(decoded_samples) *
+                                      pImpl_->config.channels * sizeof(int16_t);
                 pImpl_->stats.decode_count.fetch_add(1);
                 return decoded_frame;
             }
 
-            size_t AudioSystem::encodeOpusFrames(const int16_t* pcm_data, size_t pcm_size, std::vector<AudioFramePtr>& frames)
+            size_t AudioSystem::encodeOpusFrames(const int16_t* pcm_data, size_t pcm_size,
+                                                 std::vector<AudioFramePtr>& frames)
             {
-                if (!pImpl_->webrtc_encoder) return 0;
+                if (!pImpl_->webrtc_encoder)
+                    return 0;
 
-                int    samples_per_frame = pImpl_->config.sample_rate / MS_PER_SEC * pImpl_->config.frame_duration_ms;
-                size_t total_samples     = pcm_size / sizeof(int16_t) / pImpl_->config.channels;
-                size_t encoded_count     = 0;
-                size_t offset            = 0;
+                int samples_per_frame =
+                    pImpl_->config.sample_rate / MS_PER_SEC * pImpl_->config.frame_duration_ms;
+                size_t total_samples = pcm_size / sizeof(int16_t) / pImpl_->config.channels;
+                size_t encoded_count = 0;
+                size_t offset        = 0;
 
                 while (offset < total_samples)
                 {
-                    int  current_size  = std::min(samples_per_frame, static_cast<int>(total_samples - offset));
+                    int current_size =
+                        std::min(samples_per_frame, static_cast<int>(total_samples - offset));
                     auto encoded_frame = pImpl_->mem_pool->allocate(OPUS_MAX_FRAME_BYTES);
-                    if (!encoded_frame) break;
+                    if (!encoded_frame)
+                        break;
 
-                    int encoded_bytes = opus_encode(pImpl_->webrtc_encoder.get(), pcm_data + offset,
-                        current_size, encoded_frame->data, encoded_frame->capacity);
+                    int encoded_bytes =
+                        opus_encode(pImpl_->webrtc_encoder.get(), pcm_data + offset, current_size,
+                                    encoded_frame->data, encoded_frame->capacity);
 
                     if (encoded_bytes > 0)
                     {
@@ -1231,10 +1409,12 @@ namespace app
             // 应用层流控制
             AudioError AudioSystem::startStream(StreamType type)
             {
-                if (!pImpl_->initialized.load()) return AudioError::NOT_INITIALIZED;
+                if (!pImpl_->initialized.load())
+                    return AudioError::NOT_INITIALIZED;
 
                 Impl::StreamTypeConfig config = pImpl_->getStreamTypeConfig(type);
-                if (config.streaming_flag->load()) return AudioError::ALREADY_RUNNING;
+                if (config.streaming_flag->load())
+                    return AudioError::ALREADY_RUNNING;
 
                 setMainState(config.main_state);
                 config.streaming_flag->store(true);
@@ -1245,7 +1425,8 @@ namespace app
             AudioError AudioSystem::stopStream(StreamType type)
             {
                 Impl::StreamTypeConfig config = pImpl_->getStreamTypeConfig(type);
-                if (!config.streaming_flag->load()) return AudioError::NONE;
+                if (!config.streaming_flag->load())
+                    return AudioError::NONE;
 
                 config.streaming_flag->store(false);
                 LOG_INFO(LOG_TAG, "%s音频流已停止", config.stream_name);
@@ -1254,10 +1435,12 @@ namespace app
 
             bool AudioSystem::isStreamActive(StreamType type) const
             {
-                return (type == StreamType::AI) ? pImpl_->is_ai_streaming.load() : pImpl_->is_webrtc_streaming.load();
+                return (type == StreamType::AI) ? pImpl_->is_ai_streaming.load()
+                                                : pImpl_->is_webrtc_streaming.load();
             }
 
-            AudioError AudioSystem::startMode(AudioMainState main_state, StreamType stream_type, const char* mode_name)
+            AudioError AudioSystem::startMode(AudioMainState main_state, StreamType stream_type,
+                                              const char* mode_name)
             {
                 LOG_INFO(LOG_TAG, "启动%s模式...", mode_name);
 
@@ -1266,32 +1449,48 @@ namespace app
                 if (!isStreamRunning(StreamDirection::INPUT))
                 {
                     AudioError err = startStream(StreamDirection::INPUT);
-                    if (err != AudioError::NONE) return err;
+                    if (err != AudioError::NONE)
+                        return err;
                 }
 
                 AudioError err = startStream(stream_type);
-                if (err != AudioError::NONE) return err;
+                if (err != AudioError::NONE)
+                    return err;
 
                 LOG_INFO(LOG_TAG, "%s模式已启动", mode_name);
                 return AudioError::NONE;
             }
 
-            AudioError AudioSystem::stopMode(StreamType stream_type, const char* mode_name, bool stop_record)
+            AudioError AudioSystem::stopMode(StreamType stream_type, const char* mode_name,
+                                             bool stop_record)
             {
                 LOG_INFO(LOG_TAG, "停止%s模式...", mode_name);
 
                 stopStream(stream_type);
-                if (stop_record) stopStream(StreamDirection::INPUT);
+                if (stop_record)
+                    stopStream(StreamDirection::INPUT);
                 setMainState(AudioMainState::NONE);
 
                 LOG_INFO(LOG_TAG, "%s模式已停止", mode_name);
                 return AudioError::NONE;
             }
 
-            AudioError AudioSystem::startAIMode()     { return startMode(AudioMainState::AI, StreamType::AI, "AI"); }
-            AudioError AudioSystem::stopAIMode()      { return stopMode(StreamType::AI, "AI", true); }
-            AudioError AudioSystem::startWebRTCMode() { return startMode(AudioMainState::WEBRTC, StreamType::WEBRTC, "WebRTC"); }
-            AudioError AudioSystem::stopWebRTCMode()  { return stopMode(StreamType::WEBRTC, "WebRTC", false); }
+            AudioError AudioSystem::startAIMode()
+            {
+                return startMode(AudioMainState::AI, StreamType::AI, "AI");
+            }
+            AudioError AudioSystem::stopAIMode()
+            {
+                return stopMode(StreamType::AI, "AI", true);
+            }
+            AudioError AudioSystem::startWebRTCMode()
+            {
+                return startMode(AudioMainState::WEBRTC, StreamType::WEBRTC, "WebRTC");
+            }
+            AudioError AudioSystem::stopWebRTCMode()
+            {
+                return stopMode(StreamType::WEBRTC, "WebRTC", false);
+            }
 
         } // namespace audio
     }     // namespace media

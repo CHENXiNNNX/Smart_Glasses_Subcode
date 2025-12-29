@@ -11,7 +11,7 @@
 #include "../../../network/wifi/wifi.hpp"
 #include "../../../protocol/webrtc/signaling.hpp"
 #include "../../../protocol/webrtc/webrtc.hpp"
-#include "../../chatbot.hpp"  
+#include "../../chatbot.hpp"
 
 #include <string>
 #include <exception>
@@ -170,8 +170,7 @@ namespace app
                                 {
                                     // 调用图像解释功能
                                     std::string result = video_system->explainImage(question);
-                                    LOG_INFO(LOG_TAG, "图像解释完成，结果长度: %zu",
-                                             result.size());
+                                    LOG_INFO(LOG_TAG, "图像解释完成，结果长度: %zu", result.size());
 
                                     // 尝试解析JSON响应
                                     mcp::json result_json;
@@ -618,7 +617,7 @@ namespace app
                 // ============================================================================
                 // Webrtc工具注册
                 // ============================================================================
-                
+
                 // int McpToolManager::registerWebrtcTools(
                 //     McpServer&                           mcp_server,
                 //     app::media::audio::AudioSystem*      audio_system,
@@ -636,11 +635,10 @@ namespace app
 
                 //     auto err = mcp_server.add_tool(
                 //         "self.webrtc.start_pairing",
-                //         "Switch Smart Glasses from the chatbot AI dialogue to WebRTC pairing mode. "
-                //         "This tool stops the AI conversation audio pipeline and requests the "
-                //         "signaling server to pair with a remote peer so that WebRTC media can flow.",
-                //         mcp::PropertyList(),
-                //         [audio_system, signaling, webrtc_system,
+                //         "Switch Smart Glasses from the chatbot AI dialogue to WebRTC pairing
+                //         mode. " "This tool stops the AI conversation audio pipeline and requests
+                //         the " "signaling server to pair with a remote peer so that WebRTC media
+                //         can flow.", mcp::PropertyList(), [audio_system, signaling, webrtc_system,
                 //          chatbot_system](const mcp::PropertyList& props [[maybe_unused]])
                 //             -> mcp::ReturnValue
                 //         {
@@ -680,7 +678,8 @@ namespace app
                 //                     ai_audio_stopped = true;
                 //                 }
 
-                //                 if (audio_system->isStreamRunning(app::media::audio::StreamDirection::OUTPUT))
+                //                 if
+                //                 (audio_system->isStreamRunning(app::media::audio::StreamDirection::OUTPUT))
                 //                 {
                 //                     audio_system->stopStream(app::media::audio::StreamDirection::OUTPUT);
                 //                     playback_stopped = true;
@@ -739,8 +738,9 @@ namespace app
 
                 //             // 返回状态
                 //             result["success"]          = true;
-                //             result["message"]          = "已切换至WebRTC配对模式，请等待对端设备";
-                //             result["signaling_status"] =
+                //             result["message"]          =
+                //             "已切换至WebRTC配对模式，请等待对端设备"; result["signaling_status"]
+                //             =
                 //                 app::protocol::webrtc::Signaling::statusToString(
                 //                     signaling->getStatus());
                 //             result["webrtc_state"] =
@@ -764,13 +764,14 @@ namespace app
                 // 注册所有工具
                 // ============================================================================
 
-                int McpToolManager::registerAllTools(McpServer&                           mcp_server,
-                                                     app::media::audio::AudioSystem*      audio_system,
-                                                     app::media::camera::VideoSystem*     video_system,
-                                                     app::network::wifi::WifiManager*     wifi_manager,
-                                                     app::protocol::webrtc::Signaling*    signaling,
-                                                     app::protocol::webrtc::WebRTCSystem* webrtc_system,
-                                                     app::chatbot::ChatbotSystem*         chatbot_system)
+                int
+                McpToolManager::registerAllTools(McpServer&                           mcp_server,
+                                                 app::media::audio::AudioSystem*      audio_system,
+                                                 app::media::camera::VideoSystem*     video_system,
+                                                 app::network::wifi::WifiManager*     wifi_manager,
+                                                 app::protocol::webrtc::Signaling*    signaling,
+                                                 app::protocol::webrtc::WebRTCSystem* webrtc_system,
+                                                 app::chatbot::ChatbotSystem* chatbot_system)
                 {
                     LOG_INFO(LOG_TAG, "========================================");
                     LOG_INFO(LOG_TAG, "  开始注册MCP工具...");
@@ -782,7 +783,8 @@ namespace app
                     total += registerAudioTools(mcp_server, audio_system);
                     total += registerVideoTools(mcp_server, video_system);
                     total += registerNetworkTools(mcp_server, wifi_manager);
-                    // total += registerWebrtcTools(mcp_server, audio_system, signaling, webrtc_system, chatbot_system);
+                    // total += registerWebrtcTools(mcp_server, audio_system, signaling,
+                    // webrtc_system, chatbot_system);
 
                     LOG_INFO(LOG_TAG, "========================================");
                     if (total == 0)

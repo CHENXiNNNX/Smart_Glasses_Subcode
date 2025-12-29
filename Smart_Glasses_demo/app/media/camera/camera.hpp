@@ -569,7 +569,7 @@ namespace app
                     };
 
                     std::array<DMABlock, MAX_DMA_BLOCKS> blocks;
-                    std::mutex                           mutex;      // 保护DMA块分配
+                    std::mutex                           mutex; // 保护DMA块分配
                     size_t                               block_size;
 
                     explicit DMAPool(size_t dma_block_size);

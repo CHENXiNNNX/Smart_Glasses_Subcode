@@ -163,7 +163,8 @@ namespace app
             {
                 void operator()(OpusEncoder* p) const
                 {
-                    if (p) opus_encoder_destroy(p);
+                    if (p)
+                        opus_encoder_destroy(p);
                 }
             };
             using OpusEncoderPtr = std::unique_ptr<OpusEncoder, OpusEncoderDeleter>;
@@ -172,7 +173,8 @@ namespace app
             {
                 void operator()(OpusDecoder* p) const
                 {
-                    if (p) opus_decoder_destroy(p);
+                    if (p)
+                        opus_decoder_destroy(p);
                 }
             };
             using OpusDecoderPtr = std::unique_ptr<OpusDecoder, OpusDecoderDeleter>;
@@ -181,7 +183,8 @@ namespace app
             {
                 void operator()(SRC_STATE* p) const
                 {
-                    if (p) src_delete(p);
+                    if (p)
+                        src_delete(p);
                 }
             };
             using SrcStatePtr = std::unique_ptr<SRC_STATE, SrcStateDeleter>;
@@ -190,7 +193,8 @@ namespace app
             {
                 void operator()(SpeexPreprocessState* p) const
                 {
-                    if (p) speex_preprocess_state_destroy(p);
+                    if (p)
+                        speex_preprocess_state_destroy(p);
                 }
             };
             using SpeexStatePtr = std::unique_ptr<SpeexPreprocessState, SpeexStateDeleter>;
@@ -226,11 +230,15 @@ namespace app
 
                 AudioFrame() = default;
 
-                template <typename T = int16_t>
-                T* getData() { return reinterpret_cast<T*>(data); }
+                template <typename T = int16_t> T* getData()
+                {
+                    return reinterpret_cast<T*>(data);
+                }
 
-                template <typename T = int16_t>
-                const T* getData() const { return reinterpret_cast<const T*>(data); }
+                template <typename T = int16_t> const T* getData() const
+                {
+                    return reinterpret_cast<const T*>(data);
+                }
             };
 
             using AudioFramePtr = std::shared_ptr<AudioFrame>;
@@ -296,16 +304,17 @@ namespace app
             private:
                 struct FixedPool
                 {
-                    static constexpr size_t BLOCK_SIZE       = 2048;
-                    static constexpr size_t MAX_BLOCKS       = 1024;
+                    static constexpr size_t BLOCK_SIZE        = 2048;
+                    static constexpr size_t MAX_BLOCKS        = 1024;
                     static constexpr size_t BITMAP_WORD_COUNT = 16;
-                    static constexpr size_t BITS_PER_WORD    = 64;
+                    static constexpr size_t BITS_PER_WORD     = 64;
 
                     size_t actual_block_count;
 
-                    alignas(64) std::array<std::atomic<uint64_t>, BITMAP_WORD_COUNT> allocation_bitmap{};
+                    alignas(64)
+                        std::array<std::atomic<uint64_t>, BITMAP_WORD_COUNT> allocation_bitmap{};
                     std::vector<std::array<uint8_t, BLOCK_SIZE>> blocks;
-                    std::vector<AudioFrame> frame_objects;
+                    std::vector<AudioFrame>                      frame_objects;
 
                     explicit FixedPool(size_t block_count);
                     ~FixedPool() = default;
@@ -360,7 +369,7 @@ namespace app
 
                 // 录音文件存储配置
                 std::string record_path         = "/root/audio/"; // 录音保存路径
-                int         record_duration_sec = 0;              // 录音时长（秒，0表示手动停止）
+                int         record_duration_sec = 0; // 录音时长（秒，0表示手动停止）
 
                 // 内存池配置
                 AudioMemoryPoolConfig mem_pool_config;
@@ -384,7 +393,8 @@ namespace app
              * @brief 状态变化回调
              */
             template <typename StateEnum>
-            using StateChangeCallback = std::function<void(StateEnum old_state, StateEnum new_state)>;
+            using StateChangeCallback =
+                std::function<void(StateEnum old_state, StateEnum new_state)>;
 
             class AudioSystem
             {
@@ -415,10 +425,11 @@ namespace app
                 void setWebRTCAudioCallback(AudioFrameCallback callback);
                 void setWakewordCallback(WakewordCallback callback);
 
-                AudioFramePtr getRecordedFrame(std::chrono::milliseconds timeout = std::chrono::milliseconds(100));
-                void          pushPlaybackFrame(AudioFramePtr frame);
-                void          clearRecordQueue();
-                void          clearPlaybackQueue();
+                AudioFramePtr getRecordedFrame(
+                    std::chrono::milliseconds timeout = std::chrono::milliseconds(100));
+                void pushPlaybackFrame(AudioFramePtr frame);
+                void clearRecordQueue();
+                void clearPlaybackQueue();
 
                 AudioError startRecord(const std::string& filename = "", int duration_sec = 0);
                 AudioError stopRecord();
@@ -458,8 +469,10 @@ namespace app
                 AudioSystem& operator=(const AudioSystem&) = delete;
 
             private:
-                AudioError startMode(AudioMainState main_state, StreamType stream_type, const char* mode_name);
-                AudioError stopMode(StreamType stream_type, const char* mode_name, bool stop_record);
+                AudioError startMode(AudioMainState main_state, StreamType stream_type,
+                                     const char* mode_name);
+                AudioError stopMode(StreamType stream_type, const char* mode_name,
+                                    bool stop_record);
 
                 class Impl;
                 std::unique_ptr<Impl> pImpl_;

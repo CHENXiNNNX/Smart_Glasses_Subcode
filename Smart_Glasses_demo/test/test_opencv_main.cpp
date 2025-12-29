@@ -2,7 +2,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include <unistd.h>   // sleep()
+#include <unistd.h> // sleep()
 
 int main()
 {

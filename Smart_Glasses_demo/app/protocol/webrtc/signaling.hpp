@@ -213,7 +213,8 @@ namespace app
                  * @param request 连接请求参数
                  * @return true 发送成功，false 发送失败
                  */
-                bool sendConnectionRequest(const std::string& peer_id, const ConnectionRequest& request);
+                bool sendConnectionRequest(const std::string&       peer_id,
+                                           const ConnectionRequest& request);
 
                 // ========================================================================
                 // SDP和ICE消息发送
@@ -226,7 +227,6 @@ namespace app
                  * @return true 发送成功，false 发送失败
                  */
                 bool sendOffer(const std::string& sdp, const std::string& target_device_id);
-
 
                 /**
                  * @brief 发送ICE候选
@@ -309,7 +309,6 @@ namespace app
                     return config_.device_id.find("glasses_") == 0;
                 }
 
-
                 // ========================================================================
                 // 回调设置
                 // ========================================================================
@@ -340,7 +339,6 @@ namespace app
                     std::lock_guard<std::mutex> lock(callback_mutex_);
                     answer_callback_ = callback;
                 }
-
 
                 /**
                  * @brief 设置ICE候选接收回调
@@ -540,21 +538,21 @@ namespace app
                 std::atomic<SignalingStatus>                status_;    // 连接状态
                 std::unique_ptr<websocket::WebSocketClient> ws_client_; // WebSocket客户端
 
-                mutable std::mutex mutex_;        // 保护共享数据
+                mutable std::mutex mutex_;          // 保护共享数据
                 std::string        peer_device_id_; // 对端设备ID
-                std::string        role_;         // 角色（offerer/answerer）
-                RoomInfo           room_info_;     // 房间信息
+                std::string        role_;           // 角色（offerer/answerer）
+                RoomInfo           room_info_;      // 房间信息
 
-                std::mutex                  callback_mutex_;              // 保护回调函数
-                SignalingStatusCallback     status_callback_;              // 状态回调
-                SignalingMessageCallback    offer_callback_;               // Offer回调
-                SignalingMessageCallback    answer_callback_;              // Answer回调
-                SignalingMessageCallback    ice_candidate_callback_;        // ICE回调
-                WebRTCReadyCallback         webrtc_ready_callback_;         // WebRTC就绪回调
-                RoomInfoCallback            room_info_callback_;            // 房间信息回调
-                ConnectionRequestCallback   connection_request_callback_;   // 连接请求回调
-                ConnectionResponseCallback  connection_response_callback_;  // 连接请求回应回调
-                SignalingErrorCallback      error_callback_;               // 错误回调
+                std::mutex                 callback_mutex_;               // 保护回调函数
+                SignalingStatusCallback    status_callback_;              // 状态回调
+                SignalingMessageCallback   offer_callback_;               // Offer回调
+                SignalingMessageCallback   answer_callback_;              // Answer回调
+                SignalingMessageCallback   ice_candidate_callback_;       // ICE回调
+                WebRTCReadyCallback        webrtc_ready_callback_;        // WebRTC就绪回调
+                RoomInfoCallback           room_info_callback_;           // 房间信息回调
+                ConnectionRequestCallback  connection_request_callback_;  // 连接请求回调
+                ConnectionResponseCallback connection_response_callback_; // 连接请求回应回调
+                SignalingErrorCallback     error_callback_;               // 错误回调
             };
 
         } // namespace webrtc

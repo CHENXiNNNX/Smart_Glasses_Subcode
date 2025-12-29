@@ -11,12 +11,8 @@ namespace app
     namespace rknn
     {
         RKNNModel::RKNNModel()
-            : ctx_(0)
-            , model_width_(0)
-            , model_height_(0)
-            , model_channel_(0)
-            , is_quant_(false)
-            , initialized_(false)
+            : ctx_(0), model_width_(0), model_height_(0), model_channel_(0), is_quant_(false),
+              initialized_(false)
         {
             std::memset(&io_num_, 0, sizeof(io_num_));
         }
@@ -71,8 +67,8 @@ namespace app
             mem_pool_ = std::make_unique<MemoryPool>(10 * 1024 * 1024);
 
             initialized_ = true;
-            LOG_INFO(LOG_TAG, "模型初始化成功: %s (输入:%dx%dx%d, 输出:%d个)",
-                     model_path.c_str(), model_width_, model_height_, model_channel_, io_num_.n_output);
+            LOG_INFO(LOG_TAG, "模型初始化成功: %s (输入:%dx%dx%d, 输出:%d个)", model_path.c_str(),
+                     model_width_, model_height_, model_channel_, io_num_.n_output);
 
             return RKNNError::NONE;
         }
@@ -122,20 +118,20 @@ namespace app
             for (uint32_t i = 0; i < io_num_.n_input; i++)
             {
                 input_attrs_[i].index = i;
-                ret = rknn_query(ctx_, RKNN_QUERY_NATIVE_INPUT_ATTR, &input_attrs_[i], sizeof(rknn_tensor_attr));
+                ret = rknn_query(ctx_, RKNN_QUERY_NATIVE_INPUT_ATTR, &input_attrs_[i],
+                                 sizeof(rknn_tensor_attr));
                 if (ret != RKNN_SUCC)
                 {
                     LOG_ERROR(LOG_TAG, "查询输入属性失败: index=%d, ret=%d", i, ret);
                     return RKNNError::QUERY_FAILED;
                 }
 
-                LOG_DEBUG(LOG_TAG, "输入[%d]: name=%s, dims=[%d,%d,%d,%d], fmt=%s, type=%s, size=%d",
-                          i, input_attrs_[i].name,
-                          input_attrs_[i].dims[0], input_attrs_[i].dims[1],
+                LOG_DEBUG(LOG_TAG,
+                          "输入[%d]: name=%s, dims=[%d,%d,%d,%d], fmt=%s, type=%s, size=%d", i,
+                          input_attrs_[i].name, input_attrs_[i].dims[0], input_attrs_[i].dims[1],
                           input_attrs_[i].dims[2], input_attrs_[i].dims[3],
                           get_format_string(input_attrs_[i].fmt),
-                          get_type_string(input_attrs_[i].type),
-                          input_attrs_[i].size_with_stride);
+                          get_type_string(input_attrs_[i].type), input_attrs_[i].size_with_stride);
             }
 
             // 查询输出属性
@@ -143,22 +139,23 @@ namespace app
             for (uint32_t i = 0; i < io_num_.n_output; i++)
             {
                 output_attrs_[i].index = i;
-                ret = rknn_query(ctx_, RKNN_QUERY_NATIVE_NHWC_OUTPUT_ATTR, &output_attrs_[i], sizeof(rknn_tensor_attr));
+                ret = rknn_query(ctx_, RKNN_QUERY_NATIVE_NHWC_OUTPUT_ATTR, &output_attrs_[i],
+                                 sizeof(rknn_tensor_attr));
                 if (ret != RKNN_SUCC)
                 {
                     LOG_ERROR(LOG_TAG, "查询输出属性失败: index=%d, ret=%d", i, ret);
                     return RKNNError::QUERY_FAILED;
                 }
 
-                LOG_DEBUG(LOG_TAG, "输出[%d]: name=%s, dims=[%d,%d,%d,%d], fmt=%s, type=%s, size=%d, qnt_type=%s, zp=%d, scale=%f",
-                          i, output_attrs_[i].name,
-                          output_attrs_[i].dims[0], output_attrs_[i].dims[1],
-                          output_attrs_[i].dims[2], output_attrs_[i].dims[3],
-                          get_format_string(output_attrs_[i].fmt),
-                          get_type_string(output_attrs_[i].type),
-                          output_attrs_[i].size_with_stride,
-                          get_qnt_type_string(output_attrs_[i].qnt_type),
-                          output_attrs_[i].zp, output_attrs_[i].scale);
+                LOG_DEBUG(LOG_TAG,
+                          "输出[%d]: name=%s, dims=[%d,%d,%d,%d], fmt=%s, type=%s, size=%d, "
+                          "qnt_type=%s, zp=%d, scale=%f",
+                          i, output_attrs_[i].name, output_attrs_[i].dims[0],
+                          output_attrs_[i].dims[1], output_attrs_[i].dims[2],
+                          output_attrs_[i].dims[3], get_format_string(output_attrs_[i].fmt),
+                          get_type_string(output_attrs_[i].type), output_attrs_[i].size_with_stride,
+                          get_qnt_type_string(output_attrs_[i].qnt_type), output_attrs_[i].zp,
+                          output_attrs_[i].scale);
             }
 
             // 解析模型输入尺寸
@@ -287,7 +284,7 @@ namespace app
 
             // 检查数据大小
             uint32_t required_size = input_attrs_[index].size_with_stride;
-            uint32_t copy_size = size;
+            uint32_t copy_size     = size;
             if (copy_size > required_size)
             {
                 LOG_WARN(LOG_TAG, "输入数据大小(%d)超过要求(%d)，将截断", copy_size, required_size);
@@ -373,4 +370,3 @@ namespace app
 
     } // namespace rknn
 } // namespace app
-

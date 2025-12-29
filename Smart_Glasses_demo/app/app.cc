@@ -352,9 +352,9 @@ namespace app
     {
         // 创建音频配置
         audio::AudioConfig audio_config;
-        audio_config.sample_rate       = sample_rate; // 采样率
-        audio_config.channels          = channels;     // 单声道
-        audio_config.frame_duration_ms = frame_duration_ms;    // 帧时长（毫秒）
+        audio_config.sample_rate       = sample_rate;       // 采样率
+        audio_config.channels          = channels;          // 单声道
+        audio_config.frame_duration_ms = frame_duration_ms; // 帧时长（毫秒）
 
         // 创建音频系统
         audio_system_ = std::make_unique<audio::AudioSystem>(audio_config);
@@ -442,7 +442,7 @@ namespace app
     {
         // 创建信令配置
         app::protocol::webrtc::SignalingConfig sig_config;
-        sig_config.device_id = device_id;
+        sig_config.device_id  = device_id;
         sig_config.server_url = server_url;
 
         // 创建信令实例
@@ -450,16 +450,19 @@ namespace app
 
         // 设置错误回调
         signaling_->onError(
-            [](app::protocol::webrtc::SignalingError error, const std::string& message) {
+            [](app::protocol::webrtc::SignalingError error, const std::string& message)
+            {
                 (void)error; // 当前仅记录文本，防止未使用告警
                 LOG_ERROR(LOG_TAG, "信令错误: %s", message.c_str());
             });
 
         // 设置状态变化回调
-        signaling_->onStatusChanged([](app::protocol::webrtc::SignalingStatus status) {
-            LOG_INFO(LOG_TAG, "信令状态变化: %s", 
-                     app::protocol::webrtc::Signaling::statusToString(status).c_str());
-        });
+        signaling_->onStatusChanged(
+            [](app::protocol::webrtc::SignalingStatus status)
+            {
+                LOG_INFO(LOG_TAG, "信令状态变化: %s",
+                         app::protocol::webrtc::Signaling::statusToString(status).c_str());
+            });
 
         // 连接信令服务器
         if (!signaling_->connect())
@@ -533,7 +536,8 @@ namespace app
         //         [webrtc_wp](app::media::audio::AudioFramePtr opus_frame)
         //         {
         //             auto webrtc = webrtc_wp.lock();
-        //             if (!webrtc || !opus_frame || opus_frame->size == 0 || !webrtc->isConnected())
+        //             if (!webrtc || !opus_frame || opus_frame->size == 0 ||
+        //             !webrtc->isConnected())
         //             {
         //                 return;
         //             }
@@ -549,14 +553,16 @@ namespace app
         //                 return;
         //             }
 
-        //             if (!audio_system_->isStreamRunning(app::media::audio::StreamDirection::OUTPUT))
+        //             if
+        //             (!audio_system_->isStreamRunning(app::media::audio::StreamDirection::OUTPUT))
         //             {
-        //                 auto play_err = audio_system_->startStream(app::media::audio::StreamDirection::OUTPUT);
+        //                 auto play_err =
+        //                 audio_system_->startStream(app::media::audio::StreamDirection::OUTPUT);
         //                 if (play_err != app::media::audio::AudioError::NONE &&
         //                     play_err != app::media::audio::AudioError::ALREADY_RUNNING)
         //                 {
-        //                     LOG_ERROR(LOG_TAG, "启动WebRTC播放流失败: %d", static_cast<int>(play_err));
-        //                     return;
+        //                     LOG_ERROR(LOG_TAG, "启动WebRTC播放流失败: %d",
+        //                     static_cast<int>(play_err)); return;
         //                 }
         //             }
 
@@ -574,7 +580,8 @@ namespace app
         //         [webrtc_wp](app::media::camera::VideoFramePtr video_frame)
         //         {
         //             auto webrtc = webrtc_wp.lock();
-        //             if (!webrtc || !video_frame || video_frame->size == 0 || !webrtc->isConnected())
+        //             if (!webrtc || !video_frame || video_frame->size == 0 ||
+        //             !webrtc->isConnected())
         //             {
         //                 return;
         //             }
@@ -636,7 +643,8 @@ namespace app
         //                 if (err != app::media::audio::AudioError::NONE &&
         //                     err != app::media::audio::AudioError::ALREADY_RUNNING)
         //                 {
-        //                     LOG_ERROR(LOG_TAG, "启动WebRTC音频模式失败: %d", static_cast<int>(err));
+        //                     LOG_ERROR(LOG_TAG, "启动WebRTC音频模式失败: %d",
+        //                     static_cast<int>(err));
         //                 }
         //             }
 
@@ -646,7 +654,8 @@ namespace app
         //                 if (err != app::media::camera::VideoError::NONE &&
         //                     err != app::media::camera::VideoError::ALREADY_STARTED)
         //                 {
-        //                     LOG_ERROR(LOG_TAG, "启动WebRTC视频模式失败: %d", static_cast<int>(err));
+        //                     LOG_ERROR(LOG_TAG, "启动WebRTC视频模式失败: %d",
+        //                     static_cast<int>(err));
         //                 }
         //             }
         //         }
@@ -742,7 +751,8 @@ namespace app
         chatbot::ChatbotError chatbot_err = chatbot_system_->init();
         if (chatbot_err != chatbot::ChatbotError::NONE)
         {
-            LOG_ERROR(LOG_TAG, "  聊天机器人系统初始化失败: %s", chatbot::errorToString(chatbot_err));
+            LOG_ERROR(LOG_TAG, "  聊天机器人系统初始化失败: %s",
+                      chatbot::errorToString(chatbot_err));
             chatbot_system_.reset();
             return false;
         }

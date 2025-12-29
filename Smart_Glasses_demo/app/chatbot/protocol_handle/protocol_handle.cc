@@ -23,7 +23,7 @@ using json = nlohmann::json;
 
 namespace
 {
-    constexpr const char*               LOG_TAG                       = "PROTOCOL_HANDLE";
+    constexpr const char*               LOG_TAG = "PROTOCOL_HANDLE";
     constexpr std::chrono::milliseconds QUEUE_WAIT_TIMEOUT{100};
     constexpr int                       MIN_SAMPLE_RATE               = 8000;
     constexpr int                       MAX_SAMPLE_RATE               = 48000;
@@ -237,8 +237,7 @@ namespace app
                     if (message_queue.size() >= config.message_queue_size)
                     {
                         stats.queue_overflows.fetch_add(1, std::memory_order_relaxed);
-                        LOG_WARN(LOG_TAG,
-                                 "Message queue full (%zu), dropping oldest message",
+                        LOG_WARN(LOG_TAG, "Message queue full (%zu), dropping oldest message",
                                  config.message_queue_size);
                         message_queue.pop(); // 丢弃最旧的消息
                     }
@@ -363,8 +362,7 @@ namespace app
                         return handleErrorMessage(j);
 
                     default:
-                        LOG_WARN(LOG_TAG, "Unknown message type: %d",
-                                 static_cast<int>(type));
+                        LOG_WARN(LOG_TAG, "Unknown message type: %d", static_cast<int>(type));
                         return false;
                     }
                 }
@@ -393,8 +391,7 @@ namespace app
                         else
                         {
                             applyDefaultAudioParams(msg);
-                            LOG_WARN(LOG_TAG,
-                                     "audio_params missing or null, using defaults");
+                            LOG_WARN(LOG_TAG, "audio_params missing or null, using defaults");
                         }
 
                         LOG_INFO(LOG_TAG, "<- Hello: session=%s, audio=%dHz/%dch/%dms",
@@ -406,8 +403,7 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR(LOG_TAG, "Failed to handle Hello message: %s",
-                                  e.what());
+                        LOG_ERROR(LOG_TAG, "Failed to handle Hello message: %s", e.what());
                         return false;
                     }
                 }
@@ -435,8 +431,7 @@ namespace app
                             }
                             else
                             {
-                                LOG_WARN(LOG_TAG, "Unknown listen state: %s",
-                                         state_str.c_str());
+                                LOG_WARN(LOG_TAG, "Unknown listen state: %s", state_str.c_str());
                                 msg.state = ListenState::START;
                             }
                         }
@@ -467,8 +462,7 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR(LOG_TAG, "Failed to handle Listen message: %s",
-                                  e.what());
+                        LOG_ERROR(LOG_TAG, "Failed to handle Listen message: %s", e.what());
                         return false;
                     }
                 }
@@ -552,8 +546,7 @@ namespace app
                             msg.text       = j.value("text", "");
                             msg.state      = TTSState::SENTENCE_START;
 
-                            LOG_DEBUG(LOG_TAG,
-                                      "<- TTS: state=sentence_start, text=\"%s\"",
+                            LOG_DEBUG(LOG_TAG, "<- TTS: state=sentence_start, text=\"%s\"",
                                       msg.text.c_str());
                             invokeTTSCallback(msg);
                         }
@@ -570,8 +563,7 @@ namespace app
                         else
                         {
                             // 未知状态
-                            LOG_DEBUG(LOG_TAG, "<- TTS: state=%s (ignored)",
-                                      state_str.c_str());
+                            LOG_DEBUG(LOG_TAG, "<- TTS: state=%s (ignored)", state_str.c_str());
                         }
 
                         return true;
@@ -595,8 +587,7 @@ namespace app
 
                         std::string mcp_payload = j["payload"].dump();
 
-                        LOG_DEBUG(LOG_TAG, "<- MCP: payload size=%zu",
-                                  mcp_payload.size());
+                        LOG_DEBUG(LOG_TAG, "<- MCP: payload size=%zu", mcp_payload.size());
 
                         // 触发回调并获取响应
                         std::string response = invokeMCPCallback(mcp_payload);
@@ -630,8 +621,7 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR(LOG_TAG, "Failed to handle Error message: %s",
-                                  e.what());
+                        LOG_ERROR(LOG_TAG, "Failed to handle Error message: %s", e.what());
                         return false;
                     }
                 }
@@ -652,14 +642,12 @@ namespace app
                         }
                         catch (const std::runtime_error& e)
                         {
-                            LOG_ERROR(LOG_TAG, "Hello callback runtime_error: %s",
-                                      e.what());
+                            LOG_ERROR(LOG_TAG, "Hello callback runtime_error: %s", e.what());
                             stats.callback_exceptions.fetch_add(1, std::memory_order_relaxed);
                         }
                         catch (const std::logic_error& e)
                         {
-                            LOG_ERROR(LOG_TAG, "Hello callback logic_error: %s",
-                                      e.what());
+                            LOG_ERROR(LOG_TAG, "Hello callback logic_error: %s", e.what());
                             stats.callback_exceptions.fetch_add(1, std::memory_order_relaxed);
                         }
                         catch (const std::exception& e)
@@ -791,8 +779,7 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR(LOG_TAG, "Protocol error callback exception: %s",
-                                      e.what());
+                            LOG_ERROR(LOG_TAG, "Protocol error callback exception: %s", e.what());
                         }
                     }
                 }
@@ -965,8 +952,7 @@ namespace app
                 // 参数验证
                 if (sample_rate < MIN_SAMPLE_RATE || sample_rate > MAX_SAMPLE_RATE)
                 {
-                    LOG_WARN(LOG_TAG, "Invalid sample_rate: %d, using default",
-                             sample_rate);
+                    LOG_WARN(LOG_TAG, "Invalid sample_rate: %d, using default", sample_rate);
                     sample_rate = pImpl_->config.default_sample_rate;
                 }
 
@@ -979,8 +965,7 @@ namespace app
                 if (frame_duration < MIN_FRAME_DURATION_MS ||
                     frame_duration > MAX_FRAME_DURATION_MS)
                 {
-                    LOG_WARN(LOG_TAG, "Invalid frame_duration: %d, using default",
-                             frame_duration);
+                    LOG_WARN(LOG_TAG, "Invalid frame_duration: %d, using default", frame_duration);
                     frame_duration = pImpl_->config.default_frame_duration;
                 }
 
@@ -1197,8 +1182,7 @@ namespace app
 
                     if (avg_time > PERFORMANCE_WARN_THRESHOLD_US)
                     {
-                        LOG_WARN(LOG_TAG,
-                                 "Average parse time > 1ms, consider optimization");
+                        LOG_WARN(LOG_TAG, "Average parse time > 1ms, consider optimization");
                     }
                 }
 
@@ -1210,8 +1194,7 @@ namespace app
 
                     if (error_rate > ERROR_RATE_WARN_THRESHOLD)
                     {
-                        LOG_WARN(LOG_TAG, "Error rate: %.2f%% (review message format)",
-                                 error_rate);
+                        LOG_WARN(LOG_TAG, "Error rate: %.2f%% (review message format)", error_rate);
                     }
 
                     if (exception_rate > EXCEPTION_RATE_WARN_THRESHOLD)
@@ -1222,8 +1205,7 @@ namespace app
 
                     if (overflows > 0)
                     {
-                        LOG_WARN(LOG_TAG,
-                                 "Queue overflows: %llu (consider increasing queue size)",
+                        LOG_WARN(LOG_TAG, "Queue overflows: %llu (consider increasing queue size)",
                                  overflows);
                     }
                 }

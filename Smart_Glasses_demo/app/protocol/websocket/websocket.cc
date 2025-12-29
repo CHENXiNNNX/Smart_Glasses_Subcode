@@ -412,8 +412,7 @@ namespace app
                                     {
                                         if (config.enable_detailed_logging)
                                         {
-                                            LOG_DEBUG(LOG_TAG, "<- 文本消息: %s",
-                                                      payload.c_str());
+                                            LOG_DEBUG(LOG_TAG, "<- 文本消息: %s", payload.c_str());
                                         }
                                         invokeTextCallback(payload.data(), payload.size());
                                     }
@@ -504,8 +503,7 @@ namespace app
                                     return WebSocketError::CONNECTION_FAILED;
                                 }
                                 con->append_header(key, value);
-                                LOG_DEBUG(LOG_TAG, "Header: %s = %s", key.c_str(),
-                                          value.c_str());
+                                LOG_DEBUG(LOG_TAG, "Header: %s = %s", key.c_str(), value.c_str());
                             }
 
                             client = std::move(tls_client);
@@ -550,8 +548,7 @@ namespace app
                                     {
                                         if (config.enable_detailed_logging)
                                         {
-                                            LOG_DEBUG(LOG_TAG, "<- 文本消息: %s",
-                                                      payload.c_str());
+                                            LOG_DEBUG(LOG_TAG, "<- 文本消息: %s", payload.c_str());
                                         }
                                         invokeTextCallback(payload.data(), payload.size());
                                     }
@@ -644,8 +641,7 @@ namespace app
                                     return WebSocketError::CONNECTION_FAILED;
                                 }
                                 con->append_header(key, value);
-                                LOG_DEBUG(LOG_TAG, "Header: %s = %s", key.c_str(),
-                                          value.c_str());
+                                LOG_DEBUG(LOG_TAG, "Header: %s = %s", key.c_str(), value.c_str());
                             }
 
                             client = std::move(nontls_client);

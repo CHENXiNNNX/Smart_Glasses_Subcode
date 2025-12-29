@@ -289,14 +289,15 @@ namespace app
                 curl_slist* raw_headers = nullptr;
 
                 // 添加Content-Type头部
-                std::string content_type_header = "Content-Type: multipart/form-data; boundary=" + boundary;
-                raw_headers                     = curl_slist_append(raw_headers, content_type_header.c_str());
+                std::string content_type_header =
+                    "Content-Type: multipart/form-data; boundary=" + boundary;
+                raw_headers = curl_slist_append(raw_headers, content_type_header.c_str());
 
                 // 添加额外的头部
                 for (const auto& [key, value] : headers)
                 {
                     std::string header = key + ": " + value;
-                    raw_headers       = curl_slist_append(raw_headers, header.c_str());
+                    raw_headers        = curl_slist_append(raw_headers, header.c_str());
                 }
 
                 CurlSlistPtr headers_ptr(raw_headers);
@@ -304,7 +305,8 @@ namespace app
                 // 设置CURL选项
                 curl_easy_setopt(curl_.get(), CURLOPT_URL, url.c_str());
                 curl_easy_setopt(curl_.get(), CURLOPT_POSTFIELDS, multipart_data.c_str());
-                curl_easy_setopt(curl_.get(), CURLOPT_POSTFIELDSIZE, static_cast<long>(multipart_data.size()));
+                curl_easy_setopt(curl_.get(), CURLOPT_POSTFIELDSIZE,
+                                 static_cast<long>(multipart_data.size()));
                 curl_easy_setopt(curl_.get(), CURLOPT_HTTPHEADER, raw_headers);
                 curl_easy_setopt(curl_.get(), CURLOPT_WRITEFUNCTION, writeCallback);
                 curl_easy_setopt(curl_.get(), CURLOPT_WRITEDATA, &response.body);
@@ -323,8 +325,8 @@ namespace app
                 if (result_code != CURLE_OK)
                 {
                     response.error_message = curl_easy_strerror(result_code);
-                    LOG_ERROR(LOG_TAG, "Multipart POST请求失败: %s (URL: %s)", response.error_message.c_str(),
-                              url.c_str());
+                    LOG_ERROR(LOG_TAG, "Multipart POST请求失败: %s (URL: %s)",
+                              response.error_message.c_str(), url.c_str());
                     return response;
                 }
 
@@ -339,7 +341,8 @@ namespace app
 
                 if (!response.success)
                 {
-                    LOG_WARN(LOG_TAG, "HTTP Multipart POST失败: status=%ld, url=%s", http_code, url.c_str());
+                    LOG_WARN(LOG_TAG, "HTTP Multipart POST失败: status=%ld, url=%s", http_code,
+                             url.c_str());
                 }
 
                 return response;

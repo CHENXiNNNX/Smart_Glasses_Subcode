@@ -188,7 +188,7 @@ namespace app
                 static constexpr int DEFAULT_SCAN_TIMEOUT_MS                = 10000;
                 static constexpr int DEFAULT_CONNECT_TIMEOUT_MS             = 30000;
                 static constexpr int DEFAULT_DHCP_TIMEOUT_MS                = 15000;
-                static constexpr int DEFAULT_WPA_COMMAND_TIMEOUT_MS          = 5000;
+                static constexpr int DEFAULT_WPA_COMMAND_TIMEOUT_MS         = 5000;
 
                 // 自动扫描配置常量
                 static constexpr int DEFAULT_TIMED_SCAN_SEC = 60;
@@ -277,7 +277,7 @@ namespace app
                  * @return WifiError::NONE 成功
                  */
                 WifiError scanNetworks(const WifiScanCallback& callback = WifiScanCallback{},
-                                       std::vector<WifiInfo>* networks = nullptr);
+                                       std::vector<WifiInfo>*  networks = nullptr);
 
                 /**
                  * @brief 启用/禁用自动扫描
@@ -492,10 +492,10 @@ namespace app
                     uint64_t reconnects;
                     uint64_t auto_reconnects;
                     uint64_t auto_connects;
-                    uint64_t errors;                 // 错误次数
-                    uint64_t password_errors;        // 密码错误次数
-                    uint64_t interface_up_count;     // 接口UP次数
-                    uint64_t config_saves;           // 配置保存次数
+                    uint64_t errors;             // 错误次数
+                    uint64_t password_errors;    // 密码错误次数
+                    uint64_t interface_up_count; // 接口UP次数
+                    uint64_t config_saves;       // 配置保存次数
                 };
 
                 /**
