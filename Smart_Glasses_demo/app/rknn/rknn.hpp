@@ -10,7 +10,11 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
+#include <atomic>
+#include <mutex>
 #include "rknn_api.h"
+#include "rknn_config.hpp"
 #include "../../tool/memory/mem_pool.hpp"
 #include "../../tool/log/log.hpp"
 
@@ -34,6 +38,114 @@ namespace app
             RUN_FAILED          = -5, // 推理失败
             INVALID_STATE       = -6, // 无效状态
             INVALID_PARAM       = -7  // 无效参数
+        };
+
+        /**
+         * @brief RKNN内存池
+         * @details 包含固定池和动态池
+         */
+        class RKNNMemoryPool
+        {
+        public:
+            /**
+             * @brief 统计信息
+             */
+            struct Stats
+            {
+                std::atomic<uint64_t> fixed_pool_hits{0};     // 固定池命中次数
+                std::atomic<uint64_t> dynamic_pool_hits{0};   // 动态池命中次数
+                std::atomic<uint64_t> total_allocations{0};   // 总分配次数
+                std::atomic<uint64_t> allocation_failures{0}; // 分配失败次数
+            };
+
+            /**
+             * @brief 内存池配置
+             */
+            using Config = MemoryPoolConfig;
+
+            /**
+             * @brief 构造函数
+             * @param config 内存池配置
+             */
+            explicit RKNNMemoryPool(const Config& config = Config());
+
+            /**
+             * @brief 析构函数
+             */
+            ~RKNNMemoryPool();
+
+            // 禁用拷贝和移动
+            RKNNMemoryPool(const RKNNMemoryPool&)            = delete;
+            RKNNMemoryPool& operator=(const RKNNMemoryPool&) = delete;
+
+            /**
+             * @brief 分配内存
+             * @param size 需要分配的大小
+             * @return 内存指针（失败返回nullptr）
+             */
+            void* allocate(size_t size);
+
+            /**
+             * @brief 释放内存
+             * @param ptr 内存指针
+             */
+            void deallocate(void* ptr);
+
+            /**
+             * @brief 获取统计信息
+             */
+            void getStats(Stats& out_stats) const;
+
+            /**
+             * @brief 重置统计信息
+             */
+            void resetStats();
+
+            /**
+             * @brief 输出统计日志
+             */
+            void logStats() const;
+
+        private:
+            /**
+             * @brief 固定大小内存池
+             */
+            struct FixedPool
+            {
+                static constexpr size_t MAX_BLOCKS        = MemoryPoolConfig::MAX_BLOCKS;
+                static constexpr size_t BITMAP_WORD_COUNT = MemoryPoolConfig::BITMAP_WORD_COUNT;
+                static constexpr size_t BITS_PER_WORD     = MemoryPoolConfig::BITS_PER_WORD;
+
+                size_t block_size;
+                size_t block_count;
+
+                // 使用位图管理分配状态
+                alignas(64) std::atomic<uint64_t> allocation_bitmap_[BITMAP_WORD_COUNT];
+                alignas(64) std::vector<uint8_t> buffer; // 预分配的连续内存
+
+                FixedPool(size_t block_sz, size_t block_cnt);
+                ~FixedPool();
+
+                int      allocateBlock();
+                void     deallocateBlock(int index);
+                uint8_t* getBlockPtr(int index) const;
+            };
+
+            /**
+             * @brief 内存块信息（用于动态池）
+             */
+            struct BlockInfo
+            {
+                void*  ptr;
+                int    block_index; // -1表示动态池，>=0表示固定池
+                size_t size;
+            };
+
+            Config                      config_;
+            std::unique_ptr<FixedPool>  fixed_pool_;
+            std::unique_ptr<MemoryPool> dynamic_pool_;
+            Stats                       stats_;
+            mutable std::mutex          stats_mutex_; // 保护统计信息
         };
 
         /**
@@ -186,7 +298,7 @@ namespace app
             }
 
             /**
-             * @brief 从内存池分配临时缓冲区（用于预处理等）
+             * @brief 分配临时缓冲区
              * @param size 缓冲区大小（字节）
              * @return 缓冲区指针，失败返回nullptr
              */
@@ -197,6 +309,11 @@ namespace app
              * @param ptr 缓冲区指针
              */
             void deallocateTempBuffer(void* ptr);
+
+            /**
+             * @brief 获取统计信息
+             */
+            void getMemoryPoolStats(RKNNMemoryPool::Stats& stats) const;
 
         private:
             /**
@@ -244,8 +361,8 @@ namespace app
             // 初始化状态
             bool initialized_;
 
-            // 内存池（用于临时缓冲区）
-            std::unique_ptr<MemoryPool> mem_pool_;
+            // 内存池
+            std::unique_ptr<RKNNMemoryPool> mem_pool_;
         };
 
     } // namespace rknn

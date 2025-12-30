@@ -120,6 +120,9 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${PROJECT_SOURCE_DIR}/assets/models/recognition.rknn
             ${OUTPUT_PATH}/model/recognition.rknn
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${PROJECT_SOURCE_DIR}/assets/models/retinaface.rknn
+            ${OUTPUT_PATH}/model/retinaface.rknn
     COMMENT "Copying RKNN model files to bin/model directory"
 )
 
@@ -263,6 +266,7 @@ target_link_libraries(main
     pthread
     dl
     m
+    stdc++fs              # C++17 filesystem 库 (GCC < 9 需要)
 )
 
 # ================== JSON 库配置 ==================

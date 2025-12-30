@@ -1,6 +1,6 @@
 /**
  * @file rknn_config.hpp
- * @brief RKNN检测配置
+ * @brief RKNN配置参数
  */
 
 #ifndef RKNN_CONFIG_HPP
@@ -8,11 +8,49 @@
 
 #include <string>
 #include <cstdint>
+#include <cstddef>
 
 namespace app
 {
     namespace rknn
     {
+        /**
+         * @brief RetinaFace常量配置
+         */
+        namespace RetinaFaceConfig
+        {
+            static constexpr int   NUM_LANDMARKS     = 5;            // 关键点数量
+            static constexpr int   NUM_PRIORS_640    = 16800;        // 640x640输入的anchor数量
+            static constexpr float VARIANCES[2]      = {0.1f, 0.2f}; // 方差参数
+            static constexpr int   MODEL_WIDTH       = 640;          // 模型输入宽度
+            static constexpr int   MODEL_HEIGHT      = 640;          // 模型输入高度
+            static constexpr int   MODEL_CHANNEL     = 3;            // 模型输入通道数
+            static constexpr int   CANDIDATE_RESERVE = 256; // 候选检测框预分配数量
+        }                                                   // namespace RetinaFaceConfig
+
+        /**
+         * @brief 内存池配置
+         */
+        struct MemoryPoolConfig
+        {
+            size_t fixed_block_size;  // 固定池块大小
+            size_t fixed_block_count; // 固定池块数量
+            size_t dynamic_pool_size; // 动态池大小
+            size_t alignment;         // 内存对齐
+            double expansion_factor;  // 动态池扩展因子
+
+            // 固定池常量
+            static constexpr size_t MAX_BLOCKS        = 32; // 最大支持块数
+            static constexpr size_t BITMAP_WORD_COUNT = 1;  // 位图字数
+            static constexpr size_t BITS_PER_WORD     = 64; // 每字位数
+
+            MemoryPoolConfig()
+                : fixed_block_size(1 * 1024 * 1024), fixed_block_count(4),
+                  dynamic_pool_size(8 * 1024 * 1024), alignment(64), expansion_factor(1.5)
+            {
+            }
+        };
+
         /**
          * @brief 人脸检测配置
          */
@@ -23,8 +61,7 @@ namespace app
              */
             struct ModelConfig
             {
-                // RKNN模型文件路径
-                std::string model_path = "./model/detection.rknn";
+                std::string model_path = "./model/retinaface.rknn";
             } model;
 
             /**
@@ -32,12 +69,9 @@ namespace app
              */
             struct DetectionConfig
             {
-                // 置信度阈值，范围0.0-1.0，值越高要求检测结果越可靠
-                float confidence_threshold = 0.65f;
-                // NMS（非极大值抑制）阈值，范围0.0-1.0，用于去除重叠检测框
-                float nms_threshold = 0.4f;
-                // 最大检测数量，单次检测最多返回的人脸数量
-                int max_detections = 10;
+                float confidence_threshold = 0.5f; // 置信度阈值
+                float nms_threshold        = 0.2f; // NMS阈值
+                int   max_detections       = 128;  // 最大检测数量
             } detection;
 
             /**
@@ -45,14 +79,10 @@ namespace app
              */
             struct ProcessConfig
             {
-                // 检测间隔时间（毫秒），控制检测频率，值越小检测越频繁
-                int detect_interval_ms = 200;
-                // 帧获取超时时间（毫秒），获取原始帧时的超时设置
-                int frame_timeout_ms = 100;
-                // 检测线程休眠时间（毫秒），用于控制CPU占用
-                int thread_sleep_ms = 5;
-                // 主循环休眠时间（毫秒），用于控制主线程处理频率
-                int main_loop_sleep_ms = 20;
+                int detect_interval_ms = 200; // 检测间隔时间（毫秒）
+                int frame_timeout_ms   = 100; // 帧获取超时时间（毫秒）
+                int thread_sleep_ms    = 5;   // 检测线程休眠时间（毫秒）
+                int main_loop_sleep_ms = 20;  // 主循环休眠时间（毫秒）
             } process;
 
             /**
@@ -60,10 +90,8 @@ namespace app
              */
             struct QueueConfig
             {
-                // 队列最大容量，最多缓存的检测结果数量
-                size_t max_size = 10;
-                // 检测结果有效期（毫秒），超过此时间的旧结果会被自动丢弃
-                int result_ttl_ms = 500;
+                size_t max_size      = 10;  // 队列最大容量
+                int    result_ttl_ms = 500; // 检测结果有效期（毫秒）
             } queue;
 
             /**

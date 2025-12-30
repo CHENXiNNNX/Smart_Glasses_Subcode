@@ -1,7 +1,7 @@
 /**
  * @file face_detection.hpp
- * @brief 人脸检测模块
- * @details 基于RKNN模型的人脸检测实现
+ * @brief RetinaFace人脸检测模块
+ * @details 基于RetinaFace模型的人脸检测实现，支持检测框和关键点检测
  */
 
 #ifndef FACE_DETECTION_HPP
@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <cmath>
 #include "../rknn.hpp"
+#include "../rknn_config.hpp"
 #include "../../../tool/log/log.hpp"
 
 namespace app
@@ -22,15 +23,25 @@ namespace app
             using namespace tool::log;
 
             /**
-             * @brief 人脸检测框
+             * @brief 关键点坐标
+             */
+            struct LandmarkPoint
+            {
+                float x; // X坐标
+                float y; // Y坐标
+            };
+
+            /**
+             * @brief 人脸检测框（包含关键点）
              */
             struct FaceBox
             {
-                int   left;       // 左边界
-                int   top;        // 上边界
-                int   right;      // 右边界
-                int   bottom;     // 下边界
-                float confidence; // 置信度 (0.0-1.0)
+                int           left;       // 左边界
+                int           top;        // 上边界
+                int           right;      // 右边界
+                int           bottom;     // 下边界
+                float         confidence; // 置信度（模型输出的原始值）
+                LandmarkPoint landmarks[RetinaFaceConfig::NUM_LANDMARKS]; // 关键点
             };
 
             /**
@@ -46,17 +57,12 @@ namespace app
             };
 
             /**
-             * @brief 人脸检测配置
+             * @brief RetinaFace检测配置
              */
-            struct DetectionConfig
-            {
-                float confidence_threshold = 0.5f; // 置信度阈值
-                float nms_threshold        = 0.3f; // NMS阈值
-                int   max_detections       = 100;  // 最大检测数量
-            };
+            using DetectionConfig = FaceDetectionConfig::DetectionConfig;
 
             /**
-             * @brief 人脸检测类
+             * @brief RetinaFace人脸检测类
              */
             class FaceDetection
             {
@@ -101,7 +107,7 @@ namespace app
 
                 /**
                  * @brief 执行检测
-                 * @param image_data 输入图像数据（灰度图，uint8）
+                 * @param image_data 输入图像数据
                  * @param width 图像宽度
                  * @param height 图像高度
                  * @param result 检测结果输出
@@ -111,8 +117,8 @@ namespace app
                                  DetectionResult& result);
 
                 /**
-                 * @brief 执行检测（使用模型输入尺寸）
-                 * @param image_data 输入图像数据（必须是模型输入尺寸）
+                 * @brief 执行检测
+                 * @param image_data 输入图像数据
                  * @param result 检测结果输出
                  * @return 错误码
                  */
@@ -159,7 +165,7 @@ namespace app
                 }
 
                 /**
-                 * @brief 从内存池分配临时缓冲区
+                 * @brief 分配临时缓冲区
                  * @param size 缓冲区大小（字节）
                  * @return 缓冲区指针，失败返回nullptr
                  */
@@ -173,7 +179,7 @@ namespace app
 
             private:
                 /**
-                 * @brief 解码检测输出
+                 * @brief 解码检测输出（使用RetinaFace的anchor解码方式）
                  */
                 void decodeDetections(int original_width, int original_height,
                                       DetectionResult& result);
@@ -197,17 +203,17 @@ namespace app
                 }
 
                 /**
-                 * @brief Sigmoid函数
-                 */
-                inline float sigmoid(float x) const
-                {
-                    return 1.0f / (1.0f + std::exp(-x));
-                }
-
-                /**
                  * @brief 限制值在范围内
                  */
                 inline float clamp(float val, float min_val, float max_val) const
+                {
+                    return std::max(min_val, std::min(max_val, val));
+                }
+
+                /**
+                 * @brief 限制整数在范围内
+                 */
+                inline int clampInt(int val, int min_val, int max_val) const
                 {
                     return std::max(min_val, std::min(max_val, val));
                 }
