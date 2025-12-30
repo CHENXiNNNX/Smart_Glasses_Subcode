@@ -709,19 +709,20 @@ namespace app
             }
 
             // VIChannelWrapper
-            VIChannelWrapper::VIChannelWrapper(int dev_id, int chn_id, int width, int height)
+            VIChannelWrapper::VIChannelWrapper(int dev_id, int chn_id, int width, int height,
+                                               int depth)
                 : dev_id_(dev_id), chn_id_(chn_id)
             {
                 LOG_INFO(LOG_TAG, "初始化VI通道 %d (%dx%d)", chn_id, width, height);
 
                 VI_CHN_ATTR_S vi_chn_attr{};
-                vi_chn_attr.stIspOpt.u32BufCount  = 2;
+                vi_chn_attr.stIspOpt.u32BufCount  = 4;
                 vi_chn_attr.stIspOpt.enMemoryType = VI_V4L2_MEMORY_TYPE_DMABUF;
                 vi_chn_attr.stSize.u32Width       = width;
                 vi_chn_attr.stSize.u32Height      = height;
                 vi_chn_attr.enPixelFormat         = RK_FMT_YUV420SP;
                 vi_chn_attr.enCompressMode        = COMPRESS_MODE_NONE;
-                vi_chn_attr.u32Depth              = 0;
+                vi_chn_attr.u32Depth              = depth;
 
                 RK_S32 ret = RK_MPI_VI_SetChnAttr(dev_id, chn_id, &vi_chn_attr);
                 if (ret != RK_SUCCESS)
@@ -745,6 +746,73 @@ namespace app
             {
                 if (valid_)
                     RK_MPI_VI_DisableChn(dev_id_, chn_id_);
+            }
+
+            VideoError VIChannelWrapper::getRawFrame(RawVideoFramePtr& frame, VideoMemoryPool& pool,
+                                                     int timeout_ms)
+            {
+                if (!valid_)
+                    return VideoError::NOT_INITIALIZED;
+
+                VIDEO_FRAME_INFO_S frame_info{};
+                RK_S32 ret = RK_MPI_VI_GetChnFrame(dev_id_, chn_id_, &frame_info, timeout_ms);
+
+                if (ret != RK_SUCCESS)
+                {
+                    return VideoError::RKMPI_ERROR;
+                }
+
+                void* vi_data = RK_MPI_MB_Handle2VirAddr(frame_info.stVFrame.pMbBlk);
+                if (!vi_data)
+                {
+                    RK_MPI_VI_ReleaseChnFrame(dev_id_, chn_id_, &frame_info);
+                    return VideoError::RKMPI_ERROR;
+                }
+
+                size_t frame_size =
+                    frame_info.stVFrame.u32VirWidth * frame_info.stVFrame.u32VirHeight * 3 / 2;
+
+                VideoFramePtr video_frame = pool.allocate(frame_size);
+                if (!video_frame)
+                {
+                    RK_MPI_VI_ReleaseChnFrame(dev_id_, chn_id_, &frame_info);
+                    return VideoError::ALLOC_FAILED;
+                }
+
+                std::memcpy(video_frame->data, vi_data, frame_size);
+                RK_MPI_VI_ReleaseChnFrame(dev_id_, chn_id_, &frame_info);
+
+                auto* raw_frame          = new RawVideoFrame();
+                raw_frame->data          = video_frame->data;
+                raw_frame->size          = frame_size;
+                raw_frame->width         = frame_info.stVFrame.u32Width;
+                raw_frame->height        = frame_info.stVFrame.u32Height;
+                raw_frame->pts           = frame_info.stVFrame.u64PTS;
+                raw_frame->timestamp     = frame_info.stVFrame.u64PTS;
+                raw_frame->is_dma_buffer = false;
+
+                auto* video_frame_ptr = new VideoFramePtr(video_frame);
+                raw_frame->deleter    = [video_frame_ptr]()
+                {
+                    if (video_frame_ptr)
+                    {
+                        video_frame_ptr->reset();
+                        delete video_frame_ptr;
+                    }
+                };
+
+                frame = RawVideoFramePtr(raw_frame,
+                                         [](RawVideoFrame* f)
+                                         {
+                                             if (f)
+                                             {
+                                                 if (f->deleter)
+                                                     f->deleter();
+                                                 delete f;
+                                             }
+                                         });
+
+                return VideoError::NONE;
             }
 
             // VENCWrapper
@@ -1115,9 +1183,16 @@ namespace app
                         return VideoError::INIT_FAILED;
 
                     vi_chn_ =
-                        std::make_unique<VIChannelWrapper>(0, 0, config_.width, config_.height);
+                        std::make_unique<VIChannelWrapper>(0, 0, config_.width, config_.height, 0);
                     if (!vi_chn_->isValid())
                         return VideoError::INIT_FAILED;
+
+                    vi_chn_raw_ =
+                        std::make_unique<VIChannelWrapper>(0, 1, config_.width, config_.height, 2);
+                    if (!vi_chn_raw_->isValid())
+                    {
+                        LOG_WARN(LOG_TAG, "VI通道1初始化失败，原始帧获取功能不可用");
+                    }
 
                     venc_ =
                         std::make_unique<VENCWrapper>(0, config_.width, config_.height,
@@ -1155,6 +1230,7 @@ namespace app
                     }
 
                     venc_.reset();
+                    vi_chn_raw_.reset();
                     vi_chn_.reset();
                     vi_dev_.reset();
                     isp_.reset();
@@ -1557,7 +1633,6 @@ namespace app
                         return VideoError::NOT_SUPPORTED;
                     }
 
-                    // 设置视频编码器（SPS/PPS会在第一帧自动提取）
                     if (rtsp_set_video(rtsp_session_, codec_id, nullptr, 0) != 0)
                     {
                         LOG_ERROR(LOG_TAG, "设置RTSP视频编码器失败");
@@ -1775,12 +1850,21 @@ namespace app
                     return response.body;
                 }
 
+                VideoError getRawFrame(RawVideoFramePtr& frame, int timeout_ms)
+                {
+                    std::lock_guard<std::mutex> lock(mutex_);
+                    if (!vi_chn_raw_ || !vi_chn_raw_->isValid())
+                        return VideoError::NOT_INITIALIZED;
+                    return vi_chn_raw_->getRawFrame(frame, memory_pool_, timeout_ms);
+                }
+
                 VideoConfig     config_;
                 VideoMemoryPool memory_pool_;
 
                 std::unique_ptr<ISPWrapper>       isp_;
                 std::unique_ptr<VIDeviceWrapper>  vi_dev_;
                 std::unique_ptr<VIChannelWrapper> vi_chn_;
+                std::unique_ptr<VIChannelWrapper> vi_chn_raw_;
                 std::unique_ptr<VENCWrapper>      venc_;
 
                 std::shared_ptr<sync_context_t> sync_ctx_;
@@ -2013,6 +2097,12 @@ namespace app
             std::string VideoSystem::explainImage(const std::string& question)
             {
                 return isInitialized() ? pImpl_->explainImage(question) : R"({"success":false})";
+            }
+
+            VideoError VideoSystem::getRawFrame(RawVideoFramePtr& frame, int timeout_ms)
+            {
+                return isInitialized() ? pImpl_->getRawFrame(frame, timeout_ms)
+                                       : VideoError::NOT_INITIALIZED;
             }
 
             float VideoSystem::getCurrentFPS() const

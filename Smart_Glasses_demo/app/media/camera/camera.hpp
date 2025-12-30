@@ -151,6 +151,20 @@ extern "C"
         RK_S32 s32ChnId{0};
     };
 
+    struct VIDEO_FRAME_INFO_S
+    {
+        struct
+        {
+            MB_BLK pMbBlk{nullptr};
+            RK_U32 u32Width{0};
+            RK_U32 u32Height{0};
+            RK_U32 u32VirWidth{0};
+            RK_U32 u32VirHeight{0};
+            int    enPixelFormat{0};
+            RK_U64 u64PTS{0};
+        } stVFrame;
+    };
+
     enum
     {
         RK_ID_VI   = 0,
@@ -231,6 +245,8 @@ extern "C"
     int   RK_MPI_VENC_SetChnAttr(int chnId, const VENC_CHN_ATTR_S* attr);
     int   RK_MPI_SYS_Bind(const MPP_CHN_S* src, const MPP_CHN_S* dest);
     int   RK_MPI_SYS_UnBind(const MPP_CHN_S* src, const MPP_CHN_S* dest);
+    int RK_MPI_VI_GetChnFrame(int devId, int chnId, VIDEO_FRAME_INFO_S* pstFrameInfo, int timeout);
+    int RK_MPI_VI_ReleaseChnFrame(int devId, int chnId, VIDEO_FRAME_INFO_S* pstFrameInfo);
 } // extern "C"
 #endif
 
@@ -470,6 +486,36 @@ namespace app
             };
 
             using VideoFramePtr = std::shared_ptr<VideoFrame>;
+
+            // ============================================================================
+            // 原始YUV帧结构体
+            // ============================================================================
+
+            struct RawVideoFrame
+            {
+                uint8_t* data      = nullptr; // YUV420SP数据指针
+                size_t   size      = 0;       // 数据大小（字节）
+                uint32_t width     = 0;       // 图像宽度
+                uint32_t height    = 0;       // 图像高度
+                uint64_t timestamp = 0;       // 时间戳（微秒）
+                uint64_t pts       = 0;       // PTS
+
+                // DMA相关
+                bool                is_dma_buffer = false;   // 是否为DMA缓冲区
+                MB_BLK              dma_mb_blk    = nullptr; // RKMPI MediaBuffer句柄
+                VIDEO_FRAME_INFO_S* frame_info    = nullptr; // 原始帧信息（用于释放）
+
+                // 删除器函数
+                std::function<void()> deleter;
+
+                RawVideoFrame()                                = default;
+                RawVideoFrame(const RawVideoFrame&)            = delete;
+                RawVideoFrame& operator=(const RawVideoFrame&) = delete;
+                RawVideoFrame(RawVideoFrame&&)                 = default;
+                RawVideoFrame& operator=(RawVideoFrame&&)      = default;
+            };
+
+            using RawVideoFramePtr = std::shared_ptr<RawVideoFrame>;
 
             // ============================================================================
             // 视频内存池
@@ -753,7 +799,15 @@ namespace app
             class VIChannelWrapper
             {
             public:
-                VIChannelWrapper(int dev_id, int chn_id, int width, int height);
+                /**
+                 * @brief 构造函数
+                 * @param dev_id VI设备ID
+                 * @param chn_id VI通道ID
+                 * @param width 图像宽度
+                 * @param height 图像高度
+                 * @param depth 通道深度
+                 */
+                VIChannelWrapper(int dev_id, int chn_id, int width, int height, int depth = 0);
                 ~VIChannelWrapper();
 
                 VIChannelWrapper(const VIChannelWrapper&)            = delete;
@@ -763,6 +817,16 @@ namespace app
                 {
                     return valid_;
                 }
+
+                /**
+                 * @brief 获取原始YUV帧
+                 * @param frame 输出原始帧指针
+                 * @param pool 内存池引用
+                 * @param timeout_ms 超时时间（毫秒），-1表示阻塞等待
+                 * @return VideoError::NONE 成功，其他值表示失败
+                 */
+                VideoError getRawFrame(RawVideoFramePtr& frame, VideoMemoryPool& pool,
+                                       int timeout_ms = -1);
 
             private:
                 int  dev_id_;
@@ -1048,6 +1112,18 @@ namespace app
                  * @brief 获取当前FPS
                  */
                 float getCurrentFPS() const;
+
+                // ========================================================================
+                // 原始YUV帧获取功能
+                // ========================================================================
+
+                /**
+                 * @brief 获取原始YUV帧（从VI通道1）
+                 * @param frame 输出原始帧指针
+                 * @param timeout_ms 超时时间（毫秒），-1表示阻塞等待
+                 * @return VideoError::NONE 成功，其他值表示失败
+                 */
+                VideoError getRawFrame(RawVideoFramePtr& frame, int timeout_ms = -1);
 
                 // ========================================================================
                 // AI图像解析功能

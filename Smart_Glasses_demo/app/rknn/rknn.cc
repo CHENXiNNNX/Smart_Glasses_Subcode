@@ -63,7 +63,7 @@ namespace app
                 return err;
             }
 
-            // 创建内存池（用于临时缓冲区，初始大小10MB）
+            // 创建内存池（用于临时缓冲区）
             mem_pool_ = std::make_unique<MemoryPool>(10 * 1024 * 1024);
 
             initialized_ = true;
