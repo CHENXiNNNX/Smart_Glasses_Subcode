@@ -1,7 +1,6 @@
 /**
  * @file face_detection.hpp
- * @brief RetinaFace人脸检测模块
- * @details 基于RetinaFace模型的人脸检测实现，支持检测框和关键点检测
+ * @brief 人脸检测模块
  */
 
 #ifndef FACE_DETECTION_HPP
@@ -41,7 +40,7 @@ namespace app
                 int           right;      // 右边界
                 int           bottom;     // 下边界
                 float         confidence; // 置信度（模型输出的原始值）
-                LandmarkPoint landmarks[RetinaFaceConfig::NUM_LANDMARKS]; // 关键点
+                LandmarkPoint landmarks[FaceDetectionConst::NUM_LANDMARKS]; // 关键点
             };
 
             /**
@@ -57,12 +56,12 @@ namespace app
             };
 
             /**
-             * @brief RetinaFace检测配置
+             * @brief 人脸检测配置
              */
             using DetectionConfig = FaceDetectionConfig::DetectionConfig;
 
             /**
-             * @brief RetinaFace人脸检测类
+             * @brief 人脸检测类
              */
             class FaceDetection
             {
@@ -178,9 +177,6 @@ namespace app
                 void deallocateTempBuffer(void* ptr);
 
             private:
-                /**
-                 * @brief 解码检测输出（使用RetinaFace的anchor解码方式）
-                 */
                 void decodeDetections(int original_width, int original_height,
                                       DetectionResult& result);
 
@@ -219,9 +215,9 @@ namespace app
                 }
 
             private:
-                std::unique_ptr<RKNNModel> model_;       // RKNN模型
-                DetectionConfig            config_;      // 检测配置
-                bool                       initialized_; // 是否已初始化
+                std::unique_ptr<RKNNModel> model_;
+                DetectionConfig            config_;
+                bool                       initialized_;
             };
 
         } // namespace face_detection

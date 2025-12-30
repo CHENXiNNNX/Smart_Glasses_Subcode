@@ -15,20 +15,6 @@ namespace app
     namespace rknn
     {
         /**
-         * @brief RetinaFace常量配置
-         */
-        namespace RetinaFaceConfig
-        {
-            static constexpr int   NUM_LANDMARKS     = 5;            // 关键点数量
-            static constexpr int   NUM_PRIORS_640    = 16800;        // 640x640输入的anchor数量
-            static constexpr float VARIANCES[2]      = {0.1f, 0.2f}; // 方差参数
-            static constexpr int   MODEL_WIDTH       = 640;          // 模型输入宽度
-            static constexpr int   MODEL_HEIGHT      = 640;          // 模型输入高度
-            static constexpr int   MODEL_CHANNEL     = 3;            // 模型输入通道数
-            static constexpr int   CANDIDATE_RESERVE = 256; // 候选检测框预分配数量
-        }                                                   // namespace RetinaFaceConfig
-
-        /**
          * @brief 内存池配置
          */
         struct MemoryPoolConfig
@@ -50,6 +36,20 @@ namespace app
             {
             }
         };
+
+        /**
+         * @brief 人脸检测常量配置
+         */
+        namespace FaceDetectionConst
+        {
+            static constexpr int   NUM_LANDMARKS     = 5;            // 关键点数量
+            static constexpr int   NUM_PRIORS_640    = 16800;        // 640x640输入的anchor数量
+            static constexpr float VARIANCES[2]      = {0.1f, 0.2f}; // 方差参数
+            static constexpr int   MODEL_WIDTH       = 640;          // 模型输入宽度
+            static constexpr int   MODEL_HEIGHT      = 640;          // 模型输入高度
+            static constexpr int   MODEL_CHANNEL     = 3;            // 模型输入通道数
+            static constexpr int   CANDIDATE_RESERVE = 256; // 候选检测框预分配数量
+        }                                                   // namespace FaceDetectionConst
 
         /**
          * @brief 人脸检测配置
@@ -101,6 +101,41 @@ namespace app
             {
                 return FaceDetectionConfig();
             }
+        };
+
+        /**
+         * @brief 人脸识别常量配置
+         */
+        namespace FaceRecognitionConst
+        {
+            static constexpr int   FEATURE_DIM_128     = 128;   // 128维特征
+            static constexpr int   FEATURE_DIM_512     = 512;   // 512维特征
+            static constexpr float NORMALIZE_THRESHOLD = 1e-6f; // L2归一化阈值
+            static constexpr float SIMILARITY_SCALE    = 0.5f;  // 相似度转换系数
+            static constexpr int   RGB_CHANNELS        = 3;     // RGB通道数
+        }                                                       // namespace FaceRecognitionConst
+
+        /**
+         * @brief 人脸识别配置
+         */
+        struct FaceRecognitionConfig
+        {
+            /**
+             * @brief 模型配置
+             */
+            struct ModelConfig
+            {
+                std::string model_path = "./model/LZ-ArcFace.rknn";
+            } model;
+
+            /**
+             * @brief 识别参数配置
+             */
+            struct RecognitionConfig
+            {
+                float similarity_threshold = 0.6f;
+                int   feature_dim          = 128;
+            } recognition;
         };
 
     } // namespace rknn

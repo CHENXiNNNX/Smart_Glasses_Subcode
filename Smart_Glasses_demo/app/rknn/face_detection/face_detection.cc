@@ -1,6 +1,6 @@
 /**
  * @file face_detection.cc
- * @brief RetinaFace人脸检测模块实现
+ * @brief 人脸检测模块实现
  */
 
 #include "face_detection.hpp"
@@ -39,10 +39,8 @@ namespace app
 
                 config_ = config;
 
-                // 创建模型
                 model_ = std::make_unique<RKNNModel>();
 
-                // 初始化模型
                 RKNNError ret = model_->init(model_path);
                 if (ret != RKNNError::NONE)
                 {
@@ -51,33 +49,29 @@ namespace app
                     return ret;
                 }
 
-                // 验证模型输入输出（RetinaFace: 1输入，3输出）
                 if (model_->getInputNum() != 1 || model_->getOutputNum() != 3)
                 {
-                    LOG_ERROR(LOG_TAG,
-                              "模型输入输出数量不匹配: 输入=%d, 输出=%d (期望: 输入=1, 输出=3)",
+                    LOG_ERROR(LOG_TAG, "模型输入输出数量不匹配: 输入=%d, 输出=%d",
                               model_->getInputNum(), model_->getOutputNum());
                     model_->deinit();
                     model_.reset();
                     return RKNNError::INVALID_PARAM;
                 }
 
-                // 验证模型输入尺寸
                 int model_width   = model_->getModelWidth();
                 int model_height  = model_->getModelHeight();
                 int model_channel = model_->getModelChannel();
 
-                if (model_width != RetinaFaceConfig::MODEL_WIDTH ||
-                    model_height != RetinaFaceConfig::MODEL_HEIGHT ||
-                    model_channel != RetinaFaceConfig::MODEL_CHANNEL)
+                if (model_width != FaceDetectionConst::MODEL_WIDTH ||
+                    model_height != FaceDetectionConst::MODEL_HEIGHT ||
+                    model_channel != FaceDetectionConst::MODEL_CHANNEL)
                 {
                     LOG_WARN(LOG_TAG, "模型输入尺寸: %dx%dx%d", model_width, model_height,
                              model_channel);
                 }
 
                 initialized_ = true;
-                LOG_INFO(LOG_TAG, "RetinaFace模型初始化成功: %s (%dx%dx%d)", model_path.c_str(),
-                         model_width, model_height, model_channel);
+                LOG_INFO(LOG_TAG, "人脸检测模型初始化成功: %s", model_path.c_str());
 
                 return RKNNError::NONE;
             }
@@ -96,7 +90,6 @@ namespace app
                 }
 
                 initialized_ = false;
-                LOG_INFO(LOG_TAG, "RetinaFace模型已释放");
             }
 
             RKNNError FaceDetection::detect(const uint8_t* image_data, int width, int height,
@@ -119,7 +112,6 @@ namespace app
                 int    model_channel = model_->getModelChannel();
                 size_t input_size    = model_width * model_height * model_channel;
 
-                // 分配缓冲区
                 uint8_t* preprocessed_data =
                     static_cast<uint8_t*>(model_->allocateTempBuffer(input_size));
                 if (!preprocessed_data)
@@ -128,7 +120,6 @@ namespace app
                     return RKNNError::MEMORY_ALLOC_FAILED;
                 }
 
-                // 图像缩放
                 float scale_x = static_cast<float>(width) / static_cast<float>(model_width);
                 float scale_y = static_cast<float>(height) / static_cast<float>(model_height);
 
@@ -141,10 +132,12 @@ namespace app
                         src_x     = std::min(src_x, width - 1);
                         src_y     = std::min(src_y, height - 1);
 
-                        for (int c = 0; c < 3; c++)
+                        for (int c = 0; c < FaceDetectionConst::MODEL_CHANNEL; c++)
                         {
-                            int src_idx                = (src_y * width + src_x) * 3 + c;
-                            int dst_idx                = (y * model_width + x) * 3 + c;
+                            int src_idx =
+                                (src_y * width + src_x) * FaceDetectionConst::MODEL_CHANNEL + c;
+                            int dst_idx =
+                                (y * model_width + x) * FaceDetectionConst::MODEL_CHANNEL + c;
                             preprocessed_data[dst_idx] = image_data[src_idx];
                         }
                     }
@@ -154,7 +147,6 @@ namespace app
 
                 model_->deallocateTempBuffer(preprocessed_data);
 
-                // 缩放检测结果到原始图像尺寸
                 if (ret == RKNNError::NONE)
                 {
                     float scale_x_ratio =
@@ -169,8 +161,7 @@ namespace app
                         face.right  = static_cast<int>(face.right * scale_x_ratio);
                         face.bottom = static_cast<int>(face.bottom * scale_y_ratio);
 
-                        // 缩放关键点
-                        for (int i = 0; i < RetinaFaceConfig::NUM_LANDMARKS; i++)
+                        for (int i = 0; i < FaceDetectionConst::NUM_LANDMARKS; i++)
                         {
                             face.landmarks[i].x *= scale_x_ratio;
                             face.landmarks[i].y *= scale_y_ratio;
@@ -195,16 +186,13 @@ namespace app
                     return RKNNError::INVALID_PARAM;
                 }
 
-                // 清空结果
                 result.faces.clear();
 
-                // 获取模型输入尺寸
                 int    model_width   = model_->getModelWidth();
                 int    model_height  = model_->getModelHeight();
                 int    model_channel = model_->getModelChannel();
                 size_t input_size    = model_width * model_height * model_channel;
 
-                // 设置输入
                 RKNNError ret = model_->setInput(0, image_data, input_size);
                 if (ret != RKNNError::NONE)
                 {
@@ -212,7 +200,6 @@ namespace app
                     return ret;
                 }
 
-                // 执行推理
                 ret = model_->run();
                 if (ret != RKNNError::NONE)
                 {
@@ -220,7 +207,6 @@ namespace app
                     return ret;
                 }
 
-                // 解码检测结果
                 decodeDetections(model_width, model_height, result);
 
                 return RKNNError::NONE;
@@ -229,9 +215,9 @@ namespace app
             void FaceDetection::decodeDetections(int original_width, int original_height,
                                                  DetectionResult& result)
             {
-                void* locations_ptr = model_->getOutput(0); // [1,16800,4,0] - 位置信息
-                void* scores_ptr    = model_->getOutput(1); // [1,16800,2,0] - 置信度分数
-                void* landms_ptr    = model_->getOutput(2); // [1,16800,10,0] - 关键点坐标
+                void* locations_ptr = model_->getOutput(0);
+                void* scores_ptr    = model_->getOutput(1);
+                void* landms_ptr    = model_->getOutput(2);
 
                 if (!locations_ptr || !scores_ptr || !landms_ptr)
                 {
@@ -239,7 +225,6 @@ namespace app
                     return;
                 }
 
-                // 获取量化参数
                 int32_t loc_zp       = 0;
                 float   loc_scale    = 0.0f;
                 int32_t scores_zp    = 0;
@@ -259,17 +244,14 @@ namespace app
                 const int8_t* scores    = static_cast<const int8_t*>(scores_ptr);
                 const int8_t* landms    = static_cast<const int8_t*>(landms_ptr);
 
-                // 使用RetinaFace的anchor解码
                 const float(*prior_ptr)[4] = BOX_PRIORS_640;
-                const int num_priors       = RetinaFaceConfig::NUM_PRIORS_640;
+                const int num_priors       = FaceDetectionConst::NUM_PRIORS_640;
 
                 std::vector<FaceBox> candidate_faces;
-                candidate_faces.reserve(RetinaFaceConfig::CANDIDATE_RESERVE);
+                candidate_faces.reserve(FaceDetectionConst::CANDIDATE_RESERVE);
 
-                // 第一遍：解码所有置信度大于阈值的检测框
                 for (int i = 0; i < num_priors; i++)
                 {
-                    // 获取人脸置信度（scores[i*2+1] 是人脸分数，scores[i*2] 是背景分数）
                     float face_score = dequantize(scores[i * 2 + 1], scores_zp, scores_scale);
 
                     if (face_score < config_.confidence_threshold)
@@ -277,7 +259,6 @@ namespace app
                         continue;
                     }
 
-                    // 解码检测框（使用anchor）
                     const int8_t* bbox = &locations[i * 4];
 
                     float dx = dequantize(bbox[0], loc_zp, loc_scale);
@@ -285,21 +266,18 @@ namespace app
                     float dw = dequantize(bbox[2], loc_zp, loc_scale);
                     float dh = dequantize(bbox[3], loc_zp, loc_scale);
 
-                    // RetinaFace解码公式
                     float box_x =
-                        dx * RetinaFaceConfig::VARIANCES[0] * prior_ptr[i][2] + prior_ptr[i][0];
+                        dx * FaceDetectionConst::VARIANCES[0] * prior_ptr[i][2] + prior_ptr[i][0];
                     float box_y =
-                        dy * RetinaFaceConfig::VARIANCES[0] * prior_ptr[i][3] + prior_ptr[i][1];
-                    float box_w = std::exp(dw * RetinaFaceConfig::VARIANCES[1]) * prior_ptr[i][2];
-                    float box_h = std::exp(dh * RetinaFaceConfig::VARIANCES[1]) * prior_ptr[i][3];
+                        dy * FaceDetectionConst::VARIANCES[0] * prior_ptr[i][3] + prior_ptr[i][1];
+                    float box_w = std::exp(dw * FaceDetectionConst::VARIANCES[1]) * prior_ptr[i][2];
+                    float box_h = std::exp(dh * FaceDetectionConst::VARIANCES[1]) * prior_ptr[i][3];
 
-                    // 转换为坐标
                     float xmin = box_x - box_w * 0.5f;
                     float ymin = box_y - box_h * 0.5f;
                     float xmax = xmin + box_w;
                     float ymax = ymin + box_h;
 
-                    // 限制在[0,1]范围内
                     xmin = clamp(xmin, 0.0f, 1.0f);
                     ymin = clamp(ymin, 0.0f, 1.0f);
                     xmax = clamp(xmax, 0.0f, 1.0f);
@@ -310,27 +288,23 @@ namespace app
                         continue;
                     }
 
-                    // 解码关键点
-                    const int8_t* landmark = &landms[i * RetinaFaceConfig::NUM_LANDMARKS * 2];
-                    LandmarkPoint landmarks[RetinaFaceConfig::NUM_LANDMARKS];
+                    const int8_t* landmark = &landms[i * FaceDetectionConst::NUM_LANDMARKS * 2];
+                    LandmarkPoint landmarks[FaceDetectionConst::NUM_LANDMARKS];
 
-                    for (int j = 0; j < RetinaFaceConfig::NUM_LANDMARKS; j++)
+                    for (int j = 0; j < FaceDetectionConst::NUM_LANDMARKS; j++)
                     {
                         float lx = dequantize(landmark[j * 2], landms_zp, landms_scale);
                         float ly = dequantize(landmark[j * 2 + 1], landms_zp, landms_scale);
 
-                        // RetinaFace关键点解码公式
-                        landmarks[j].x =
-                            lx * RetinaFaceConfig::VARIANCES[0] * prior_ptr[i][2] + prior_ptr[i][0];
-                        landmarks[j].y =
-                            ly * RetinaFaceConfig::VARIANCES[0] * prior_ptr[i][3] + prior_ptr[i][1];
+                        landmarks[j].x = lx * FaceDetectionConst::VARIANCES[0] * prior_ptr[i][2] +
+                                         prior_ptr[i][0];
+                        landmarks[j].y = ly * FaceDetectionConst::VARIANCES[0] * prior_ptr[i][3] +
+                                         prior_ptr[i][1];
 
-                        // 限制在[0,1]范围内
                         landmarks[j].x = clamp(landmarks[j].x, 0.0f, 1.0f);
                         landmarks[j].y = clamp(landmarks[j].y, 0.0f, 1.0f);
                     }
 
-                    // 转换为像素坐标
                     FaceBox box;
                     box.left       = static_cast<int>(xmin * original_width);
                     box.top        = static_cast<int>(ymin * original_height);
@@ -338,7 +312,6 @@ namespace app
                     box.bottom     = static_cast<int>(ymax * original_height);
                     box.confidence = face_score;
 
-                    // 限制在图像范围内
                     box.left   = clampInt(box.left, 0, original_width - 1);
                     box.top    = clampInt(box.top, 0, original_height - 1);
                     box.right  = clampInt(box.right, box.left + 1, original_width);
@@ -349,8 +322,7 @@ namespace app
                         continue;
                     }
 
-                    // 转换关键点为像素坐标
-                    for (int j = 0; j < RetinaFaceConfig::NUM_LANDMARKS; j++)
+                    for (int j = 0; j < FaceDetectionConst::NUM_LANDMARKS; j++)
                     {
                         box.landmarks[j].x = landmarks[j].x * original_width;
                         box.landmarks[j].y = landmarks[j].y * original_height;
@@ -364,15 +336,12 @@ namespace app
                     return;
                 }
 
-                // 按置信度排序
                 std::sort(candidate_faces.begin(), candidate_faces.end(),
                           [](const FaceBox& a, const FaceBox& b)
                           { return a.confidence > b.confidence; });
 
-                // NMS处理
                 nms(candidate_faces);
 
-                // 限制最大检测数量
                 if (candidate_faces.size() > static_cast<size_t>(config_.max_detections))
                 {
                     candidate_faces.resize(config_.max_detections);
@@ -410,12 +379,10 @@ namespace app
                     return;
                 }
 
-                // 按置信度排序（如果还未排序）
                 std::sort(boxes.begin(), boxes.end(),
                           [](const FaceBox& a, const FaceBox& b)
                           { return a.confidence > b.confidence; });
 
-                // 使用向量标记被抑制的框
                 std::vector<bool> suppressed(boxes.size(), false);
 
                 for (size_t i = 0; i < boxes.size(); i++)
@@ -440,7 +407,6 @@ namespace app
                     }
                 }
 
-                // 移除被抑制的框
                 size_t write_idx = 0;
                 for (size_t i = 0; i < boxes.size(); i++)
                 {
