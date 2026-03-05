@@ -1,5 +1,6 @@
-#ifndef WEBRTC_HPP
-#define WEBRTC_HPP
+/* webrtc.hpp - WebRTC系统 */
+
+#pragma once
 
 #include <memory>
 #include <functional>
@@ -318,12 +319,12 @@ namespace app
                 /**
                  * @brief 获取统计信息
                  */
-                Stats getStats() const;
+                Stats get_stats() const;
 
                 /**
                  * @brief 重置统计信息
                  */
-                void resetStats();
+                void reset_stats();
 
             private:
                 // ========================================================================
@@ -434,5 +435,3 @@ namespace app
         } // namespace webrtc
     }     // namespace protocol
 } // namespace app
-
-#endif // WEBRTC_HPP

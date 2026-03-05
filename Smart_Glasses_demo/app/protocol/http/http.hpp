@@ -1,10 +1,6 @@
-/**
- * @file http.hpp
- * @brief HTTP客户端
- */
+/* http.hpp - HTTP客户端 */
 
-#ifndef HTTP_HPP
-#define HTTP_HPP
+#pragma once
 
 #include <string>
 #include <map>
@@ -86,7 +82,7 @@ namespace app
                  * @brief 检查客户端是否有效
                  * @return true-有效, false-无效
                  */
-                bool isValid() const;
+                bool valid() const;
 
                 /**
                  * @brief HTTP POST请求
@@ -161,5 +157,3 @@ namespace app
         } // namespace http
     }     // namespace protocol
 } // namespace app
-
-#endif // HTTP_HPP

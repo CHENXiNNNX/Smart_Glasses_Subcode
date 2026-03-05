@@ -1,7 +1,4 @@
-/**
- * @file face_detection.cc
- * @brief 人脸检测模块实现
- */
+/* face_detection.cc - 人脸检测 */
 
 #include "face_detection.hpp"
 #include "retinaface_anchors.hpp"

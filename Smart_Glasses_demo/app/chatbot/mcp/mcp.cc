@@ -1,11 +1,8 @@
-/**
- * @file mcp.cc
- * @brief MCP协议服务器实现
- */
+/* mcp.cc - MCP协议服务器 */
 
 #include "mcp.hpp"
 #include "../../tool/log/log.hpp"
-#include "../../../common/common.hpp"
+#include "../../tool/time/time.hpp"
 #include <algorithm>
 #include <stdexcept>
 #include <utility>
@@ -24,10 +21,6 @@ namespace app
                 constexpr const char* LOG_TAG                        = "MCP";
                 constexpr double      SUCCESS_RATE_WARNING_THRESHOLD = 95.0;
             } // namespace
-
-            // ============================================================================
-            // Property 实现
-            // ============================================================================
 
             Property::Property(std::string name, PropertyType type)
                 : name_(std::move(name)), type_(type), has_default_value_(false)
@@ -110,10 +103,6 @@ namespace app
                 return j;
             }
 
-            // ============================================================================
-            // PropertyList 实现
-            // ============================================================================
-
             PropertyList::PropertyList(std::vector<Property> properties)
                 : properties_(std::move(properties))
             {
@@ -176,10 +165,6 @@ namespace app
                 return j;
             }
 
-            // ============================================================================
-            // McpTool 实现
-            // ============================================================================
-
             McpTool::McpTool(std::string name, std::string description, PropertyList properties,
                              Callback callback)
                 : name_(std::move(name)), description_(std::move(description)),
@@ -210,14 +195,15 @@ namespace app
 
             std::string McpTool::call(const PropertyList& properties)
             {
-                uint64_t start_time = get_nowus();
+                uint64_t start_time = static_cast<uint64_t>(app::tool::time::uptime_us());
                 call_count_.fetch_add(1, std::memory_order_relaxed);
 
                 try
                 {
                     ReturnValue return_value = callback_(properties);
 
-                    uint64_t exec_time = get_nowus() - start_time;
+                    uint64_t exec_time =
+                        static_cast<uint64_t>(app::tool::time::uptime_us()) - start_time;
                     total_exec_time_.fetch_add(exec_time, std::memory_order_relaxed);
 
                     // LOG_DEBUG(LOG_TAG, "工具 '%s' 执行耗时 %llu μs", name_.c_str(), exec_time);
@@ -281,10 +267,6 @@ namespace app
                 return total_exec_time_.load(std::memory_order_relaxed) / count;
             }
 
-            // ============================================================================
-            // McpServer::Impl 内部实现
-            // ============================================================================
-
             class McpServer::Impl
             {
             public:
@@ -301,15 +283,9 @@ namespace app
                 // Vision配置回调
                 McpServer::VisionConfigCallback vision_config_callback_;
 
-                explicit Impl(McpConfig cfg) : config(std::move(cfg))
-                {
-                    LOG_DEBUG(LOG_TAG, "Impl创建");
-                }
+                explicit Impl(McpConfig cfg) : config(std::move(cfg)) {}
 
-                ~Impl()
-                {
-                    LOG_DEBUG(LOG_TAG, "Impl销毁");
-                }
+                ~Impl() {}
 
                 static std::optional<std::string>
                 parseToolCallParams(const json& params, std::string& tool_name, json& arguments)
@@ -335,10 +311,6 @@ namespace app
                     return it->second.get();
                 }
 
-                /**
-                 * @brief 解析服务器响应，提取vision配置
-                 * @param response 服务器响应JSON对象
-                 */
                 void parseServerResponse(const json& response)
                 {
                     try
@@ -389,18 +361,14 @@ namespace app
                             token = vision["token"].get<std::string>();
                         }
 
-                        LOG_INFO(LOG_TAG, "解析到vision配置: url=%s, token=%s", url.c_str(),
-                                 token.empty() ? "(空)" : "***");
+                        LOG_INFO(LOG_TAG, "vision配置 url=%s", url.c_str());
 
-                        // 调用回调函数
                         if (vision_config_callback_)
                         {
                             vision_config_callback_(url, token);
                         }
                         else
-                        {
-                            LOG_WARN(LOG_TAG, "vision配置回调未设置，无法应用配置");
-                        }
+                            LOG_WARN(LOG_TAG, "vision回调未设置");
                     }
                     catch (const json::exception& e)
                     {
@@ -476,10 +444,6 @@ namespace app
                     return std::nullopt;
                 }
 
-                // ========================================================================
-                // 工具管理
-                // ========================================================================
-
                 McpError addTool(std::unique_ptr<McpTool> tool)
                 {
                     if (!tool)
@@ -497,7 +461,7 @@ namespace app
                         return McpError::INVALID_PARAMS;
                     }
 
-                    LOG_INFO(LOG_TAG, "工具已添加: %s", name.c_str());
+                    LOG_DEBUG(LOG_TAG, "添加工具: %s", name.c_str());
                     tools_map[name] = std::move(tool);
 
                     return McpError::NONE;
@@ -514,7 +478,7 @@ namespace app
                     }
 
                     tools_map.erase(it);
-                    LOG_INFO(LOG_TAG, "工具已移除: %s", name.c_str());
+                    LOG_DEBUG(LOG_TAG, "移除工具: %s", name.c_str());
                     return true;
                 }
 
@@ -552,10 +516,6 @@ namespace app
                     // LOG_INFO(LOG_TAG, "所有工具已清空");
                 }
 
-                // ========================================================================
-                // 消息处理
-                // ========================================================================
-
                 std::string handleMessage(const json& mcp_payload)
                 {
                     try
@@ -571,7 +531,6 @@ namespace app
                         if (mcp_payload.contains("result") && mcp_payload["result"].is_object())
                         {
                             parseServerResponse(mcp_payload);
-                            // 响应消息通常不需要回复，返回空字符串
                             return "";
                         }
 
@@ -634,7 +593,7 @@ namespace app
 
                 std::string handleInitialize(int id, const json& params)
                 {
-                    LOG_INFO(LOG_TAG, "-> Initialize请求");
+                    LOG_DEBUG(LOG_TAG, "Initialize");
                     stats.initialize_requests.fetch_add(1, std::memory_order_relaxed);
 
                     // 解析客户端能力
@@ -670,13 +629,13 @@ namespace app
                     result["serverInfo"]      = json::object(
                              {{"name", config.server_name}, {"version", config.server_version}});
 
-                    LOG_INFO(LOG_TAG, " Initialize成功");
+                    LOG_DEBUG(LOG_TAG, "Initialize完成");
                     return replyResult(id, result);
                 }
 
                 std::string handleToolsList(int id, const json& params)
                 {
-                    LOG_DEBUG(LOG_TAG, "-> Tools/list请求");
+                    LOG_DEBUG(LOG_TAG, "Tools/list");
                     stats.tools_list_requests.fetch_add(1, std::memory_order_relaxed);
 
                     std::string cursor = params.value("cursor", "");
@@ -722,7 +681,7 @@ namespace app
 
                 std::string handleToolsCall(int id, const json& params)
                 {
-                    uint64_t start_time = get_nowus();
+                    uint64_t start_time = static_cast<uint64_t>(app::tool::time::uptime_us());
                     stats.tools_call_requests.fetch_add(1, std::memory_order_relaxed);
 
                     try
@@ -737,7 +696,7 @@ namespace app
                             return replyError(id, *parse_error);
                         }
 
-                        LOG_INFO(LOG_TAG, "-> 调用工具: %s", tool_name.c_str());
+                        LOG_DEBUG(LOG_TAG, "调用工具: %s", tool_name.c_str());
 
                         McpTool* tool = findToolByName(tool_name);
                         if (tool == nullptr)
@@ -769,7 +728,8 @@ namespace app
                             stats.tools_call_success.fetch_add(1, std::memory_order_relaxed);
                         }
 
-                        uint64_t total_time = get_nowus() - start_time;
+                        uint64_t total_time =
+                            static_cast<uint64_t>(app::tool::time::uptime_us()) - start_time;
                         stats.total_exec_time_us.fetch_add(total_time, std::memory_order_relaxed);
 
                         uint64_t call_count =
@@ -791,10 +751,6 @@ namespace app
                     }
                 }
 
-                // ========================================================================
-                // 响应生成
-                // ========================================================================
-
                 std::string replyResult(int id, const json& result)
                 {
                     json response;
@@ -814,14 +770,10 @@ namespace app
                 }
             };
 
-            // ============================================================================
-            // McpServer 公共接口实现
-            // ============================================================================
-
             McpServer::McpServer(McpConfig config)
                 : pImpl_(std::make_unique<Impl>(std::move(config)))
             {
-                LOG_INFO(LOG_TAG, "McpServer创建");
+                LOG_DEBUG(LOG_TAG, "启动");
             }
 
             McpServer::~McpServer()
@@ -830,10 +782,6 @@ namespace app
                 logStats();
                 // LOG_INFO(LOG_TAG, "MCP服务器已销毁");
             }
-
-            // ========================================================================
-            // 工具管理
-            // ========================================================================
 
             McpError McpServer::add_tool(std::unique_ptr<McpTool> tool)
             {
@@ -874,10 +822,6 @@ namespace app
                 pImpl_->clearTools();
             }
 
-            // ========================================================================
-            // 消息处理
-            // ========================================================================
-
             std::string McpServer::handle_message(const json& mcp_payload)
             {
                 return pImpl_->handleMessage(mcp_payload);
@@ -898,19 +842,10 @@ namespace app
                 }
             }
 
-            // ========================================================================
-            // Vision配置回调
-            // ========================================================================
-
             void McpServer::setVisionConfigCallback(VisionConfigCallback callback)
             {
                 pImpl_->vision_config_callback_ = std::move(callback);
-                LOG_INFO(LOG_TAG, "Vision配置回调已设置");
             }
-
-            // ========================================================================
-            // 统计信息
-            // ========================================================================
 
             void McpServer::getStats(Stats& out_stats) const
             {
@@ -937,7 +872,7 @@ namespace app
                 pImpl_->stats.total_exec_time_us.store(0);
                 pImpl_->stats.avg_exec_time_us.store(0);
 
-                LOG_INFO(LOG_TAG, "统计信息已重置");
+                LOG_DEBUG(LOG_TAG, "统计已重置");
             }
 
             void McpServer::logStats() const
@@ -950,30 +885,20 @@ namespace app
                 uint64_t parse_err    = pImpl_->stats.parse_errors.load();
                 uint64_t not_found    = pImpl_->stats.method_not_found.load();
 
-                LOG_INFO(LOG_TAG, "=== MCP服务器统计 ===");
-                LOG_INFO(LOG_TAG, "  Initialize请求:   %llu", init_req);
-                LOG_INFO(LOG_TAG, "  Tools/list请求:   %llu", list_req);
-                LOG_INFO(LOG_TAG, "  Tools/call请求:   %llu", call_req);
-                LOG_INFO(LOG_TAG, "    - 成功:         %llu", call_success);
-                LOG_INFO(LOG_TAG, "    - 错误:         %llu", call_errors);
-                LOG_INFO(LOG_TAG, "  解析错误:         %llu", parse_err);
-                LOG_INFO(LOG_TAG, "  方法未找到:       %llu", not_found);
+                LOG_INFO(LOG_TAG,
+                         "统计 init=%llu list=%llu call=%llu 成功=%llu 错误=%llu 解析=%llu 未找到=%llu",
+                         init_req, list_req, call_req, call_success, call_errors, parse_err,
+                         not_found);
 
                 if (call_req > 0)
                 {
                     double   success_rate = (double)call_success / call_req * 100.0;
                     uint64_t avg_time     = pImpl_->stats.avg_exec_time_us.load();
-
-                    LOG_INFO(LOG_TAG, "  工具成功率:       %.2f%%", success_rate);
-                    LOG_INFO(LOG_TAG, "  平均执行时间:     %llu μs", avg_time);
-
+                    LOG_INFO(LOG_TAG, "成功率 %.1f%% 均时 %lluμs 工具数 %zu", success_rate,
+                             avg_time, pImpl_->toolCount());
                     if (success_rate < SUCCESS_RATE_WARNING_THRESHOLD)
-                    {
-                        LOG_WARN(LOG_TAG, "工具成功率较低，请检查工具实现");
-                    }
+                        LOG_WARN(LOG_TAG, "成功率偏低");
                 }
-
-                LOG_INFO(LOG_TAG, "  工具总数:         %zu", pImpl_->toolCount());
             }
 
             std::map<std::string, uint64_t> McpServer::getToolUsageStats() const

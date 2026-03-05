@@ -1,10 +1,6 @@
-/**
- * @file activation.hpp
- * @brief 设备激活管理实现
- */
+/* activation.hpp - 设备激活管理 */
 
-#ifndef ACTIVATION_HPP
-#define ACTIVATION_HPP
+#pragma once
 
 #include <string>
 #include <memory>
@@ -12,6 +8,11 @@
 #include <atomic>
 #include <mutex>
 #include <future>
+
+namespace app
+{
+    class IHttpClient;
+}
 
 namespace app
 {
@@ -179,8 +180,9 @@ namespace app
                 /**
                  * @brief 构造函数
                  * @param config 激活配置
+                 * @param http_client HTTP客户端（解耦注入，不可为空）
                  */
-                explicit DeviceActivation(ActivationConfig config = ActivationConfig());
+                explicit DeviceActivation(ActivationConfig config, app::IHttpClient* http_client);
 
                 /**
                  * @brief 析构函数
@@ -356,5 +358,3 @@ namespace app
         } // namespace activation
     }     // namespace chatbot
 } // namespace app
-
-#endif // ACTIVATION_HPP

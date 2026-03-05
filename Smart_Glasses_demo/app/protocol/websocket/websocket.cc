@@ -1,6 +1,6 @@
 #include "websocket.hpp"
 #include "../../tool/log/log.hpp"
-#include "../../../common/common.hpp"
+#include "../../tool/time/time.hpp"
 #include <websocketpp/config/asio_client.hpp>
 #include <websocketpp/client.hpp>
 #include <thread>
@@ -8,6 +8,7 @@
 #include <variant>
 #include <cstring>
 #include <exception>
+#include <string>
 #include <utility>
 
 namespace app
@@ -60,21 +61,15 @@ namespace app
                 WebSocketClient::Stats stats;
                 mutable std::mutex     mutex;
 
-                explicit Impl(WebSocketConfig cfg) : config(std::move(cfg))
-                {
-                    LOG_DEBUG(LOG_TAG, "Impl创建");
-                }
+                explicit Impl(WebSocketConfig cfg) : config(std::move(cfg)) {}
 
                 ~Impl()
                 {
-                    LOG_DEBUG(LOG_TAG, "Impl销毁中...");
                     cleanup();
-                    LOG_DEBUG(LOG_TAG, "Impl已销毁");
                 }
 
                 void cleanup()
                 {
-                    LOG_DEBUG(LOG_TAG, "开始清理...");
 
                     should_stop.store(true, std::memory_order_release);
                     should_reconnect.store(false, std::memory_order_release);
@@ -103,11 +98,11 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_WARN(LOG_TAG, "客户端停止异常: %s", e.what());
+                        LOG_WARN(LOG_TAG, "客户端停止: %s", e.what());
                     }
                     catch (...)
                     {
-                        LOG_WARN(LOG_TAG, "客户端停止未知异常");
+                        LOG_WARN(LOG_TAG, "客户端停止异常");
                     }
 
                     if (reconnect_thread)
@@ -121,11 +116,11 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_WARN(LOG_TAG, "重连线程join异常: %s", e.what());
+                            LOG_WARN(LOG_TAG, "重连线程join: %s", e.what());
                         }
                         catch (...)
                         {
-                            LOG_WARN(LOG_TAG, "重连线程join未知异常");
+                            LOG_WARN(LOG_TAG, "重连线程join异常");
                         }
                         reconnect_thread.reset();
                     }
@@ -141,16 +136,14 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_WARN(LOG_TAG, "WebSocket线程join异常: %s", e.what());
+                            LOG_WARN(LOG_TAG, "WS线程join: %s", e.what());
                         }
                         catch (...)
                         {
-                            LOG_WARN(LOG_TAG, "WebSocket线程join未知异常");
+                            LOG_WARN(LOG_TAG, "WS线程join异常");
                         }
                         ws_thread.reset();
                     }
-
-                    LOG_DEBUG(LOG_TAG, "清理完成");
                 }
 
                 void setState(ConnectionState new_state)
@@ -160,19 +153,21 @@ namespace app
 
                     if (old_state != new_state)
                     {
-                        LOG_INFO(LOG_TAG, "状态变化: %s -> %s", stateToString(old_state).c_str(),
+                        LOG_INFO(LOG_TAG, "状态 %s -> %s", stateToString(old_state).c_str(),
                                  stateToString(new_state).c_str());
 
                         if (old_state == ConnectionState::CONNECTED &&
                             new_state != ConnectionState::CONNECTED)
                         {
-                            uint64_t uptime = get_nowus() - connected_timestamp;
+                            uint64_t uptime = static_cast<uint64_t>(app::tool::time::uptime_us()) -
+                                              connected_timestamp;
                             stats.total_uptime_us.fetch_add(uptime, std::memory_order_relaxed);
                         }
 
                         if (new_state == ConnectionState::CONNECTED)
                         {
-                            connected_timestamp = get_nowus();
+                            connected_timestamp =
+                                static_cast<uint64_t>(app::tool::time::uptime_us());
                         }
 
                         invokeStateCallback(old_state, new_state);
@@ -250,7 +245,7 @@ namespace app
                             bool success = binary_callback(data, size);
                             if (!success)
                             {
-                                LOG_WARN(LOG_TAG, "二进制回调返回false");
+                                LOG_WARN(LOG_TAG, "二进制回调失败");
                             }
                         }
                         catch (const std::exception& e)
@@ -272,7 +267,7 @@ namespace app
                             bool success = text_callback(data, size);
                             if (!success)
                             {
-                                LOG_WARN(LOG_TAG, "文本回调返回false");
+                                LOG_WARN(LOG_TAG, "文本回调失败");
                             }
                         }
                         catch (const std::exception& e)
@@ -397,6 +392,7 @@ namespace app
                             tls_client->set_message_handler(
                                 [this](connection_hdl hdl, ws_client_type::message_ptr msg)
                                 {
+                                    (void)hdl;
                                     auto        opcode  = msg->get_opcode();
                                     std::string payload = msg->get_payload();
 
@@ -423,7 +419,7 @@ namespace app
                                 {
                                     connection_handle = hdl;
                                     setState(ConnectionState::CONNECTED);
-                                    LOG_INFO(LOG_TAG, " 连接已建立");
+                                    LOG_INFO(LOG_TAG, "已连接");
 
                                     if (!config.hello_message.empty())
                                     {
@@ -431,12 +427,13 @@ namespace app
                                         if (err == WebSocketError::NONE)
                                         {
                                             handshaked.store(true, std::memory_order_release);
+                                            reconnect_count.store(0, std::memory_order_release);
                                             setState(ConnectionState::HANDSHAKED);
-                                            LOG_INFO(LOG_TAG, " Hello消息已发送，握手完成");
+                                            LOG_INFO(LOG_TAG, "握手完成");
                                         }
                                         else
                                         {
-                                            LOG_ERROR(LOG_TAG, "发送Hello消息失败");
+                                            LOG_ERROR(LOG_TAG, "Hello发送失败");
                                         }
                                     }
                                 });
@@ -453,7 +450,7 @@ namespace app
                                     {
                                         ws_client_type::connection_ptr con =
                                             (*tls_client_ptr)->get_con_from_hdl(hdl);
-                                        LOG_INFO(LOG_TAG, "连接已关闭: code=%d, reason=%s",
+                                        LOG_INFO(LOG_TAG, "关闭 code=%d %s",
                                                  con->get_remote_close_code(),
                                                  con->get_remote_close_reason().c_str());
                                     }
@@ -489,7 +486,7 @@ namespace app
 
                             if (ec)
                             {
-                                LOG_ERROR(LOG_TAG, "无法创建连接: %s", ec.message().c_str());
+                                LOG_ERROR(LOG_TAG, "创建连接失败: %s", ec.message().c_str());
                                 setState(ConnectionState::ERROR);
                                 stats.connection_failures.fetch_add(1, std::memory_order_relaxed);
                                 return WebSocketError::CONNECTION_FAILED;
@@ -533,6 +530,7 @@ namespace app
                             nontls_client->set_message_handler(
                                 [this](connection_hdl hdl, ws_client_nontls_type::message_ptr msg)
                                 {
+                                    (void)hdl;
                                     auto        opcode  = msg->get_opcode();
                                     std::string payload = msg->get_payload();
 
@@ -559,7 +557,7 @@ namespace app
                                 {
                                     connection_handle = hdl;
                                     setState(ConnectionState::CONNECTED);
-                                    LOG_INFO(LOG_TAG, " 连接已建立");
+                                    LOG_INFO(LOG_TAG, "已连接");
 
                                     if (!config.hello_message.empty())
                                     {
@@ -567,12 +565,13 @@ namespace app
                                         if (err == WebSocketError::NONE)
                                         {
                                             handshaked.store(true, std::memory_order_release);
+                                            reconnect_count.store(0, std::memory_order_release);
                                             setState(ConnectionState::HANDSHAKED);
-                                            LOG_INFO(LOG_TAG, " Hello消息已发送，握手完成");
+                                            LOG_INFO(LOG_TAG, "握手完成");
                                         }
                                         else
                                         {
-                                            LOG_ERROR(LOG_TAG, "发送Hello消息失败");
+                                            LOG_ERROR(LOG_TAG, "Hello发送失败");
                                         }
                                     }
                                 });
@@ -590,7 +589,7 @@ namespace app
                                     {
                                         ws_client_nontls_type::connection_ptr con =
                                             (*nontls_client_ptr)->get_con_from_hdl(hdl);
-                                        LOG_INFO(LOG_TAG, "连接已关闭: code=%d, reason=%s",
+                                        LOG_INFO(LOG_TAG, "关闭 code=%d %s",
                                                  con->get_remote_close_code(),
                                                  con->get_remote_close_reason().c_str());
                                     }
@@ -627,7 +626,7 @@ namespace app
 
                             if (ec)
                             {
-                                LOG_ERROR(LOG_TAG, "无法创建连接: %s", ec.message().c_str());
+                                LOG_ERROR(LOG_TAG, "创建连接失败: %s", ec.message().c_str());
                                 setState(ConnectionState::ERROR);
                                 stats.connection_failures.fetch_add(1, std::memory_order_relaxed);
                                 return WebSocketError::CONNECTION_FAILED;
@@ -725,7 +724,7 @@ namespace app
                             return WebSocketError::CONNECTION_FAILED;
                         }
 
-                        LOG_INFO(LOG_TAG, "正在连接到: %s", config.url.c_str());
+                        LOG_INFO(LOG_TAG, "连接 %s", config.url.c_str());
                         return WebSocketError::NONE;
                     }
                     catch (const std::exception& e)
@@ -740,8 +739,6 @@ namespace app
                 void disconnectInternal()
                 {
                     std::lock_guard<std::mutex> lock(mutex);
-
-                    LOG_DEBUG(LOG_TAG, "开始断开连接...");
 
                     should_reconnect.store(false, std::memory_order_release);
                     should_stop.store(true, std::memory_order_release);
@@ -758,11 +755,11 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_WARN(LOG_TAG, "断开连接时重连线程join异常: %s", e.what());
+                            LOG_WARN(LOG_TAG, "重连线程join: %s", e.what());
                         }
                         catch (...)
                         {
-                            LOG_WARN(LOG_TAG, "断开连接时重连线程join未知异常");
+                            LOG_WARN(LOG_TAG, "重连线程join异常");
                         }
                         reconnect_thread.reset();
                     }
@@ -841,7 +838,7 @@ namespace app
                     setState(ConnectionState::DISCONNECTED);
                     handshaked.store(false, std::memory_order_release);
 
-                    LOG_INFO(LOG_TAG, "已断开连接");
+                    LOG_INFO(LOG_TAG, "已断开");
                 }
 
                 // ========================================================================
@@ -891,7 +888,11 @@ namespace app
 
                         if (ec)
                         {
-                            LOG_ERROR(LOG_TAG, "发送二进制消息失败: %s", ec.message().c_str());
+                            /* invalid state 为断开时的正常情况，不按错误处理 */
+                            if (ec.message().find("invalid state") == std::string::npos)
+                                LOG_ERROR(LOG_TAG, "发送二进制消息失败: %s", ec.message().c_str());
+                            else
+                                LOG_DEBUG(LOG_TAG, "发送跳过: %s", ec.message().c_str());
                             stats.send_errors.fetch_add(1, std::memory_order_relaxed);
                             return WebSocketError::SEND_FAILED;
                         }
@@ -973,13 +974,13 @@ namespace app
                 {
                     if (!config.auto_reconnect)
                     {
-                        LOG_DEBUG(LOG_TAG, "自动重连已禁用");
+                        LOG_DEBUG(LOG_TAG, "重连已禁用");
                         return;
                     }
 
                     if (should_stop.load(std::memory_order_acquire))
                     {
-                        LOG_DEBUG(LOG_TAG, "应该停止，跳过重连");
+                        LOG_DEBUG(LOG_TAG, "停止，跳过重连");
                         return;
                     }
 
@@ -987,7 +988,7 @@ namespace app
                     if (config.max_reconnect_attempts > 0 &&
                         current_count >= config.max_reconnect_attempts)
                     {
-                        LOG_ERROR(LOG_TAG, "达到最大重连次数: %d", current_count);
+                        LOG_ERROR(LOG_TAG, "重连达上限 %d", current_count);
                         invokeErrorCallback(WebSocketError::RECONNECT_FAILED, "超过最大重连次数");
                         return;
                     }
@@ -1024,8 +1025,7 @@ namespace app
 
                                 try
                                 {
-                                    LOG_INFO(LOG_TAG, "计划在 %dms 后重连",
-                                             config.reconnect_interval_ms);
+                                    LOG_INFO(LOG_TAG, "%dms后重连", config.reconnect_interval_ms);
 
                                     std::unique_lock<std::mutex> lock(reconnect_mutex);
 
@@ -1060,15 +1060,24 @@ namespace app
                                                     1;
                                         stats.reconnections.fetch_add(1, std::memory_order_relaxed);
 
-                                        LOG_INFO(LOG_TAG, "正在尝试重连 (尝试 #%d)...", count);
+                                        LOG_INFO(LOG_TAG, "重连 #%d", count);
 
                                         if (should_stop.load(std::memory_order_acquire))
                                         {
                                             LOG_DEBUG(LOG_TAG, "对象正在销毁，取消重连");
+                                            should_reconnect.store(false,
+                                                                   std::memory_order_release);
                                             return;
                                         }
 
-                                        LOG_INFO(LOG_TAG, "重连已计划，外部处理器应处理");
+                                        lock.unlock();
+                                        should_reconnect.store(false, std::memory_order_release);
+
+                                        WebSocketError err = connectInternal();
+                                        if (err != WebSocketError::NONE)
+                                        {
+                                            LOG_WARN(LOG_TAG, "重连失败 %d", static_cast<int>(err));
+                                        }
                                     }
                                 }
                                 catch (const std::exception& e)
@@ -1128,12 +1137,11 @@ namespace app
             WebSocketClient::WebSocketClient(WebSocketConfig config)
                 : pImpl_(std::make_unique<Impl>(std::move(config)))
             {
-                LOG_INFO(LOG_TAG, "WebSocket客户端已创建");
+                LOG_INFO(LOG_TAG, "已创建");
             }
 
             WebSocketClient::~WebSocketClient()
             {
-                LOG_INFO(LOG_TAG, "WebSocket客户端销毁中...");
 
                 try
                 {
@@ -1141,11 +1149,11 @@ namespace app
                 }
                 catch (const std::exception& e)
                 {
-                    LOG_WARN(LOG_TAG, "统计日志异常: %s", e.what());
+                    LOG_WARN(LOG_TAG, "统计异常: %s", e.what());
                 }
                 catch (...)
                 {
-                    LOG_WARN(LOG_TAG, "统计日志未知异常");
+                    LOG_WARN(LOG_TAG, "统计异常");
                 }
 
                 try
@@ -1160,8 +1168,6 @@ namespace app
                 {
                     LOG_WARN(LOG_TAG, "清理未知异常");
                 }
-
-                LOG_INFO(LOG_TAG, "WebSocket客户端已销毁");
             }
 
             WebSocketError WebSocketClient::connect()
@@ -1191,7 +1197,7 @@ namespace app
             {
                 if (shouldReconnect())
                 {
-                    LOG_INFO(LOG_TAG, "处理计划的重连...");
+                    LOG_INFO(LOG_TAG, "执行重连");
                     connect();
                 }
             }
@@ -1216,28 +1222,24 @@ namespace app
             {
                 std::lock_guard<std::mutex> lock(pImpl_->callback_mutex);
                 pImpl_->binary_callback = callback;
-                LOG_DEBUG(LOG_TAG, "二进制回调已设置");
             }
 
             void WebSocketClient::setTextCallback(MessageCallback callback)
             {
                 std::lock_guard<std::mutex> lock(pImpl_->callback_mutex);
                 pImpl_->text_callback = callback;
-                LOG_DEBUG(LOG_TAG, "文本回调已设置");
             }
 
             void WebSocketClient::setStateCallback(ConnectionStateCallback callback)
             {
                 std::lock_guard<std::mutex> lock(pImpl_->callback_mutex);
                 pImpl_->state_callback = callback;
-                LOG_DEBUG(LOG_TAG, "状态回调已设置");
             }
 
             void WebSocketClient::setErrorCallback(WebSocketErrorCallback callback)
             {
                 std::lock_guard<std::mutex> lock(pImpl_->callback_mutex);
                 pImpl_->error_callback = callback;
-                LOG_DEBUG(LOG_TAG, "错误回调已设置");
             }
 
             ConnectionState WebSocketClient::getState() const
@@ -1313,8 +1315,6 @@ namespace app
                 pImpl_->stats.reconnections.store(0);
                 pImpl_->stats.callback_exceptions.store(0);
                 pImpl_->stats.total_uptime_us.store(0);
-
-                LOG_INFO(LOG_TAG, "统计信息已重置");
             }
 
             void WebSocketClient::logStats() const
@@ -1330,39 +1330,20 @@ namespace app
                 uint64_t exceptions    = pImpl_->stats.callback_exceptions.load();
                 uint64_t uptime_us     = pImpl_->stats.total_uptime_us.load();
 
-                LOG_INFO(LOG_TAG, "=== WebSocket客户端统计 ===");
-                LOG_INFO(LOG_TAG, "  发送消息数:       %llu", sent);
-                LOG_INFO(LOG_TAG, "  接收消息数:       %llu", received);
-                LOG_INFO(LOG_TAG, "  发送字节数:       %llu (%.2f MB)", bytes_s,
-                         bytes_s / (1024.0 * 1024.0));
-                LOG_INFO(LOG_TAG, "  接收字节数:       %llu (%.2f MB)", bytes_r,
-                         bytes_r / (1024.0 * 1024.0));
-                LOG_INFO(LOG_TAG, "  发送错误数:       %llu", send_err);
-                LOG_INFO(LOG_TAG, "  连接尝试次数:     %llu", conn_attempts);
-                LOG_INFO(LOG_TAG, "  连接失败次数:     %llu", conn_failures);
-                LOG_INFO(LOG_TAG, "  重连次数:         %llu", reconnects);
-                LOG_INFO(LOG_TAG, "  回调异常数:       %llu", exceptions);
-                LOG_INFO(LOG_TAG, "  总在线时间:       %.2f 小时",
-                         uptime_us / (1000000.0 * 3600.0));
+                LOG_INFO(LOG_TAG, "统计 tx=%llu rx=%llu 字节 tx=%llu rx=%llu 连接=%llu/%llu 重连=%llu 异常=%llu 时长=%lluus",
+                         sent, received, bytes_s, bytes_r, conn_attempts, conn_failures, reconnects,
+                         exceptions, uptime_us);
 
                 if (conn_attempts > 0)
                 {
-                    double failure_rate = (double)conn_failures / conn_attempts * 100.0;
-                    LOG_INFO(LOG_TAG, "  连接成功率:       %.2f%%", 100.0 - failure_rate);
-
-                    if (failure_rate > 20.0)
-                    {
-                        LOG_WARN(LOG_TAG, "连接失败率较高，请检查网络稳定性");
-                    }
+                    double fr = (double)conn_failures / conn_attempts * 100.0;
+                    if (fr > 20.0)
+                        LOG_WARN(LOG_TAG, "连接失败率 %.1f%%", fr);
                 }
 
-                if (sent > 0)
+                if (sent > 0 && (double)send_err / sent * 100.0 > 1.0)
                 {
-                    double send_error_rate = (double)send_err / sent * 100.0;
-                    if (send_error_rate > 1.0)
-                    {
-                        LOG_WARN(LOG_TAG, "发送错误率: %.2f%%", send_error_rate);
-                    }
+                    LOG_WARN(LOG_TAG, "发送错误率 %.1f%%", (double)send_err / sent * 100.0);
                 }
             }
 

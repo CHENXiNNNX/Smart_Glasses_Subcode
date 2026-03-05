@@ -1,10 +1,6 @@
-/**
- * @file wakeword.hpp
- * @brief 唤醒词检测器实现
- */
+/* wakeword.hpp - 唤醒词检测 */
 
-#ifndef WAKEWORD_HPP
-#define WAKEWORD_HPP
+#pragma once
 
 #include <string>
 #include <functional>
@@ -230,5 +226,3 @@ namespace app
         } // namespace wakeword
     }     // namespace chatbot
 } // namespace app
-
-#endif // WAKEWORD_HPP

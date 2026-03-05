@@ -1,6 +1,6 @@
 #include "webrtc.hpp"
 #include "../../tool/log/log.hpp"
-#include "../../../common/common.hpp"
+#include "../../tool/time/time.hpp"
 #include <chrono>
 #include <nlohmann/json.hpp>
 
@@ -26,18 +26,16 @@ namespace app
                 constexpr size_t  RTP_CSRC_SIZE            = 4;
             } // namespace
 
-            // ========== WebRTCSystem 实现 ==========
-
             WebRTCSystem::WebRTCSystem(const WebRTCConfig& config)
                 : config_(config), last_audio_send_time_(), last_video_send_time_()
             {
-                LOG_INFO(LOG_TAG, "WebRTC系统创建完成");
+                LOG_INFO(LOG_TAG, "WebRTC就绪");
             }
 
             WebRTCSystem::~WebRTCSystem()
             {
                 deinit();
-                LOG_INFO(LOG_TAG, "WebRTC系统销毁完成");
+                LOG_INFO(LOG_TAG, "WebRTC已销毁");
             }
 
             WebRTCError WebRTCSystem::init(std::shared_ptr<Signaling> signaling)
@@ -60,7 +58,7 @@ namespace app
                     return WebRTCError::UNKNOWN;
                 }
 
-                LOG_INFO(LOG_TAG, "开始初始化WebRTC系统...");
+                LOG_INFO(LOG_TAG, "初始化WebRTC");
                 signaling_ = std::move(signaling);
 
                 // 设置信令回调
@@ -148,7 +146,7 @@ namespace app
                     });
 
                 initialized_.store(true);
-                LOG_INFO(LOG_TAG, "WebRTC系统初始化完成");
+                LOG_INFO(LOG_TAG, "WebRTC初始化完成");
                 return WebRTCError::NONE;
             }
 
@@ -159,7 +157,7 @@ namespace app
                     return;
                 }
 
-                LOG_INFO(LOG_TAG, "开始关闭WebRTC系统...");
+                LOG_INFO(LOG_TAG, "关闭WebRTC");
 
                 // 断开连接
                 disconnect();
@@ -174,7 +172,7 @@ namespace app
                 // 重置状态
                 setState(WebRTCState::IDLE);
 
-                LOG_INFO(LOG_TAG, "WebRTC系统关闭完成");
+                LOG_INFO(LOG_TAG, "WebRTC已关闭");
             }
 
             bool WebRTCSystem::sendConnectionRequest(const std::string& peer_id,
@@ -422,7 +420,7 @@ namespace app
                 video_callback_ = std::move(callback);
             }
 
-            WebRTCSystem::Stats WebRTCSystem::getStats() const
+            WebRTCSystem::Stats WebRTCSystem::get_stats() const
             {
                 std::lock_guard<std::mutex> lock(stats_mutex_);
                 Stats                       result = stats_;
@@ -440,13 +438,13 @@ namespace app
                 return result;
             }
 
-            void WebRTCSystem::resetStats()
+            void WebRTCSystem::reset_stats()
             {
                 std::lock_guard<std::mutex> lock(stats_mutex_);
                 stats_ = Stats{};
             }
 
-            // ========== 私有方法实现 ==========
+            // 私有方法
 
             void WebRTCSystem::setState(WebRTCState new_state)
             {
@@ -491,7 +489,7 @@ namespace app
             {
                 try
                 {
-                    LOG_INFO(LOG_TAG, "开始建立WebRTC连接...");
+                    LOG_INFO(LOG_TAG, "建立WebRTC连接");
 
                     // 1. 创建PeerConnection
                     createPeerConnection();
@@ -568,7 +566,7 @@ namespace app
                     setupAudioTrack(rtc::Description::Direction::SendRecv);
                 }
 
-                // 视频轨道（单向：SendOnly，设备端→APP端）
+                // 视频轨道 SendOnly
                 if (request.video)
                 {
                     setupVideoTrack(rtc::Description::Direction::SendOnly);
@@ -624,8 +622,8 @@ namespace app
                     return;
                 }
 
-                LOG_INFO(LOG_TAG, "开始发送缓存的ICE候选，数量: %zu",
-                         pending_ice_candidates_.size());
+                LOG_INFO(LOG_TAG, "发送缓存ICE候选 数量=%u",
+                         static_cast<unsigned>(pending_ice_candidates_.size()));
 
                 std::string peer_id;
                 {
@@ -781,7 +779,9 @@ namespace app
                                             reinterpret_cast<const uint8_t*>(binary.data()),
                                             binary.size(), payload, payload_size))
                                     {
-                                        handleVideoDataReceived(payload, payload_size, get_nowus());
+                                        handleVideoDataReceived(
+                                            payload, payload_size,
+                                            static_cast<uint64_t>(app::tool::time::uptime_us()));
                                     }
                                 }
                             });
@@ -899,8 +899,8 @@ namespace app
                     // SDP交换未完成，缓存ICE候选
                     std::lock_guard<std::mutex> lock(ice_candidates_mutex_);
                     pending_ice_candidates_.push_back(candidate_str);
-                    LOG_DEBUG(LOG_TAG, "缓存ICE候选，当前缓存数: %zu",
-                              pending_ice_candidates_.size());
+                    LOG_DEBUG(LOG_TAG, "缓存ICE候选 数量=%u",
+                              static_cast<unsigned>(pending_ice_candidates_.size()));
                 }
             }
 
@@ -1102,7 +1102,7 @@ namespace app
 
             void WebRTCSystem::cleanup()
             {
-                LOG_INFO(LOG_TAG, "开始清理资源...");
+                LOG_INFO(LOG_TAG, "清理资源");
 
                 // 关闭轨道
                 try
@@ -1203,7 +1203,7 @@ namespace app
                     current_connection_request_ = ConnectionRequest{};
                 }
 
-                LOG_INFO(LOG_TAG, "资源清理完成");
+                LOG_INFO(LOG_TAG, "资源已清理");
             }
 
             bool WebRTCSystem::validateConfiguration() const

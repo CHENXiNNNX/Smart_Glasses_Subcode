@@ -1,7 +1,4 @@
-/**
- * @file wakeword.cc
- * @brief 唤醒词检测器实现
- */
+/* wakeword.cc - 唤醒词检测 */
 
 #include "wakeword.hpp"
 #include "../../tool/log/log.hpp"
@@ -36,13 +33,6 @@ namespace app
 
             using namespace tool::log;
 
-            // ============================================================================
-            // Snowboy检测器封装
-            // ============================================================================
-
-            /**
-             * @brief Snowboy检测器封装
-             */
             class SnowboyDetectorWrapper
             {
             public:
@@ -148,10 +138,6 @@ namespace app
                 SnowboyDetect* detector_;
             };
 
-            // ============================================================================
-            // 音频缓冲管理
-            // ============================================================================
-
             class AudioBuffer
             {
             public:
@@ -169,7 +155,7 @@ namespace app
 
                     if (buffer_.size() + static_cast<size_t>(length) > max_size_)
                     {
-                        LOG_WARN(LOG_TAG, "Audio buffer overflow, clearing old data");
+                        LOG_WARN(LOG_TAG, "音频缓冲溢出，清空");
                         buffer_.clear();
                     }
 
@@ -212,10 +198,6 @@ namespace app
                 size_t               max_size_;
             };
 
-            // ============================================================================
-            // WakewordDetector::Impl 内部实现
-            // ============================================================================
-
             class WakewordDetector::Impl
             {
             public:
@@ -245,28 +227,18 @@ namespace app
                     }
                 }
 
-                ~Impl()
-                {
-                    LOG_DEBUG(LOG_TAG, "Impl destroyed");
-                }
-
-                // ========================================================================
-                // 初始化
-                // ========================================================================
+                ~Impl() {}
 
                 WakewordError init()
                 {
                     if (initialized_.load(std::memory_order_acquire))
                     {
-                        LOG_WARN(LOG_TAG, "Already initialized");
+                        LOG_WARN(LOG_TAG, "已初始化");
                         return WakewordError::ALREADY_INITIALIZED;
                     }
 
-                    LOG_INFO(LOG_TAG, "Initializing...");
-                    LOG_DEBUG(LOG_TAG, "  Resource: %s", config_.resource_file.c_str());
-                    LOG_DEBUG(LOG_TAG, "  Model: %s", config_.model_file.c_str());
-                    LOG_DEBUG(LOG_TAG, "  Sensitivity: %.2f", (double)config_.sensitivity);
-                    LOG_DEBUG(LOG_TAG, "  Audio Gain: %.2f", (double)config_.audio_gain);
+                    LOG_DEBUG(LOG_TAG, "初始化 资源=%s 模型=%s", config_.resource_file.c_str(),
+                              config_.model_file.c_str());
 
                     try
                     {
@@ -279,17 +251,12 @@ namespace app
                         detector_->setAudioGain(config_.audio_gain);
                         detector_->applyFrontend(config_.apply_frontend);
 
-                        // 打印检测器信息
-                        int sample_rate     = detector_->getSampleRate();
-                        int num_channels    = detector_->getNumChannels();
-                        int bits_per_sample = detector_->getBitsPerSample();
-                        int num_hotwords    = detector_->getNumHotwords();
+                        int sample_rate  = detector_->getSampleRate();
+                        int num_channels = detector_->getNumChannels();
+                        int num_hotwords  = detector_->getNumHotwords();
 
-                        LOG_INFO(LOG_TAG, " Detector created");
-                        LOG_DEBUG(LOG_TAG, "  Sample Rate: %d Hz", sample_rate);
-                        LOG_DEBUG(LOG_TAG, "  Channels: %d", num_channels);
-                        LOG_DEBUG(LOG_TAG, "  Bits/Sample: %d", bits_per_sample);
-                        LOG_DEBUG(LOG_TAG, "  Num Hotwords: %d", num_hotwords);
+                        LOG_INFO(LOG_TAG, "就绪 %dHz %dch %d词", sample_rate, num_channels,
+                                 num_hotwords);
 
                         initialized_.store(true, std::memory_order_release);
                         enabled_.store(true, std::memory_order_release);
@@ -298,7 +265,7 @@ namespace app
                     }
                     catch (const std::exception& e)
                     {
-                        LOG_ERROR(LOG_TAG, "✗ Failed to create detector: %s", e.what());
+                        LOG_ERROR(LOG_TAG, "创建检测器失败: %s", e.what());
 
                         // 触发错误回调
                         invokeErrorCallback(WakewordError::DETECTOR_ERROR, e.what());
@@ -307,23 +274,19 @@ namespace app
                     }
                 }
 
-                // ========================================================================
-                // 音频处理
-                // ========================================================================
-
                 WakewordResult processAudioFrame(const int16_t* data, int length)
                 {
                     // 参数验证
                     if (!data)
                     {
-                        LOG_ERROR(LOG_TAG, "Null audio data pointer");
+                        LOG_ERROR(LOG_TAG, "音频数据为空");
                         invokeErrorCallback(WakewordError::INVALID_PARAMS, "Null audio data");
                         return WakewordResult::ERROR;
                     }
 
                     if (length <= 0 || length > MAX_FRAME_LENGTH_SAMPLES)
                     {
-                        LOG_ERROR(LOG_TAG, "Invalid frame length: %d", length);
+                        LOG_ERROR(LOG_TAG, "帧长无效: %d", length);
                         invokeErrorCallback(WakewordError::INVALID_PARAMS,
                                             "Invalid frame length: " + std::to_string(length));
                         return WakewordResult::ERROR;
@@ -359,7 +322,7 @@ namespace app
                     // 处理检测结果
                     if (result > 0)
                     {
-                        LOG_INFO(LOG_TAG, " Hotword %d detected!", result);
+                        LOG_INFO(LOG_TAG, "唤醒词 %d", result);
                         invokeWakewordCallback(wakeword_result, result);
                     }
                     else if (result == static_cast<int>(WakewordResult::SILENCE))
@@ -370,16 +333,11 @@ namespace app
                     else if (result == static_cast<int>(WakewordResult::ERROR))
                     {
                         // LOG_ERROR(LOG_TAG, "Detection error");
-                        invokeErrorCallback(WakewordError::DETECTOR_ERROR,
-                                            "Detection returned error");
+                        invokeErrorCallback(WakewordError::DETECTOR_ERROR, "检测返回错误");
                     }
 
                     return wakeword_result;
                 }
-
-                // ========================================================================
-                // 回调管理
-                // ========================================================================
 
                 void setWakewordCallback(WakewordCallback callback)
                 {
@@ -409,12 +367,12 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR(LOG_TAG, "Wakeword callback exception: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "唤醒回调异常: %s", e.what());
                             invokeErrorCallback(WakewordError::CALLBACK_EXCEPTION, e.what());
                         }
                         catch (...)
                         {
-                            LOG_ERROR(LOG_TAG, "Wakeword callback unknown exception");
+                            LOG_ERROR(LOG_TAG, "唤醒回调未知异常");
                             invokeErrorCallback(WakewordError::CALLBACK_EXCEPTION,
                                                 "Unknown exception");
                         }
@@ -437,18 +395,14 @@ namespace app
                         }
                         catch (const std::exception& e)
                         {
-                            LOG_ERROR(LOG_TAG, "Error callback exception: %s", e.what());
+                            LOG_ERROR(LOG_TAG, "错误回调异常: %s", e.what());
                         }
                         catch (...)
                         {
-                            LOG_ERROR(LOG_TAG, "Error callback unknown exception");
+                            LOG_ERROR(LOG_TAG, "错误回调未知异常");
                         }
                     }
                 }
-
-                // ========================================================================
-                // 参数设置
-                // ========================================================================
 
                 void setSensitivity(float sensitivity)
                 {
@@ -473,7 +427,7 @@ namespace app
                 void setEnabled(bool enabled)
                 {
                     enabled_.store(enabled, std::memory_order_release);
-                    LOG_INFO(LOG_TAG, "%s", enabled ? "Enabled" : "Disabled");
+                    LOG_DEBUG(LOG_TAG, "%s", enabled ? "启用" : "禁用");
                 }
 
                 void reset() // NOLINT(readability-make-member-function-const)
@@ -481,36 +435,27 @@ namespace app
                     if (detector_)
                     {
                         detector_->reset();
-                        LOG_DEBUG(LOG_TAG, "Detector reset");
+                        LOG_DEBUG(LOG_TAG, "检测器重置");
                     }
 
                     if (audio_buffer_)
                     {
                         audio_buffer_->clear();
-                        LOG_DEBUG(LOG_TAG, "Audio buffer cleared");
+                        LOG_DEBUG(LOG_TAG, "缓冲已清空");
                     }
                 }
             };
 
-            // ============================================================================
-            // WakewordDetector 公共接口实现
-            // ============================================================================
-
             WakewordDetector::WakewordDetector(const WakewordConfig& config)
                 : pImpl_(std::make_unique<Impl>(config))
             {
-                LOG_DEBUG(LOG_TAG, "WakewordDetector created");
+                LOG_DEBUG(LOG_TAG, "创建");
             }
 
             WakewordDetector::~WakewordDetector()
             {
-                LOG_DEBUG(LOG_TAG, "WakewordDetector destroying...");
-                LOG_DEBUG(LOG_TAG, "WakewordDetector destroyed");
+                LOG_DEBUG(LOG_TAG, "销毁");
             }
-
-            // ========================================================================
-            // 初始化和控制
-            // ========================================================================
 
             WakewordError WakewordDetector::init()
             {
@@ -537,18 +482,10 @@ namespace app
                 pImpl_->reset();
             }
 
-            // ========================================================================
-            // 音频处理
-            // ========================================================================
-
             WakewordResult WakewordDetector::processAudioFrame(const int16_t* data, int length)
             {
                 return pImpl_->processAudioFrame(data, length);
             }
-
-            // ========================================================================
-            // 参数设置
-            // ========================================================================
 
             void WakewordDetector::setSensitivity(float sensitivity)
             {
@@ -560,10 +497,6 @@ namespace app
                 pImpl_->setAudioGain(gain);
             }
 
-            // ========================================================================
-            // 回调设置
-            // ========================================================================
-
             void WakewordDetector::setWakewordCallback(WakewordCallback callback)
             {
                 pImpl_->setWakewordCallback(std::move(callback));
@@ -573,10 +506,6 @@ namespace app
             {
                 pImpl_->setErrorCallback(std::move(callback));
             }
-
-            // ========================================================================
-            // 信息查询
-            // ========================================================================
 
             int WakewordDetector::getSampleRate() const
             {

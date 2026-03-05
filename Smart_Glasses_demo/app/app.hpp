@@ -1,45 +1,52 @@
-#ifndef APP_HPP
-#define APP_HPP
+/*
+ * app.hpp - 应用组装层
+ */
 
-#include <string>
-#include <memory>
+#pragma once
+
 #include "media/sync.hpp"
+
+#include <atomic>
+#include <memory>
 
 namespace app
 {
+    namespace media
+    {
+        namespace audio
+        {
+            class AudioDrv;
+            struct AudioCfg;
+        } // namespace audio
+        namespace camera
+        {
+            class CameraDrv;
+            struct CameraCfg;
+        } // namespace camera
+    }     // namespace media
     namespace network
     {
         namespace wifi
         {
             class WifiManager;
-        }
-    } // namespace network
-
-    namespace media
-    {
-        namespace audio
-        {
-            class AudioSystem;
-        }
-        namespace camera
-        {
-            class VideoSystem;
-        }
-    } // namespace media
-
-    namespace protocol
-    {
-        namespace webrtc
-        {
-            class Signaling;
-            class WebRTCSystem;
-        } // namespace webrtc
-    }     // namespace protocol
-
+            struct WifiConfig;
+        } // namespace wifi
+    }     // namespace network
     namespace chatbot
     {
         class ChatbotSystem;
-    }
+        struct ChatbotConfig;
+    } // namespace chatbot
+
+    class IAudioService;
+    class IVideoService;
+    class INetworkService;
+    class IHttpClient;
+
+    class AudioServiceImpl;
+    class VideoServiceImpl;
+    class NetworkServiceImpl;
+    class HttpClientImpl;
 
     class App
     {
@@ -47,80 +54,49 @@ namespace app
         App();
         ~App();
 
-        void init();
+        App(const App&)            = delete;
+        App& operator=(const App&) = delete;
+
+        bool init();
         void run();
+        void stop();
 
     private:
-        // 日志相关
         bool initLog();
-        bool deinitLog();
+        void deinitLog();
 
-        // 网络相关
-        bool initNetwork();
-        bool deinitNetwork();
-
-        // WiFi相关
-        bool initWiFi();
-        bool deinitWiFi();
-
-        // 蓝牙相关
-        bool initBluetooth();
-        bool deinitBluetooth();
-
-        // 网络检查相关
-        bool checkNetwork();
-
-        // 网络连接相关
-        bool connectNetwork();
-        bool disconnectNetwork();
-        bool searchSavedNetwork();
-        bool forgetNetwork(const std::string& ssid);
-
-        // 时间同步相关
         bool initSync();
-        bool deinitSync();
+        void deinitSync();
 
-        // 音频系统相关
-        bool initAudio(int sample_rate, int channels, int frame_duration_ms);
-        bool deinitAudio();
+        bool initAudio();
+        void deinitAudio();
 
-        // 视频系统相关
-        bool initVideo(int width, int height);
-        bool deinitVideo();
+        bool initCamera();
+        void deinitCamera();
 
-        // Webrtc系统相关
-        bool initSignaling(std::string device_id, std::string server_url);
-        bool deinitSignaling();
-        bool initWebrtc();
-        bool deinitWebrtc();
+        bool initNetwork();
+        void deinitNetwork();
 
-        // 聊天机器人相关
         bool initChatbot();
-        bool deinitChatbot();
+        void deinitChatbot();
+
+        void cleanup();
 
     private:
-        // WiFi管理器
-        std::unique_ptr<app::network::wifi::WifiManager> wifi_manager_;
+        std::atomic<bool> running_{true};
 
-        // 音频系统
-        std::unique_ptr<app::media::audio::AudioSystem> audio_system_;
-
-        // 视频系统
-        std::unique_ptr<app::media::camera::VideoSystem> video_system_;
-
-        // 同步上下文（音视频时间同步）
         std::shared_ptr<sync_context_t> sync_ctx_;
 
-        // 信令系统
-        std::shared_ptr<app::protocol::webrtc::Signaling> signaling_;
+        std::unique_ptr<media::audio::AudioDrv>     audio_drv_;
+        std::unique_ptr<media::camera::CameraDrv>   camera_drv_;
+        std::unique_ptr<network::wifi::WifiManager> wifi_mgr_;
 
-        // WebRTC系统
-        std::shared_ptr<app::protocol::webrtc::WebRTCSystem> webrtc_;
+        std::unique_ptr<AudioServiceImpl>   audio_svc_;
+        std::unique_ptr<VideoServiceImpl>   video_svc_;
+        std::unique_ptr<NetworkServiceImpl> network_svc_;
+        std::unique_ptr<HttpClientImpl>     http_svc_;
 
-        // 聊天机器人系统
-        std::unique_ptr<app::chatbot::ChatbotSystem> chatbot_system_;
+        std::unique_ptr<chatbot::ChatbotSystem> chatbot_;
     };
 
 } // namespace app
-
-#endif // APP_HPP

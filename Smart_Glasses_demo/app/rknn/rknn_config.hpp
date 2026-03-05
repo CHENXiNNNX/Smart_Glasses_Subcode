@@ -1,10 +1,6 @@
-/**
- * @file rknn_config.hpp
- * @brief RKNN配置参数
- */
+/* rknn_config.hpp - RKNN配置 */
 
-#ifndef RKNN_CONFIG_HPP
-#define RKNN_CONFIG_HPP
+#pragma once
 
 #include <string>
 #include <cstdint>
@@ -140,5 +136,3 @@ namespace app
 
     } // namespace rknn
 } // namespace app
-
-#endif // RKNN_CONFIG_HPP

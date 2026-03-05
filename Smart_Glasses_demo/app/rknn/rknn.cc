@@ -1,7 +1,4 @@
-/**
- * @file rknn.cc
- * @brief RKNN模型基础封装类实现
- */
+/* rknn.cc - RKNN模型封装 */
 
 #include "rknn.hpp"
 #include "rknn_config.hpp"
@@ -178,7 +175,7 @@ namespace app
             dynamic_pool_->deallocate(ptr);
         }
 
-        void RKNNMemoryPool::getStats(Stats& out_stats) const
+        void RKNNMemoryPool::get_stats(Stats& out_stats) const
         {
             std::lock_guard<std::mutex> lock(stats_mutex_);
             out_stats.fixed_pool_hits   = stats_.fixed_pool_hits.load(std::memory_order_relaxed);
@@ -188,7 +185,7 @@ namespace app
                 stats_.allocation_failures.load(std::memory_order_relaxed);
         }
 
-        void RKNNMemoryPool::resetStats()
+        void RKNNMemoryPool::reset_stats()
         {
             std::lock_guard<std::mutex> lock(stats_mutex_);
             stats_.fixed_pool_hits.store(0);
@@ -579,11 +576,11 @@ namespace app
             }
         }
 
-        void RKNNModel::getMemoryPoolStats(RKNNMemoryPool::Stats& stats) const
+        void RKNNModel::get_memory_pool_stats(RKNNMemoryPool::Stats& stats) const
         {
             if (mem_pool_)
             {
-                mem_pool_->getStats(stats);
+                mem_pool_->get_stats(stats);
             }
         }
 

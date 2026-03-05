@@ -1,11 +1,6 @@
-/**
- * @file mac.h
- * @brief MAC地址获取工具
- * @details 用于获取设备的网卡MAC地址，优先获取无线网卡地址
- */
+/* mac.hpp - MAC地址获取 */
 
-#ifndef MAC_HPP
-#define MAC_HPP
+#pragma once
 
 #include <string>
 #include <vector>
@@ -58,5 +53,3 @@ namespace app
         } // namespace mac
     }     // namespace tool
 } // namespace app
-
-#endif // MAC_HPP

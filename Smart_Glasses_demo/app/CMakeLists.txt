@@ -34,19 +34,21 @@ target_link_libraries(app ${SNOWBOY_LIBRARY})
 # 设置头文件包含目录
 target_include_directories(app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
+    # interfaces
+    ${CMAKE_CURRENT_SOURCE_DIR}/interfaces
     # chatbot headers
     ${CMAKE_CURRENT_SOURCE_DIR}/chatbot
     ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/activation
     ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/mcp
     ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/mcp/mcp_tool
     ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/protocol_handle
-    ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/statemachine
     ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/uuid
     ${CMAKE_CURRENT_SOURCE_DIR}/chatbot/wakeword
     # media headers
     ${CMAKE_CURRENT_SOURCE_DIR}/media
     ${CMAKE_CURRENT_SOURCE_DIR}/media/audio
     ${CMAKE_CURRENT_SOURCE_DIR}/media/camera
+    ${CMAKE_CURRENT_SOURCE_DIR}/media/osd
     # network headers
     ${CMAKE_CURRENT_SOURCE_DIR}/network
     ${CMAKE_CURRENT_SOURCE_DIR}/network/bluetooth
@@ -54,7 +56,10 @@ target_include_directories(app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/network/wifi
     # protocol headers
     ${CMAKE_CURRENT_SOURCE_DIR}/protocol
+    ${CMAKE_CURRENT_SOURCE_DIR}/protocol/http
+    ${CMAKE_CURRENT_SOURCE_DIR}/protocol/mqtt
     ${CMAKE_CURRENT_SOURCE_DIR}/protocol/rtsp
+    ${CMAKE_CURRENT_SOURCE_DIR}/protocol/webrtc
     ${CMAKE_CURRENT_SOURCE_DIR}/protocol/websocket
     # tool headers
     ${CMAKE_CURRENT_SOURCE_DIR}/tool
@@ -62,8 +67,12 @@ target_include_directories(app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/tool/log
     ${CMAKE_CURRENT_SOURCE_DIR}/tool/mac
     ${CMAKE_CURRENT_SOURCE_DIR}/tool/memory
+    ${CMAKE_CURRENT_SOURCE_DIR}/tool/time
+    ${CMAKE_CURRENT_SOURCE_DIR}/tool/uuid
     # rknn headers
     ${CMAKE_CURRENT_SOURCE_DIR}/rknn
+    ${CMAKE_CURRENT_SOURCE_DIR}/rknn/face_detection
+    ${CMAKE_CURRENT_SOURCE_DIR}/rknn/face_recognition
     ${PROJECT_SOURCE_DIR}/third_party/rknpu2/include
     # libdatachannel headers
     ${PROJECT_SOURCE_DIR}/third_party/libdatachannel/include

@@ -1,36 +1,30 @@
-#include <iostream>
-#include <string>
-#include <memory>
-#include <vector>
-#include <cstdlib>
-#include <filesystem>
+/* test_load_model_main.cpp - RKNN 模型加载测试 */
+
 #include "app/rknn/rknn.hpp"
 #include "app/tool/log/log.hpp"
+
+#include <cstdlib>
+#include <filesystem>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
 
 using namespace app::rknn;
 using namespace app::tool::log;
 
 namespace
 {
-    constexpr const char* LOG_TAG = "MAIN";
+    constexpr const char* LOG_TAG = "LOAD";
 
-    /**
-     * @brief 获取模型目录路径
-     */
     std::string getModelDir()
     {
         return "./model/";
     }
 
-    /**
-     * @brief 扫描目录下所有 .rknn 文件
-     * @param dir_path 目录路径
-     * @return 模型文件路径列表
-     */
     std::vector<std::string> scanModelFiles(const std::string& dir_path)
     {
         std::vector<std::string> model_files;
-
         try
         {
             if (!std::filesystem::exists(dir_path))
@@ -38,46 +32,33 @@ namespace
                 LOG_WARN(LOG_TAG, "模型目录不存在: %s", dir_path.c_str());
                 return model_files;
             }
-
             for (const auto& entry : std::filesystem::directory_iterator(dir_path))
             {
                 if (entry.is_regular_file())
                 {
-                    std::string file_path = entry.path().string();
-                    std::string extension = entry.path().extension().string();
-
-                    // 检查是否为 .rknn 文件
-                    if (extension == ".rknn")
+                    std::string ext = entry.path().extension().string();
+                    if (ext == ".rknn")
                     {
-                        model_files.push_back(file_path);
-                        LOG_INFO(LOG_TAG, "发现模型文件: %s", file_path.c_str());
+                        model_files.push_back(entry.path().string());
                     }
                 }
             }
         }
         catch (const std::filesystem::filesystem_error& e)
         {
-            LOG_ERROR(LOG_TAG, "扫描模型目录失败: %s", e.what());
+            LOG_ERROR(LOG_TAG, "扫描失败: %s", e.what());
         }
-
         return model_files;
     }
 
-    /**
-     * @brief 从文件路径提取模型名称
-     */
     std::string getModelNameFromPath(const std::string& file_path)
     {
-        std::filesystem::path path(file_path);
-        return path.filename().string();
+        return std::filesystem::path(file_path).filename().string();
     }
 
-    /**
-     * @brief 打印模型详细信息
-     */
     void printModelInfo(const RKNNModel& model, const std::string& model_name)
     {
-        LOG_INFO(LOG_TAG, "========== %s 模型信息 ==========", model_name.c_str());
+        LOG_INFO(LOG_TAG, "模型 %s", model_name.c_str());
         LOG_INFO(LOG_TAG, "输入数量: %d, 输出数量: %d", model.getInputNum(), model.getOutputNum());
         LOG_INFO(LOG_TAG, "模型尺寸: %dx%dx%d", model.getModelWidth(), model.getModelHeight(),
                  model.getModelChannel());
@@ -121,14 +102,13 @@ namespace
                 }
             }
         }
-        LOG_INFO(LOG_TAG, "==========================================");
     }
 } // namespace
 
 int main(int argc, char* argv[])
 {
     // 初始化日志系统
-    Logger::getInstance().init(LogConfig());
+    Logger::inst().init(LogConfig());
 
     // 获取模型目录路径（可通过命令行参数指定，默认为 ./model/）
     std::string model_dir = "./model/";
@@ -152,7 +132,7 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    LOG_INFO(LOG_TAG, "共找到 %zu 个模型文件", model_files.size());
+    LOG_INFO(LOG_TAG, "共找到 %u 个模型文件", static_cast<unsigned>(model_files.size()));
     LOG_INFO(LOG_TAG, "");
 
     // 加载并打印每个模型的详细信息
@@ -182,7 +162,8 @@ int main(int argc, char* argv[])
         loaded_models.push_back(std::move(model));
     }
 
-    LOG_INFO(LOG_TAG, "成功加载 %zu/%zu 个模型", loaded_models.size(), model_files.size());
+    LOG_INFO(LOG_TAG, "成功加载 %u/%u 个模型", static_cast<unsigned>(loaded_models.size()),
+             static_cast<unsigned>(model_files.size()));
 
     if (loaded_models.empty())
     {

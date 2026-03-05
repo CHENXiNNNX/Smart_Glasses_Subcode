@@ -1,10 +1,6 @@
-/**
- * @file mcp.hpp
- * @brief MCP协议服务器实现
- */
+/* mcp.hpp - MCP协议服务器 */
 
-#ifndef MCP_HPP
-#define MCP_HPP
+#pragma once
 
 #if __has_include(<nlohmann/json.hpp>)
 #include <nlohmann/json.hpp>
@@ -475,5 +471,3 @@ namespace app
         } // namespace mcp
     }     // namespace chatbot
 } // namespace app
-
-#endif // MCP_HPP

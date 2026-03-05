@@ -1,19 +1,14 @@
-/**
- * @file signaling.cc
- * @brief WebRTC信令客户端实现
- */
+/* signaling.cc - WebRTC信令客户端 */
 
 #include "signaling.hpp"
 #include "../../tool/log/log.hpp"
-#include "../../../common/common.hpp"
+#include "../../tool/time/time.hpp"
 
 #if __has_include(<nlohmann/json.hpp>)
 #include <nlohmann/json.hpp>
 #else
 #include "../../../third_party/libdatachannel/deps/json/single_include/nlohmann/json.hpp"
 #endif
-
-#include <sstream>
 
 using namespace app::tool::log;
 using json = nlohmann::json;
@@ -24,10 +19,6 @@ namespace app
     {
         namespace webrtc
         {
-
-            // ============================================================================
-            // Signaling 实现
-            // ============================================================================
 
             namespace
             {
@@ -287,24 +278,6 @@ namespace app
                     return false;
                 }
 
-                // 打印发送的Offer SDP内容
-                LOG_INFO(LOG_TAG, "========== 发送 OFFER SDP ==========");
-                LOG_INFO(LOG_TAG, "发送方设备: %s", config_.device_id.c_str());
-                LOG_INFO(LOG_TAG, "接收方设备: %s", target_device_id.c_str());
-                LOG_INFO(LOG_TAG, "SDP类型: offer");
-                LOG_INFO(LOG_TAG, "SDP内容:");
-                // 按行打印SDP以便阅读
-                std::istringstream sdp_stream(sdp);
-                std::string        line;
-                while (std::getline(sdp_stream, line))
-                {
-                    if (!line.empty())
-                    {
-                        LOG_INFO(LOG_TAG, "  %s", line.c_str());
-                    }
-                }
-                LOG_INFO(LOG_TAG, "=====================================\n");
-
                 json message = {{"type", "offer"},
                                 {"from", config_.device_id},
                                 {"to", target_device_id},
@@ -313,7 +286,7 @@ namespace app
 
                 if (sendMessage(message))
                 {
-                    LOG_INFO(LOG_TAG, "发送SDP Offer到: %s", target_device_id.c_str());
+                    LOG_INFO(LOG_TAG, "发送Offer SDP 目标=%s", target_device_id.c_str());
                     return true;
                 }
 
@@ -330,13 +303,6 @@ namespace app
                     return false;
                 }
 
-                // 打印发送的ICE候选内容
-                LOG_INFO(LOG_TAG, "========== 发送 ICE候选 ==========");
-                LOG_INFO(LOG_TAG, "发送方设备: %s", config_.device_id.c_str());
-                LOG_INFO(LOG_TAG, "接收方设备: %s", target_device_id.c_str());
-                LOG_INFO(LOG_TAG, "ICE候选内容: %s", candidate.c_str());
-                LOG_INFO(LOG_TAG, "===================================\n");
-
                 json message = {{"type", "ice"},
                                 {"from", config_.device_id},
                                 {"to", target_device_id},
@@ -345,7 +311,7 @@ namespace app
 
                 if (sendMessage(message))
                 {
-                    LOG_DEBUG(LOG_TAG, "发送ICE候选到: %s", target_device_id.c_str());
+                    LOG_DEBUG(LOG_TAG, "发送ICE候选");
                     return true;
                 }
 
@@ -543,31 +509,7 @@ namespace app
 
             void Signaling::handleOfferMessage(const json& msg)
             {
-                // 打印接收到的Offer SDP内容
-                if (msg.contains("data") && msg["data"].contains("sdp"))
-                {
-                    std::string sdp  = msg["data"]["sdp"].get<std::string>();
-                    std::string from = msg.value("from", "unknown");
-
-                    LOG_INFO(LOG_TAG, "========== 收到 OFFER SDP ==========");
-                    LOG_INFO(LOG_TAG, "发送方设备: %s", from.c_str());
-                    LOG_INFO(LOG_TAG, "接收方设备: %s", config_.device_id.c_str());
-                    LOG_INFO(LOG_TAG, "SDP类型: offer");
-                    LOG_INFO(LOG_TAG, "SDP内容:");
-                    // 按行打印SDP以便阅读
-                    std::istringstream sdp_stream(sdp);
-                    std::string        line;
-                    while (std::getline(sdp_stream, line))
-                    {
-                        if (!line.empty())
-                        {
-                            LOG_INFO(LOG_TAG, "  %s", line.c_str());
-                        }
-                    }
-                    LOG_INFO(LOG_TAG, "==========================================\n");
-                }
-
-                LOG_INFO(LOG_TAG, "收到SDP Offer，转发给WebRTC管理器");
+                LOG_INFO(LOG_TAG, "收到Offer SDP");
 
                 std::lock_guard<std::mutex> lock(callback_mutex_);
                 if (offer_callback_)
@@ -585,31 +527,7 @@ namespace app
 
             void Signaling::handleAnswerMessage(const json& msg)
             {
-                // 打印接收到的Answer SDP内容
-                if (msg.contains("data") && msg["data"].contains("sdp"))
-                {
-                    std::string sdp  = msg["data"]["sdp"].get<std::string>();
-                    std::string from = msg.value("from", "unknown");
-
-                    LOG_INFO(LOG_TAG, "========== 收到 ANSWER SDP ==========");
-                    LOG_INFO(LOG_TAG, "发送方设备: %s", from.c_str());
-                    LOG_INFO(LOG_TAG, "接收方设备: %s", config_.device_id.c_str());
-                    LOG_INFO(LOG_TAG, "SDP类型: answer");
-                    LOG_INFO(LOG_TAG, "SDP内容:");
-                    // 按行打印SDP以便阅读
-                    std::istringstream sdp_stream(sdp);
-                    std::string        line;
-                    while (std::getline(sdp_stream, line))
-                    {
-                        if (!line.empty())
-                        {
-                            LOG_INFO(LOG_TAG, "  %s", line.c_str());
-                        }
-                    }
-                    LOG_INFO(LOG_TAG, "==========================================\n");
-                }
-
-                LOG_INFO(LOG_TAG, "收到SDP Answer，转发给WebRTC管理器");
+                LOG_INFO(LOG_TAG, "收到Answer SDP");
 
                 std::lock_guard<std::mutex> lock(callback_mutex_);
                 if (answer_callback_)
@@ -627,21 +545,6 @@ namespace app
 
             void Signaling::handleIceMessage(const json& msg)
             {
-                // 打印接收到的ICE候选内容
-                if (msg.contains("data") && msg["data"].contains("candidate"))
-                {
-                    std::string candidate = msg["data"]["candidate"].get<std::string>();
-                    std::string from      = msg.value("from", "unknown");
-
-                    LOG_INFO(LOG_TAG, "========== 收到 ICE候选 ==========");
-                    LOG_INFO(LOG_TAG, "发送方设备: %s", from.c_str());
-                    LOG_INFO(LOG_TAG, "接收方设备: %s", config_.device_id.c_str());
-                    LOG_INFO(LOG_TAG, "ICE候选内容: %s", candidate.c_str());
-                    LOG_INFO(LOG_TAG, "========================================\n");
-                }
-
-                LOG_DEBUG(LOG_TAG, "收到ICE候选，转发给WebRTC管理器");
-
                 std::lock_guard<std::mutex> lock(callback_mutex_);
                 if (ice_candidate_callback_)
                 {
@@ -814,7 +717,7 @@ namespace app
 
             uint64_t Signaling::getCurrentTimestamp() const
             {
-                return get_nowus();
+                return static_cast<uint64_t>(app::tool::time::uptime_us());
             }
 
             std::string Signaling::extractRoomId(const std::string& device_id) const

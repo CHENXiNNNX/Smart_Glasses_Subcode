@@ -1,7 +1,4 @@
-/**
- * @file http.cc
- * @brief HTTP客户端实现
- */
+/* http.cc - HTTP客户端 */
 
 #include "http.hpp"
 #include "../../tool/log/log.hpp"
@@ -87,7 +84,7 @@ namespace app
                 }
             }
 
-            bool HttpClient::isValid() const
+            bool HttpClient::valid() const
             {
                 return curl_ != nullptr;
             }

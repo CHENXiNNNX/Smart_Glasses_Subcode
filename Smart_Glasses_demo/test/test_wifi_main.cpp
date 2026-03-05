@@ -1,11 +1,7 @@
-/**
- * @file test_wifi_main.cpp
- * @brief WiFi模块测试程序
- * @details 测试WiFi连接、断开、扫描和状态查询功能
- */
+/* test_wifi_main.cpp - WiFi 模块测试 */
 
-#include "../app/network/wifi/wifi.hpp"
-#include "../app/tool/log/log.hpp"
+#include "app/network/wifi/wifi.hpp"
+#include "app/tool/log/log.hpp"
 
 #include <iostream>
 #include <string>
@@ -16,24 +12,18 @@
 using namespace app::network::wifi;
 using namespace app::tool::log;
 
-// 全局状态标志
 std::atomic<bool> scan_done{false};
 std::atomic<bool> connect_done{false};
 
-// ============================================================================
-// 回调函数
-// ============================================================================
-
 void onStateChanged(wifiState old_state, wifiState new_state)
 {
-    std::cout << "\n[状态变化] " << wifiStateToString(old_state) << " → "
+    std::cout << "\n[状态] " << wifiStateToString(old_state) << " -> "
               << wifiStateToString(new_state) << std::endl;
 }
 
 void onScanComplete(const std::vector<wifiInfo>& networks)
 {
-    std::cout << "\n━━━━ 扫描结果 ━━━━\n";
-    std::cout << "找到 " << networks.size() << " 个WiFi网络:\n\n";
+    std::cout << "\n扫描结果 " << networks.size() << " 个网络:\n";
 
     int count = 1;
     for (const auto& net : networks)
@@ -48,34 +38,18 @@ void onScanComplete(const std::vector<wifiInfo>& networks)
 
 void onConnectResult(bool success, const std::string& message)
 {
-    if (success)
-    {
-        std::cout << "\n✅ 连接成功! " << message << std::endl;
-    }
-    else
-    {
-        std::cout << "\n❌ 连接失败: " << message << std::endl;
-    }
+    std::cout << "\n" << (success ? "连接成功" : "连接失败") << " " << message << std::endl;
     connect_done = true;
 }
 
-// ============================================================================
-// 功能函数
-// ============================================================================
-
 void printHeader()
 {
-    std::cout << "\n╔════════════════════════════════════════════════════════╗\n";
-    std::cout << "║           WiFi 模块测试程序                            ║\n";
-    std::cout << "║           基于 wpa_supplicant                          ║\n";
-    std::cout << "╚════════════════════════════════════════════════════════╝\n";
+    std::cout << "\n--- WiFi 测试 (wpa_supplicant) ---\n";
 }
 
 void printMenu()
 {
-    std::cout << "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
-    std::cout << "                    功能菜单                             \n";
-    std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+    std::cout << "\n--- 菜单 ---\n";
     std::cout << "  1 - WiFi扫描\n";
     std::cout << "  2 - WiFi连接\n";
     std::cout << "  3 - WiFi断开\n";
@@ -389,7 +363,7 @@ int main(int argc, char* argv[])
     printHeader();
 
     // 初始化日志系统
-    Logger::getInstance().initialize(LogConfig());
+    Logger::inst().init(LogConfig());
 
     // 创建WiFi管理器
     std::cout << "\n正在初始化WiFi管理器...\n";
@@ -404,7 +378,7 @@ int main(int argc, char* argv[])
     wifi.setStateCallback(onStateChanged);
 
     // 初始化
-    wifiError err = wifi.initialize();
+    wifiError err = wifi.init();
     if (err != wifiError::NONE)
     {
         std::cerr << "\n❌ WiFi管理器初始化失败: " << wifiErrorToString(err) << std::endl;
@@ -461,8 +435,8 @@ int main(int argc, char* argv[])
 
         case '0':
             std::cout << "\n正在退出...\n";
-            wifi.shutdown();
-            Logger::getInstance().shutdown();
+            wifi.deinit();
+            Logger::inst().deinit();
             std::cout << "再见!\n";
             return 0;
 

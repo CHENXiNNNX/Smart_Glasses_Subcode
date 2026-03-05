@@ -1,10 +1,6 @@
-/**
- * @file face_detection.hpp
- * @brief 人脸检测模块
- */
+/* face_detection.hpp - 人脸检测 */
 
-#ifndef FACE_DETECTION_HPP
-#define FACE_DETECTION_HPP
+#pragma once
 
 #include <vector>
 #include <cstdint>
@@ -223,5 +219,3 @@ namespace app
         } // namespace face_detection
     }     // namespace rknn
 } // namespace app
-
-#endif // FACE_DETECTION_HPP

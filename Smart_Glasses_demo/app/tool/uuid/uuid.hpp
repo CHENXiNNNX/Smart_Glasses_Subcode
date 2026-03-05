@@ -1,12 +1,6 @@
-/**
- * @file uuid.h
- * @brief UUID生成和管理工具
- * @details 用于生成符合RFC 4122标准的UUID（通用唯一识别码）
- *          支持UUID持久化存储到配置文件，确保不重复生成
- */
+/* uuid.hpp - UUID生成和管理 */
 
-#ifndef UUID_HPP
-#define UUID_HPP
+#pragma once
 
 #include <string>
 
@@ -109,5 +103,3 @@ namespace app
         } // namespace uuid
     }     // namespace tool
 } // namespace app
-
-#endif // UUID_HPP

@@ -1,7 +1,4 @@
-/**
- * @file face_recognition.cc
- * @brief 人脸识别模块实现
- */
+/* face_recognition.cc - 人脸识别 */
 
 #include "face_recognition.hpp"
 #include <algorithm>

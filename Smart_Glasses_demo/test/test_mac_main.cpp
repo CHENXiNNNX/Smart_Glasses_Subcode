@@ -1,75 +1,47 @@
-/**
- * @file test_mac.cc
- * @brief MAC地址工具测试程序
- */
+/* test_mac_main.cpp - MAC 地址工具测试 */
 
-#include "mac.h"
+#include "app/tool/log/log.hpp"
+#include "app/tool/mac/mac.hpp"
+
 #include <iostream>
 
-using namespace glasses::tool;
+using namespace app::tool::mac;
+using namespace app::tool::log;
+
+namespace
+{
+    constexpr const char* LOG_TAG = "MAC";
+} // namespace
 
 int main()
 {
-    std::cout << "=== MAC地址获取工具测试 ===" << std::endl;
-    std::cout << std::endl;
+    Logger::inst().init(LogConfig());
+    LOG_INFO(LOG_TAG, "MAC 工具测试");
 
-    // 1. 测试获取无线网卡MAC地址
-    std::cout << "1. 获取无线网卡MAC地址：" << std::endl;
-    std::string wireless_mac = getWirelessMacAddress();
-    if (!wireless_mac.empty())
-    {
-        std::cout << "   成功！MAC地址：" << wireless_mac << std::endl;
-    }
+    std::string wireless = getWirelessMacAddress();
+    if (!wireless.empty())
+        LOG_INFO(LOG_TAG, "无线 MAC: %s", wireless.c_str());
     else
-    {
-        std::cout << "   失败：未找到可用的网络接口" << std::endl;
-    }
-    std::cout << std::endl;
+        LOG_WARN(LOG_TAG, "未获取到无线 MAC");
 
-    // 2. 测试获取所有网络接口
-    std::cout << "2. 获取所有网络接口列表：" << std::endl;
-    auto interfaces = getAllNetworkInterfaces();
-    if (interfaces.empty())
+    auto ifaces = getAllNetworkInterfaces();
+    for (const auto& iface : ifaces)
     {
-        std::cout << "   未找到任何网络接口" << std::endl;
+        std::string mac = getMacAddressByInterface(iface);
+        LOG_INFO(LOG_TAG, "%s: %s", iface.c_str(), mac.empty() ? "无效" : mac.c_str());
     }
+
+    std::string eth0 = getMacAddressByInterface("eth0");
+    if (!eth0.empty())
+        LOG_INFO(LOG_TAG, "eth0: %s", eth0.c_str());
     else
-    {
-        for (const auto& iface : interfaces)
-        {
-            std::string mac = getMacAddressByInterface(iface);
-            std::cout << "   - " << iface << ": " << (mac.empty() ? "无效" : mac) << std::endl;
-        }
-    }
-    std::cout << std::endl;
+        LOG_INFO(LOG_TAG, "eth0: 无");
 
-    // 3. 测试指定接口
-    std::cout << "3. 测试获取指定接口MAC地址：" << std::endl;
-    std::string eth0_mac = getMacAddressByInterface("eth0");
-    if (!eth0_mac.empty())
-    {
-        std::cout << "   eth0: " << eth0_mac << std::endl;
-    }
-    else
-    {
-        std::cout << "   eth0: 接口不存在或无效" << std::endl;
-    }
-    std::cout << std::endl;
+    std::string f1 = formatMacAddress("AA:BB:CC:DD:EE:FF");
+    std::string f2 = formatMacAddress("aabbccddeeff");
+    LOG_INFO(LOG_TAG, "格式化: %s -> %s", "AA:BB:CC:DD:EE:FF", f1.c_str());
+    LOG_INFO(LOG_TAG, "格式化: %s -> %s", "aabbccddeeff", f2.c_str());
 
-    // 4. 测试MAC地址格式化
-    std::cout << "4. 测试MAC地址格式化：" << std::endl;
-    std::string test_mac1 = "AA:BB:CC:DD:EE:FF";
-    std::string test_mac2 = "aabbccddeeff";
-    std::string test_mac3 = "AA-BB-CC-DD-EE-FF";
-
-    std::cout << "   原始: " << test_mac1 << " -> 格式化: " << formatMacAddress(test_mac1)
-              << std::endl;
-    std::cout << "   原始: " << test_mac2 << " -> 格式化: " << formatMacAddress(test_mac2)
-              << std::endl;
-    std::cout << "   原始: " << test_mac3 << " -> 格式化: " << formatMacAddress(test_mac3)
-              << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "=== 测试完成 ===" << std::endl;
+    LOG_INFO(LOG_TAG, "测试完成");
     return 0;
 }

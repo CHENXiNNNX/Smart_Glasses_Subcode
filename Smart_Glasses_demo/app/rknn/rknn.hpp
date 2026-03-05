@@ -1,11 +1,6 @@
-/**
- * @file rknn.hpp
- * @brief RKNN模型基础封装类
- * @details 提供RKNN模型的加载、推理、内存管理等基础功能
- */
+/* rknn.hpp - RKNN 模型封装 */
 
-#ifndef RKNN_HPP
-#define RKNN_HPP
+#pragma once
 
 #include <cstdint>
 #include <memory>
@@ -15,7 +10,7 @@
 #include <mutex>
 #include "rknn_api.h"
 #include "rknn_config.hpp"
-#include "../../tool/memory/mem_pool.hpp"
+#include "../../tool/memory/memory.hpp"
 #include "../../tool/log/log.hpp"
 
 namespace app
@@ -94,12 +89,12 @@ namespace app
             /**
              * @brief 获取统计信息
              */
-            void getStats(Stats& out_stats) const;
+            void get_stats(Stats& out_stats) const;
 
             /**
              * @brief 重置统计信息
              */
-            void resetStats();
+            void reset_stats();
 
             /**
              * @brief 输出统计日志
@@ -313,7 +308,7 @@ namespace app
             /**
              * @brief 获取统计信息
              */
-            void getMemoryPoolStats(RKNNMemoryPool::Stats& stats) const;
+            void get_memory_pool_stats(RKNNMemoryPool::Stats& stats) const;
 
         private:
             /**
@@ -367,5 +362,3 @@ namespace app
 
     } // namespace rknn
 } // namespace app
-
-#endif // RKNN_HPP

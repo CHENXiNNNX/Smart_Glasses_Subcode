@@ -1,5 +1,4 @@
-#ifndef __RTSP_DEMO_H__
-#define __RTSP_DEMO_H__
+#pragma once
 /*
  * a simple RTSP server demo
  * RTP over UDP/TCP H264/G711a
@@ -55,5 +54,4 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif
 #endif

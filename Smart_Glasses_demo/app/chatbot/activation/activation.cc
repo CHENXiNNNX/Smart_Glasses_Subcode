@@ -1,12 +1,11 @@
-/**
- * @file activation.cc
- * @brief 设备激活管理实现
+/*
+ * activation.cc - 设备激活
  */
 
 #include "activation.hpp"
-#include "../../protocol/http/http.hpp"
+#include "../../interfaces/ihttp_client.hpp"
 #include "../../tool/log/log.hpp"
-#include "../../../common/common.hpp"
+#include "../../tool/time/time.hpp"
 #if __has_include(<nlohmann/json.hpp>)
 #include <nlohmann/json.hpp>
 #else
@@ -27,17 +26,12 @@ namespace app
         {
 
             using namespace tool::log;
-            namespace http = app::protocol::http;
 
             namespace
             {
                 constexpr const char* LOG_TAG                        = "ACTIVATION";
                 constexpr double      SUCCESS_RATE_WARNING_THRESHOLD = 90.0;
             } // namespace
-
-            // ============================================================================
-            // DeviceActivation::Impl 内部实现
-            // ============================================================================
 
             class DeviceActivation::Impl
             {
@@ -46,7 +40,7 @@ namespace app
                 ActivationConfig config;
 
                 // HTTP客户端
-                std::unique_ptr<http::HttpClient> http_client;
+                app::IHttpClient* http_client = nullptr;
 
                 // 轮询状态
                 std::atomic<ActivationStatus> polling_status{ActivationStatus::UNKNOWN};
@@ -68,41 +62,29 @@ namespace app
                 // 统计信息
                 DeviceActivation::Stats stats;
 
-                explicit Impl(ActivationConfig cfg) : config(std::move(cfg))
+                Impl(ActivationConfig cfg, app::IHttpClient* hc)
+                    : config(std::move(cfg)), http_client(hc)
                 {
-                    LOG_DEBUG(LOG_TAG, "Impl创建");
-
-                    // 创建HTTP客户端
-                    http_client = std::make_unique<http::HttpClient>();
-
-                    if (!http_client->isValid())
-                    {
-                        LOG_ERROR(LOG_TAG, "HTTP客户端创建失败");
-                    }
+                    if (!http_client || !http_client->valid())
+                        LOG_ERROR(LOG_TAG, "HTTP未设置或无效");
                 }
 
                 ~Impl()
                 {
-                    LOG_DEBUG(LOG_TAG, "Impl销毁中...");
                     stopPollingThread();
-                    LOG_DEBUG(LOG_TAG, "Impl已销毁");
                 }
-
-                // ========================================================================
-                // 激活检查核心逻辑
-                // ========================================================================
 
                 ActivationResult checkActivationInternal(const std::string& mac,
                                                          const std::string& uuid)
                 {
                     ActivationResult result;
-                    result.check_timestamp = get_nowus();
+                    result.check_timestamp = static_cast<uint64_t>(app::tool::time::uptime_us());
 
                     static_cast<void>(uuid);
 
-                    uint64_t start_time = get_nowus();
+                    uint64_t start_time = static_cast<uint64_t>(app::tool::time::uptime_us());
 
-                    if (!http_client || !http_client->isValid())
+                    if (!http_client || !http_client->valid())
                     {
                         result.status        = ActivationStatus::ERROR;
                         result.error         = ActivationError::CURL_INIT_FAILED;
@@ -129,8 +111,8 @@ namespace app
                     LOG_DEBUG(LOG_TAG, "检查激活状态: Device-Id=%s", mac.c_str());
 
                     // 重试机制
-                    int                retry = 0;
-                    http::HttpResponse http_resp{};
+                    int               retry = 0;
+                    app::HttpResponse http_resp{};
 
                     for (retry = 0; retry < config.max_retries; retry++)
                     {
@@ -158,7 +140,8 @@ namespace app
 
                     stats.check_count.fetch_add(1, std::memory_order_relaxed);
 
-                    uint64_t check_time = get_nowus() - start_time;
+                    uint64_t check_time =
+                        static_cast<uint64_t>(app::tool::time::uptime_us()) - start_time;
                     stats.total_check_time_us.fetch_add(check_time, std::memory_order_relaxed);
 
                     uint64_t count = stats.check_count.load(std::memory_order_relaxed);
@@ -226,10 +209,6 @@ namespace app
                     return result;
                 }
 
-                // ========================================================================
-                // 异步轮询线程
-                // ========================================================================
-
                 bool startPollingThread(const std::string& mac, const std::string& uuid,
                                         int timeout_sec)
                 {
@@ -246,15 +225,13 @@ namespace app
                     polling_thread = std::make_unique<std::thread>(
                         [this, mac, uuid, timeout_sec]()
                         {
-                            LOG_INFO(LOG_TAG, "========================================");
-                            LOG_INFO(LOG_TAG, "  设备激活轮询启动");
-                            LOG_INFO(LOG_TAG, "========================================");
+                            LOG_INFO(LOG_TAG, "激活轮询启动");
 
                             ActivationResult result = checkActivationInternal(mac, uuid);
 
                             if (result.isActivated())
                             {
-                                LOG_INFO(LOG_TAG, " 设备已激活");
+                                LOG_INFO(LOG_TAG, "已激活");
                                 polling_status.store(ActivationStatus::ACTIVATED,
                                                      std::memory_order_release);
                                 saveLastResult(result);
@@ -273,12 +250,9 @@ namespace app
                                 return;
                             }
 
-                            // 未激活，显示激活信息
-                            LOG_INFO(LOG_TAG, "⚠ 设备未激活");
-                            LOG_INFO(LOG_TAG, "  激活URL: %s", config.activation_url.c_str());
-                            LOG_INFO(LOG_TAG, "  激活码: %s", result.activation_code.c_str());
-                            LOG_INFO(LOG_TAG, "  轮询间隔: %d秒", config.poll_interval_sec);
-                            LOG_INFO(LOG_TAG, "========================================");
+                            LOG_INFO(LOG_TAG, "未激活 URL=%s 码=%s 间隔=%ds",
+                                     config.activation_url.c_str(), result.activation_code.c_str(),
+                                     config.poll_interval_sec);
 
                             polling_status.store(ActivationStatus::NOT_ACTIVATED,
                                                  std::memory_order_release);
@@ -299,7 +273,7 @@ namespace app
                                                 std::memory_order_acquire);
                                         }))
                                 {
-                                    LOG_INFO(LOG_TAG, "轮询被用户取消");
+                                    LOG_INFO(LOG_TAG, "轮询取消");
                                     polling_status.store(ActivationStatus::CANCELLED,
                                                          std::memory_order_release);
                                     return;
@@ -318,9 +292,7 @@ namespace app
 
                                 if (result.isActivated())
                                 {
-                                    LOG_INFO(LOG_TAG, "========================================");
-                                    LOG_INFO(LOG_TAG, "   设备激活成功！");
-                                    LOG_INFO(LOG_TAG, "========================================");
+                                    LOG_INFO(LOG_TAG, "激活成功");
 
                                     polling_status.store(ActivationStatus::ACTIVATED,
                                                          std::memory_order_release);
@@ -331,17 +303,14 @@ namespace app
 
                                 if (result.hasError())
                                 {
-                                    LOG_WARN(LOG_TAG, "检查失败，继续轮询... (错误: %s)",
-                                             result.error_message.c_str());
+                                    LOG_WARN(LOG_TAG, "检查失败: %s", result.error_message.c_str());
                                 }
                             }
 
                             // 轮询超时
                             if (elapsed >= timeout_sec)
                             {
-                                LOG_WARN(LOG_TAG, "========================================");
-                                LOG_WARN(LOG_TAG, "  ✗ 激活超时 (%d 秒)", timeout_sec);
-                                LOG_WARN(LOG_TAG, "========================================");
+                                LOG_WARN(LOG_TAG, "激活超时 %ds", timeout_sec);
 
                                 result.status        = ActivationStatus::TIMEOUT;
                                 result.error         = ActivationError::TIMEOUT;
@@ -376,10 +345,6 @@ namespace app
                     return polling_thread && polling_thread->joinable();
                 }
 
-                // ========================================================================
-                // 结果管理
-                // ========================================================================
-
                 void saveLastResult(const ActivationResult& result)
                 {
                     std::lock_guard<std::mutex> lock(result_mutex);
@@ -391,10 +356,6 @@ namespace app
                     std::lock_guard<std::mutex> lock(result_mutex);
                     return last_result;
                 }
-
-                // ========================================================================
-                // 回调调用（异常安全）
-                // ========================================================================
 
                 void invokeStatusCallback(ActivationStatus status, const ActivationResult& result)
                 {
@@ -453,28 +414,17 @@ namespace app
                 }
             };
 
-            // ============================================================================
-            // DeviceActivation 公共接口实现
-            // ============================================================================
-
-            DeviceActivation::DeviceActivation(ActivationConfig config)
-                : pImpl_(std::make_unique<Impl>(std::move(config)))
+            DeviceActivation::DeviceActivation(ActivationConfig  config,
+                                               app::IHttpClient* http_client)
+                : pImpl_(std::make_unique<Impl>(std::move(config), http_client))
             {
-                http::ensureCurlGlobalInit();
-                LOG_INFO(LOG_TAG, "设备激活管理器已创建");
             }
 
             DeviceActivation::~DeviceActivation()
             {
-                // LOG_INFO("Activation", "设备激活管理器销毁中...");
                 stopPolling();
                 logStats();
-                LOG_INFO(LOG_TAG, "设备激活管理器已销毁");
             }
-
-            // ========================================================================
-            // 同步检查接口
-            // ========================================================================
 
             ActivationResult DeviceActivation::checkActivation(const std::string& mac,
                                                                const std::string& uuid)
@@ -488,10 +438,6 @@ namespace app
                 return result.isActivated();
             }
 
-            // ========================================================================
-            // 异步检查接口
-            // ========================================================================
-
             std::future<ActivationResult>
             DeviceActivation::checkActivationAsync(const std::string& mac, const std::string& uuid)
             {
@@ -500,10 +446,6 @@ namespace app
                 return std::async(std::launch::async, [this, mac, uuid]()
                                   { return pImpl_->checkActivationInternal(mac, uuid); });
             }
-
-            // ========================================================================
-            // 轮询接口
-            // ========================================================================
 
             bool DeviceActivation::startPolling(const std::string& mac, const std::string& uuid,
                                                 int timeout_sec)
@@ -544,10 +486,6 @@ namespace app
                 return pImpl_->getLastResult();
             }
 
-            // ========================================================================
-            // 回调设置
-            // ========================================================================
-
             void DeviceActivation::setStatusCallback(ActivationStatusCallback callback)
             {
                 std::lock_guard<std::mutex> lock(pImpl_->callback_mutex);
@@ -566,10 +504,6 @@ namespace app
                 pImpl_->error_callback = std::move(callback);
             }
 
-            // ========================================================================
-            // 配置管理
-            // ========================================================================
-
             const ActivationConfig& DeviceActivation::getConfig() const
             {
                 return pImpl_->config;
@@ -584,13 +518,8 @@ namespace app
                 }
 
                 pImpl_->config = config;
-                LOG_INFO(LOG_TAG, "配置已更新");
                 return true;
             }
-
-            // ========================================================================
-            // 统计信息
-            // ========================================================================
 
             void DeviceActivation::getStats(Stats& out_stats) const
             {
@@ -614,8 +543,6 @@ namespace app
                 pImpl_->stats.retry_count.store(0);
                 pImpl_->stats.total_check_time_us.store(0);
                 pImpl_->stats.avg_check_time_us.store(0);
-
-                LOG_INFO(LOG_TAG, "统计信息已重置");
             }
 
             void DeviceActivation::logStats() const
@@ -627,32 +554,16 @@ namespace app
                 uint64_t parse_err   = pImpl_->stats.parse_errors.load();
                 uint64_t retries     = pImpl_->stats.retry_count.load();
 
-                LOG_INFO(LOG_TAG, "=== 设备激活统计 ===");
-                LOG_INFO(LOG_TAG, "  检查次数:     %llu", total);
-                LOG_INFO(LOG_TAG, "  成功:         %llu", success);
-                LOG_INFO(LOG_TAG, "  失败:         %llu", failed);
-                LOG_INFO(LOG_TAG, "  网络错误:     %llu", network_err);
-                LOG_INFO(LOG_TAG, "  解析错误:     %llu", parse_err);
-                LOG_INFO(LOG_TAG, "  重试次数:     %llu", retries);
+                LOG_INFO(LOG_TAG, "统计 检查=%llu 成功=%llu 失败=%llu 网络=%llu 解析=%llu 重试=%llu",
+                         total, success, failed, network_err, parse_err, retries);
 
                 if (total > 0)
                 {
-                    uint64_t avg_time = pImpl_->stats.avg_check_time_us.load();
-                    LOG_INFO(LOG_TAG, "  平均耗时:     %llu ms", avg_time / 1000);
-
-                    double success_rate = (double)success / total * 100.0;
-                    LOG_INFO(LOG_TAG, "  成功率:       %.2f%%", success_rate);
-
-                    if (success_rate < SUCCESS_RATE_WARNING_THRESHOLD)
-                    {
-                        LOG_WARN(LOG_TAG, "成功率偏低，请检查网络稳定性");
-                    }
+                    double sr = (double)success / total * 100.0;
+                    if (sr < SUCCESS_RATE_WARNING_THRESHOLD)
+                        LOG_WARN(LOG_TAG, "成功率 %.1f%%", sr);
                 }
             }
-
-            // ========================================================================
-            // 工具函数
-            // ========================================================================
 
             std::string DeviceActivation::statusToString(ActivationStatus status)
             {

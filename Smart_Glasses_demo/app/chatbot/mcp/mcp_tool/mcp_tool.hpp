@@ -1,141 +1,51 @@
-/**
- * @file mcp_tool.hpp
- * @brief MCP工具注册管理
- */
+/* mcp_tool.hpp - MCP 工具注册 */
 
-#ifndef MCP_TOOL_HPP
-#define MCP_TOOL_HPP
+#pragma once
 
-// 前向声明
-namespace app
+#include <functional>
+#include <string>
+
+namespace app::chatbot::mcp
 {
-    namespace media
-    {
-        namespace audio
-        {
-            class AudioSystem;
-        }
-        namespace camera
-        {
-            class VideoSystem;
-        }
-    } // namespace media
-    namespace network
-    {
-        namespace wifi
-        {
-            class WifiManager;
-        }
-    } // namespace network
-    namespace protocol
-    {
-        namespace webrtc
-        {
-            class Signaling;
-            class WebRTCSystem;
-        } // namespace webrtc
-    }     // namespace protocol
-    namespace chatbot
-    {
-        class ChatbotSystem;
-    }
-} // namespace app
+    class McpServer;
+}
 
-namespace app
+namespace app::chatbot::mcp::mcp_tool
 {
-    namespace chatbot
+
+    /*============================================================================
+     * 媒体能力回调（可选，空则跳过对应工具）
+     *============================================================================*/
+
+    struct MediaHandles
     {
-        namespace mcp
-        {
+        /* 音频 */
+        std::function<void(int)> set_volume;
+        std::function<int()>     get_volume;
 
-            class McpServer;
+        /* 相机 - AI 识图 */
+        std::function<void(const std::string&, const std::string&)> set_explain_url;
+        std::function<std::string(const std::string&)>              explain_image;
 
-            namespace mcp_tool
-            {
+        /* 相机 - 拍照 */
+        std::function<bool(const std::string&, std::function<void(bool)>)> save_photo;
 
-                /**
-                 * @brief MCP工具管理器
-                 */
-                class McpToolManager
-                {
-                public:
-                    /**
-                     * @brief 注册所有工具到MCP服务器
-                     * @param mcp_server MCP服务器实例
-                     * @param audio_system 音频系统指针
-                     * @param video_system 视频系统指针
-                     * @param wifi_manager WiFi管理器指针
-                     * @param signaling 信令系统指针
-                     * @param webrtc_system Webrtc系统指针
-                     * @param chatbot_system Chatbot系统指针
-                     * @return 成功注册的工具数量
-                     */
-                    static int
-                    registerAllTools(McpServer&                           mcp_server,
-                                     app::media::audio::AudioSystem*      audio_system   = nullptr,
-                                     app::media::camera::VideoSystem*     video_system   = nullptr,
-                                     app::network::wifi::WifiManager*     wifi_manager   = nullptr,
-                                     app::protocol::webrtc::Signaling*    signaling      = nullptr,
-                                     app::protocol::webrtc::WebRTCSystem* webrtc_system  = nullptr,
-                                     app::chatbot::ChatbotSystem*         chatbot_system = nullptr);
+        /* 相机 - 录像 */
+        std::function<bool(const std::string&, int)> start_record; /* path, duration_sec */
+        std::function<void()>                        stop_record;
+        std::function<bool()>                        is_recording;
 
-                    /**
-                     * @brief 注册系统工具
-                     * @param mcp_server MCP服务器实例
-                     * @return 注册的工具数量
-                     */
-                    static int registerSystemTools(McpServer& mcp_server);
+        /* 相机 - 流控制 */
+        std::function<bool()> is_running;
+        std::function<bool()> start_stream;
+        std::function<void()> stop_stream;
+    };
 
-                    /**
-                     * @brief 注册音频工具
-                     * @param mcp_server MCP服务器实例
-                     * @param audio_system 音频系统指针
-                     * @return 注册的工具数量
-                     */
-                    static int
-                    registerAudioTools(McpServer&                      mcp_server,
-                                       app::media::audio::AudioSystem* audio_system = nullptr);
+    /*============================================================================
+     * 工具注册
+     *============================================================================*/
 
-                    /**
-                     * @brief 注册视频工具
-                     * @param mcp_server MCP服务器实例
-                     * @param video_system 视频系统指针
-                     * @return 注册的工具数量
-                     */
-                    static int
-                    registerVideoTools(McpServer&                       mcp_server,
-                                       app::media::camera::VideoSystem* video_system = nullptr);
+    /* 注册所有工具到 MCP 服务器 */
+    int register_tools(mcp::McpServer& server, const MediaHandles& handles);
 
-                    /**
-                     * @brief 注册Webrtc工具
-                     * @param mcp_server MCP服务器实例
-                     * @param audio_system 音频系统指针
-                     * @param signaling 信令系统指针
-                     * @param webrtc_system Webrtc系统指针
-                     * @param chatbot_system Chatbot系统指针
-                     * @return 注册的工具数量
-                     */
-                    static int registerWebrtcTools(
-                        McpServer&                           mcp_server,
-                        app::media::audio::AudioSystem*      audio_system   = nullptr,
-                        app::protocol::webrtc::Signaling*    signaling      = nullptr,
-                        app::protocol::webrtc::WebRTCSystem* webrtc_system  = nullptr,
-                        app::chatbot::ChatbotSystem*         chatbot_system = nullptr);
-
-                    /**
-                     * @brief 注册网络工具
-                     * @param mcp_server MCP服务器实例
-                     * @param wifi_manager WiFi管理器指针
-                     * @return 注册的工具数量
-                     */
-                    static int
-                    registerNetworkTools(McpServer&                       mcp_server,
-                                         app::network::wifi::WifiManager* wifi_manager = nullptr);
-                };
-
-            } // namespace mcp_tool
-        }     // namespace mcp
-    }         // namespace chatbot
-} // namespace app
-
-#endif // MCP_TOOL_HPP
+} // namespace app::chatbot::mcp::mcp_tool

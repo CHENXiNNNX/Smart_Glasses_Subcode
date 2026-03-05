@@ -1,5 +1,4 @@
-#ifndef _SYNC_HPP
-#define _SYNC_HPP
+#pragma once
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -44,5 +43,3 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-
-#endif // _SYNC_HPP

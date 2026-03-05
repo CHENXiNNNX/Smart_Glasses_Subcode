@@ -1,10 +1,6 @@
-/**
- * @file protocol_handle.hpp
- * @brief xiaozhi AI协议处理模块
- */
+/* protocol_handle.hpp - xiaozhi AI协议处理 */
 
-#ifndef PROTOCOL_HANDLE_HPP
-#define PROTOCOL_HANDLE_HPP
+#pragma once
 
 #include <string>
 #include <vector>
@@ -25,19 +21,9 @@ namespace app
         namespace protocol_handle
         {
 
-            // ============================================================================
-            // 前向声明
-            // ============================================================================
             class ProtocolHandler;
             struct ProtocolMessage;
 
-            // ============================================================================
-            // 消息类型枚举
-            // ============================================================================
-
-            /**
-             * @brief 消息类型
-             */
             enum class MessageType
             {
                 HELLO = 0, // 握手消息
@@ -50,9 +36,6 @@ namespace app
                 UNKNOWN    // 未知类型
             };
 
-            /**
-             * @brief 监听模式
-             */
             enum class ListenMode
             {
                 AUTO = 0, // 自动停止（检测到静音后停止）
@@ -60,18 +43,12 @@ namespace app
                 REALTIME  // 实时模式（需要AEC支持）
             };
 
-            /**
-             * @brief 监听状态
-             */
             enum class ListenState
             {
                 START = 0, // 开始监听
                 STOP       // 停止监听
             };
 
-            /**
-             * @brief TTS状态
-             */
             enum class TTSState
             {
                 START = 0,      // TTS开始
@@ -79,9 +56,6 @@ namespace app
                 STOP            // TTS停止
             };
 
-            /**
-             * @brief LLM情感类型（21种）
-             */
             enum class EmotionType
             {
                 NEUTRAL = 0, // 中性
@@ -107,9 +81,6 @@ namespace app
                 CONFUSED     // 困惑
             };
 
-            /**
-             * @brief 协议错误类型
-             */
             enum class ProtocolError
             {
                 NONE = 0,
@@ -124,13 +95,6 @@ namespace app
                 UNKNOWN             // 未知错误
             };
 
-            // ============================================================================
-            // 消息结构体
-            // ============================================================================
-
-            /**
-             * @brief 音频参数
-             */
             struct AudioParams
             {
                 std::string format;         // 音频格式（opus）
@@ -138,14 +102,11 @@ namespace app
                 int         channels;       // 声道数
                 int         frame_duration; // 帧时长（ms）
 
-                AudioParams() : format("opus"), sample_rate(48000), channels(1), frame_duration(20)
+                AudioParams() : format("opus"), sample_rate(16000), channels(1), frame_duration(20)
                 {
                 }
             };
 
-            /**
-             * @brief Hello消息
-             */
             struct HelloMessage
             {
                 std::string session_id;   // 会话ID
@@ -156,9 +117,6 @@ namespace app
                 HelloMessage() : version(1), transport("websocket") {}
             };
 
-            /**
-             * @brief Listen消息
-             */
             struct ListenMessage
             {
                 std::string session_id; // 会话ID
@@ -168,9 +126,6 @@ namespace app
                 ListenMessage() : state(ListenState::START), mode(ListenMode::AUTO) {}
             };
 
-            /**
-             * @brief STT消息
-             */
             struct STTMessage
             {
                 std::string session_id; // 会话ID
@@ -180,9 +135,6 @@ namespace app
                 STTMessage() : is_final(true) {}
             };
 
-            /**
-             * @brief LLM消息
-             */
             struct LLMMessage
             {
                 std::string session_id; // 会话ID
@@ -193,9 +145,6 @@ namespace app
                 LLMMessage() : emotion(EmotionType::NEUTRAL), is_final(true) {}
             };
 
-            /**
-             * @brief TTS消息
-             */
             struct TTSMessage
             {
                 std::string session_id; // 会话ID
@@ -205,13 +154,6 @@ namespace app
                 TTSMessage() : state(TTSState::START) {}
             };
 
-            // ============================================================================
-            // 协议配置
-            // ============================================================================
-
-            /**
-             * @brief 协议处理器配置
-             */
             struct ProtocolConfig
             {
                 // 协议版本
@@ -219,7 +161,7 @@ namespace app
 
                 // 音频默认参数
                 std::string default_audio_format   = "opus";
-                int         default_sample_rate    = 48000;
+                int         default_sample_rate    = 16000;
                 int         default_channels       = 1;
                 int         default_frame_duration = 20;
 
@@ -240,221 +182,50 @@ namespace app
                 int parse_timeout_ms = 5000; // 解析超时
             };
 
-            // ============================================================================
-            // 回调函数类型
-            // ============================================================================
-
-            /**
-             * @brief Hello消息回调
-             */
-            using HelloCallback = std::function<void(const HelloMessage& msg)>;
-
-            /**
-             * @brief Listen消息回调
-             */
+            using HelloCallback  = std::function<void(const HelloMessage& msg)>;
             using ListenCallback = std::function<void(const ListenMessage& msg)>;
-
-            /**
-             * @brief STT消息回调
-             */
-            using STTCallback = std::function<void(const STTMessage& msg)>;
-
-            /**
-             * @brief LLM消息回调
-             */
-            using LLMCallback = std::function<void(const LLMMessage& msg)>;
-
-            /**
-             * @brief TTS消息回调
-             */
-            using TTSCallback = std::function<void(const TTSMessage& msg)>;
-
-            /**
-             * @brief MCP消息回调（返回响应）
-             */
-            using MCPCallback = std::function<std::string(const std::string& mcp_payload)>;
-
-            /**
-             * @brief 错误消息回调
-             */
-            using ErrorCallback = std::function<void(const std::string& error)>;
-
-            /**
-             * @brief 协议错误回调
-             */
+            using STTCallback    = std::function<void(const STTMessage& msg)>;
+            using LLMCallback    = std::function<void(const LLMMessage& msg)>;
+            using TTSCallback    = std::function<void(const TTSMessage& msg)>;
+            using MCPCallback    = std::function<std::string(const std::string& mcp_payload)>;
+            using ErrorCallback  = std::function<void(const std::string& error)>;
             using ProtocolErrorCallback =
                 std::function<void(ProtocolError error, const std::string& detail)>;
 
-            // ============================================================================
-            // 协议处理器类
-            // ============================================================================
-
-            /**
-             * @brief xiaozhi协议处理器
-             */
             class ProtocolHandler
             {
             public:
-                /**
-                 * @brief 构造函数
-                 * @param config 协议配置
-                 */
                 explicit ProtocolHandler(const ProtocolConfig& config = ProtocolConfig());
-
-                /**
-                 * @brief 析构函数
-                 */
                 ~ProtocolHandler();
 
-                // ========================================================================
-                // 消息解析（接收方向）
-                // ========================================================================
-
-                /**
-                 * @brief 解析JSON消息
-                 * @param buffer 消息缓冲区
-                 * @param size 消息大小
-                 * @return ProtocolError::NONE 成功
-                 */
                 ProtocolError parseMessage(const char* buffer, size_t size);
+                MessageType   parseMessageSync(const std::string& json_str);
 
-                /**
-                 * @brief 解析JSON消息（同步）
-                 * @param json_str JSON字符串
-                 * @return MessageType 消息类型
-                 */
-                MessageType parseMessageSync(const std::string& json_str);
-
-                // ========================================================================
-                // 消息生成（发送方向）
-                // ========================================================================
-
-                /**
-                 * @brief 生成Hello消息
-                 * @param sample_rate 采样率
-                 * @param channels 声道数
-                 * @param frame_duration 帧时长
-                 * @return JSON字符串
-                 */
                 std::string generateHelloMessage(int sample_rate = -1, int channels = -1,
                                                  int frame_duration = -1);
-
-                /**
-                 * @brief 生成Listen消息
-                 * @param state 监听状态
-                 * @param mode 监听模式
-                 * @return JSON字符串
-                 */
                 std::string generateListenMessage(ListenState state,
                                                   ListenMode  mode = ListenMode::AUTO);
 
-                // ========================================================================
-                // 回调设置
-                // ========================================================================
-
-                /**
-                 * @brief 设置Hello消息回调
-                 */
                 void setHelloCallback(HelloCallback callback);
-
-                /**
-                 * @brief 设置Listen消息回调
-                 */
                 void setListenCallback(ListenCallback callback);
-
-                /**
-                 * @brief 设置STT消息回调
-                 */
                 void setSTTCallback(STTCallback callback);
-
-                /**
-                 * @brief 设置LLM消息回调
-                 */
                 void setLLMCallback(LLMCallback callback);
-
-                /**
-                 * @brief 设置TTS消息回调
-                 */
                 void setTTSCallback(TTSCallback callback);
-
-                /**
-                 * @brief 设置MCP消息回调
-                 */
                 void setMCPCallback(MCPCallback callback);
-
-                /**
-                 * @brief 设置错误消息回调
-                 */
                 void setErrorCallback(ErrorCallback callback);
-
-                /**
-                 * @brief 设置协议错误回调
-                 */
                 void setProtocolErrorCallback(ProtocolErrorCallback callback);
 
-                // ========================================================================
-                // 会话管理
-                // ========================================================================
-
-                /**
-                 * @brief 设置会话ID
-                 * @param session_id 会话ID
-                 */
-                void setSessionId(const std::string& session_id);
-
-                /**
-                 * @brief 获取会话ID
-                 * @return 当前会话ID
-                 */
+                void        setSessionId(const std::string& session_id);
                 std::string getSessionId() const;
+                bool        hasActiveSession() const;
 
-                /**
-                 * @brief 检查是否有活跃会话
-                 * @return true 有会话
-                 */
-                bool hasActiveSession() const;
-
-                // ========================================================================
-                // 工具函数
-                // ========================================================================
-
-                /**
-                 * @brief 字符串转消息类型
-                 */
                 static MessageType stringToMessageType(const std::string& type_str);
-
-                /**
-                 * @brief 消息类型转字符串
-                 */
                 static std::string messageTypeToString(MessageType type);
-
-                /**
-                 * @brief 字符串转情感类型
-                 */
                 static EmotionType stringToEmotionType(const std::string& emotion_str);
-
-                /**
-                 * @brief 情感类型转字符串
-                 */
                 static std::string emotionTypeToString(EmotionType emotion);
-
-                /**
-                 * @brief 字符串转监听模式
-                 */
-                static ListenMode stringToListenMode(const std::string& mode_str);
-
-                /**
-                 * @brief 监听模式转字符串
-                 */
+                static ListenMode  stringToListenMode(const std::string& mode_str);
                 static std::string listenModeToString(ListenMode mode);
 
-                // ========================================================================
-                // 统计信息
-                // ========================================================================
-
-                /**
-                 * @brief 协议处理器统计信息
-                 */
                 struct Stats
                 {
                     std::atomic<uint64_t> messages_parsed{0};     // 总解析消息数
@@ -476,20 +247,8 @@ namespace app
                     std::atomic<uint64_t> avg_parse_time_us{0};   // 平均解析时间
                 };
 
-                /**
-                 * @brief 获取统计信息
-                 * @param out_stats 输出统计信息
-                 */
                 void getStats(Stats& out_stats) const;
-
-                /**
-                 * @brief 重置统计信息
-                 */
                 void resetStats();
-
-                /**
-                 * @brief 输出统计日志
-                 */
                 void logStats() const;
 
                 // 禁止拷贝和赋值
@@ -504,5 +263,3 @@ namespace app
         } // namespace protocol_handle
     }     // namespace chatbot
 } // namespace app
-
-#endif // PROTOCOL_HANDLE_HPP

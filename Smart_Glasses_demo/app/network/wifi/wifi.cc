@@ -1,7 +1,4 @@
-/**
- * @file wifi.cc
- * @brief Linux WiFi管理模块实现
- */
+/* wifi.cc - WiFi管理 */
 
 #include "wifi.hpp"
 #include "../../tool/log/log.hpp"
@@ -29,10 +26,6 @@ namespace app
 
             using namespace app::tool::log;
 
-            // ============================================================================
-            // 常量定义
-            // ============================================================================
-
             static constexpr const char* LOG_TAG                 = "WiFi";
             static constexpr std::size_t COMMAND_BUFFER_SIZE     = 4096;
             static constexpr int         RSSI_STRONG_THRESHOLD   = -50;
@@ -58,13 +51,6 @@ namespace app
             static constexpr std::size_t INET_PREFIX_LENGTH = 5; // "inet " 长度
             static constexpr std::size_t RSSI_PREFIX_LENGTH = 5; // "RSSI=" 长度
 
-            // ============================================================================
-            // 辅助函数
-            // ============================================================================
-
-            /**
-             * @brief 去除字符串首尾空白
-             */
             static std::string trim(const std::string& str)
             {
                 const char* whitespace = " \t\n\r\f\v";
@@ -77,9 +63,6 @@ namespace app
                 return str.substr(start, end - start + 1);
             }
 
-            /**
-             * @brief 执行shell命令并获取输出
-             */
             static std::string executeCommand(const std::string& cmd)
             {
                 char        buffer[COMMAND_BUFFER_SIZE];
@@ -88,7 +71,7 @@ namespace app
                 FILE* pipe = popen(cmd.c_str(), "r");
                 if (!pipe)
                 {
-                    LOG_ERROR(LOG_TAG, "Failed to execute command: %s", cmd.c_str());
+                    LOG_ERROR(LOG_TAG, "执行命令失败: %s", cmd.c_str());
                     return "";
                 }
 
@@ -101,9 +84,6 @@ namespace app
                 return result;
             }
 
-            /**
-             * @brief 执行wpa_cli命令
-             */
             static std::string
             executeWpaCli(const std::string& cmd,
                           const std::string& interface = WifiConfig::INTERFACE_NAME)
@@ -112,18 +92,12 @@ namespace app
                 return executeCommand(full_cmd);
             }
 
-            /**
-             * @brief 检查wpa_cli命令是否成功
-             */
             static bool isWpaCommandSuccess(const std::string& output)
             {
                 std::string trimmed = trim(output);
                 return trimmed == "OK" || trimmed.find("OK") == 0;
             }
 
-            /**
-             * @brief 解析信号强度（dBm转百分比）
-             */
             static int signalToPercent(int dbm)
             {
                 if (dbm >= RSSI_STRONG_THRESHOLD)
@@ -137,9 +111,6 @@ namespace app
                 return RSSI_PERCENT_FACTOR * (dbm - RSSI_WEAK_THRESHOLD);
             }
 
-            /**
-             * @brief 解析频率获取信道号
-             */
             static int frequencyToChannel(int freq)
             {
                 if (freq >= CHANNEL_2G_LOWER_FREQ && freq <= CHANNEL_2G_UPPER_FREQ)
@@ -153,9 +124,6 @@ namespace app
                 return 0;
             }
 
-            /**
-             * @brief 解析加密类型字符串
-             */
             static WifiSecurity parseSecurityType(const std::string& flags)
             {
                 if (flags.find("WPA3") != std::string::npos)
@@ -181,10 +149,6 @@ namespace app
                 }
                 return WifiSecurity::UNKNOWN;
             }
-
-            // ============================================================================
-            // wifiManager::Impl 实现类
-            // ============================================================================
 
             class WifiManager::Impl
             {
@@ -325,10 +289,6 @@ namespace app
                 std::condition_variable cv_;
             };
 
-            // ============================================================================
-            // Impl 构造和析构
-            // ============================================================================
-
             WifiManager::Impl::Impl(const WifiConfig& config)
                 : config_(config), current_state_(WifiState::UNKNOWN), initialized_(false),
                   shutdown_requested_(false), auto_scan_running_(false),
@@ -343,21 +303,17 @@ namespace app
                 deinit();
             }
 
-            // ============================================================================
-            // 初始化和关闭
-            // ============================================================================
-
             WifiError WifiManager::Impl::init()
             {
                 std::lock_guard<std::mutex> lock(mutex_);
 
                 if (initialized_)
                 {
-                    LOG_WARN(LOG_TAG, "WiFi manager already initialized");
+                    LOG_WARN(LOG_TAG, "WiFi 已初始化");
                     return WifiError::NONE;
                 }
 
-                LOG_INFO(LOG_TAG, "Initializing WiFi manager...");
+                LOG_INFO(LOG_TAG, "启动");
 
                 // 检查前置条件
                 WifiError err = checkPrerequisites();
@@ -393,8 +349,7 @@ namespace app
                         {
                             // IP地址已获取，完全连接
                             current_state_ = WifiState::CONNECTED;
-                            LOG_INFO(LOG_TAG, "Already connected to: %s (IP: %s)", ssid.c_str(),
-                                     ip.c_str());
+                            LOG_INFO(LOG_TAG, "已连接: %s (IP: %s)", ssid.c_str(), ip.c_str());
                         }
                         else
                         {
@@ -417,7 +372,7 @@ namespace app
                                 if (!ip.empty())
                                 {
                                     updateState(WifiState::CONNECTED);
-                                    LOG_INFO(LOG_TAG, "IP address obtained: %s", ip.c_str());
+                                    LOG_INFO(LOG_TAG, "IP: %s", ip.c_str());
                                     break;
                                 }
 
@@ -442,7 +397,7 @@ namespace app
                     {
                         // WiFi未完全连接
                         current_state_ = WifiState::DISCONNECTED;
-                        LOG_INFO(LOG_TAG, "WiFi not fully connected, state: %s", status.c_str());
+                        LOG_INFO(LOG_TAG, "WiFi 未完全连接 状态: %s", status.c_str());
                     }
                 }
                 else
@@ -451,27 +406,25 @@ namespace app
                 }
 
                 initialized_ = true;
-                LOG_INFO(LOG_TAG, "WiFi manager initialized successfully. State: %s",
-                         wifiStateToString(current_state_));
+                LOG_INFO(LOG_TAG, "就绪 状态: %s", wifiStateToString(current_state_));
 
                 // 自动连接已保存WiFi
                 if (config_.auto_connect_on_init && current_state_ != WifiState::CONNECTED)
                 {
-                    LOG_INFO(LOG_TAG, "Auto-connect on init enabled, attempting to connect...");
+                    LOG_INFO(LOG_TAG, "自动连接中");
 
                     for (int attempt = 0; attempt < config_.auto_connect_max_attempts; ++attempt)
                     {
                         if (connectSavedNetwork() == WifiError::NONE)
                         {
                             stats_.auto_connects++;
-                            LOG_INFO(LOG_TAG, "Auto-connect succeeded on attempt %d", attempt + 1);
+                            LOG_INFO(LOG_TAG, "自动连接成功 %d", attempt + 1);
                             break;
                         }
 
                         if (attempt < config_.auto_connect_max_attempts - 1)
                         {
-                            LOG_WARN(LOG_TAG, "Auto-connect attempt %d failed, retrying...",
-                                     attempt + 1);
+                            LOG_WARN(LOG_TAG, "自动连接失败 %d 重试", attempt + 1);
                             std::this_thread::sleep_for(
                                 std::chrono::seconds(config_.reconnect_delay_sec));
                         }
@@ -483,7 +436,7 @@ namespace app
 
             void WifiManager::Impl::deinit()
             {
-                LOG_INFO(LOG_TAG, "Shutting down WiFi manager...");
+                LOG_INFO(LOG_TAG, "关闭");
 
                 shutdown_requested_ = true;
 
@@ -507,12 +460,8 @@ namespace app
                 }
 
                 initialized_ = false;
-                LOG_INFO(LOG_TAG, "WiFi manager shut down");
+                LOG_INFO(LOG_TAG, "已关闭");
             }
-
-            // ============================================================================
-            // 前置条件检查
-            // ============================================================================
 
             WifiError WifiManager::Impl::checkPrerequisites()
             {
@@ -520,7 +469,7 @@ namespace app
                 std::string result = executeCommand("which wpa_cli 2>/dev/null");
                 if (result.empty() || result.find("wpa_cli") == std::string::npos)
                 {
-                    LOG_ERROR(LOG_TAG, "wpa_cli not found. Please install wpa_supplicant.");
+                    LOG_ERROR(LOG_TAG, "wpa_cli 未找到，请安装 wpa_supplicant");
                     return WifiError::WPA_SUPPLICANT_NOT_FOUND;
                 }
 
@@ -529,28 +478,27 @@ namespace app
                                         " 2>&1");
                 if (result.find("does not exist") != std::string::npos)
                 {
-                    LOG_ERROR(LOG_TAG, "Interface %s not found", WifiConfig::INTERFACE_NAME);
+                    LOG_ERROR(LOG_TAG, "接口 %s 未找到", WifiConfig::INTERFACE_NAME);
                     return WifiError::INTERFACE_NOT_FOUND;
                 }
 
-                LOG_INFO(LOG_TAG, "Interface %s found", WifiConfig::INTERFACE_NAME);
+                LOG_INFO(LOG_TAG, "接口 %s 就绪", WifiConfig::INTERFACE_NAME);
                 return WifiError::NONE;
             }
 
             WifiError WifiManager::Impl::ensureInterfaceUp()
             {
-                LOG_INFO(LOG_TAG, "Checking interface status...");
+                LOG_DEBUG(LOG_TAG, "检查接口状态");
 
                 // 检查接口是否UP
                 if (isInterfaceUp())
                 {
-                    LOG_INFO(LOG_TAG, "Interface %s is already UP", WifiConfig::INTERFACE_NAME);
+                    LOG_DEBUG(LOG_TAG, "接口 %s 已 UP", WifiConfig::INTERFACE_NAME);
                     return WifiError::NONE;
                 }
 
                 // 接口未UP，尝试打开
-                LOG_INFO(LOG_TAG, "Interface %s is DOWN, bringing it UP...",
-                         WifiConfig::INTERFACE_NAME);
+                LOG_INFO(LOG_TAG, "接口 %s 启动中", WifiConfig::INTERFACE_NAME);
                 std::string cmd =
                     "ip link set " + std::string(WifiConfig::INTERFACE_NAME) + " up 2>&1";
                 std::string result = executeCommand(cmd);
@@ -563,7 +511,7 @@ namespace app
                 {
                     if (isInterfaceUp())
                     {
-                        LOG_INFO(LOG_TAG, "Interface %s is now UP", WifiConfig::INTERFACE_NAME);
+                        LOG_INFO(LOG_TAG, "接口 %s 已 UP", WifiConfig::INTERFACE_NAME);
                         return WifiError::NONE;
                     }
 
@@ -573,7 +521,7 @@ namespace app
 
                     if (elapsed >= config_.interface_up_timeout_ms)
                     {
-                        LOG_ERROR(LOG_TAG, "Timeout waiting for interface to come UP");
+                        LOG_ERROR(LOG_TAG, "接口启动超时");
                         return WifiError::INTERFACE_NOT_UP;
                     }
 
@@ -606,11 +554,11 @@ namespace app
 
                 if (result.find("wpa_state") != std::string::npos)
                 {
-                    LOG_INFO(LOG_TAG, "wpa_supplicant is running");
+                    LOG_DEBUG(LOG_TAG, "wpa_supplicant 运行中");
                     return WifiError::NONE;
                 }
 
-                LOG_WARN(LOG_TAG, "wpa_supplicant not running, attempting to start...");
+                LOG_WARN(LOG_TAG, "wpa_supplicant 未运行，尝试启动");
 
                 // 尝试启动wpa_supplicant
                 std::string cmd = "wpa_supplicant -B -i " +
@@ -625,24 +573,20 @@ namespace app
                 result = executeWpaCli("status");
                 if (result.find("wpa_state") != std::string::npos)
                 {
-                    LOG_INFO(LOG_TAG, "wpa_supplicant started successfully");
+                    LOG_INFO(LOG_TAG, "wpa_supplicant 已启动");
                     return WifiError::NONE;
                 }
 
-                LOG_ERROR(LOG_TAG, "Failed to start wpa_supplicant: %s", result.c_str());
+                LOG_ERROR(LOG_TAG, "wpa_supplicant 启动失败: %s", result.c_str());
                 return WifiError::WPA_SUPPLICANT_NOT_RUNNING;
             }
-
-            // ============================================================================
-            // 扫描功能
-            // ============================================================================
 
             WifiError WifiManager::Impl::scanNetworks(const WifiScanCallback& callback,
                                                       std::vector<WifiInfo>*  networks)
             {
                 if (!initialized_)
                 {
-                    LOG_ERROR(LOG_TAG, "WiFi manager not initialized");
+                    LOG_ERROR(LOG_TAG, "WiFi 未初始化");
                     return WifiError::INITIALIZATION_FAILED;
                 }
 
@@ -662,7 +606,7 @@ namespace app
                             }
                             else
                             {
-                                notifyError(err, "Scan failed");
+                                notifyError(err, "扫描失败");
                                 callback_copy(results); // 返回空列表
                             }
                         })
@@ -674,7 +618,7 @@ namespace app
                 // 同步模式
                 if (!networks)
                 {
-                    LOG_ERROR(LOG_TAG, "networks parameter cannot be null in sync mode");
+                    LOG_ERROR(LOG_TAG, "同步模式下 networks 不能为空");
                     return WifiError::UNKNOWN;
                 }
 
@@ -683,7 +627,7 @@ namespace app
 
             WifiError WifiManager::Impl::scanNetworksInternal(std::vector<WifiInfo>& networks)
             {
-                LOG_INFO(LOG_TAG, "Starting network scan...");
+                LOG_DEBUG(LOG_TAG, "扫描中");
                 updateState(WifiState::SCANNING);
 
                 stats_.scans_performed++;
@@ -692,7 +636,7 @@ namespace app
                 std::string result = executeWpaCli("scan");
                 if (!isWpaCommandSuccess(result))
                 {
-                    LOG_ERROR(LOG_TAG, "Failed to start scan: %s", result.c_str());
+                    LOG_ERROR(LOG_TAG, "扫描启动失败: %s", result.c_str());
                     updateState(WifiState::DISCONNECTED);
                     return WifiError::SCAN_FAILED;
                 }
@@ -765,7 +709,7 @@ namespace app
                           [](const WifiInfo& a, const WifiInfo& b)
                           { return a.signal_strength > b.signal_strength; });
 
-                LOG_INFO(LOG_TAG, "Scan complete, found %zu unique networks", networks.size());
+                LOG_INFO(LOG_TAG, "扫描完成 %zu 个网络", networks.size());
 
                 // 恢复之前的状态（通过实际查询wpa_supplicant状态）
                 std::string status = executeWpaCli("status");
@@ -790,8 +734,7 @@ namespace app
 
                 if (enabled)
                 {
-                    LOG_INFO(LOG_TAG, "Starting auto-scan (interval: %d seconds)",
-                             config_.timed_scan_sec);
+                    LOG_DEBUG(LOG_TAG, "自动扫描 间隔 %d 秒", config_.timed_scan_sec);
                     auto_scan_running_ = true;
 
                     auto_scan_thread_ =
@@ -799,7 +742,7 @@ namespace app
                 }
                 else
                 {
-                    LOG_INFO(LOG_TAG, "Stopping auto-scan");
+                    LOG_DEBUG(LOG_TAG, "停止自动扫描");
                     auto_scan_running_ = false;
                     cv_.notify_all();
 
@@ -813,7 +756,7 @@ namespace app
 
             void WifiManager::Impl::autoScanThread()
             {
-                LOG_DEBUG(LOG_TAG, "Auto-scan thread started");
+                LOG_DEBUG(LOG_TAG, "自动扫描线程已启动");
 
                 while (auto_scan_running_ && !shutdown_requested_)
                 {
@@ -826,12 +769,8 @@ namespace app
                                  [this]() { return !auto_scan_running_ || shutdown_requested_; });
                 }
 
-                LOG_DEBUG(LOG_TAG, "Auto-scan thread stopped");
+                LOG_DEBUG(LOG_TAG, "自动扫描线程已停止");
             }
-
-            // ============================================================================
-            // 连接功能
-            // ============================================================================
 
             WifiError WifiManager::Impl::connect(const std::string&         ssid,
                                                  const std::string&         password,
@@ -839,7 +778,7 @@ namespace app
             {
                 if (!initialized_)
                 {
-                    LOG_ERROR(LOG_TAG, "WiFi manager not initialized");
+                    LOG_ERROR(LOG_TAG, "WiFi 未初始化");
                     return WifiError::INITIALIZATION_FAILED;
                 }
 
@@ -873,7 +812,7 @@ namespace app
             WifiError WifiManager::Impl::connectInternal(const std::string& ssid,
                                                          const std::string& password)
             {
-                LOG_INFO(LOG_TAG, "Connecting to: %s", ssid.c_str());
+                LOG_INFO(LOG_TAG, "连接: %s", ssid.c_str());
 
                 stats_.connections_attempted++;
 
@@ -883,14 +822,14 @@ namespace app
                     std::string current_ssid = getCurrentSSIDInternal();
                     if (!current_ssid.empty() && current_ssid == ssid)
                     {
-                        LOG_INFO(LOG_TAG, "Already connected to %s", ssid.c_str());
+                        LOG_INFO(LOG_TAG, "已连接 %s", ssid.c_str());
                         return WifiError::ALREADY_CONNECTED;
                     }
 
                     // 如果已连接到其他WiFi，先断开
                     if (!current_ssid.empty())
                     {
-                        LOG_INFO(LOG_TAG, "Disconnecting from %s", current_ssid.c_str());
+                        LOG_INFO(LOG_TAG, "断开 %s", current_ssid.c_str());
                         disconnect();
                     }
                 }
@@ -903,8 +842,7 @@ namespace app
                     int old_net_id = findNetworkIdBySSID(ssid);
                     if (old_net_id >= 0)
                     {
-                        LOG_INFO(LOG_TAG, "Removing old network configuration (ID: %d)",
-                                 old_net_id);
+                        LOG_DEBUG(LOG_TAG, "移除旧配置 ID=%d", old_net_id);
                         std::string remove_cmd = "remove_network " + std::to_string(old_net_id);
                         executeWpaCli(remove_cmd);
                     }
@@ -916,11 +854,11 @@ namespace app
                 try
                 {
                     net_id = std::stoi(trim(output));
-                    LOG_INFO(LOG_TAG, "Created new network with ID: %d", net_id);
+                    LOG_DEBUG(LOG_TAG, "新建网络 ID=%d", net_id);
                 }
                 catch (...)
                 {
-                    LOG_ERROR(LOG_TAG, "Failed to add network: %s", output.c_str());
+                    LOG_ERROR(LOG_TAG, "添加网络失败: %s", output.c_str());
                     updateState(WifiState::FAILED);
                     return WifiError::CONNECTION_FAILED;
                 }
@@ -931,7 +869,7 @@ namespace app
                 output = executeWpaCli(cmd);
                 if (!isWpaCommandSuccess(output))
                 {
-                    LOG_ERROR(LOG_TAG, "Failed to set SSID: %s", output.c_str());
+                    LOG_ERROR(LOG_TAG, "设置 SSID 失败: %s", output.c_str());
                     executeWpaCli("remove_network " + std::to_string(net_id));
                     updateState(WifiState::FAILED);
                     return WifiError::CONNECTION_FAILED;
@@ -950,7 +888,7 @@ namespace app
                 output = executeWpaCli(cmd);
                 if (!isWpaCommandSuccess(output))
                 {
-                    LOG_ERROR(LOG_TAG, "Failed to set password: %s", output.c_str());
+                    LOG_ERROR(LOG_TAG, "设置密码失败: %s", output.c_str());
                     executeWpaCli("remove_network " + std::to_string(net_id));
                     updateState(WifiState::FAILED);
                     stats_.password_errors++;
@@ -962,13 +900,13 @@ namespace app
                 output = executeWpaCli(cmd);
                 if (!isWpaCommandSuccess(output))
                 {
-                    LOG_ERROR(LOG_TAG, "Failed to select network: %s", output.c_str());
+                    LOG_ERROR(LOG_TAG, "选择网络失败: %s", output.c_str());
                     executeWpaCli("remove_network " + std::to_string(net_id));
                     updateState(WifiState::FAILED);
                     return WifiError::CONNECTION_FAILED;
                 }
 
-                LOG_INFO(LOG_TAG, "Waiting for connection...");
+                LOG_DEBUG(LOG_TAG, "等待连接");
 
                 // 等待连接成功
                 auto start              = std::chrono::steady_clock::now();
@@ -982,7 +920,7 @@ namespace app
                     if (status.find("wpa_state=COMPLETED") != std::string::npos)
                     {
                         updateState(WifiState::OBTAINING_IP);
-                        LOG_INFO(LOG_TAG, "Obtaining IP address...");
+                        LOG_DEBUG(LOG_TAG, "获取 IP");
 
                         // 获取IP地址（使用udhcpc）
                         std::string dhcp_cmd = "udhcpc -i " +
@@ -1002,10 +940,10 @@ namespace app
                                 saveCurrentNetwork();
                             }
 
-                            LOG_INFO(LOG_TAG, "Connected successfully. IP: %s", ip.c_str());
+                            LOG_INFO(LOG_TAG, "已连接 IP: %s", ip.c_str());
                             return WifiError::NONE;
                         }
-                        LOG_ERROR(LOG_TAG, "DHCP failed: %s", dhcp_result.c_str());
+                        LOG_ERROR(LOG_TAG, "DHCP 失败: %s", dhcp_result.c_str());
                         executeWpaCli("remove_network " + std::to_string(net_id));
                         updateState(WifiState::FAILED);
                         return WifiError::DHCP_FAILED;
@@ -1018,7 +956,7 @@ namespace app
                         disconnected_count++;
                         if (disconnected_count >= PASSWORD_FAIL_THRESHOLD)
                         {
-                            LOG_ERROR(LOG_TAG, "Authentication failed (wrong password?)");
+                            LOG_ERROR(LOG_TAG, "认证失败（密码错误?）");
                             executeWpaCli("remove_network " + std::to_string(net_id));
                             updateState(WifiState::FAILED);
                             stats_.password_errors++;
@@ -1037,7 +975,7 @@ namespace app
 
                     if (elapsed >= config_.connect_timeout_ms)
                     {
-                        LOG_ERROR(LOG_TAG, "Connection timeout");
+                        LOG_ERROR(LOG_TAG, "连接超时");
                         executeWpaCli("remove_network " + std::to_string(net_id));
                         updateState(WifiState::FAILED);
                         return WifiError::TIMEOUT;
@@ -1049,13 +987,13 @@ namespace app
 
             WifiError WifiManager::Impl::connectSavedNetwork()
             {
-                LOG_INFO(LOG_TAG, "Connecting to saved network...");
+                LOG_INFO(LOG_TAG, "连接已保存网络");
 
                 // 获取已保存的网络列表
                 std::vector<SavedNetworkInfo> saved = getSavedNetworks();
                 if (saved.empty())
                 {
-                    LOG_WARN(LOG_TAG, "No saved networks found");
+                    LOG_WARN(LOG_TAG, "无已保存网络");
                     return WifiError::NETWORK_NOT_FOUND;
                 }
 
@@ -1102,7 +1040,7 @@ namespace app
 
                 if (candidates.empty())
                 {
-                    LOG_WARN(LOG_TAG, "No suitable saved networks in range");
+                    LOG_WARN(LOG_TAG, "范围内无可用已保存网络");
                     return WifiError::NETWORK_NOT_FOUND;
                 }
 
@@ -1119,14 +1057,14 @@ namespace app
 
                 // 尝试连接最佳候选
                 const auto& best = candidates[0];
-                LOG_INFO(LOG_TAG, "Selected best network: %s (priority=%d, signal=%d%%)",
-                         best.ssid.c_str(), best.priority, best.signal);
+                LOG_INFO(LOG_TAG, "选择网络: %s 优先级=%d 信号=%d%%", best.ssid.c_str(),
+                         best.priority, best.signal);
 
                 // 使用wpa_cli重新连接
                 int net_id = findNetworkIdBySSID(best.ssid);
                 if (net_id < 0)
                 {
-                    LOG_ERROR(LOG_TAG, "Network ID not found for %s", best.ssid.c_str());
+                    LOG_ERROR(LOG_TAG, "网络 %s 未找到", best.ssid.c_str());
                     return WifiError::NETWORK_NOT_FOUND;
                 }
 
@@ -1140,7 +1078,7 @@ namespace app
 
                 if (!isWpaCommandSuccess(output))
                 {
-                    LOG_ERROR(LOG_TAG, "Failed to select network: %s", output.c_str());
+                    LOG_ERROR(LOG_TAG, "选择网络失败: %s", output.c_str());
                     return WifiError::CONNECTION_FAILED;
                 }
 
@@ -1166,8 +1104,7 @@ namespace app
                         if (!ip.empty())
                         {
                             updateState(WifiState::CONNECTED);
-                            LOG_INFO(LOG_TAG, "Connected to %s, IP: %s", best.ssid.c_str(),
-                                     ip.c_str());
+                            LOG_INFO(LOG_TAG, "已连接 %s IP: %s", best.ssid.c_str(), ip.c_str());
                             return WifiError::NONE;
                         }
                     }
@@ -1178,7 +1115,7 @@ namespace app
 
                     if (elapsed >= config_.connect_timeout_ms)
                     {
-                        LOG_ERROR(LOG_TAG, "Connection timeout");
+                        LOG_ERROR(LOG_TAG, "连接超时");
                         updateState(WifiState::FAILED);
                         return WifiError::TIMEOUT;
                     }
@@ -1189,13 +1126,13 @@ namespace app
 
             WifiError WifiManager::Impl::disconnect()
             {
-                LOG_INFO(LOG_TAG, "Disconnecting...");
+                LOG_INFO(LOG_TAG, "断开中");
 
                 std::string output = executeWpaCli("disconnect");
 
                 if (!isWpaCommandSuccess(output))
                 {
-                    LOG_ERROR(LOG_TAG, "Failed to disconnect: %s", output.c_str());
+                    LOG_ERROR(LOG_TAG, "断开失败: %s", output.c_str());
                     return WifiError::DISCONNECTION_FAILED;
                 }
 
@@ -1206,13 +1143,13 @@ namespace app
                 updateState(WifiState::DISCONNECTED);
                 stats_.disconnections++;
 
-                LOG_INFO(LOG_TAG, "Disconnected successfully");
+                LOG_INFO(LOG_TAG, "已断开");
                 return WifiError::NONE;
             }
 
             WifiError WifiManager::Impl::reconnect()
             {
-                LOG_INFO(LOG_TAG, "Reconnecting...");
+                LOG_INFO(LOG_TAG, "重连中");
 
                 stats_.reconnects++;
 
@@ -1220,7 +1157,7 @@ namespace app
 
                 if (!isWpaCommandSuccess(output))
                 {
-                    LOG_ERROR(LOG_TAG, "Failed to reconnect: %s", output.c_str());
+                    LOG_ERROR(LOG_TAG, "重连失败: %s", output.c_str());
                     return WifiError::CONNECTION_FAILED;
                 }
 
@@ -1230,41 +1167,37 @@ namespace app
 
                 if (isConnected())
                 {
-                    LOG_INFO(LOG_TAG, "Reconnected successfully");
+                    LOG_INFO(LOG_TAG, "重连成功");
                     return WifiError::NONE;
                 }
-                LOG_ERROR(LOG_TAG, "Reconnection failed");
+                LOG_ERROR(LOG_TAG, "重连失败");
                 return WifiError::CONNECTION_FAILED;
             }
 
-            // ============================================================================
-            // 配置管理
-            // ============================================================================
-
             WifiError WifiManager::Impl::saveCurrentNetwork()
             {
-                LOG_INFO(LOG_TAG, "Saving current network configuration...");
+                LOG_DEBUG(LOG_TAG, "保存配置");
 
                 std::string output = executeWpaCli("save_config");
 
                 if (isWpaCommandSuccess(output))
                 {
                     stats_.config_saves++;
-                    LOG_INFO(LOG_TAG, "Configuration saved successfully");
+                    LOG_INFO(LOG_TAG, "配置已保存");
                     return WifiError::NONE;
                 }
-                LOG_ERROR(LOG_TAG, "Failed to save configuration: %s", output.c_str());
+                LOG_ERROR(LOG_TAG, "保存配置失败: %s", output.c_str());
                 return WifiError::CONFIG_FILE_ERROR;
             }
 
             WifiError WifiManager::Impl::forgetNetwork(const std::string& ssid)
             {
-                LOG_INFO(LOG_TAG, "Forgetting network: %s", ssid.c_str());
+                LOG_DEBUG(LOG_TAG, "忘记网络: %s", ssid.c_str());
 
                 int net_id = findNetworkIdBySSID(ssid);
                 if (net_id < 0)
                 {
-                    LOG_WARN(LOG_TAG, "Network %s not found in saved list", ssid.c_str());
+                    LOG_WARN(LOG_TAG, "网络 %s 未在已保存列表中", ssid.c_str());
                     return WifiError::NETWORK_NOT_FOUND;
                 }
 
@@ -1280,14 +1213,14 @@ namespace app
 
                 if (!isWpaCommandSuccess(output))
                 {
-                    LOG_ERROR(LOG_TAG, "Failed to remove network: %s", output.c_str());
+                    LOG_ERROR(LOG_TAG, "移除网络失败: %s", output.c_str());
                     return WifiError::CONFIG_FILE_ERROR;
                 }
 
                 // 保存配置
                 saveCurrentNetwork();
 
-                LOG_INFO(LOG_TAG, "Network %s removed successfully", ssid.c_str());
+                LOG_INFO(LOG_TAG, "已移除网络 %s", ssid.c_str());
                 return WifiError::NONE;
             }
 
@@ -1398,7 +1331,7 @@ namespace app
                 int net_id = findNetworkIdBySSID(ssid);
                 if (net_id < 0)
                 {
-                    LOG_WARN(LOG_TAG, "Network %s not found", ssid.c_str());
+                    LOG_WARN(LOG_TAG, "网络 %s 未找到", ssid.c_str());
                     return WifiError::NETWORK_NOT_FOUND;
                 }
 
@@ -1408,12 +1341,12 @@ namespace app
 
                 if (!isWpaCommandSuccess(output))
                 {
-                    LOG_ERROR(LOG_TAG, "Failed to set priority: %s", output.c_str());
+                    LOG_ERROR(LOG_TAG, "设置优先级失败: %s", output.c_str());
                     return WifiError::CONFIG_FILE_ERROR;
                 }
 
                 saveCurrentNetwork();
-                LOG_INFO(LOG_TAG, "Priority set to %d for %s", priority, ssid.c_str());
+                LOG_DEBUG(LOG_TAG, "优先级 %d %s", priority, ssid.c_str());
                 return WifiError::NONE;
             }
 
@@ -1423,7 +1356,7 @@ namespace app
                 int net_id = findNetworkIdBySSID(ssid);
                 if (net_id < 0)
                 {
-                    LOG_WARN(LOG_TAG, "Network %s not found", ssid.c_str());
+                    LOG_WARN(LOG_TAG, "网络 %s 未找到", ssid.c_str());
                     return WifiError::NETWORK_NOT_FOUND;
                 }
 
@@ -1433,29 +1366,28 @@ namespace app
 
                 if (!isWpaCommandSuccess(output))
                 {
-                    LOG_ERROR(LOG_TAG, "Failed to %s network: %s", enabled ? "enable" : "disable",
+                    LOG_ERROR(LOG_TAG, "%s 网络失败: %s", enabled ? "启用" : "禁用",
                               output.c_str());
                     return WifiError::CONFIG_FILE_ERROR;
                 }
 
                 saveCurrentNetwork();
-                LOG_INFO(LOG_TAG, "Auto-connect %s for %s", enabled ? "enabled" : "disabled",
-                         ssid.c_str());
+                LOG_DEBUG(LOG_TAG, "自动连接 %s %s", enabled ? "开" : "关", ssid.c_str());
                 return WifiError::NONE;
             }
 
             WifiError WifiManager::Impl::reloadConfig()
             {
-                LOG_INFO(LOG_TAG, "Reloading configuration...");
+                LOG_DEBUG(LOG_TAG, "重载配置");
 
                 std::string output = executeWpaCli("reconfigure");
 
                 if (isWpaCommandSuccess(output))
                 {
-                    LOG_INFO(LOG_TAG, "Configuration reloaded successfully");
+                    LOG_INFO(LOG_TAG, "配置已重载");
                     return WifiError::NONE;
                 }
-                LOG_ERROR(LOG_TAG, "Failed to reload configuration: %s", output.c_str());
+                LOG_ERROR(LOG_TAG, "重载配置失败: %s", output.c_str());
                 return WifiError::CONFIG_FILE_ERROR;
             }
 
@@ -1473,10 +1405,6 @@ namespace app
 
                 return -1;
             }
-
-            // ============================================================================
-            // 状态查询
-            // ============================================================================
 
             bool WifiManager::Impl::getConnectionInfo(WifiConnectionInfo& info) const
             {
@@ -1626,16 +1554,12 @@ namespace app
                 return 0;
             }
 
-            // ============================================================================
-            // 自动重连
-            // ============================================================================
-
             void WifiManager::Impl::setAutoReconnect(bool enabled, const std::string& ssid,
                                                      const std::string& password)
             {
                 if (enabled)
                 {
-                    LOG_INFO(LOG_TAG, "Enabling auto-reconnect...");
+                    LOG_DEBUG(LOG_TAG, "启用自动重连");
 
                     reconnect_ssid_         = ssid.empty() ? getCurrentSSIDInternal() : ssid;
                     reconnect_password_     = password;
@@ -1648,11 +1572,11 @@ namespace app
                             std::make_unique<std::thread>([this]() { autoReconnectThread(); });
                     }
 
-                    LOG_INFO(LOG_TAG, "Auto-reconnect enabled for: %s", reconnect_ssid_.c_str());
+                    LOG_INFO(LOG_TAG, "自动重连已启用: %s", reconnect_ssid_.c_str());
                 }
                 else
                 {
-                    LOG_INFO(LOG_TAG, "Disabling auto-reconnect...");
+                    LOG_DEBUG(LOG_TAG, "禁用自动重连");
 
                     auto_reconnect_enabled_ = false;
                     cv_.notify_all();
@@ -1663,13 +1587,13 @@ namespace app
                     }
                     auto_reconnect_thread_.reset();
 
-                    LOG_INFO(LOG_TAG, "Auto-reconnect disabled");
+                    LOG_INFO(LOG_TAG, "自动重连已禁用");
                 }
             }
 
             void WifiManager::Impl::autoReconnectThread()
             {
-                LOG_DEBUG(LOG_TAG, "Auto-reconnect thread started");
+                LOG_DEBUG(LOG_TAG, "自动重连线程已启动");
 
                 while (auto_reconnect_enabled_ && !shutdown_requested_)
                 {
@@ -1680,14 +1604,14 @@ namespace app
                         if (config_.reconnect_max_attempts > 0 &&
                             reconnect_attempts_ >= config_.reconnect_max_attempts)
                         {
-                            LOG_WARN(LOG_TAG, "Max reconnect attempts (%d) reached",
+                            LOG_WARN(LOG_TAG, "重连次数已达上限 %d",
                                      config_.reconnect_max_attempts);
-                            notifyError(WifiError::TIMEOUT, "Max reconnect attempts reached");
+                            notifyError(WifiError::TIMEOUT, "重连次数已达上限");
                             break;
                         }
 
                         reconnect_attempts_++;
-                        LOG_INFO(LOG_TAG, "Auto-reconnect attempt %d to %s", reconnect_attempts_,
+                        LOG_INFO(LOG_TAG, "自动重连 %d/%s", reconnect_attempts_,
                                  reconnect_ssid_.c_str());
 
                         stats_.auto_reconnects++;
@@ -1701,12 +1625,12 @@ namespace app
 
                         if (err == WifiError::NONE)
                         {
-                            LOG_INFO(LOG_TAG, "Auto-reconnect succeeded");
+                            LOG_INFO(LOG_TAG, "自动重连成功");
                             reconnect_attempts_ = 0; // 重置计数器
                         }
                         else
                         {
-                            LOG_WARN(LOG_TAG, "Auto-reconnect failed: %s", wifiErrorToString(err));
+                            LOG_WARN(LOG_TAG, "自动重连失败: %s", wifiErrorToString(err));
                         }
                     }
                     else if (isConnected())
@@ -1721,12 +1645,8 @@ namespace app
                                  { return !auto_reconnect_enabled_ || shutdown_requested_; });
                 }
 
-                LOG_DEBUG(LOG_TAG, "Auto-reconnect thread stopped");
+                LOG_DEBUG(LOG_TAG, "自动重连线程已停止");
             }
-
-            // ============================================================================
-            // 状态更新和通知
-            // ============================================================================
 
             void WifiManager::Impl::updateState(WifiState new_state)
             {
@@ -1736,7 +1656,7 @@ namespace app
                 {
                     if (config_.enable_detailed_logging)
                     {
-                        LOG_DEBUG(LOG_TAG, "State change: %s -> %s", wifiStateToString(old_state),
+                        LOG_DEBUG(LOG_TAG, "状态: %s -> %s", wifiStateToString(old_state),
                                   wifiStateToString(new_state));
                     }
 
@@ -1752,17 +1672,13 @@ namespace app
                 std::lock_guard<std::mutex> lock(stats_mutex_);
                 stats_.errors++;
 
-                LOG_ERROR(LOG_TAG, "[ERROR] %s: %s", wifiErrorToString(error), message.c_str());
+                LOG_ERROR(LOG_TAG, "错误 %s: %s", wifiErrorToString(error), message.c_str());
 
                 if (error_callback_)
                 {
                     error_callback_(error, message);
                 }
             }
-
-            // ============================================================================
-            // 统计信息
-            // ============================================================================
 
             void WifiManager::Impl::getStats(WifiManager::Stats& stats) const
             {
@@ -1774,12 +1690,8 @@ namespace app
             {
                 std::lock_guard<std::mutex> lock(stats_mutex_);
                 memset(&stats_, 0, sizeof(stats_));
-                LOG_INFO(LOG_TAG, "Statistics reset");
+                LOG_DEBUG(LOG_TAG, "统计已重置");
             }
-
-            // ============================================================================
-            // wifiManager 公共接口实现
-            // ============================================================================
 
             WifiManager::WifiManager(const WifiConfig& config)
                 : pImpl_(std::make_unique<Impl>(config))
@@ -1940,10 +1852,6 @@ namespace app
             {
                 pImpl_->resetStats();
             }
-
-            // ============================================================================
-            // 辅助函数实现
-            // ============================================================================
 
             const char* wifiStateToString(WifiState state)
             {

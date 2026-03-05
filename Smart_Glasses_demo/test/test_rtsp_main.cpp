@@ -1,13 +1,11 @@
-/**
- * @file main.cpp
- * @brief RTSP推流示例程序
- * @details 使用camera模块实现RTSP推流功能
- */
+/* test_rtsp_main.cpp - RTSP 推流测试 */
 
 #include "app/media/camera/camera.hpp"
 #include "app/media/media_config.hpp"
 #include "app/tool/log/log.hpp"
-#include <signal.h>
+
+#include <atomic>
+#include <csignal>
 #include <unistd.h>
 
 using namespace app::media::camera;
@@ -15,109 +13,94 @@ using namespace app::tool::log;
 
 namespace
 {
-    constexpr const char* LOG_TAG            = "MAIN";
-    constexpr int         STATS_INTERVAL_SEC = 5;
+    constexpr const char* LOG_TAG   = "RTSP";
+    constexpr int         STATS_SEC = 5;
     std::atomic<bool>     g_running{true};
-    VideoSystem*          g_video_system = nullptr;
+    CameraDrv*            g_cam = nullptr;
 } // namespace
 
 static void signal_handler(int sig)
 {
-    LOG_INFO(LOG_TAG, "收到信号 %d，准备退出...", sig);
+    (void)sig;
+    LOG_INFO(LOG_TAG, "收到信号，退出");
     g_running.store(false);
-    if (g_video_system)
+    if (g_cam)
     {
-        g_video_system->stopRTSPMode();
-        g_video_system->stopStream();
-        g_video_system->shutdown();
+        g_cam->stop();
+        g_cam->rtsp().stop();
+        g_cam->deinit();
     }
     exit(0);
 }
 
 int main(int argc, char* argv[])
 {
-    // 注册信号处理
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
 
-    LOG_INFO(LOG_TAG, "=== RTSP推流示例程序 ===");
+    Logger::inst().init(LogConfig());
+    LOG_INFO(LOG_TAG, "RTSP 推流测试");
 
-    // 创建视频配置
-    VideoConfig config;
-    config.width   = CAMERA_WIDTH;
-    config.height  = CAMERA_HEIGHT;
-    config.fps     = CAMERA_FPS;
-    config.format  = EncodeFormat::H264;
-    config.bitrate = H264_Default_Bitrate;
-    config.gop     = H264_Default_Gop;
-
-    // 创建视频系统
-    VideoSystem video_system(config);
-    g_video_system = &video_system;
-
-    // 初始化视频系统
-    LOG_INFO(LOG_TAG, "初始化视频系统...");
-    VideoError err = video_system.initialize();
-    if (err != VideoError::NONE)
-    {
-        LOG_ERROR(LOG_TAG, "视频系统初始化失败: %d", static_cast<int>(err));
-        return -1;
-    }
-    LOG_INFO(LOG_TAG, "视频系统初始化成功");
-
-    // 启动RTSP推流
-    int         rtsp_port = RTSP_PORT;
-    std::string rtsp_path = RTSP_PATH;
-
-    // 可以从命令行参数读取端口和路径
+    int         port = RTSP_PORT;
+    std::string path = RTSP_PATH;
     if (argc > 1)
-    {
-        rtsp_port = std::atoi(argv[1]);
-    }
+        port = std::atoi(argv[1]);
     if (argc > 2)
-    {
-        rtsp_path = argv[2];
-    }
+        path = argv[2];
 
-    LOG_INFO(LOG_TAG, "启动RTSP推流: rtsp://<ip>:%d%s", rtsp_port, rtsp_path.c_str());
-    err = video_system.startRTSPMode(rtsp_port, rtsp_path);
-    if (err != VideoError::NONE)
+    CameraCfg cfg;
+    cfg.h264.width   = CAMERA_WIDTH;
+    cfg.h264.height  = CAMERA_HEIGHT;
+    cfg.h264.fps     = CAMERA_FPS;
+    cfg.h264.bitrate = H264_Default_Bitrate;
+    cfg.h264.gop     = H264_Default_Gop;
+    cfg.iq_file_dir  = ISP_PATH;
+    cfg.enable_h264  = true;
+    cfg.enable_jpeg  = false;
+
+    CameraDrv cam;
+    g_cam = &cam;
+
+    if (cam.init(cfg, nullptr) != Error::OK)
     {
-        LOG_ERROR(LOG_TAG, "启动RTSP推流失败: %d", static_cast<int>(err));
-        video_system.shutdown();
+        LOG_ERROR(LOG_TAG, "摄像头初始化失败");
         return -1;
     }
 
-    LOG_INFO(LOG_TAG, "RTSP推流已启动，按Ctrl+C停止");
+    if (cam.rtsp().start(static_cast<uint16_t>(port), path) != Error::OK)
+    {
+        LOG_ERROR(LOG_TAG, "RTSP 启动失败");
+        cam.deinit();
+        return -1;
+    }
 
-    // 主循环 - 定期输出统计信息
+    if (cam.start() != Error::OK)
+    {
+        LOG_ERROR(LOG_TAG, "摄像头启动失败");
+        cam.rtsp().stop();
+        cam.deinit();
+        return -1;
+    }
+
+    LOG_INFO(LOG_TAG, "RTSP 已启动 rtsp://IP:%d%s", port, path.c_str());
+    LOG_INFO(LOG_TAG, "Ctrl+C 停止");
+
     while (g_running.load())
     {
-        sleep(STATS_INTERVAL_SEC);
-
-        if (video_system.isRTSPStreaming())
-        {
-            float              fps = video_system.getCurrentFPS();
-            VideoSystem::Stats stats;
-            video_system.getStats(stats);
-
-            LOG_INFO(LOG_TAG, "RTSP推流中 - FPS: %.2f, 总帧数: %zu, 丢弃帧数: %zu",
-                     static_cast<double>(fps), stats.frames_captured.load(),
-                     stats.frames_dropped.load());
-        }
-        else
-        {
-            LOG_WARN(LOG_TAG, "RTSP推流已停止");
+        sleep(STATS_SEC);
+        if (!cam.is_running())
             break;
-        }
+
+        auto s = cam.stats();
+        LOG_INFO(LOG_TAG, "推流 帧=%u 丢=%u fps=%.1f", s.h264_frames, s.h264_drops,
+                 static_cast<double>(s.h264_fps));
     }
 
-    // 清理资源
-    LOG_INFO(LOG_TAG, "正在停止RTSP推流...");
-    video_system.stopRTSPMode();
-    video_system.stopStream();
-    video_system.shutdown();
+    cam.stop();
+    cam.rtsp().stop();
+    cam.deinit();
+    g_cam = nullptr;
 
-    LOG_INFO(LOG_TAG, "程序退出");
+    LOG_INFO(LOG_TAG, "退出");
     return 0;
 }

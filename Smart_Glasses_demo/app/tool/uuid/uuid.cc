@@ -1,8 +1,4 @@
-/**
- * @file uuid.cc
- * @brief UUID生成和管理工具实现
- * @details 支持UUID持久化存储，确保UUID不重复生成
- */
+/* uuid.cc - UUID生成和管理 */
 
 #include "uuid.hpp"
 #include "log/log.hpp"
@@ -28,10 +24,6 @@ namespace app
                 constexpr const char* LOG_TAG = "UUID";
             } // namespace
 
-            // ============================================================================
-            // 常量定义
-            // ============================================================================
-
             constexpr char                       UUID_SEPARATOR                 = '-';
             constexpr char                       UUID_VERSION_HEX               = '4';
             constexpr int                        UUID_RANDOM_HEX_MIN            = 0;
@@ -49,10 +41,6 @@ namespace app
             constexpr std::array<std::size_t, 5> UUID_SECTION_LENGTHS           = {
                           UUID_SECTION1_HEX_COUNT, UUID_SECTION2_HEX_COUNT, UUID_SECTION2_HEX_COUNT,
                           UUID_SECTION2_HEX_COUNT, UUID_SECTION5_HEX_COUNT};
-
-            // ============================================================================
-            // 内部辅助函数
-            // ============================================================================
 
             static std::string s_generate_random_uuid()
             {
@@ -97,53 +85,39 @@ namespace app
             {
                 std::ifstream file(config_file);
                 if (!file.is_open())
-                {
-                    // 文件不存在或无法打开，返回空字符串
                     return "";
-                }
 
                 std::string line;
                 std::string uuid_value;
 
-                // 逐行读取文件
                 while (std::getline(file, line))
                 {
-                    // 去除前后空格
                     size_t start = line.find_first_not_of(" \t\r\n");
                     size_t end   = line.find_last_not_of(" \t\r\n");
 
                     if (start == std::string::npos)
-                    {
-                        continue; // 空行
-                    }
+                        continue;
 
                     line = line.substr(start, end - start + 1);
 
-                    // 跳过注释行
                     if (line[0] == '#' || line[0] == ';')
                     {
                         continue;
                     }
 
-                    // 查找 uuid = 或 uuid=
                     if (line.find("uuid") == 0)
                     {
                         size_t equal_pos = line.find('=');
                         if (equal_pos != std::string::npos)
                         {
-                            // 提取等号后面的值
-                            std::string value_part = line.substr(equal_pos + 1);
-
-                            // 去除前后空格
-                            size_t value_start = value_part.find_first_not_of(" \t");
-                            size_t value_end   = value_part.find_last_not_of(" \t");
+                            std::string value_part  = line.substr(equal_pos + 1);
+                            size_t      value_start = value_part.find_first_not_of(" \t");
+                            size_t      value_end   = value_part.find_last_not_of(" \t");
 
                             if (value_start != std::string::npos)
                             {
                                 uuid_value =
                                     value_part.substr(value_start, value_end - value_start + 1);
-
-                                // 验证是否为有效UUID
                                 if (isValidUUID(uuid_value))
                                 {
                                     break;
@@ -154,12 +128,6 @@ namespace app
                 }
 
                 file.close();
-
-                if (!uuid_value.empty())
-                {
-                    LOG_INFO(LOG_TAG, "从配置文件中读取UUID: %s", uuid_value.c_str());
-                }
-
                 return uuid_value;
             }
 
@@ -171,19 +139,15 @@ namespace app
                     return false;
                 }
 
-                // 提取目录路径并创建目录（如果不存在）
                 size_t last_slash = config_file.find_last_of('/');
                 if (last_slash != std::string::npos)
                 {
-                    std::string dir_path = config_file.substr(0, last_slash);
-
-                    // 使用 mkdir -p 创建目录（包括父目录）
+                    std::string dir_path  = config_file.substr(0, last_slash);
                     std::string mkdir_cmd = "mkdir -p " + dir_path + " 2>/dev/null";
                     int         ret       = system(mkdir_cmd.c_str());
-                    (void)ret; // 忽略返回值
+                    (void)ret;
                 }
 
-                // 打开文件进行写入（覆盖模式）
                 std::ofstream file(config_file, std::ios::trunc);
                 if (!file.is_open())
                 {
@@ -191,32 +155,18 @@ namespace app
                     return false;
                 }
 
-                // 写入简单的键值对格式
                 file << "uuid = " << uuid << std::endl;
-
                 file.close();
-
-                LOG_INFO(LOG_TAG, "UUID已保存到配置文件: %s", config_file.c_str());
-
                 return true;
             }
 
             std::string generateUUID(const std::string& config_file)
             {
-                // 尝试从配置文件读取现有UUID
                 std::string existing_uuid = readUUIDFromConfig(config_file);
-
                 if (!existing_uuid.empty())
-                {
-                    LOG_INFO(LOG_TAG, "使用配置文件中现有的UUID");
                     return existing_uuid;
-                }
 
-                // 配置文件中没有UUID，生成新的UUID
                 std::string new_uuid = s_generate_random_uuid();
-                LOG_INFO(LOG_TAG, "生成新的UUID: %s", new_uuid.c_str());
-
-                // 将新生成的UUID保存到配置文件
                 if (!writeUUIDToConfig(new_uuid, config_file))
                 {
                     LOG_WARN(LOG_TAG, "保存UUID到配置文件失败，UUID将在重启后丢失");
@@ -227,20 +177,16 @@ namespace app
 
             std::string generateNewUUID()
             {
-                std::string uuid = s_generate_random_uuid();
-                LOG_INFO(LOG_TAG, "生成新的随机UUID: %s", uuid.c_str());
-                return uuid;
+                return s_generate_random_uuid();
             }
 
             bool isValidUUID(const std::string& uuid)
             {
-                // UUID标准格式长度：36个字符（32个十六进制数字 + 4个短横线）
                 if (uuid.length() != UUID_TOTAL_LENGTH)
                 {
                     return false;
                 }
 
-                // 检查短横线位置（位置8, 13, 18, 23）
                 for (std::size_t separator_position : UUID_SEPARATOR_POSITIONS)
                 {
                     if (uuid[separator_position] != UUID_SEPARATOR)
@@ -249,14 +195,11 @@ namespace app
                     }
                 }
 
-                // 检查每个字符（除短横线外）是否为十六进制数字
                 for (std::size_t index = 0; index < uuid.length(); ++index)
                 {
                     if (std::find(UUID_SEPARATOR_POSITIONS.begin(), UUID_SEPARATOR_POSITIONS.end(),
                                   index) != UUID_SEPARATOR_POSITIONS.end())
-                    {
-                        continue; // 跳过短横线
-                    }
+                        continue;
 
                     char current_char = uuid[index];
                     if (!std::isxdigit(current_char))
@@ -264,10 +207,6 @@ namespace app
                         return false;
                     }
                 }
-
-                // 检查版本号（第15个字符应该是4，表示UUID v4）
-                // 注意：这里只检查是否为有效的十六进制，不强制要求版本4
-
                 return true;
             }
 
@@ -278,7 +217,6 @@ namespace app
                     return "";
                 }
 
-                // 移除所有非十六进制字符
                 std::string clean_uuid;
                 for (char current_char : uuid)
                 {
@@ -288,7 +226,6 @@ namespace app
                     }
                 }
 
-                // UUID应该有32个十六进制字符
                 if (clean_uuid.length() != UUID_HEX_ONLY_LENGTH)
                 {
                     LOG_ERROR(LOG_TAG, "无效的UUID格式: 期望 %zu 个十六进制数字，实际得到 %zu",
@@ -296,7 +233,6 @@ namespace app
                     return "";
                 }
 
-                // 格式化为标准UUID格式：xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
                 std::stringstream formatted_stream;
 
                 std::size_t offset           = 0;

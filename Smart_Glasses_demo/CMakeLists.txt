@@ -65,7 +65,6 @@ set(OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
 # 添加子目录
 add_subdirectory(utils)          # 公共工具模块
-add_subdirectory(common)         # 通用组件模块
 add_subdirectory(app)            # 应用核心模块
 add_subdirectory(third_party)    # 第三方库模块
 add_subdirectory(third_party/libdatachannel) # WebRTC网络通信库
@@ -80,7 +79,6 @@ add_executable(main ${MAIN_SOURCES})
 target_link_libraries(
     main 
     utils
-    common
     app
     datachannel-static  # WebRTC网络通信库
 )

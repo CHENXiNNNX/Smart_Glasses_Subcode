@@ -1,5 +1,4 @@
-#ifndef WEBSOCKET_HPP
-#define WEBSOCKET_HPP
+#pragma once
 
 #include <string>
 #include <map>
@@ -20,28 +19,28 @@ namespace app
 
             enum class ConnectionState
             {
-                DISCONNECTED = 0, // 未连接
-                CONNECTING,       // 连接中
-                CONNECTED,        // 已连接
-                HANDSHAKED,       // 已握手（Hello消息已发送）
-                CLOSING,          // 关闭中
-                CLOSED,           // 已关闭
+                DISCONNECTED = 0,
+                CONNECTING,
+                CONNECTED,
+                HANDSHAKED,
+                CLOSING,
+                CLOSED,
                 ERROR
             };
 
             enum class WebSocketError
             {
                 NONE = 0,
-                CONNECTION_FAILED,  // 连接失败
-                SEND_FAILED,        // 发送失败
-                RECEIVE_FAILED,     // 接收失败
-                TLS_INIT_FAILED,    // TLS初始化失败
-                ALREADY_CONNECTED,  // 已连接
-                NOT_CONNECTED,      // 未连接
-                INVALID_URL,        // 无效URL
-                CALLBACK_EXCEPTION, // 回调异常
-                RECONNECT_FAILED,   // 重连失败
-                TIMEOUT,            // 超时
+                CONNECTION_FAILED,
+                SEND_FAILED,
+                RECEIVE_FAILED,
+                TLS_INIT_FAILED,
+                ALREADY_CONNECTED,
+                NOT_CONNECTED,
+                INVALID_URL,
+                CALLBACK_EXCEPTION,
+                RECONNECT_FAILED,
+                TIMEOUT,
                 UNKNOWN
             };
 
@@ -157,5 +156,3 @@ namespace app
         } // namespace websocket
     }     // namespace protocol
 } // namespace app
-
-#endif // WEBSOCKET_HPP

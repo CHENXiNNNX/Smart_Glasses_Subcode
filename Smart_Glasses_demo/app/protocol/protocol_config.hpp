@@ -1,4 +1,1 @@
-#ifndef PROTOCOL_CONFIG_HPP
-#define PROTOCOL_CONFIG_HPP
-
-#endif // PROTOCOL_CONFIG_HPP
+#pragma once
