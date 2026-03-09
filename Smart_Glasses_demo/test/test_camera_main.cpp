@@ -57,10 +57,24 @@ static const char* error_str(Error err)
 
 static void print_menu()
 {
-    printf("\n--- 摄像头测试 ---\n");
-    printf("1 H264 2 JPEG 3 拍照 4 连拍 5 录像 6 边录边拍\n");
-    printf("7 曝光 8 白平衡 9 图像 10 码率 11 质量 12 分辨率 13 RTSP\n");
-    printf("0 退出 选择: ");
+    printf("\n");
+    printf("========== 摄像头测试 ==========\n");
+    printf("  1  H264 视频流\n");
+    printf("  2  JPEG 图片流\n");
+    printf("  3  拍照\n");
+    printf("  4  连拍\n");
+    printf("  5  录像\n");
+    printf("  6  边录边拍\n");
+    printf("  7  曝光\n");
+    printf("  8  白平衡\n");
+    printf("  9  图像\n");
+    printf(" 10  码率\n");
+    printf(" 11  质量\n");
+    printf(" 12  分辨率\n");
+    printf(" 13  RTSP\n");
+    printf("  0  退出\n");
+    printf("--------------------------------\n");
+    printf("请选择: ");
     fflush(stdout);
 }
 

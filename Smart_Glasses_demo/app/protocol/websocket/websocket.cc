@@ -436,6 +436,13 @@ namespace app
                                             LOG_ERROR(LOG_TAG, "Hello发送失败");
                                         }
                                     }
+                                    else
+                                    {
+                                        handshaked.store(true, std::memory_order_release);
+                                        reconnect_count.store(0, std::memory_order_release);
+                                        setState(ConnectionState::HANDSHAKED);
+                                        LOG_INFO(LOG_TAG, "连接就绪（无 Hello）");
+                                    }
                                 });
 
                             tls_client->set_close_handler(
@@ -573,6 +580,13 @@ namespace app
                                         {
                                             LOG_ERROR(LOG_TAG, "Hello发送失败");
                                         }
+                                    }
+                                    else
+                                    {
+                                        handshaked.store(true, std::memory_order_release);
+                                        reconnect_count.store(0, std::memory_order_release);
+                                        setState(ConnectionState::HANDSHAKED);
+                                        LOG_INFO(LOG_TAG, "连接就绪（无 Hello）");
                                     }
                                 });
 

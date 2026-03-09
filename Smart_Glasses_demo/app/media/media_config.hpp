@@ -13,6 +13,9 @@
 
 #define ISP_PATH "/etc/iqfiles"
 
+/* AIISP 降噪：内存紧张(如64MB)时置0关闭 */
+#define CAMERA_AIISP_ENABLED 1
+
 // 音频配置常量
 #define AUDIO_SAMPLE_RATE 48000
 #define AUDIO_CHANNELS 1

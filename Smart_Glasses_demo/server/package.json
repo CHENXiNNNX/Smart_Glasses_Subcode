@@ -1,0 +1,13 @@
+{
+  "name": "smart-glasses-ws-server",
+  "version": "1.0.0",
+  "description": "WebSocket 服务器，接收智能眼镜上传的 JPEG 图片和 Opus 音频",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

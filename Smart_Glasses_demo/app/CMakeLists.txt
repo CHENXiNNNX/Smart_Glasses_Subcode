@@ -8,6 +8,7 @@ file(GLOB_RECURSE APP_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
 )
+list(FILTER APP_SOURCES EXCLUDE REGEX ".*copy\\.(cc|cpp|h|hpp)$")
 
 # 创建 app 静态库
 add_library(app STATIC ${APP_SOURCES})
@@ -48,6 +49,12 @@ target_include_directories(app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/media
     ${CMAKE_CURRENT_SOURCE_DIR}/media/audio
     ${CMAKE_CURRENT_SOURCE_DIR}/media/camera
+    ${CMAKE_CURRENT_SOURCE_DIR}/media/camera/domain
+    ${CMAKE_CURRENT_SOURCE_DIR}/media/camera/pool
+    ${CMAKE_CURRENT_SOURCE_DIR}/media/camera/adapters/isp
+    ${CMAKE_CURRENT_SOURCE_DIR}/media/camera/adapters/encoder
+    ${CMAKE_CURRENT_SOURCE_DIR}/media/camera/adapters/pipeline
+    ${CMAKE_CURRENT_SOURCE_DIR}/media/camera/explain
     ${CMAKE_CURRENT_SOURCE_DIR}/media/osd
     # network headers
     ${CMAKE_CURRENT_SOURCE_DIR}/network
@@ -67,6 +74,7 @@ target_include_directories(app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/tool/log
     ${CMAKE_CURRENT_SOURCE_DIR}/tool/mac
     ${CMAKE_CURRENT_SOURCE_DIR}/tool/memory
+    ${CMAKE_CURRENT_SOURCE_DIR}/media/camera/video_ring_buffer
     ${CMAKE_CURRENT_SOURCE_DIR}/tool/time
     ${CMAKE_CURRENT_SOURCE_DIR}/tool/uuid
     # rknn headers

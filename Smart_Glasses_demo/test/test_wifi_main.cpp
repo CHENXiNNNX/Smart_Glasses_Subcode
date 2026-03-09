@@ -15,13 +15,13 @@ using namespace app::tool::log;
 std::atomic<bool> scan_done{false};
 std::atomic<bool> connect_done{false};
 
-void onStateChanged(wifiState old_state, wifiState new_state)
+void onStateChanged(WifiState old_state, WifiState new_state)
 {
     std::cout << "\n[状态] " << wifiStateToString(old_state) << " -> "
               << wifiStateToString(new_state) << std::endl;
 }
 
-void onScanComplete(const std::vector<wifiInfo>& networks)
+void onScanComplete(const std::vector<WifiInfo>& networks)
 {
     std::cout << "\n扫描结果 " << networks.size() << " 个网络:\n";
 
@@ -60,15 +60,15 @@ void printMenu()
     std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
 }
 
-void testScan(wifiManager& wifi)
+void testScan(WifiManager& wifi)
 {
     std::cout << "\n━━━━ WiFi扫描 ━━━━\n";
     std::cout << "正在扫描WiFi网络...\n";
 
     scan_done     = false;
-    wifiError err = wifi.scanNetworks(onScanComplete);
+    WifiError err = wifi.scanNetworks(onScanComplete);
 
-    if (err != wifiError::NONE)
+    if (err != WifiError::NONE)
     {
         std::cout << "❌ 启动扫描失败: " << wifiErrorToString(err) << std::endl;
         return;
@@ -87,15 +87,15 @@ void testScan(wifiManager& wifi)
     }
 }
 
-void testConnect(wifiManager& wifi)
+void testConnect(WifiManager& wifi)
 {
     std::cout << "\n━━━━ WiFi连接 ━━━━\n";
 
     // 先扫描一下可用网络
-    std::vector<wifiInfo> networks;
-    wifiError             err = wifi.scanNetworks(nullptr, &networks);
+    std::vector<WifiInfo> networks;
+    WifiError             err = wifi.scanNetworks(nullptr, &networks);
 
-    if (err != wifiError::NONE)
+    if (err != WifiError::NONE)
     {
         std::cout << "❌ 扫描失败: " << wifiErrorToString(err) << std::endl;
         return;
@@ -137,7 +137,7 @@ void testConnect(wifiManager& wifi)
     connect_done = false;
     err          = wifi.connect(ssid, password, onConnectResult);
 
-    if (err != wifiError::NONE)
+    if (err != WifiError::NONE)
     {
         std::cout << "❌ 启动连接失败: " << wifiErrorToString(err) << std::endl;
         return;
@@ -156,7 +156,7 @@ void testConnect(wifiManager& wifi)
     }
 }
 
-void testDisconnect(wifiManager& wifi)
+void testDisconnect(WifiManager& wifi)
 {
     std::cout << "\n━━━━ WiFi断开 ━━━━\n";
 
@@ -170,9 +170,9 @@ void testDisconnect(wifiManager& wifi)
     std::string current_ssid = wifi.getCurrentSSID();
     std::cout << "正在断开: " << current_ssid << " ...\n";
 
-    wifiError err = wifi.disconnect();
+    WifiError err = wifi.disconnect();
 
-    if (err == wifiError::NONE)
+    if (err == WifiError::NONE)
     {
         std::cout << "✅ 已断开连接\n";
     }
@@ -182,18 +182,18 @@ void testDisconnect(wifiManager& wifi)
     }
 }
 
-void testQueryStatus(wifiManager& wifi)
+void testQueryStatus(WifiManager& wifi)
 {
     std::cout << "\n━━━━ 连接状态 ━━━━\n";
 
-    wifiState state = wifi.getState();
+    WifiState state = wifi.getState();
     std::cout << "WiFi状态: " << wifiStateToString(state);
 
-    if (state == wifiState::CONNECTED)
+    if (state == WifiState::CONNECTED)
     {
         std::cout << " ✅ 已连接\n";
 
-        wifiConnectionInfo info;
+        WifiConnectionInfo info;
         if (wifi.getConnectionInfo(info))
         {
             std::cout << "\n连接信息:\n";
@@ -216,7 +216,7 @@ void testQueryStatus(wifiManager& wifi)
             }
         }
     }
-    else if (state == wifiState::DISCONNECTED)
+    else if (state == WifiState::DISCONNECTED)
     {
         std::cout << " ⚠️  未连接\n";
     }
@@ -237,11 +237,11 @@ void testQueryStatus(wifiManager& wifi)
     }
 }
 
-void testQuerySavedNetworks(wifiManager& wifi)
+void testQuerySavedNetworks(WifiManager& wifi)
 {
     std::cout << "\n━━━━ 已保存的WiFi ━━━━\n";
 
-    std::vector<savedNetworkInfo> saved = wifi.getSavedNetworks();
+    std::vector<SavedNetworkInfo> saved = wifi.getSavedNetworks();
 
     if (saved.empty())
     {
@@ -276,12 +276,12 @@ void testQuerySavedNetworks(wifiManager& wifi)
     }
 }
 
-void testDeleteWiFi(wifiManager& wifi)
+void testDeleteWiFi(WifiManager& wifi)
 {
     std::cout << "\n━━━━ 删除已保存的WiFi ━━━━\n";
 
     // 先显示已保存的网络
-    std::vector<savedNetworkInfo> saved = wifi.getSavedNetworks();
+    std::vector<SavedNetworkInfo> saved = wifi.getSavedNetworks();
 
     if (saved.empty())
     {
@@ -331,9 +331,9 @@ void testDeleteWiFi(wifiManager& wifi)
     }
 
     // 执行删除
-    wifiError err = wifi.forgetNetwork(ssid);
+    WifiError err = wifi.forgetNetwork(ssid);
 
-    if (err == wifiError::NONE)
+    if (err == WifiError::NONE)
     {
         std::cout << "✅ WiFi \"" << ssid << "\" 已删除\n";
     }
@@ -368,18 +368,18 @@ int main(int argc, char* argv[])
     // 创建WiFi管理器
     std::cout << "\n正在初始化WiFi管理器...\n";
 
-    wifiConfig config;
+    WifiConfig config;
     config.auto_connect_on_init    = false; // 不自动连接
     config.enable_detailed_logging = false;
 
-    wifiManager wifi(config);
+    WifiManager wifi(config);
 
     // 设置回调
     wifi.setStateCallback(onStateChanged);
 
     // 初始化
-    wifiError err = wifi.init();
-    if (err != wifiError::NONE)
+    WifiError err = wifi.init();
+    if (err != WifiError::NONE)
     {
         std::cerr << "\n❌ WiFi管理器初始化失败: " << wifiErrorToString(err) << std::endl;
 

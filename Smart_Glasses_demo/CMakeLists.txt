@@ -134,7 +134,6 @@ add_custom_command(
 find_package(PkgConfig REQUIRED)
 
 # Find required packages
-pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
 pkg_check_modules(OPUS REQUIRED opus)
 pkg_check_modules(JSONCPP REQUIRED jsoncpp)
 pkg_check_modules(SAMPLERATE REQUIRED samplerate)
@@ -144,7 +143,6 @@ find_package(WEBSOCKETPP REQUIRED)
 # Link libraries for opus and websocketpp
 target_link_libraries(main
     ${OPUS_LIBRARIES}
-    ${PORTAUDIO_LIBRARIES}
     ${JSONCPP_LIBRARIES} 
     ${SAMPLERATE_LIBRARIES}
     ${WEBSOCKETPP_LIBRARIES}
@@ -267,6 +265,7 @@ target_link_libraries(main
     rockiva               
     sample_comm          
     rtsp                  # RTSP库
+    asound                # ALSA 音频库
     pthread
     dl
     m

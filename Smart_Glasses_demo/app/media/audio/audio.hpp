@@ -58,6 +58,12 @@ namespace app::media::audio
         void*                 priv = nullptr;
         std::function<void()> release;
 
+        ~Frame()
+        {
+            if (release)
+                release();
+        }
+
         template <typename T = int16_t> T* get()
         {
             return reinterpret_cast<T*>(data);
