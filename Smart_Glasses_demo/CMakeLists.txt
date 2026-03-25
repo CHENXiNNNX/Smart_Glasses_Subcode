@@ -300,7 +300,6 @@ target_compile_definitions(datachannel-static PRIVATE
     RTC_SYSTEM_JSON=0     # 使用内置的JSON库
 )
 
-# 确保 libdatachannel 使用与主项目相同的工具链
 if(DEFINED CMAKE_TOOLCHAIN_FILE)
     set_target_properties(datachannel-static PROPERTIES
         CMAKE_TOOLCHAIN_FILE ${CMAKE_TOOLCHAIN_FILE}
@@ -311,6 +310,9 @@ endif()
 set_target_properties(main PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_PATH}"
 )
+
+# 测试可执行文件
+add_subdirectory(test)
 
 # 添加清理目标
 if(NOT TARGET clean-all)

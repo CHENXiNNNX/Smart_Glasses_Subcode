@@ -253,7 +253,7 @@ namespace app
 
                         int sample_rate  = detector_->getSampleRate();
                         int num_channels = detector_->getNumChannels();
-                        int num_hotwords  = detector_->getNumHotwords();
+                        int num_hotwords = detector_->getNumHotwords();
 
                         LOG_INFO(LOG_TAG, "就绪 %dHz %dch %d词", sample_rate, num_channels,
                                  num_hotwords);

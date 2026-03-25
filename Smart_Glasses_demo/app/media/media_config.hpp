@@ -5,15 +5,15 @@
 
 #define CAMERA_WIDTH 1280
 #define CAMERA_HEIGHT 720
-#define CAMERA_FPS 30
+#define CAMERA_FPS 60
 #define H264_Default_Bitrate                                                                       \
-    5 * 1024 // 越高->画质更好、带宽更大、卡顿风险更低，但占网更大；越低->更省带宽，但容易糊、方块
+    10 * 1024 
 #define H264_Default_Gop                                                                           \
-    10 // 越大->码流更省、画质平均更稳，但丢包恢复慢、切流黑屏更久；越小->恢复快、首屏快，但码率更高
+    30 
 
 #define ISP_PATH "/etc/iqfiles"
 
-/* AIISP 降噪：内存紧张(如64MB)时置0关闭 */
+// AIISP 降噪
 #define CAMERA_AIISP_ENABLED 1
 
 // 音频配置常量

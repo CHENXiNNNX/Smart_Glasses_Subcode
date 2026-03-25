@@ -38,6 +38,10 @@ RtcpReceivingSession::SyncTimestamps RtcpReceivingSession::getSyncTimestamps(){
 	return mSyncTimestamps;
 }
 
+uint8_t RtcpReceivingSession::lastReportFractionLoss() const {
+	return mLastReportFractionLoss.load(std::memory_order_relaxed);
+}
+
 void RtcpReceivingSession::incoming(message_vector &messages, const message_callback &send) {
 	message_vector result;
 	for (auto message : messages) {

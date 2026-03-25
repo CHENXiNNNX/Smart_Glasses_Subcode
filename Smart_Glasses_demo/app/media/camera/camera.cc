@@ -23,11 +23,9 @@ namespace app::media::camera
     class CameraDrv::Impl
     {
     public:
-        CameraCfg  cfg_;
-        bool       init_    = false;
-        bool       running_ = false;
-        ErrorCb    error_cb_;
-        std::mutex error_mtx_;
+        CameraCfg cfg_;
+        bool      init_    = false;
+        bool      running_ = false;
 
         std::shared_ptr<sync_context_t> sync_ctx_;
 
@@ -47,8 +45,9 @@ namespace app::media::camera
         std::mutex h264_cb_mtx_;
         std::mutex jpeg_cb_mtx_;
 
-        std::function<void(const FramePtr&)> webrtc_cb_;
-        std::mutex                           webrtc_cb_mtx_;
+        using H264SinkRaw = std::function<void(const uint8_t*, size_t, uint64_t, bool)>;
+        H264SinkRaw webrtc_sink_;
+        std::mutex  webrtc_sink_mtx_;
 
         std::atomic<uint32_t>                 h264_frames_{0};
         std::atomic<uint32_t>                 jpeg_frames_{0};
@@ -148,42 +147,40 @@ namespace app::media::camera
 
             if (cfg_.enable_h264)
             {
-                dispatcher_.add_h264_sink([this](const uint8_t* data, size_t size, uint64_t pts, bool keyframe)
-                {
-                    h264_frames_++;
-                    if (recorder_.is_recording())
-                        recorder_.write_frame(data, size);
-                    if (rtsp_.is_running())
-                        rtsp_.send_frame(data, size, pts, keyframe);
-                    /* webrtc/h264_cb 需 FramePtr，从 pool 分配拷贝 */
-                    std::function<void(const FramePtr&)> webrtc_cb;
-                    std::function<void(const FramePtr&)> h264_cb;
+                dispatcher_.add_h264_sink(
+                    [this](const uint8_t* data, size_t size, uint64_t pts, bool keyframe)
                     {
-                        std::lock_guard<std::mutex> lk(webrtc_cb_mtx_);
-                        webrtc_cb = webrtc_cb_;
-                    }
-                    {
-                        std::lock_guard<std::mutex> lk(h264_cb_mtx_);
-                        h264_cb = h264_cb_;
-                    }
-                    if (webrtc_cb || h264_cb)
-                    {
-                        FramePtr f = pool_.alloc(size);
-                        if (f && f->data)
+                        h264_frames_++;
+                        if (recorder_.is_recording())
+                            recorder_.write_frame(data, size);
+                        if (rtsp_.is_running())
+                            rtsp_.send_frame(data, size, pts, keyframe);
                         {
-                            std::memcpy(f->data, data, size);
-                            f->size     = size;
-                            f->pts      = pts;
-                            f->keyframe = keyframe;
-                            if (sync_ctx_)
-                                f->timestamp = sync_get_timestamp(sync_ctx_.get(), pts, false);
-                            if (webrtc_cb)
-                                webrtc_cb(f);
-                            if (h264_cb)
-                                h264_cb(f);
+                            std::lock_guard<std::mutex> lk(webrtc_sink_mtx_);
+                            if (webrtc_sink_)
+                                webrtc_sink_(data, size, pts, keyframe);
                         }
-                    }
-                });
+                        /* h264_cb 需 FramePtr，从 pool 分配拷贝 */
+                        std::function<void(const FramePtr&)> h264_cb;
+                        {
+                            std::lock_guard<std::mutex> lk(h264_cb_mtx_);
+                            h264_cb = h264_cb_;
+                        }
+                        if (h264_cb)
+                        {
+                            FramePtr f = pool_.alloc(size);
+                            if (f && f->data)
+                            {
+                                std::memcpy(f->data, data, size);
+                                f->size     = size;
+                                f->pts      = pts;
+                                f->keyframe = keyframe;
+                                if (sync_ctx_)
+                                    f->timestamp = sync_get_timestamp(sync_ctx_.get(), pts, false);
+                                h264_cb(f);
+                            }
+                        }
+                    });
                 h264_.set_cb([this](const FramePtr& f) { dispatcher_.dispatch_h264(f); });
 
                 if (h264_.start() != Error::OK)
@@ -192,17 +189,19 @@ namespace app::media::camera
 
             if (cfg_.enable_jpeg)
             {
-                dispatcher_.add_jpeg_sink([this](const FramePtr& f) {
-                    jpeg_frames_++;
-                    if (sync_ctx_)
-                        f->timestamp = sync_get_timestamp(sync_ctx_.get(), f->pts, false);
-                    explain_.feed_frame(f->data, f->size);
+                dispatcher_.add_jpeg_sink(
+                    [this](const FramePtr& f)
                     {
-                        std::lock_guard<std::mutex> lk(jpeg_cb_mtx_);
-                        if (jpeg_cb_)
-                            jpeg_cb_(f);
-                    }
-                });
+                        jpeg_frames_++;
+                        if (sync_ctx_)
+                            f->timestamp = sync_get_timestamp(sync_ctx_.get(), f->pts, false);
+                        explain_.feed_frame(f->data, f->size);
+                        {
+                            std::lock_guard<std::mutex> lk(jpeg_cb_mtx_);
+                            if (jpeg_cb_)
+                                jpeg_cb_(f);
+                        }
+                    });
                 jpeg_.set_cb([this](const FramePtr& f) { dispatcher_.dispatch_jpeg(f); });
 
                 if (jpeg_.start() != Error::OK)
@@ -246,8 +245,9 @@ namespace app::media::camera
         Stats stats() const
         {
             Stats s{};
-            auto now     = std::chrono::steady_clock::now();
-            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - stats_time_).count();
+            auto  now = std::chrono::steady_clock::now();
+            auto  elapsed =
+                std::chrono::duration_cast<std::chrono::milliseconds>(now - stats_time_).count();
             if (elapsed > 0)
             {
                 s.h264_fps = h264_frames_.load() * 1000.0f / elapsed;
@@ -276,29 +276,65 @@ namespace app::media::camera
     };
 
     CameraDrv::CameraDrv() : impl_(std::make_unique<Impl>()) {}
-    CameraDrv::~CameraDrv() { deinit(); }
+    CameraDrv::~CameraDrv()
+    {
+        deinit();
+    }
 
     Error CameraDrv::init(const CameraCfg& cfg, std::shared_ptr<sync_context_t> sync_ctx)
     {
         return impl_->init(cfg, sync_ctx);
     }
-    void CameraDrv::deinit() { impl_->deinit(); }
-    bool CameraDrv::is_init() const { return impl_->init_; }
-    Error CameraDrv::start() { return impl_->start(); }
+    void CameraDrv::deinit()
+    {
+        impl_->deinit();
+    }
+    bool CameraDrv::is_init() const
+    {
+        return impl_->init_;
+    }
+    Error CameraDrv::start()
+    {
+        return impl_->start();
+    }
     Error CameraDrv::stop()
     {
         impl_->stop();
         return Error::OK;
     }
-    bool CameraDrv::is_running() const { return impl_->running_; }
-    void CameraDrv::pause_h264() { impl_->pause_h264(); }
-    void CameraDrv::resume_h264() { impl_->resume_h264(); }
+    bool CameraDrv::is_running() const
+    {
+        return impl_->running_;
+    }
+    void CameraDrv::pause_h264()
+    {
+        impl_->pause_h264();
+    }
+    void CameraDrv::resume_h264()
+    {
+        impl_->resume_h264();
+    }
 
-    H264Encoder& CameraDrv::h264() { return impl_->h264_; }
-    JpegEncoder& CameraDrv::jpeg() { return impl_->jpeg_; }
-    Recorder&    CameraDrv::recorder() { return impl_->recorder_; }
-    IspCtrl&     CameraDrv::isp() { return impl_->isp_; }
-    RtspServer&  CameraDrv::rtsp() { return impl_->rtsp_; }
+    H264Encoder& CameraDrv::h264()
+    {
+        return impl_->h264_;
+    }
+    JpegEncoder& CameraDrv::jpeg()
+    {
+        return impl_->jpeg_;
+    }
+    Recorder& CameraDrv::recorder()
+    {
+        return impl_->recorder_;
+    }
+    IspCtrl& CameraDrv::isp()
+    {
+        return impl_->isp_;
+    }
+    RtspServer& CameraDrv::rtsp()
+    {
+        return impl_->rtsp_;
+    }
 
     void CameraDrv::set_h264_cb(H264Cb cb)
     {
@@ -310,15 +346,11 @@ namespace app::media::camera
         std::lock_guard<std::mutex> lk(impl_->jpeg_cb_mtx_);
         impl_->jpeg_cb_ = std::move(cb);
     }
-    void CameraDrv::set_error_cb(ErrorCb cb)
+    void
+    CameraDrv::set_webrtc_sink(std::function<void(const uint8_t*, size_t, uint64_t, bool)> sink)
     {
-        std::lock_guard<std::mutex> lk(impl_->error_mtx_);
-        impl_->error_cb_ = std::move(cb);
-    }
-    void CameraDrv::set_webrtc_cb(std::function<void(const FramePtr&)> cb)
-    {
-        std::lock_guard<std::mutex> lk(impl_->webrtc_cb_mtx_);
-        impl_->webrtc_cb_ = std::move(cb);
+        std::lock_guard<std::mutex> lk(impl_->webrtc_sink_mtx_);
+        impl_->webrtc_sink_ = std::move(sink);
     }
     void CameraDrv::set_explain_url(const std::string& url, const std::string& token)
     {
@@ -328,8 +360,17 @@ namespace app::media::camera
     {
         return impl_->explain_image_impl(question);
     }
-    Stats CameraDrv::stats() const { return impl_->stats(); }
-    void CameraDrv::reset_stats() { impl_->reset_stats(); }
-    const CameraCfg& CameraDrv::cfg() const { return impl_->cfg_; }
+    Stats CameraDrv::stats() const
+    {
+        return impl_->stats();
+    }
+    void CameraDrv::reset_stats()
+    {
+        impl_->reset_stats();
+    }
+    const CameraCfg& CameraDrv::cfg() const
+    {
+        return impl_->cfg_;
+    }
 
 } // namespace app::media::camera

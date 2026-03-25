@@ -50,8 +50,7 @@ namespace app::media::camera
 
         void set_h264_cb(H264Cb cb);
         void set_jpeg_cb(JpegCb cb);
-        void set_error_cb(ErrorCb cb);
-        void set_webrtc_cb(std::function<void(const FramePtr&)> cb);
+        void set_webrtc_sink(std::function<void(const uint8_t*, size_t, uint64_t, bool)> sink);
 
         void        set_explain_url(const std::string& url, const std::string& token = "");
         std::string explain_image(const std::string& question);

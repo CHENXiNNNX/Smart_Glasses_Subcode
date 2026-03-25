@@ -93,22 +93,22 @@ namespace app::media::camera
 
     struct VpssAiispCfg
     {
-        bool        enable_aiisp = false;
-        std::string aiisp_model_path = "/oem/usr/lib/";
+        bool        enable_aiisp        = false;
+        std::string aiisp_model_path    = "/oem/usr/lib/";
         uint32_t    aiisp_frame_buf_cnt = 2;
     };
 
     struct CameraCfg
     {
-        H264Cfg       h264;
-        JpegCfg       jpeg;
-        MemoryCfg     memory;
-        VpssAiispCfg  vpss_aiisp;
+        H264Cfg      h264;
+        JpegCfg      jpeg;
+        MemoryCfg    memory;
+        VpssAiispCfg vpss_aiisp;
 
-        std::string iq_file_dir = "/etc/iqfiles";
-        bool        enable_h264 = true;
-        bool        enable_jpeg = true;
-        int         jpeg_dst_fps = 0;  /* VPSS JPEG 输出帧率，<=0 不限制 */
+        std::string iq_file_dir  = "/etc/iqfiles";
+        bool        enable_h264  = true;
+        bool        enable_jpeg  = true;
+        int         jpeg_dst_fps = 0; /* VPSS JPEG 输出帧率，<=0 不限制 */
     };
 
     /* 统计信息 */

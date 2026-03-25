@@ -16,15 +16,15 @@ namespace app::media::camera
     /* 管道配置，VI/VPSS 初始化用 */
     struct PipelineConfig
     {
-        uint16_t h264_width;
-        uint16_t h264_height;
-        uint16_t jpeg_width;
-        uint16_t jpeg_height;
-        bool     enable_h264;
-        int      jpeg_dst_fps;  /* VPSS JPEG 输出帧率，<=0 不限制 */
-        bool     enable_aiisp;
+        uint16_t    h264_width;
+        uint16_t    h264_height;
+        uint16_t    jpeg_width;
+        uint16_t    jpeg_height;
+        bool        enable_h264;
+        int         jpeg_dst_fps; /* VPSS JPEG 输出帧率，<=0 不限制 */
+        bool        enable_aiisp;
         std::string aiisp_model_path;
-        uint32_t aiisp_frame_buf_cnt;
+        uint32_t    aiisp_frame_buf_cnt;
     };
 
     /* 采集管道接口，VI+VPSS，平台可替换 */

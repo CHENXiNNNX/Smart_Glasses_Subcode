@@ -93,11 +93,14 @@ extern "C"
     RK_S32 RK_MPI_VPSS_StopGrp(RK_S32);
 
     RK_S32 RK_MPI_VENC_CreateChn(RK_S32, const VENC_CHN_ATTR_S*);
+    RK_S32 RK_MPI_VENC_GetChnAttr(RK_S32, VENC_CHN_ATTR_S*);
+    RK_S32 RK_MPI_VENC_SetChnAttr(RK_S32, const VENC_CHN_ATTR_S*);
     RK_S32 RK_MPI_VENC_DestroyChn(RK_S32);
     RK_S32 RK_MPI_VENC_GetStream(RK_S32, VENC_STREAM_S*, RK_S32);
     RK_S32 RK_MPI_VENC_ReleaseStream(RK_S32, VENC_STREAM_S*);
     RK_S32 RK_MPI_VENC_StartRecvFrame(RK_S32, void*);
     RK_S32 RK_MPI_VENC_StopRecvFrame(RK_S32);
+    RK_S32 RK_MPI_VENC_RequestIDR(RK_S32 venc_chn, RK_BOOL bInstant);
 
     RK_S32 RK_MPI_MB_ReleaseBuffer(MB_BLK);
     void*  RK_MPI_MB_Handle2VirAddr(MB_BLK);

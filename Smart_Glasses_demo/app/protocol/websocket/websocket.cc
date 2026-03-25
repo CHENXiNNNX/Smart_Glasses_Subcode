@@ -1344,7 +1344,9 @@ namespace app
                 uint64_t exceptions    = pImpl_->stats.callback_exceptions.load();
                 uint64_t uptime_us     = pImpl_->stats.total_uptime_us.load();
 
-                LOG_INFO(LOG_TAG, "统计 tx=%llu rx=%llu 字节 tx=%llu rx=%llu 连接=%llu/%llu 重连=%llu 异常=%llu 时长=%lluus",
+                LOG_INFO(LOG_TAG,
+                         "统计 tx=%llu rx=%llu 字节 tx=%llu rx=%llu 连接=%llu/%llu 重连=%llu "
+                         "异常=%llu 时长=%lluus",
                          sent, received, bytes_s, bytes_r, conn_attempts, conn_failures, reconnects,
                          exceptions, uptime_us);
 

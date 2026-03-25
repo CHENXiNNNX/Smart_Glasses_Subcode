@@ -31,14 +31,17 @@ namespace app::media::camera
             return Error::OK;
         }
 
-        void deinit() { pool_.reset(); }
+        void deinit()
+        {
+            pool_.reset();
+        }
 
         FramePtr alloc(size_t size)
         {
             if (!pool_)
                 return nullptr;
             std::lock_guard<std::mutex> lk(mtx_);
-            void* mem = pool_->allocate(size);
+            void*                       mem = pool_->allocate(size);
             if (!mem)
                 return nullptr;
             auto frame     = std::make_shared<Frame>();
@@ -54,16 +57,40 @@ namespace app::media::camera
             return frame;
         }
 
-        size_t used() const { return pool_ ? pool_->get_used_memory_fast() : 0; }
-        size_t total() const { return total_; }
+        size_t used() const
+        {
+            return pool_ ? pool_->get_used_memory_fast() : 0;
+        }
+        size_t total() const
+        {
+            return total_;
+        }
     };
 
     FramePool::FramePool() : impl_(std::make_unique<Impl>()) {}
-    FramePool::~FramePool() { deinit(); }
-    Error FramePool::init(const MemoryCfg& cfg) { return impl_->init(cfg); }
-    void  FramePool::deinit() { impl_->deinit(); }
-    FramePtr FramePool::alloc(size_t size) { return impl_->alloc(size); }
-    size_t   FramePool::used() const { return impl_->used(); }
-    size_t   FramePool::total() const { return impl_->total(); }
+    FramePool::~FramePool()
+    {
+        deinit();
+    }
+    Error FramePool::init(const MemoryCfg& cfg)
+    {
+        return impl_->init(cfg);
+    }
+    void FramePool::deinit()
+    {
+        impl_->deinit();
+    }
+    FramePtr FramePool::alloc(size_t size)
+    {
+        return impl_->alloc(size);
+    }
+    size_t FramePool::used() const
+    {
+        return impl_->used();
+    }
+    size_t FramePool::total() const
+    {
+        return impl_->total();
+    }
 
 } // namespace app::media::camera

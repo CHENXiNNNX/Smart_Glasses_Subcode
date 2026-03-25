@@ -141,12 +141,12 @@ namespace app::media::camera
     {
 #if CAM_HAS_SDK
         VPSS_GRP_ATTR_S grp0{};
-        grp0.u32MaxW              = 4096;
-        grp0.u32MaxH              = 4096;
-        grp0.enPixelFormat        = RK_FMT_YUV420SP;
+        grp0.u32MaxW                     = 4096;
+        grp0.u32MaxH                     = 4096;
+        grp0.enPixelFormat               = RK_FMT_YUV420SP;
         grp0.stFrameRate.s32SrcFrameRate = -1;
         grp0.stFrameRate.s32DstFrameRate = -1;
-        grp0.enCompressMode       = COMPRESS_MODE_NONE;
+        grp0.enCompressMode              = COMPRESS_MODE_NONE;
 
         if (RK_MPI_VPSS_CreateGrp(0, &grp0) != RK_SUCCESS)
         {
@@ -160,11 +160,11 @@ namespace app::media::camera
             if (ctx)
             {
                 AIISP_ATTR_S aiisp{};
-                aiisp.bEnable                         = RK_TRUE;
+                aiisp.bEnable                          = RK_TRUE;
                 aiisp.stAiIspCallback.pfUpdateCallback = (AIISP_CALLBACK)aiisp_ainr_callback;
-                aiisp.stAiIspCallback.pPrivateData    = ctx;
-                aiisp.pModelFilePath                  = cfg.aiisp_model_path.c_str();
-                aiisp.u32FrameBufCnt                  = cfg.aiisp_frame_buf_cnt;
+                aiisp.stAiIspCallback.pPrivateData     = ctx;
+                aiisp.pModelFilePath                   = cfg.aiisp_model_path.c_str();
+                aiisp.u32FrameBufCnt                   = cfg.aiisp_frame_buf_cnt;
 
                 if (RK_MPI_VPSS_SetGrpAIISPAttr(0, &aiisp) != RK_SUCCESS)
                     LOG_WARN(TAG, "VPSS[0]: AIISP 配置失败，将无降噪");
@@ -174,18 +174,17 @@ namespace app::media::camera
         }
 
         VPSS_CHN_ATTR_S chn0{};
-        chn0.enChnMode            = VPSS_CHN_MODE_USER;
-        chn0.enDynamicRange       = DYNAMIC_RANGE_SDR8;
-        chn0.enPixelFormat        = RK_FMT_YUV420SP;
+        chn0.enChnMode                   = VPSS_CHN_MODE_USER;
+        chn0.enDynamicRange              = DYNAMIC_RANGE_SDR8;
+        chn0.enPixelFormat               = RK_FMT_YUV420SP;
         chn0.stFrameRate.s32SrcFrameRate = -1;
         chn0.stFrameRate.s32DstFrameRate = -1;
-        chn0.u32Width             = cfg.h264_width;
-        chn0.u32Height            = cfg.h264_height;
-        chn0.enCompressMode       = COMPRESS_MODE_NONE;
+        chn0.u32Width                    = cfg.h264_width;
+        chn0.u32Height                   = cfg.h264_height;
+        chn0.enCompressMode              = COMPRESS_MODE_NONE;
 
         if (RK_MPI_VPSS_SetChnAttr(0, 0, &chn0) != RK_SUCCESS ||
-            RK_MPI_VPSS_EnableChn(0, 0) != RK_SUCCESS ||
-            RK_MPI_VPSS_StartGrp(0) != RK_SUCCESS)
+            RK_MPI_VPSS_EnableChn(0, 0) != RK_SUCCESS || RK_MPI_VPSS_StartGrp(0) != RK_SUCCESS)
         {
             RK_MPI_VPSS_DestroyGrp(0);
             LOG_ERROR(TAG, "VPSS[0]: 配置失败");
@@ -195,12 +194,12 @@ namespace app::media::camera
         LOG_INFO(TAG, "VPSS[0]: %dx%d", cfg.h264_width, cfg.h264_height);
 
         VPSS_GRP_ATTR_S grp1{};
-        grp1.u32MaxW              = 4096;
-        grp1.u32MaxH              = 4096;
-        grp1.enPixelFormat        = RK_FMT_YUV420SP;
+        grp1.u32MaxW                     = 4096;
+        grp1.u32MaxH                     = 4096;
+        grp1.enPixelFormat               = RK_FMT_YUV420SP;
         grp1.stFrameRate.s32SrcFrameRate = -1;
         grp1.stFrameRate.s32DstFrameRate = -1;
-        grp1.enCompressMode       = COMPRESS_MODE_NONE;
+        grp1.enCompressMode              = COMPRESS_MODE_NONE;
 
         if (RK_MPI_VPSS_CreateGrp(1, &grp1) != RK_SUCCESS)
         {
@@ -214,28 +213,27 @@ namespace app::media::camera
         if (cfg.enable_aiisp && isp && isp->aiq_ctx())
         {
             AIISP_ATTR_S aiisp{};
-            aiisp.bEnable                         = RK_TRUE;
+            aiisp.bEnable                          = RK_TRUE;
             aiisp.stAiIspCallback.pfUpdateCallback = (AIISP_CALLBACK)aiisp_ainr_callback;
-            aiisp.stAiIspCallback.pPrivateData    = isp->aiq_ctx();
-            aiisp.pModelFilePath                  = cfg.aiisp_model_path.c_str();
-            aiisp.u32FrameBufCnt                  = cfg.aiisp_frame_buf_cnt;
+            aiisp.stAiIspCallback.pPrivateData     = isp->aiq_ctx();
+            aiisp.pModelFilePath                   = cfg.aiisp_model_path.c_str();
+            aiisp.u32FrameBufCnt                   = cfg.aiisp_frame_buf_cnt;
             if (RK_MPI_VPSS_SetGrpAIISPAttr(1, &aiisp) != RK_SUCCESS)
                 LOG_WARN(TAG, "VPSS[1]: AIISP 配置失败");
         }
 
         VPSS_CHN_ATTR_S chn1{};
-        chn1.enChnMode            = VPSS_CHN_MODE_USER;
-        chn1.enDynamicRange       = DYNAMIC_RANGE_SDR8;
-        chn1.enPixelFormat        = RK_FMT_YUV420SP;
+        chn1.enChnMode                   = VPSS_CHN_MODE_USER;
+        chn1.enDynamicRange              = DYNAMIC_RANGE_SDR8;
+        chn1.enPixelFormat               = RK_FMT_YUV420SP;
         chn1.stFrameRate.s32SrcFrameRate = -1;
         chn1.stFrameRate.s32DstFrameRate = -1;
-        chn1.u32Width             = cfg.jpeg_width;
-        chn1.u32Height            = cfg.jpeg_height;
-        chn1.enCompressMode       = COMPRESS_MODE_NONE;
+        chn1.u32Width                    = cfg.jpeg_width;
+        chn1.u32Height                   = cfg.jpeg_height;
+        chn1.enCompressMode              = COMPRESS_MODE_NONE;
 
         if (RK_MPI_VPSS_SetChnAttr(1, 0, &chn1) != RK_SUCCESS ||
-            RK_MPI_VPSS_EnableChn(1, 0) != RK_SUCCESS ||
-            RK_MPI_VPSS_StartGrp(1) != RK_SUCCESS)
+            RK_MPI_VPSS_EnableChn(1, 0) != RK_SUCCESS || RK_MPI_VPSS_StartGrp(1) != RK_SUCCESS)
         {
             RK_MPI_VPSS_StopGrp(1);
             RK_MPI_VPSS_DisableChn(1, 0);

@@ -1,237 +1,269 @@
-/*
- * main.cpp - WebSocket 图片+音频上传
- *
- * 功能：
- * - 连接 WebSocket 服务器
- * - 每 5 秒拍照并上传 JPEG 图片
- * - 实时录音并上传 Opus 格式音频
- *
- * 消息格式（服务端可据此保存）：
- * - JPEG: [0x01][4字节长度大端][JPEG数据]
- * - Opus: [0x02][4字节长度大端][Opus帧数据]
- */
-
-#include "app/media/audio/audio.hpp"
-#include "app/media/camera/camera.hpp"
-#include "app/protocol/websocket/websocket.hpp"
-#include "app/tool/log/log.hpp"
-
-#include <atomic>
+#include <algorithm>
 #include <chrono>
-#include <csignal>
-#include <cstring>
+#include <cmath>
+#include <iostream>
 #include <memory>
 #include <thread>
-#include <vector>
+
+#include "app/protocol/webrtc/signaling.hpp"
+#include "app/protocol/webrtc/webrtc.hpp"
+#include "app/tool/log/log.hpp"
+#include "app/media/audio/audio.hpp"
+#include "app/media/camera/camera.hpp"
+#include "app/media/media_config.hpp"
+#include "app/media/sync.hpp"
+
+using namespace app::tool::log;
 
 namespace
 {
-    constexpr const char* TAG = "WsUpload";
-
-    /* 可配置常量 */
-    constexpr const char* WS_SERVER_URL = "ws://192.168.50.68:8000";
-    constexpr int        PHOTO_INTERVAL_SEC = 5;
-
-    /* 消息类型 */
-    constexpr uint8_t MSG_TYPE_JPEG = 0x01;
-    constexpr uint8_t MSG_TYPE_OPUS = 0x02;
-
-    std::atomic<bool> g_running{true};
+    constexpr const char* LOG_TAG    = "MAIN";
+    const std::string     device_id  = "glasses_123456";
+    const std::string     server_url = "ws://192.168.50.68:8000";
 } // namespace
-
-using namespace app::media::audio;
-using namespace app::media::camera;
-using namespace app::protocol::websocket;
-using namespace app::tool::log;
-
-static void signal_handler(int)
-{
-    g_running.store(false, std::memory_order_relaxed);
-}
-
-/* 构建带类型前缀的消息: [type][4-byte length BE][payload] */
-static std::vector<uint8_t> buildMessage(uint8_t type, const uint8_t* data, size_t size)
-{
-    std::vector<uint8_t> buf(5 + size);
-    buf[0] = type;
-    buf[1] = static_cast<uint8_t>((size >> 24) & 0xFF);
-    buf[2] = static_cast<uint8_t>((size >> 16) & 0xFF);
-    buf[3] = static_cast<uint8_t>((size >> 8) & 0xFF);
-    buf[4] = static_cast<uint8_t>(size & 0xFF);
-    if (data && size > 0)
-        memcpy(buf.data() + 5, data, size);
-    return buf;
-}
 
 int main()
 {
-    LogConfig log_cfg;
-    log_cfg.min_level    = LogLevel::INFO;
-    log_cfg.enable_color = true;
-    Logger::inst().init(log_cfg);
+    Logger::inst().init(LogConfig());
+    LOG_INFO(LOG_TAG, "WebRTC 测试启动");
 
-    std::signal(SIGINT, signal_handler);
-    std::signal(SIGTERM, signal_handler);
-
-    LOG_INFO(TAG, "WebSocket 图片+音频上传 启动");
-    LOG_INFO(TAG, "服务器: %s  拍照间隔: %ds", WS_SERVER_URL, PHOTO_INTERVAL_SEC);
-
-    /* 1. WebSocket 客户端 */
-    WebSocketConfig ws_cfg;
-    ws_cfg.url               = WS_SERVER_URL;
-    ws_cfg.auto_reconnect     = true;
-    ws_cfg.reconnect_interval_ms = 5000;
-    ws_cfg.max_reconnect_attempts = 10;
-    ws_cfg.connect_timeout_ms = 10000;
-    ws_cfg.verify_ssl         = false;
-
-    auto ws_client = std::make_unique<WebSocketClient>(ws_cfg);
-
-    ws_client->setErrorCallback(
-        [](WebSocketError /*err*/, const std::string& msg)
-        {
-            LOG_ERROR(TAG, "WebSocket 错误: %s", msg.c_str());
-        });
-
-    ws_client->setStateCallback(
-        [](ConnectionState /*old_s*/, ConnectionState new_s)
-        {
-            if (new_s == ConnectionState::HANDSHAKED || new_s == ConnectionState::CONNECTED)
-                LOG_INFO(TAG, "WebSocket 已连接");
-            else if (new_s == ConnectionState::CLOSED || new_s == ConnectionState::DISCONNECTED)
-                LOG_WARN(TAG, "WebSocket 已断开");
-        });
-
-    WebSocketError ws_err = ws_client->connect();
-    if (ws_err != WebSocketError::NONE)
+    auto sync_ctx = std::make_shared<sync_context_t>();
+    if (sync_init(sync_ctx.get()) != 0)
     {
-        LOG_WARN(TAG, "WebSocket 首次连接失败，将重试。错误码: %d", static_cast<int>(ws_err));
+        LOG_WARN(LOG_TAG, "同步初始化失败，继续");
     }
 
-    /* 2. 相机 - 仅 JPEG 流 */
-    CameraCfg cam_cfg;
-    cam_cfg.jpeg.width   = 640;
-    cam_cfg.jpeg.height  = 480;
-    cam_cfg.jpeg.quality = 80;
-    cam_cfg.enable_h264  = false;
-    cam_cfg.enable_jpeg  = true;
+    app::protocol::webrtc::SignalingConfig sig_config;
+    sig_config.device_id  = device_id;
+    sig_config.server_url = server_url;
 
-    CameraDrv cam;
-    if (cam.init(cam_cfg, nullptr) != app::media::camera::Error::OK)
+    app::protocol::webrtc::WebRTCConfig webrtc_config;
+    webrtc_config.ice.stun_servers = {
+        "stun:stun.l.google.com:19302",
+        "stun:stun.miwifi.com:3478",
+        "stun:stun.chat.bilibili.com:3478",
+        "stun:stun.12voip.com:3478",
+        "stun:stun.aa.net.uk:3478",
+        "stun:stun.actionvoip.com:3478"
+    };
+    webrtc_config.ice.turn_servers = {
+        "turn:turnuser1:turnpass123@116.62.24.66:3478",
+        "turn:turnuser1:turnpass123@116.62.24.66:3478?transport=tcp",
+        "turn:user:mypwd@43.138.235.180:9002"
+    };
+    webrtc_config.enable_video_pacing      = true;
+    webrtc_config.video_pacing_bps         = 0;
+    webrtc_config.video_pacing_interval_ms = 10;
+
+    auto signaling = std::make_shared<app::protocol::webrtc::Signaling>(sig_config);
+    auto webrtc    = std::make_shared<app::protocol::webrtc::WebRTCSystem>(webrtc_config);
+
+    app::media::audio::AudioCfg audio_cfg;
+    audio_cfg.capture.rate      = AUDIO_SAMPLE_RATE;
+    audio_cfg.capture.channels  = AUDIO_CHANNELS;
+    audio_cfg.capture.frame_ms  = AUDIO_FRAME_DURATION_MS;
+    audio_cfg.playback.rate     = AUDIO_SAMPLE_RATE;
+    audio_cfg.playback.channels = AUDIO_CHANNELS;
+    audio_cfg.playback.frame_ms = AUDIO_FRAME_DURATION_MS;
+    audio_cfg.playback.volume   = 50;
+    audio_cfg.opus.rate         = AUDIO_SAMPLE_RATE;
+    audio_cfg.opus.channels     = AUDIO_CHANNELS;
+    audio_cfg.opus.bitrate      = AUDIO_BIT_RATE;
+    audio_cfg.opus.vbr          = true;
+    audio_cfg.enable_capture    = true;
+    audio_cfg.enable_playback   = true;
+    audio_cfg.enable_opus       = true;
+    audio_cfg.enable_proc       = true;
+
+    auto audio_drv = std::make_unique<app::media::audio::AudioDrv>();
+    if (audio_drv->init(audio_cfg) != app::media::audio::Error::OK)
     {
-        LOG_ERROR(TAG, "相机初始化失败");
+        LOG_ERROR(LOG_TAG, "音频初始化失败");
         return 1;
     }
 
-    auto last_photo_time = std::chrono::steady_clock::now();
-    std::mutex ws_mutex;
-
-    cam.set_jpeg_cb(
-        [&](const app::media::camera::FramePtr& frame)
+    audio_drv->set_capture_cb(
+        [webrtc, audio_drv = audio_drv.get()](const app::media::audio::FramePtr& pcm)
         {
-            if (!frame || !frame->data || frame->size == 0)
+            if (!pcm || pcm->size == 0 || !webrtc->isConnected())
                 return;
+            auto opus_frame = audio_drv->opus().encode(pcm);
+            if (opus_frame && opus_frame->size > 0)
+                webrtc->sendAudioData(opus_frame->data, opus_frame->size, opus_frame->timestamp);
+        });
 
-            auto now = std::chrono::steady_clock::now();
-            auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - last_photo_time).count();
-            if (elapsed < PHOTO_INTERVAL_SEC)
-                return;
+    if (audio_drv->start() != app::media::audio::Error::OK)
+    {
+        LOG_ERROR(LOG_TAG, "音频启动失败");
+        return 1;
+    }
+    LOG_INFO(LOG_TAG, "音频就绪");
 
-            if (!ws_client->isConnected() && !ws_client->isHandshaked())
-                return;
+    std::unique_ptr<app::media::camera::CameraDrv> camera_drv;
+    app::media::camera::CameraCfg                  camera_cfg;
+    camera_cfg.h264.width   = CAMERA_WIDTH;
+    camera_cfg.h264.height  = CAMERA_HEIGHT;
+    camera_cfg.h264.fps     = CAMERA_FPS;
+    camera_cfg.h264.bitrate = H264_Default_Bitrate;
+    camera_cfg.iq_file_dir  = ISP_PATH;
 
-            auto msg = buildMessage(MSG_TYPE_JPEG, frame->data, frame->size);
-            std::lock_guard<std::mutex> lk(ws_mutex);
-            if (ws_client->sendBinary(reinterpret_cast<const char*>(msg.data()), msg.size()) == WebSocketError::NONE)
+    camera_drv = std::make_unique<app::media::camera::CameraDrv>();
+    if (camera_drv->init(camera_cfg, sync_ctx) == app::media::camera::Error::OK &&
+        camera_drv->start() == app::media::camera::Error::OK)
+    {
+        camera_drv->set_webrtc_sink(
+            [webrtc, sync_ctx](const uint8_t* data, size_t size, uint64_t pts, bool keyframe)
             {
-                last_photo_time = now;
-                LOG_INFO(TAG, "上传 JPEG %zu bytes", frame->size);
-            }
+                if (!data || size == 0 || !webrtc->isConnected())
+                    return;
+                uint64_t ts = sync_ctx ? sync_get_timestamp(sync_ctx.get(), pts, false) : pts;
+                webrtc->sendVideoData(data, size, ts, keyframe);
+            });
+        LOG_INFO(LOG_TAG, "视频就绪");
+    }
+    else
+    {
+        LOG_WARN(LOG_TAG, "摄像头初始化失败，仅音频模式");
+        camera_drv.reset();
+    }
+
+    webrtc->onStateChanged(
+        [](app::protocol::webrtc::WebRTCState state)
+        {
+            LOG_INFO(LOG_TAG, "WebRTC 状态: %s",
+                     app::protocol::webrtc::WebRTCSystem::stateToString(state));
         });
 
-    if (cam.start() != app::media::camera::Error::OK)
-    {
-        LOG_ERROR(TAG, "相机启动失败");
-        cam.deinit();
-        return 1;
-    }
-    LOG_INFO(TAG, "相机已启动 JPEG %ux%u", cam_cfg.jpeg.width, cam_cfg.jpeg.height);
-
-    /* 3. 音频 - 采集 + Opus 编码，无播放 */
-    AudioCfg audio_cfg;
-    audio_cfg.capture.rate     = 48000;
-    audio_cfg.capture.channels = 1;
-    audio_cfg.capture.frame_ms = 20;
-    audio_cfg.opus.rate       = 48000;
-    audio_cfg.opus.channels   = 1;
-    audio_cfg.opus.bitrate    = 32000;
-    audio_cfg.opus.vbr        = true;
-    audio_cfg.enable_capture  = true;
-    audio_cfg.enable_playback = false;
-    audio_cfg.enable_opus     = true;
-    audio_cfg.enable_proc     = false; /* 仅上传，可关闭 3A 节省资源 */
-
-    AudioDrv audio;
-    if (audio.init(audio_cfg) != app::media::audio::Error::OK)
-    {
-        LOG_ERROR(TAG, "音频初始化失败");
-        cam.stop();
-        cam.deinit();
-        return 1;
-    }
-
-    audio.set_capture_cb(
-        [&](const app::media::audio::FramePtr& pcm)
+    webrtc->onAudioData(
+        [audio_drv = audio_drv.get()](const uint8_t* data, size_t size)
         {
-            if (!pcm || !pcm->data || pcm->samples == 0)
+            if (!data || size == 0 || !audio_drv)
                 return;
-
-            if (!ws_client->isConnected() && !ws_client->isHandshaked())
-                return;
-
-            auto opus = audio.opus().encode(pcm);
-            if (!opus || !opus->data || opus->size == 0)
-                return;
-
-            auto msg = buildMessage(MSG_TYPE_OPUS, opus->data, opus->size);
-            std::lock_guard<std::mutex> lk(ws_mutex);
-            ws_client->sendBinary(reinterpret_cast<const char*>(msg.data()), msg.size());
+            auto pcm = audio_drv->opus().decode(data, size);
+            if (pcm)
+                audio_drv->playback().push(pcm);
         });
 
-    if (audio.start() != app::media::audio::Error::OK)
+    signaling->onStatusChanged(
+        [](app::protocol::webrtc::SignalingStatus status)
+        {
+            LOG_INFO(LOG_TAG, "信令: %s",
+                     app::protocol::webrtc::Signaling::statusToString(status).c_str());
+        });
+    signaling->onError([](app::protocol::webrtc::SignalingError /* e */, const std::string& msg)
+                       { LOG_ERROR(LOG_TAG, "信令错误: %s", msg.c_str()); });
+    signaling->onRoomInfoChanged(
+        [](const app::protocol::webrtc::RoomInfo& info)
+        { LOG_INFO(LOG_TAG, "房间 %s 人数=%d", info.room_id.c_str(), info.num); });
+
+    if (!signaling->connect())
     {
-        LOG_ERROR(TAG, "音频启动失败");
-        audio.deinit();
-        cam.stop();
-        cam.deinit();
+        LOG_ERROR(LOG_TAG, "信令连接失败");
         return 1;
     }
-    LOG_INFO(TAG, "音频已启动 48kHz 1ch Opus 32kbps");
 
-    /* 4. 主循环 */
-    LOG_INFO(TAG, "运行中 Ctrl+C 退出");
-
-    int elapsed = 0;
-    while (g_running.load(std::memory_order_relaxed))
+    int wait_cnt = 0;
+    while (signaling->getStatus() != app::protocol::webrtc::SignalingStatus::CONNECTED)
     {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        elapsed++;
-
-        /* 定期尝试重连 */
-        if (!ws_client->isConnected() && !ws_client->isHandshaked() && (elapsed % 10 == 0))
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        if (++wait_cnt > 100)
         {
-            LOG_INFO(TAG, "尝试重连 WebSocket...");
-            ws_client->reconnect();
+            LOG_ERROR(LOG_TAG, "信令连接超时");
+            return 1;
+        }
+    }
+    LOG_INFO(LOG_TAG, "信令已连接");
+
+    if (webrtc->init(signaling) != app::protocol::webrtc::WebRTCError::NONE)
+    {
+        LOG_ERROR(LOG_TAG, "WebRTC 初始化失败");
+        return 1;
+    }
+    LOG_INFO(LOG_TAG, "WebRTC 就绪");
+
+    if (camera_drv)
+    {
+        app::media::camera::CameraDrv* cam = camera_drv.get();
+        webrtc->setVideoNetworkCallbacks(
+            [cam](unsigned int bps)
+            {
+                if (!cam)
+                    return;
+                unsigned kbps = std::max(200u, std::min(bps / 1000u, 50000u));
+                static unsigned                     s_last_kbps   = 0;
+                static bool                         s_have        = false;
+                static std::chrono::steady_clock::time_point s_last_small_chg{};
+                if (s_have && kbps == s_last_kbps)
+                    return;
+                auto now = std::chrono::steady_clock::now();
+                constexpr unsigned kMinStepKbps = 48;
+                if (s_have && std::abs(static_cast<int>(kbps) - static_cast<int>(s_last_kbps)) <
+                        static_cast<int>(kMinStepKbps) &&
+                    now - s_last_small_chg < std::chrono::seconds(4))
+                    return;
+                s_last_kbps      = kbps;
+                s_last_small_chg = now;
+                s_have           = true;
+                if (cam->h264().set_bitrate(static_cast<uint16_t>(kbps)) ==
+                    app::media::camera::Error::OK)
+                    LOG_DEBUG(LOG_TAG, "REMB %ukbps", kbps);
+            },
+            [cam]()
+            {
+                if (!cam)
+                    return;
+                if (cam->h264().request_idr() == app::media::camera::Error::OK)
+                    LOG_DEBUG(LOG_TAG, "RequestIDR ok");
+            });
+    }
+
+    LOG_INFO(LOG_TAG, "输入 q 退出, j 加入房间, l 离开, c 发送连接请求");
+    std::string input;
+    while (std::cin >> input)
+    {
+        if (input == "q" || input == "Q")
+            break;
+        if (input == "j" || input == "J")
+        {
+            if (signaling->joinRoom())
+                LOG_INFO(LOG_TAG, "已加入房间");
+            else
+                LOG_ERROR(LOG_TAG, "加入房间失败");
+        }
+        else if (input == "l" || input == "L")
+        {
+            if (signaling->leaveRoom())
+                LOG_INFO(LOG_TAG, "已离开房间");
+            else
+                LOG_ERROR(LOG_TAG, "离开房间失败");
+        }
+        else if (input == "c" || input == "C")
+        {
+            std::string peer = signaling->getPeerDeviceId();
+            if (peer.empty())
+                LOG_ERROR(LOG_TAG, "未配对");
+            else if (webrtc->sendConnectionRequest(peer, true, true, true))
+                LOG_INFO(LOG_TAG, "连接请求已发往 %s", peer.c_str());
+            else
+                LOG_ERROR(LOG_TAG, "发送连接请求失败");
         }
     }
 
-    /* 5. 清理 */
-    audio.stop();
-    audio.deinit();
-    cam.stop();
-    cam.deinit();
-    ws_client->disconnect();
+    webrtc->deinit();
+    signaling->disconnect();
+    if (audio_drv)
+    {
+        audio_drv->stop();
+        audio_drv->deinit();
+    }
+    if (camera_drv)
+    {
+        camera_drv->stop();
+        camera_drv->deinit();
+    }
+    if (sync_ctx)
+        sync_deinit(sync_ctx.get());
 
-    LOG_INFO(TAG, "已退出");
+    LOG_INFO(LOG_TAG, "退出");
     return 0;
 }

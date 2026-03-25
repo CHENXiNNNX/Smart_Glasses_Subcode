@@ -35,6 +35,7 @@ namespace app::media::camera
         Error set_bitrate(uint16_t kbps);
         Error set_gop(uint8_t gop);
         Error set_resolution(uint16_t w, uint16_t h);
+        Error request_idr();
 
         const H264Cfg& cfg() const;
 

@@ -117,11 +117,23 @@ namespace app::media::camera
     }
 
     RtspServer::RtspServer() : impl_(std::make_unique<Impl>()) {}
-    RtspServer::~RtspServer() { stop(); }
-    Error RtspServer::start(uint16_t port, const std::string& path) { return impl_->start(port, path); }
-    Error RtspServer::stop() { return impl_->stop(); }
-    bool  RtspServer::is_running() const { return impl_->running_; }
-    void  RtspServer::send_frame(const uint8_t* data, size_t size, uint64_t pts, bool keyframe)
+    RtspServer::~RtspServer()
+    {
+        stop();
+    }
+    Error RtspServer::start(uint16_t port, const std::string& path)
+    {
+        return impl_->start(port, path);
+    }
+    Error RtspServer::stop()
+    {
+        return impl_->stop();
+    }
+    bool RtspServer::is_running() const
+    {
+        return impl_->running_;
+    }
+    void RtspServer::send_frame(const uint8_t* data, size_t size, uint64_t pts, bool keyframe)
     {
         impl_->send_frame(data, size, pts, keyframe);
     }

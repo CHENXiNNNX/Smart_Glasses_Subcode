@@ -45,6 +45,9 @@ public:
 
 	SyncTimestamps getSyncTimestamps();
 
+	/** Last RTCP RR fraction lost field (0–255, see RFC 3550). Updated when sending RR. */
+	uint8_t lastReportFractionLoss() const;
+
 protected:
 	void pushREMB(const message_callback &send, unsigned int bitrate);
 	void pushRR(const message_callback &send,unsigned int lastSrDelay);
@@ -69,6 +72,7 @@ protected:
 	SyncTimestamps mSyncTimestamps{0,0};
 
 	std::atomic<unsigned int> mRequestedBitrate = 0;
+	std::atomic<uint8_t> mLastReportFractionLoss = 0;
 	std::mutex mSyncMutex;
 };
 

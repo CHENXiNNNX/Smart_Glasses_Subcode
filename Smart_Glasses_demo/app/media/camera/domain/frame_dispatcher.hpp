@@ -16,13 +16,14 @@ namespace tool::memory
     class MemoryPool;
     class VideoRingBuffer;
     struct VideoRingBufferConfig;
-}
+} // namespace tool::memory
 
 namespace app::media::camera::domain
 {
 
-    using H264SinkRaw = std::function<void(const uint8_t* data, size_t size, uint64_t pts, bool keyframe)>;
-    using JpegSink   = std::function<void(const FramePtr&)>;
+    using H264SinkRaw =
+        std::function<void(const uint8_t* data, size_t size, uint64_t pts, bool keyframe)>;
+    using JpegSink = std::function<void(const FramePtr&)>;
 
     /* H264: 编码器→VideoRingBuffer→消费线程→sink；JPEG: 同步分发 */
     class FrameDispatcher

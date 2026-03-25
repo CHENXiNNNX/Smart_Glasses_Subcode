@@ -24,7 +24,7 @@ namespace app::media::camera
         ExplainService();
         ~ExplainService();
 
-        void set_url(const std::string& url, const std::string& token = "");
+        void        set_url(const std::string& url, const std::string& token = "");
         std::string explain(const std::string& question, JpegEncoder* jpeg);
 
         /* JPEG 回调喂帧，explain 等待时调用 */

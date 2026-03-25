@@ -83,10 +83,22 @@ namespace app::media::camera
     }
 
     IspCtrl::IspCtrl() : impl_(std::make_unique<Impl>()) {}
-    IspCtrl::~IspCtrl() { deinit(); }
-    Error IspCtrl::init(const std::string& iq_dir) { return impl_->init(iq_dir); }
-    void  IspCtrl::deinit() { impl_->deinit(); }
-    bool  IspCtrl::is_init() const { return impl_->init_; }
+    IspCtrl::~IspCtrl()
+    {
+        deinit();
+    }
+    Error IspCtrl::init(const std::string& iq_dir)
+    {
+        return impl_->init(iq_dir);
+    }
+    void IspCtrl::deinit()
+    {
+        impl_->deinit();
+    }
+    bool IspCtrl::is_init() const
+    {
+        return impl_->init_;
+    }
 
     Error IspCtrl::set_ae_mode(AeMode mode)
     {
@@ -178,8 +190,8 @@ namespace app::media::camera
 #if CAM_HAS_SDK
         if (!impl_->aiq_ctx)
             return Error::OK;
-        XCamReturn r = lock ? rk_aiq_uapi2_lockAWB(impl_->aiq_ctx)
-                            : rk_aiq_uapi2_unlockAWB(impl_->aiq_ctx);
+        XCamReturn r =
+            lock ? rk_aiq_uapi2_lockAWB(impl_->aiq_ctx) : rk_aiq_uapi2_unlockAWB(impl_->aiq_ctx);
         return (r == XCAM_RETURN_NO_ERROR) ? Error::OK : Error::DEVICE_ERROR;
 #else
         (void)lock;

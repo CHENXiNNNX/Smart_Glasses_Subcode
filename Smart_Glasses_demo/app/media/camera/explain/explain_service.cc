@@ -19,8 +19,8 @@ namespace app::media::camera
     class ExplainService::Impl
     {
     public:
-        std::string url_;
-        std::string token_;
+        std::string             url_;
+        std::string             token_;
         std::mutex              mtx_;
         std::atomic<bool>       pending_{false};
         std::vector<uint8_t>    frame_data_;
@@ -64,8 +64,8 @@ namespace app::media::camera
             headers["Authorization"] = "Bearer " + impl_->token_;
 
         auto response = http_client.postMultipart(
-            impl_->url_, form_fields, "file", impl_->frame_data_.data(),
-            impl_->frame_data_.size(), "camera.jpg", "image/jpeg", headers, 30000, true);
+            impl_->url_, form_fields, "file", impl_->frame_data_.data(), impl_->frame_data_.size(),
+            "camera.jpg", "image/jpeg", headers, 30000, true);
 
         if (!response.success)
             return R"({"success":false,"message":")" + response.error_message + R"("})";

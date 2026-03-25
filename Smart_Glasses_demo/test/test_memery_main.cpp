@@ -1,4 +1,4 @@
-/* test_mempool_main.cpp - 内存池测试 */
+/* test_memery_main.cpp - 内存池测试 */
 
 #include "app/tool/memory/memory.hpp"
 

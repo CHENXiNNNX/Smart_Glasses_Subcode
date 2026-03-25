@@ -91,17 +91,44 @@ namespace app::media::camera
                 std::chrono::duration_cast<std::chrono::seconds>(now - start_time_).count());
         }
 
-        uint64_t file_size() const { return bytes_.load(); }
+        uint64_t file_size() const
+        {
+            return bytes_.load();
+        }
     };
 
     Recorder::Recorder() : impl_(std::make_unique<Impl>()) {}
-    Recorder::~Recorder() { impl_->stop(); }
-    Error Recorder::start(const std::string& path, int duration_sec) { return impl_->start(path, duration_sec); }
-    Error Recorder::stop() { return impl_->stop(); }
-    bool  Recorder::is_recording() const { return impl_->recording_; }
-    uint32_t Recorder::duration_sec() const { return impl_->duration_sec(); }
-    uint64_t Recorder::file_size() const { return impl_->file_size(); }
-    uint32_t Recorder::frames() const { return impl_->frames_.load(); }
-    void Recorder::write_frame(const uint8_t* data, size_t size) { impl_->write_frame(data, size); }
+    Recorder::~Recorder()
+    {
+        impl_->stop();
+    }
+    Error Recorder::start(const std::string& path, int duration_sec)
+    {
+        return impl_->start(path, duration_sec);
+    }
+    Error Recorder::stop()
+    {
+        return impl_->stop();
+    }
+    bool Recorder::is_recording() const
+    {
+        return impl_->recording_;
+    }
+    uint32_t Recorder::duration_sec() const
+    {
+        return impl_->duration_sec();
+    }
+    uint64_t Recorder::file_size() const
+    {
+        return impl_->file_size();
+    }
+    uint32_t Recorder::frames() const
+    {
+        return impl_->frames_.load();
+    }
+    void Recorder::write_frame(const uint8_t* data, size_t size)
+    {
+        impl_->write_frame(data, size);
+    }
 
 } // namespace app::media::camera

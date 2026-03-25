@@ -14,7 +14,7 @@ namespace app::media::camera::domain
 {
 
     static constexpr size_t H264_SLOT_SIZE = 256 * 1024;
-    static constexpr size_t H264_QUEUE_CAP = 4;
+    static constexpr size_t H264_QUEUE_CAP = 8; /* 增大缓冲，减少满时丢帧 */
 
     struct FrameDispatcher::Impl
     {
@@ -22,16 +22,16 @@ namespace app::media::camera::domain
         std::vector<JpegSink>    jpeg_sinks_;
         std::mutex               mtx_;
 
-        std::unique_ptr<tool::memory::MemoryPool>       h264_pool_;
-        std::unique_ptr<tool::memory::VideoRingBuffer>  h264_buffer_;
-        std::thread                                     consumer_thread_;
-        std::atomic<bool>                               consumer_stop_{false};
+        std::unique_ptr<tool::memory::MemoryPool>      h264_pool_;
+        std::unique_ptr<tool::memory::VideoRingBuffer> h264_buffer_;
+        std::thread                                    consumer_thread_;
+        std::atomic<bool>                              consumer_stop_{false};
 
         void start_consumer()
         {
             if (consumer_thread_.joinable())
                 return;
-            consumer_stop_ = false;
+            consumer_stop_   = false;
             consumer_thread_ = std::thread(&Impl::consumer_loop, this);
         }
 
@@ -75,12 +75,14 @@ namespace app::media::camera::domain
             if (h264_buffer_)
                 return;
             tool::memory::VideoRingBufferConfig cfg;
-            cfg.slot_size   = H264_SLOT_SIZE;
-            cfg.capacity    = H264_QUEUE_CAP;
-            cfg.drop_policy = tool::memory::DropPolicy::DROP_OLDEST_P;
+            cfg.slot_size = H264_SLOT_SIZE;
+            cfg.capacity  = H264_QUEUE_CAP;
+            /* DROP_NEWEST: 满时拒收新帧，避免 DROP_OLDEST_P 丢弃 P 帧导致 H264 参考链断裂、运动花屏
+             */
+            cfg.drop_policy = tool::memory::DropPolicy::DROP_NEWEST;
             size_t pool_sz  = cfg.slot_size * cfg.capacity + 1024;
-            h264_pool_   = std::make_unique<tool::memory::MemoryPool>(pool_sz);
-            h264_buffer_ = std::make_unique<tool::memory::VideoRingBuffer>(*h264_pool_, cfg);
+            h264_pool_      = std::make_unique<tool::memory::MemoryPool>(pool_sz);
+            h264_buffer_    = std::make_unique<tool::memory::VideoRingBuffer>(*h264_pool_, cfg);
         }
     };
 

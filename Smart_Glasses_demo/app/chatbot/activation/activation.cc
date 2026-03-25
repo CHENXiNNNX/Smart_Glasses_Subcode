@@ -554,8 +554,9 @@ namespace app
                 uint64_t parse_err   = pImpl_->stats.parse_errors.load();
                 uint64_t retries     = pImpl_->stats.retry_count.load();
 
-                LOG_INFO(LOG_TAG, "统计 检查=%llu 成功=%llu 失败=%llu 网络=%llu 解析=%llu 重试=%llu",
-                         total, success, failed, network_err, parse_err, retries);
+                LOG_INFO(LOG_TAG,
+                         "统计 检查=%llu 成功=%llu 失败=%llu 网络=%llu 解析=%llu 重试=%llu", total,
+                         success, failed, network_err, parse_err, retries);
 
                 if (total > 0)
                 {

@@ -59,8 +59,8 @@ namespace app::tool::memory
         MemoryPool& operator=(MemoryPool&&) noexcept;
 
         [[nodiscard]] void* allocate(size_t size);
-        void deallocate(void* ptr) noexcept;
-        void reset();
+        void                deallocate(void* ptr) noexcept;
+        void                reset();
 
         [[nodiscard]] Stats  get_stats() const;
         [[nodiscard]] size_t get_free_memory_fast() const noexcept
@@ -71,8 +71,14 @@ namespace app::tool::memory
         {
             return cached_used_memory_.load(std::memory_order_acquire);
         }
-        [[nodiscard]] bool   valid() const noexcept { return !pool_blocks_.empty(); }
-        [[nodiscard]] size_t get_alignment() const noexcept { return alignment_; }
+        [[nodiscard]] bool valid() const noexcept
+        {
+            return !pool_blocks_.empty();
+        }
+        [[nodiscard]] size_t get_alignment() const noexcept
+        {
+            return alignment_;
+        }
 
     private:
         struct BlockHeader
@@ -96,9 +102,9 @@ namespace app::tool::memory
         double                 expansion_factor_;
         std::vector<PoolBlock> pool_blocks_;
 
-        std::unordered_map<void*, size_t>                                    pointer_map_;
-        std::multimap<size_t, void*>                                         free_blocks_by_size_;
-        std::unordered_map<void*, std::multimap<size_t, void*>::iterator>    free_blocks_iterators_;
+        std::unordered_map<void*, size_t>                                 pointer_map_;
+        std::multimap<size_t, void*>                                      free_blocks_by_size_;
+        std::unordered_map<void*, std::multimap<size_t, void*>::iterator> free_blocks_iterators_;
 
         std::atomic<size_t> cached_free_memory_{0};
         std::atomic<size_t> cached_used_memory_{0};

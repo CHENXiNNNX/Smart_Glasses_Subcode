@@ -18,18 +18,8 @@ add_compile_definitions(_GLIBCXX_USE_CXX11_ABI=0)
 # Include directories
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-# 搜索所有 .cc 和 .h 文件
-file(GLOB_RECURSE SNOWBOY_SOURCES
-    #"${CMAKE_CURRENT_SOURCE_DIR}/*.cc"
-    "${CMAKE_CURRENT_SOURCE_DIR}/demo2.cc"
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
-)
-
-# 添加静态库
-add_library(snowboy STATIC ${SNOWBOY_SOURCES})
-
-# Link libraries
-target_link_libraries(snowboy PRIVATE ${SNOWBOY_LIBRARY})
+add_library(snowboy STATIC IMPORTED)
+set_target_properties(snowboy PROPERTIES IMPORTED_LOCATION "${SNOWBOY_LIBRARY}")
 
 # Additional flags and options
 set(CMAKE_CXX_STANDARD 17)
@@ -47,8 +37,8 @@ endif()
 
 
 # 将找到的库添加到目标
-target_include_directories(snowboy PUBLIC ${BLAS_INCLUDE_DIRS})
-target_link_libraries(snowboy PRIVATE ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
+target_include_directories(snowboy INTERFACE ${BLAS_INCLUDE_DIRS})
+target_link_libraries(snowboy INTERFACE ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
 
 # Create the C wrapper for snowboy-detect
 add_library(snowboy-detect-c-wrapper STATIC

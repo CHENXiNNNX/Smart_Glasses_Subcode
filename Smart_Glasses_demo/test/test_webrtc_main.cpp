@@ -1,9 +1,9 @@
-/* main.cpp - WebRTC 测试 */
-
+#include <algorithm>
+#include <chrono>
+#include <cmath>
 #include <iostream>
 #include <memory>
 #include <thread>
-#include <chrono>
 
 #include "app/protocol/webrtc/signaling.hpp"
 #include "app/protocol/webrtc/webrtc.hpp"
@@ -27,26 +27,37 @@ int main()
     Logger::inst().init(LogConfig());
     LOG_INFO(LOG_TAG, "WebRTC 测试启动");
 
-    // 同步上下文（音视频时间同步）
     auto sync_ctx = std::make_shared<sync_context_t>();
     if (sync_init(sync_ctx.get()) != 0)
     {
         LOG_WARN(LOG_TAG, "同步初始化失败，继续");
     }
 
-    // 信令配置
     app::protocol::webrtc::SignalingConfig sig_config;
     sig_config.device_id  = device_id;
     sig_config.server_url = server_url;
 
-    // WebRTC 配置
     app::protocol::webrtc::WebRTCConfig webrtc_config;
-    webrtc_config.ice.stun_servers = {"stun:stun.l.google.com:19302"};
+    webrtc_config.ice.stun_servers = {
+        "stun:stun.l.google.com:19302",
+        "stun:stun.miwifi.com:3478",
+        "stun:stun.chat.bilibili.com:3478",
+        "stun.12voip.com:3478",
+        "stun:stun.aa.net.uk:3478",
+        "stun:stun.actionvoip.com:3478"
+    };
+    webrtc_config.ice.turn_servers = {
+        "turn:turnuser1:turnpass123@116.62.24.66:3478",
+        "turn:turnuser1:turnpass123@116.62.24.66:3478?transport=tcp",
+        "turn:user:mypwd@43.138.235.180:9002"
+    };
+    webrtc_config.enable_video_pacing      = true;
+    webrtc_config.video_pacing_bps         = 0;
+    webrtc_config.video_pacing_interval_ms = 10;
 
     auto signaling = std::make_shared<app::protocol::webrtc::Signaling>(sig_config);
     auto webrtc    = std::make_shared<app::protocol::webrtc::WebRTCSystem>(webrtc_config);
 
-    // 音频驱动
     app::media::audio::AudioCfg audio_cfg;
     audio_cfg.capture.rate      = AUDIO_SAMPLE_RATE;
     audio_cfg.capture.channels  = AUDIO_CHANNELS;
@@ -71,7 +82,6 @@ int main()
         return 1;
     }
 
-    // 采集回调：PCM -> Opus -> WebRTC
     audio_drv->set_capture_cb(
         [webrtc, audio_drv = audio_drv.get()](const app::media::audio::FramePtr& pcm)
         {
@@ -89,7 +99,6 @@ int main()
     }
     LOG_INFO(LOG_TAG, "音频就绪");
 
-    // 摄像头驱动（可选，无 RK 硬件时跳过）
     std::unique_ptr<app::media::camera::CameraDrv> camera_drv;
     app::media::camera::CameraCfg                  camera_cfg;
     camera_cfg.h264.width   = CAMERA_WIDTH;
@@ -102,12 +111,13 @@ int main()
     if (camera_drv->init(camera_cfg, sync_ctx) == app::media::camera::Error::OK &&
         camera_drv->start() == app::media::camera::Error::OK)
     {
-        camera_drv->set_webrtc_cb(
-            [webrtc](const app::media::camera::FramePtr& frame)
+        camera_drv->set_webrtc_sink(
+            [webrtc, sync_ctx](const uint8_t* data, size_t size, uint64_t pts, bool keyframe)
             {
-                if (!frame || frame->size == 0 || !webrtc->isConnected())
+                if (!data || size == 0 || !webrtc->isConnected())
                     return;
-                webrtc->sendVideoData(frame->data, frame->size, frame->timestamp, frame->keyframe);
+                uint64_t ts = sync_ctx ? sync_get_timestamp(sync_ctx.get(), pts, false) : pts;
+                webrtc->sendVideoData(data, size, ts, keyframe);
             });
         LOG_INFO(LOG_TAG, "视频就绪");
     }
@@ -117,7 +127,6 @@ int main()
         camera_drv.reset();
     }
 
-    // WebRTC 状态变化
     webrtc->onStateChanged(
         [](app::protocol::webrtc::WebRTCState state)
         {
@@ -125,7 +134,6 @@ int main()
                      app::protocol::webrtc::WebRTCSystem::stateToString(state));
         });
 
-    // 远端音频 -> 本地播放
     webrtc->onAudioData(
         [audio_drv = audio_drv.get()](const uint8_t* data, size_t size)
         {
@@ -136,7 +144,6 @@ int main()
                 audio_drv->playback().push(pcm);
         });
 
-    // 信令回调
     signaling->onStatusChanged(
         [](app::protocol::webrtc::SignalingStatus status)
         {
@@ -149,7 +156,6 @@ int main()
         [](const app::protocol::webrtc::RoomInfo& info)
         { LOG_INFO(LOG_TAG, "房间 %s 人数=%d", info.room_id.c_str(), info.num); });
 
-    // 连接信令
     if (!signaling->connect())
     {
         LOG_ERROR(LOG_TAG, "信令连接失败");
@@ -174,6 +180,42 @@ int main()
         return 1;
     }
     LOG_INFO(LOG_TAG, "WebRTC 就绪");
+
+    if (camera_drv)
+    {
+        app::media::camera::CameraDrv* cam = camera_drv.get();
+        webrtc->setVideoNetworkCallbacks(
+            [cam](unsigned int bps)
+            {
+                if (!cam)
+                    return;
+                unsigned kbps = std::max(200u, std::min(bps / 1000u, 50000u));
+                static unsigned                     s_last_kbps   = 0;
+                static bool                         s_have        = false;
+                static std::chrono::steady_clock::time_point s_last_small_chg{};
+                if (s_have && kbps == s_last_kbps)
+                    return;
+                auto now = std::chrono::steady_clock::now();
+                constexpr unsigned kMinStepKbps = 48;
+                if (s_have && std::abs(static_cast<int>(kbps) - static_cast<int>(s_last_kbps)) <
+                        static_cast<int>(kMinStepKbps) &&
+                    now - s_last_small_chg < std::chrono::seconds(4))
+                    return;
+                s_last_kbps      = kbps;
+                s_last_small_chg = now;
+                s_have           = true;
+                if (cam->h264().set_bitrate(static_cast<uint16_t>(kbps)) ==
+                    app::media::camera::Error::OK)
+                    LOG_DEBUG(LOG_TAG, "REMB %ukbps", kbps);
+            },
+            [cam]()
+            {
+                if (!cam)
+                    return;
+                if (cam->h264().request_idr() == app::media::camera::Error::OK)
+                    LOG_DEBUG(LOG_TAG, "RequestIDR ok");
+            });
+    }
 
     LOG_INFO(LOG_TAG, "输入 q 退出, j 加入房间, l 离开, c 发送连接请求");
     std::string input;
@@ -207,7 +249,6 @@ int main()
         }
     }
 
-    // 清理
     webrtc->deinit();
     signaling->disconnect();
     if (audio_drv)

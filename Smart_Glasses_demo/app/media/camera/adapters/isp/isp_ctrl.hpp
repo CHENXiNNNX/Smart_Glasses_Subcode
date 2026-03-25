@@ -25,12 +25,20 @@ namespace app::media::camera
         void  deinit();
         bool  is_init() const;
 
-        enum class AeMode { AUTO, MANUAL };
+        enum class AeMode
+        {
+            AUTO,
+            MANUAL
+        };
         Error set_ae_mode(AeMode mode);
         Error set_exposure(float time_ms, float gain);
         Error lock_ae(bool lock);
 
-        enum class AwbMode { AUTO, MANUAL };
+        enum class AwbMode
+        {
+            AUTO,
+            MANUAL
+        };
         Error set_awb_mode(AwbMode mode);
         Error set_wb_gain(float r_gain, float b_gain);
         Error lock_awb(bool lock);

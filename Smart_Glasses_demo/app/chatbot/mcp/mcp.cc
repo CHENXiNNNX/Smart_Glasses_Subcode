@@ -885,10 +885,10 @@ namespace app
                 uint64_t parse_err    = pImpl_->stats.parse_errors.load();
                 uint64_t not_found    = pImpl_->stats.method_not_found.load();
 
-                LOG_INFO(LOG_TAG,
-                         "统计 init=%llu list=%llu call=%llu 成功=%llu 错误=%llu 解析=%llu 未找到=%llu",
-                         init_req, list_req, call_req, call_success, call_errors, parse_err,
-                         not_found);
+                LOG_INFO(
+                    LOG_TAG,
+                    "统计 init=%llu list=%llu call=%llu 成功=%llu 错误=%llu 解析=%llu 未找到=%llu",
+                    init_req, list_req, call_req, call_success, call_errors, parse_err, not_found);
 
                 if (call_req > 0)
                 {

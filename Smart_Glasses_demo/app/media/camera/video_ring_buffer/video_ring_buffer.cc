@@ -15,12 +15,10 @@ namespace app::tool::memory
         {
             return sizeof(size_t) + sizeof(uint64_t) + sizeof(bool);
         }
-    }
+    } // namespace
 
     VideoRingBuffer::VideoRingBuffer(MemoryPool& pool, const VideoRingBufferConfig& config)
-        : pool_(pool)
-        , config_(config)
-        , slot_stride_(config.slot_size + slot_meta_size())
+        : pool_(pool), config_(config), slot_stride_(config.slot_size + slot_meta_size())
     {
         size_t total = slot_stride_ * config.capacity;
         slots_       = static_cast<uint8_t*>(pool_.allocate(total));
@@ -53,7 +51,7 @@ namespace app::tool::memory
             std::memcpy(&kf, s + config_.slot_size + OFFSET_KEYFRAME, sizeof(bool));
             if (!kf)
             {
-                head_  = (head_ + 1) % config_.capacity;
+                head_ = (head_ + 1) % config_.capacity;
                 count_--;
                 return true;
             }
@@ -85,24 +83,25 @@ namespace app::tool::memory
         std::memcpy(slot + config_.slot_size + OFFSET_PTS, &pts, sizeof(uint64_t));
         std::memcpy(slot + config_.slot_size + OFFSET_KEYFRAME, &keyframe, sizeof(bool));
 
-        tail_  = (tail_ + 1) % config_.capacity;
+        tail_ = (tail_ + 1) % config_.capacity;
         count_++;
         return true;
     }
 
-    bool VideoRingBuffer::dequeue(const uint8_t*& out_data, size_t& out_size, uint64_t& out_pts, bool& out_keyframe)
+    bool VideoRingBuffer::dequeue(const uint8_t*& out_data, size_t& out_size, uint64_t& out_pts,
+                                  bool& out_keyframe)
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (count_ == 0)
             return false;
 
         uint8_t* slot = slot_ptr(head_);
-        out_data = slot;
+        out_data      = slot;
         std::memcpy(&out_size, slot + config_.slot_size + OFFSET_SIZE, sizeof(size_t));
         std::memcpy(&out_pts, slot + config_.slot_size + OFFSET_PTS, sizeof(uint64_t));
         std::memcpy(&out_keyframe, slot + config_.slot_size + OFFSET_KEYFRAME, sizeof(bool));
 
-        head_  = (head_ + 1) % config_.capacity;
+        head_ = (head_ + 1) % config_.capacity;
         count_--;
         return true;
     }
