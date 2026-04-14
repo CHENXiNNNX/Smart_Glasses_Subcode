@@ -1,4 +1,4 @@
-/* test_camera_main.cpp - 摄像头驱动测试 */
+/* test_camera.cpp - 摄像头驱动测试 */
 
 #include "app/media/camera/camera.hpp"
 #include "app/tool/log/log.hpp"

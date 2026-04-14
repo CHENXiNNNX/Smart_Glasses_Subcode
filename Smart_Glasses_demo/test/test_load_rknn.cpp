@@ -1,4 +1,4 @@
-/* test_load_model_main.cpp - RKNN 模型加载测试 */
+/* test_load_rknn.cpp - RKNN 模型加载测试 */
 
 #include "app/rknn/rknn.hpp"
 #include "app/tool/log/log.hpp"
@@ -17,11 +17,6 @@ namespace
 {
     constexpr const char* LOG_TAG = "LOAD";
 
-    std::string getModelDir()
-    {
-        return "./model/";
-    }
-
     std::vector<std::string> scanModelFiles(const std::string& dir_path)
     {
         std::vector<std::string> model_files;
@@ -29,24 +24,21 @@ namespace
         {
             if (!std::filesystem::exists(dir_path))
             {
-                LOG_WARN(LOG_TAG, "模型目录不存在: %s", dir_path.c_str());
+                std::cerr << "模型目录不存在: " << dir_path << std::endl;
                 return model_files;
             }
+
             for (const auto& entry : std::filesystem::directory_iterator(dir_path))
             {
-                if (entry.is_regular_file())
+                if (entry.is_regular_file() && entry.path().extension() == ".rknn")
                 {
-                    std::string ext = entry.path().extension().string();
-                    if (ext == ".rknn")
-                    {
-                        model_files.push_back(entry.path().string());
-                    }
+                    model_files.push_back(entry.path().string());
                 }
             }
         }
-        catch (const std::filesystem::filesystem_error& e)
+        catch (const std::exception& e)
         {
-            LOG_ERROR(LOG_TAG, "扫描失败: %s", e.what());
+            std::cerr << "扫描目录失败: " << e.what() << std::endl;
         }
         return model_files;
     }
@@ -110,18 +102,35 @@ int main(int argc, char* argv[])
     // 初始化日志系统
     Logger::inst().init(LogConfig());
 
-    // 获取模型目录路径（可通过命令行参数指定，默认为 ./model/）
-    std::string model_dir = "./model/";
-    if (argc > 1)
+    std::string model_dir = "./models/";
+
+    for (int i = 1; i < argc; ++i)
     {
-        model_dir = argv[1];
-        if (model_dir.back() != '/')
+        std::string arg = argv[i];
+        if ((arg == "-p" || arg == "--path") && (i + 1) < argc)
         {
-            model_dir += "/";
+            model_dir = argv[++i];
+        }
+        else if (arg == "-h" || arg == "--help")
+        {
+            std::cout << "用法: " << argv[0] << " [-p 模型目录]\n";
+            std::cout << "示例: " << argv[0] << " -p ./models\n";
+            return 0;
+        }
+        else
+        {
+            std::cerr << "未知参数: " << arg << std::endl;
+            std::cerr << "使用 -h 查看帮助" << std::endl;
+            return EXIT_FAILURE;
         }
     }
 
-    LOG_INFO(LOG_TAG, "开始扫描模型目录: %s", model_dir.c_str());
+    if (!model_dir.empty() && model_dir.back() != '/')
+    {
+        model_dir += "/";
+    }
+
+    std::cout << "开始扫描 RKNN 模型目录: " << model_dir << std::endl;
 
     // 扫描所有模型文件
     std::vector<std::string> model_files = scanModelFiles(model_dir);

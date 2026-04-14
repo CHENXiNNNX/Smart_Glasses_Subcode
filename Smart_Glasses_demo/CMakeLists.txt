@@ -108,26 +108,60 @@ add_custom_command(
     COMMENT "Copying cacert.pem to bin directory"
 )
 
-# 复制RKNN模型文件到输出目录
+# 复制模型文件到输出目录（bin/models）
 add_custom_command(
     TARGET main POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_PATH}/model
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_PATH}/models
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${PROJECT_SOURCE_DIR}/assets/models/detection.rknn
-            ${OUTPUT_PATH}/model/detection.rknn
+            ${OUTPUT_PATH}/models/detection.rknn
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${PROJECT_SOURCE_DIR}/assets/models/recognition.rknn
-            ${OUTPUT_PATH}/model/recognition.rknn
+            ${OUTPUT_PATH}/models/recognition.rknn
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${PROJECT_SOURCE_DIR}/assets/models/retinaface.rknn
-            ${OUTPUT_PATH}/model/retinaface.rknn
+            ${OUTPUT_PATH}/models/retinaface.rknn
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${PROJECT_SOURCE_DIR}/assets/models/LZ-ArcFace.rknn
-            ${OUTPUT_PATH}/model/LZ-ArcFace.rknn
+            ${OUTPUT_PATH}/models/LZ-ArcFace.rknn
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${PROJECT_SOURCE_DIR}/assets/models/w600k_mbf.rknn
-            ${OUTPUT_PATH}/model/w600k_mbf.rknn
-    COMMENT "Copying RKNN model files to bin/model directory"
+            ${OUTPUT_PATH}/models/w600k_mbf.rknn
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${PROJECT_SOURCE_DIR}/assets/models/silero_vad.onnx
+            ${OUTPUT_PATH}/models/silero_vad.onnx
+    COMMENT "Copying model files to bin/models directory"
+)
+
+# 复制 ONNX Runtime 必要库到输出目录（bin/lib/onnxruntime）
+add_custom_command(
+    TARGET main POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_PATH}/lib/onnxruntime
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${PROJECT_SOURCE_DIR}/lib/onnxruntime/libonnxruntime.so
+            ${OUTPUT_PATH}/lib/onnxruntime/libonnxruntime.so
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${PROJECT_SOURCE_DIR}/lib/onnxruntime/libonnxruntime.so.1.17.3
+            ${OUTPUT_PATH}/lib/onnxruntime/libonnxruntime.so.1.17.3
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${PROJECT_SOURCE_DIR}/lib/onnxruntime/libonnxruntime_providers_shared.so
+            ${OUTPUT_PATH}/lib/onnxruntime/libonnxruntime_providers_shared.so
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${PROJECT_SOURCE_DIR}/lib/onnxruntime/libiconv.so.2
+            ${OUTPUT_PATH}/lib/onnxruntime/libiconv.so.2
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${PROJECT_SOURCE_DIR}/lib/onnxruntime/libiconv.so.2.6.0
+            ${OUTPUT_PATH}/lib/onnxruntime/libiconv.so.2.6.0
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${PROJECT_SOURCE_DIR}/lib/onnxruntime/libstdc++.so.6
+            ${OUTPUT_PATH}/lib/onnxruntime/libstdc++.so.6
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${PROJECT_SOURCE_DIR}/lib/onnxruntime/libstdc++.so.6.0.25
+            ${OUTPUT_PATH}/lib/onnxruntime/libstdc++.so.6.0.25
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${PROJECT_SOURCE_DIR}/lib/onnxruntime/libgcc_s.so.1
+            ${OUTPUT_PATH}/lib/onnxruntime/libgcc_s.so.1
+    COMMENT "Copying required ONNX Runtime libs to bin/lib/onnxruntime"
 )
 
 # Ensure pkg-config is available

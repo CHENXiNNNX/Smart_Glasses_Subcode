@@ -52,17 +52,23 @@ Smart_Glasses_demo/
 │   └── battery/                # 电池管理模块
 │
 ├── test/                       # 测试程序
-│   ├── test_camera_main.cpp    # 相机测试
-│   ├── test_audio_main.cpp     # 音频测试
-│   ├── test_webrtc_main.cpp    # WebRTC测试
+│   ├── test.cpp                # 统一测试入口 (test_main)
+│   ├── basic.cpp               # 基础入口
+│   ├── test_camera.cpp         # 相机测试
+│   ├── test_audio.cpp          # 音频测试
+│   ├── test_face.cpp           # 人脸检测测试
+│   ├── test_webrtc.cpp         # WebRTC测试
 │   ├── test_websocket_main.cpp # WebSocket测试
-│   ├── test_wifi_main.cpp      # WiFi测试
+│   ├── test_wifi.cpp           # WiFi测试
 │   ├── test_ai_chatbot.cpp     # AI聊天机器人测试
-│   ├── test_mac_main.cpp       # MAC地址测试
+│   ├── test_mac.cpp            # MAC地址测试
 │   ├── test_uuid_main.cpp      # UUID测试
 │   ├── test_mempool_main.cpp   # 内存池测试
-│   ├── test_opencv_main.cpp    # OpenCV测试
-│   └── test_v4l2_main.cpp      # V4L2测试
+│   ├── test_memery.cpp         # 内存池测试
+│   ├── test_opencv.cpp         # OpenCV测试
+│   ├── test_load_rknn.cpp      # RKNN 模型加载
+│   ├── test_load_onnx.cpp      # ONNX 模型加载
+│   └── test_v4l2.cpp           # V4L2测试
 │
 ├── common/                     # 通用代码
 ├── docs/                       # 文档

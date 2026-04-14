@@ -1,4 +1,4 @@
-/* test_opencv_main.cpp - OpenCV 采集测试 */
+/* test_opencv.cpp - OpenCV 采集测试 */
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>

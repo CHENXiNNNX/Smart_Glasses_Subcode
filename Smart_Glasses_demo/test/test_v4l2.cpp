@@ -1,4 +1,4 @@
-/* test_v4l2_main.cpp - V4L2 MPLANE 采集测试 */
+/* test_v4l2.cpp - V4L2 MPLANE 采集测试 */
 
 #include <linux/videodev2.h>
 #include <sys/ioctl.h>

@@ -1,4 +1,4 @@
-/* test_face_main.cpp - RTSP 推流 + RetinaFace 人脸检测 */
+/* test_face.cpp - RTSP 推流 + RetinaFace 人脸检测 */
 
 #include "app/media/camera/camera.hpp"
 #include "app/media/media_config.hpp"

@@ -1,4 +1,4 @@
-/* test_mac_main.cpp - MAC 地址工具测试 */
+/* test_mac.cpp - MAC 地址工具测试 */
 
 #include "app/tool/log/log.hpp"
 #include "app/tool/mac/mac.hpp"

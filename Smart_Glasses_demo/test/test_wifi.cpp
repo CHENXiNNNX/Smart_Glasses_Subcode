@@ -1,19 +1,44 @@
-/* test_wifi_main.cpp - WiFi 模块测试 */
+/* test_wifi.cpp - WiFi 模块测试 */
 
 #include "app/network/wifi/wifi.hpp"
 #include "app/tool/log/log.hpp"
 
-#include <iostream>
-#include <string>
-#include <iomanip>
-#include <unistd.h>
+#include <algorithm>
 #include <atomic>
+#include <cctype>
+#include <iostream>
+#include <iomanip>
+#include <string>
+#include <unistd.h>
 
 using namespace app::network::wifi;
 using namespace app::tool::log;
 
 std::atomic<bool> scan_done{false};
 std::atomic<bool> connect_done{false};
+
+namespace
+{
+    std::string trim_input(std::string s)
+    {
+        auto n = s.find_last_not_of(" \t\r\n\f\v");
+        if (n == std::string::npos)
+            return "";
+        s.erase(n + 1);
+        n = s.find_first_not_of(" \t\r\n\f\v");
+        if (n != std::string::npos)
+            s.erase(0, n);
+        return s;
+    }
+
+    bool is_all_digits(const std::string& s)
+    {
+        if (s.empty())
+            return false;
+        return std::all_of(s.begin(), s.end(),
+                           [](unsigned char c) { return std::isdigit(c) != 0; });
+    }
+} // namespace
 
 void onStateChanged(WifiState old_state, WifiState new_state)
 {
@@ -107,23 +132,43 @@ void testConnect(WifiManager& wifi)
         return;
     }
 
-    // 显示可用网络
+    constexpr size_t kMaxList = 10;
+    const size_t     shown    = std::min(networks.size(), kMaxList);
+
     std::cout << "\n可用网络列表:\n";
-    for (size_t i = 0; i < std::min(networks.size(), size_t(10)); ++i)
+    for (size_t i = 0; i < shown; ++i)
     {
         std::cout << "[" << (i + 1) << "] " << std::left << std::setw(25) << networks[i].ssid
                   << " (" << networks[i].signal_strength << "%)" << std::endl;
     }
 
-    // 输入SSID
-    std::string ssid;
-    std::cout << "\n请输入SSID: ";
-    std::getline(std::cin, ssid);
+    std::string line;
+    std::cout << "\n请输入列表序号(1-" << shown << ") 或完整 SSID: ";
+    std::getline(std::cin, line);
+    line = trim_input(line);
 
-    if (ssid.empty())
+    if (line.empty())
     {
-        std::cout << "❌ SSID不能为空\n";
+        std::cout << "❌ 序号/SSID 不能为空\n";
         return;
+    }
+
+    std::string ssid = line;
+    if (is_all_digits(line))
+    {
+        try
+        {
+            const int n = std::stoi(line);
+            if (n >= 1 && static_cast<size_t>(n) <= shown)
+            {
+                ssid = networks[static_cast<size_t>(n - 1)].ssid;
+                std::cout << "→ 已选 [" << n << "] SSID: \"" << ssid << "\"\n";
+            }
+        }
+        catch (...)
+        {
+            /* 非合法数字范围则仍按 SSID 字面量连接 */
+        }
     }
 
     // 输入密码
@@ -132,7 +177,7 @@ void testConnect(WifiManager& wifi)
     std::getline(std::cin, password);
 
     // 开始连接
-    std::cout << "\n📡 正在连接到: " << ssid << " ...\n";
+    std::cout << "\n📡 正在连接到 SSID \"" << ssid << "\" ...\n";
 
     connect_done = false;
     err          = wifi.connect(ssid, password, onConnectResult);

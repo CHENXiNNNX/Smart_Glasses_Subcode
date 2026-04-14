@@ -1,4 +1,4 @@
-/* test_audio_main.cpp - 音频回声测试 */
+/* test_audio.cpp - 音频回声测试 */
 
 #include "app/media/audio/audio.hpp"
 #include "app/tool/log/log.hpp"

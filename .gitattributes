@@ -1,0 +1,2 @@
+lib/onnxruntime/libonnxruntime.so.1.17.3 filter=lfs diff=lfs merge=lfs -text
+Smart_Glasses_demo/lib/onnxruntime/libonnxruntime.so.1.17.3 filter=lfs diff=lfs merge=lfs -text
