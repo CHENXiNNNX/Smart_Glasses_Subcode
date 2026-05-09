@@ -395,7 +395,7 @@ namespace app
             }
 
             WifiError WifiService::scanNetworks(const WifiScanCallback& callback,
-                                                std::vector<WifiInfo>* networks)
+                                                std::vector<WifiInfo>*  networks)
             {
                 if (!initialized_)
                 {
@@ -901,7 +901,7 @@ namespace app
                     return WifiError::NETWORK_NOT_FOUND;
                 }
 
-                std::string cmd    = "set_network " + std::to_string(net_id) + " priority " +
+                std::string cmd = "set_network " + std::to_string(net_id) + " priority " +
                                   std::to_string(priority);
                 std::string output = wpa_->cli(cmd);
 

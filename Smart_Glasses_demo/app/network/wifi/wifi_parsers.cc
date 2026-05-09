@@ -30,10 +30,10 @@ namespace app
                 constexpr int CHANNEL_5G_OFFSET     = 5000;
                 constexpr int CHANNEL_FREQ_STEP     = 5;
 
-                constexpr std::size_t BSSID_PREFIX_LENGTH  = 6;
+                constexpr std::size_t BSSID_PREFIX_LENGTH    = 6;
                 constexpr std::size_t KEY_MGMT_PREFIX_LENGTH = 9;
-                constexpr std::size_t SSID_PREFIX_LENGTH   = 5;
-                constexpr std::size_t INET_PREFIX_LENGTH   = 5;
+                constexpr std::size_t SSID_PREFIX_LENGTH     = 5;
+                constexpr std::size_t INET_PREFIX_LENGTH     = 5;
                 constexpr std::size_t RSSI_PREFIX_LENGTH     = 5;
             } // namespace
 
@@ -81,7 +81,8 @@ namespace app
                     return WifiSecurity::WPA_PSK;
                 if (flags.find("WEP") != std::string::npos)
                     return WifiSecurity::WEP;
-                if (flags.find("ESS") != std::string::npos && flags.find("WPA") == std::string::npos)
+                if (flags.find("ESS") != std::string::npos &&
+                    flags.find("WPA") == std::string::npos)
                     return WifiSecurity::NONE;
                 return WifiSecurity::UNKNOWN;
             }
@@ -236,7 +237,7 @@ namespace app
                 }
             }
 
-            void mergeSavedNetworkPriorities(const std::string& wpa_conf_path,
+            void mergeSavedNetworkPriorities(const std::string&             wpa_conf_path,
                                              std::vector<SavedNetworkInfo>& networks)
             {
                 std::ifstream conf_file(wpa_conf_path);

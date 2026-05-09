@@ -1,10 +1,11 @@
 /*
- * audio_service_impl.hpp - 音频服务实现
+ * audio_service_impl.hpp - 音频服务实现（基于 AudioDrv 订阅模型）
  */
 
 #pragma once
 
 #include "../interfaces/iaudio_service.hpp"
+#include <cstdint>
 #include <memory>
 
 namespace app::media::audio
@@ -37,11 +38,12 @@ namespace app
         uint8_t getVolume() const override;
 
     private:
-        void updateCaptureCallback();
+        void rebuildSubscription();
 
         media::audio::AudioDrv* drv_;
         WakewordCb              wakeword_cb_;
         CaptureCb               capture_cb_;
+        std::uint64_t           mic_sub_{0};
     };
 
 } // namespace app

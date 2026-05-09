@@ -18,7 +18,7 @@ namespace app
 
             namespace
             {
-                constexpr const char* LOG_TAG            = "WiFi";
+                constexpr const char* LOG_TAG             = "WiFi";
                 constexpr std::size_t COMMAND_BUFFER_SIZE = 4096;
             } // namespace
 
@@ -65,7 +65,8 @@ namespace app
             class LinuxLinkLayer final : public ILinkLayer
             {
             public:
-                explicit LinuxLinkLayer(std::shared_ptr<IShellRunner> shell) : shell_(std::move(shell))
+                explicit LinuxLinkLayer(std::shared_ptr<IShellRunner> shell)
+                    : shell_(std::move(shell))
                 {
                 }
 
@@ -112,7 +113,7 @@ namespace app
 
             WifiPorts makeLinuxWifiPorts(const WifiConfig& config)
             {
-                auto shell = std::make_shared<LinuxShellRunner>();
+                auto      shell = std::make_shared<LinuxShellRunner>();
                 WifiPorts ports;
                 ports.shell = shell;
                 ports.wpa   = std::make_shared<LinuxWpaControl>(shell, config.interface_name);

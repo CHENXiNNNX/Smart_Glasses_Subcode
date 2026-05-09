@@ -1,6 +1,12 @@
-/* test_audio.cpp - 音频回声测试 */
+/* test_audio.cpp - 音频回声自测（AudioDrv + MicProcessed 订阅 + Opus 闭环）
+ *
+ * 流程：MicProcessed → Opus 编码 → pushPlaybackOpus（内部解码）→ 扬声器。
+ *       Ctrl+C 结束。
+ */
 
 #include "app/media/audio/audio.hpp"
+#include "app/media/audio/codec/opus_codec.hpp"
+#include "app/media/media_config.hpp"
 #include "app/tool/log/log.hpp"
 
 #include <atomic>
@@ -15,15 +21,7 @@ using namespace app::tool::log;
 
 namespace
 {
-    constexpr const char*     TAG          = "ECHO";
-    static constexpr uint32_t RATE         = 48000;
-    static constexpr uint8_t  CH           = 1;
-    static constexpr uint8_t  FRAME_MS     = 20;
-    static constexpr uint8_t  VOLUME       = 85;
-    static constexpr uint32_t OPUS_BITRATE = 32000;
-    static constexpr float    AGC_LEVEL    = 8000.0f;
-    static constexpr int      NOISE_DB     = -45;
-    static constexpr int      ECHO_DB      = -90;
+    constexpr const char* TAG = "ECHO";
 
     std::atomic<bool> g_running{true};
 
@@ -37,7 +35,7 @@ namespace
         auto s = drv.stats();
         printf("\r[%3ds] 采集:%4u 编码:%4u 解码:%4u 播放:%4u 丢:%3u 内存:%uKB  ", sec,
                s.capture_frames, s.encode_cnt, s.decode_cnt, s.playback_frames, drops,
-               (unsigned)(s.mem_used / 1024));
+               static_cast<unsigned>(s.mem_used / 1024));
         fflush(stdout);
     }
 } // namespace
@@ -53,65 +51,73 @@ int main()
     std::signal(SIGTERM, onSignal);
 
     AudioCfg cfg;
-    cfg.capture.rate           = RATE;
-    cfg.capture.channels       = CH;
-    cfg.capture.frame_ms       = FRAME_MS;
-    cfg.playback.rate          = RATE;
-    cfg.playback.channels      = CH;
-    cfg.playback.frame_ms      = FRAME_MS;
-    cfg.playback.volume        = VOLUME;
-    cfg.opus.rate              = RATE;
-    cfg.opus.channels          = CH;
-    cfg.opus.bitrate           = OPUS_BITRATE;
+    cfg.capture.rate           = AUDIO_SAMPLE_RATE;
+    cfg.capture.channels       = AUDIO_CHANNELS;
+    cfg.capture.frame_ms       = AUDIO_FRAME_DURATION_MS;
+    cfg.playback.rate          = AUDIO_SAMPLE_RATE;
+    cfg.playback.channels      = AUDIO_CHANNELS;
+    cfg.playback.frame_ms      = AUDIO_FRAME_DURATION_MS;
+    cfg.playback.volume        = 85;
+    cfg.opus.rate              = AUDIO_SAMPLE_RATE;
+    cfg.opus.channels          = AUDIO_CHANNELS;
+    cfg.opus.bitrate           = AUDIO_BIT_RATE;
     cfg.opus.vbr               = true;
-    cfg.proc.denoise           = true;
-    cfg.proc.agc               = true;
-    cfg.proc.vad               = true;
-    cfg.proc.dereverb          = true;
-    cfg.proc.agc_level         = AGC_LEVEL;
-    cfg.proc.agc_increment     = 12;
-    cfg.proc.agc_decrement     = -40;
-    cfg.proc.agc_max_gain_db   = 10;
-    cfg.proc.noise_suppress_db = NOISE_DB;
-    cfg.proc.echo_suppress_db  = ECHO_DB;
+    cfg.proc.denoise           = AUDIO_DENOISE_ENABLED;
+    cfg.proc.agc               = AUDIO_AGC_ENABLED;
+    cfg.proc.vad               = AUDIO_VAD_ENABLED;
+    cfg.proc.dereverb          = AUDIO_DEREVERB_ENABLED;
+    cfg.proc.agc_level         = AUDIO_AGC_LEVEL;
+    cfg.proc.agc_increment     = AUDIO_AGC_INCREMENT;
+    cfg.proc.agc_decrement     = AUDIO_AGC_DECREMENT;
+    cfg.proc.agc_max_gain_db   = AUDIO_AGC_MAX_GAIN;
+    cfg.proc.noise_suppress_db = AUDIO_NOISE_SUPPRESS_LEVEL;
+    cfg.proc.echo_suppress_db  = AUDIO_ECHO_SUPPRESS_LEVEL;
     cfg.enable_capture         = true;
     cfg.enable_playback        = true;
     cfg.enable_opus            = true;
-    cfg.enable_proc            = true; // 开启 Speex 3A
+    cfg.enable_proc            = true;
 
-    // 初始化
+    cfg.capture.rk.enable_vqe = (AUDIO_RK_VQE_ENABLED != 0);
+    if (AUDIO_RK_VQE_ENABLED)
+    {
+        cfg.capture.rk.vqe_config_file   = AUDIO_RK_VQE_CONFIG_PATH;
+        cfg.capture.rk.ao_dev_id_for_vqe = AUDIO_RK_VQE_AO_DEV_ID;
+        cfg.capture.rk.ao_chn_for_vqe    = AUDIO_RK_VQE_AO_CHN_ID;
+        cfg.capture.rk.vqe_gap_ms        = AUDIO_RK_VQE_GAP_MS;
+    }
+
     AudioDrv drv;
     if (drv.init(cfg) != Error::OK)
     {
         LOG_ERROR(TAG, "音频初始化失败");
         return 1;
     }
-    LOG_INFO(TAG, "回声 %uHz %uch %ums Opus %ubps 3A 音量%d%%", RATE, static_cast<unsigned>(CH),
-             static_cast<unsigned>(FRAME_MS), OPUS_BITRATE, static_cast<unsigned>(VOLUME));
+    LOG_INFO(TAG, "回声 %uHz %uch %ums Opus %ubps 音量%u%%",
+             static_cast<unsigned>(AUDIO_SAMPLE_RATE), static_cast<unsigned>(AUDIO_CHANNELS),
+             static_cast<unsigned>(AUDIO_FRAME_DURATION_MS), static_cast<unsigned>(AUDIO_BIT_RATE),
+             static_cast<unsigned>(cfg.playback.volume));
 
     std::atomic<uint32_t> drops{0};
 
-    drv.set_capture_cb(
-        [&](const FramePtr& pcm)
-        {
-            if (!pcm || !pcm->data || pcm->samples == 0)
-                return;
+    SubHandle sub = drv.subscribe(StreamId::MicProcessed,
+                                  [&drv, &drops](const FramePtr& pcm)
+                                  {
+                                      if (!pcm || !pcm->data || pcm->samples == 0)
+                                          return;
 
-            auto opus = drv.opus().encode(pcm);
-            if (!opus)
-            {
-                drops.fetch_add(1, std::memory_order_relaxed);
-                return;
-            }
-            auto decoded = drv.opus().decode(opus->data, opus->size);
-            if (!decoded)
-            {
-                drops.fetch_add(1, std::memory_order_relaxed);
-                return;
-            }
-            if (drv.playback().push(decoded) != Error::OK)
-                drops.fetch_add(1, std::memory_order_relaxed);
-        });
+                                      auto opus = drv.opus().encode(pcm);
+                                      if (!opus)
+                                          return; /* Opus 侧 PCM 拼接未满 20ms，非错误 */
+                                      if (opus->size == 0)
+                                      {
+                                          drops.fetch_add(1, std::memory_order_relaxed);
+                                          return;
+                                      }
+                                      /* 与业务一致：上行/对端 Opus 进播放，由 AudioDrv 内解码再送
+                                       * AO/ALSA */
+                                      if (drv.pushPlaybackOpus(opus->data, opus->size) != Error::OK)
+                                          drops.fetch_add(1, std::memory_order_relaxed);
+                                  });
 
     if (drv.start() != Error::OK)
     {
@@ -124,21 +130,21 @@ int main()
     int elapsed = 0;
     while (g_running.load(std::memory_order_relaxed))
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         printStats(drv, ++elapsed, drops.load(std::memory_order_relaxed));
     }
 
     std::cout << std::endl;
+    drv.unsubscribe(sub);
     drv.stop();
 
-    auto s = drv.stats();
+    auto           s        = drv.stats();
+    const uint32_t drop_cnt = drops.load(std::memory_order_relaxed);
     LOG_INFO(TAG, "统计 %ds 采集%u 编码%u 解码%u 播放%u 丢%u 内存%uKB", elapsed, s.capture_frames,
-             s.encode_cnt, s.decode_cnt, s.playback_frames, drops.load(),
+             s.encode_cnt, s.decode_cnt, s.playback_frames, drop_cnt,
              static_cast<unsigned>(s.mem_used / 1024));
     if (s.capture_frames > 0)
-    {
-        LOG_INFO(TAG, "丢帧率%.1f%%", drops.load() * 100.0 / s.capture_frames);
-    }
+        LOG_INFO(TAG, "丢帧率%.1f%%", drop_cnt * 100.0 / s.capture_frames);
 
     drv.deinit();
     return 0;

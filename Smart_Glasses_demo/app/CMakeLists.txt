@@ -9,6 +9,7 @@ file(GLOB_RECURSE APP_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
 )
 list(FILTER APP_SOURCES EXCLUDE REGEX ".*copy\\.(cc|cpp|h|hpp)$")
+list(FILTER APP_SOURCES EXCLUDE REGEX ".*/audio copy/.*")
 
 # 创建 app 静态库
 add_library(app STATIC ${APP_SOURCES})
@@ -48,6 +49,11 @@ target_include_directories(app PUBLIC
     # media headers
     ${CMAKE_CURRENT_SOURCE_DIR}/media
     ${CMAKE_CURRENT_SOURCE_DIR}/media/audio
+    ${CMAKE_CURRENT_SOURCE_DIR}/media/audio/core
+    ${CMAKE_CURRENT_SOURCE_DIR}/media/audio/backend
+    ${CMAKE_CURRENT_SOURCE_DIR}/media/audio/codec
+    ${CMAKE_CURRENT_SOURCE_DIR}/media/audio/proc
+    ${CMAKE_CURRENT_SOURCE_DIR}/media/audio/util
     ${CMAKE_CURRENT_SOURCE_DIR}/media/camera
     ${CMAKE_CURRENT_SOURCE_DIR}/media/camera/domain
     ${CMAKE_CURRENT_SOURCE_DIR}/media/camera/pool

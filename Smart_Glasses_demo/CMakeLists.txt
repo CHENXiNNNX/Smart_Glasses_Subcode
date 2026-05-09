@@ -11,6 +11,9 @@ message(STATUS "Building for ARM architecture - Smart Glasses")
 # 工程名称
 project(SmartGlasses)
 
+# 供 clangd / IDE 使用（compile_commands.json 输出到 build 目录）
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # 设置交叉编译链的pkg-config路径和环境变量
 set(SDK_PATH "/home/irex/WorkSpace/Smart_Glasses/SDK/rv1106-sdk")
 set(CROSS_PKG_CONFIG "${SDK_PATH}/sysdrv/source/buildroot/buildroot-2023.02.6/output/host/bin/pkg-config")
@@ -68,6 +71,7 @@ add_subdirectory(utils)          # 公共工具模块
 add_subdirectory(app)            # 应用核心模块
 add_subdirectory(third_party)    # 第三方库模块
 add_subdirectory(third_party/libdatachannel) # WebRTC网络通信库
+add_subdirectory(third_party/vl53l7)         # VL53L7/L8 ToF 驱动（Linux 适配）
 
 # 定义主程序源文件
 set(MAIN_SOURCES main.cpp)
@@ -81,6 +85,7 @@ target_link_libraries(
     utils
     app
     datachannel-static  # WebRTC网络通信库
+    vl53l7              # VL53L7/L8 ToF 驱动
 )
 
 # 复制配置文件到输出目录
@@ -108,29 +113,42 @@ add_custom_command(
     COMMENT "Copying cacert.pem to bin directory"
 )
 
-# 复制模型文件到输出目录（bin/models）
+# 复制音频配置到 bin/assets/conf
 add_custom_command(
     TARGET main POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_PATH}/models
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_PATH}/assets/conf
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${PROJECT_SOURCE_DIR}/assets/conf/config_aivqe.json
+            ${OUTPUT_PATH}/assets/conf/config_aivqe.json
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${PROJECT_SOURCE_DIR}/assets/conf/config_aovqe.json
+            ${OUTPUT_PATH}/assets/conf/config_aovqe.json
+    COMMENT "Copy conf JSON to bin/assets/conf"
+)
+
+# 复制模型到 bin/assets/models
+add_custom_command(
+    TARGET main POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_PATH}/assets/models
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${PROJECT_SOURCE_DIR}/assets/models/detection.rknn
-            ${OUTPUT_PATH}/models/detection.rknn
+            ${OUTPUT_PATH}/assets/models/detection.rknn
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${PROJECT_SOURCE_DIR}/assets/models/recognition.rknn
-            ${OUTPUT_PATH}/models/recognition.rknn
+            ${OUTPUT_PATH}/assets/models/recognition.rknn
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${PROJECT_SOURCE_DIR}/assets/models/retinaface.rknn
-            ${OUTPUT_PATH}/models/retinaface.rknn
+            ${OUTPUT_PATH}/assets/models/retinaface.rknn
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${PROJECT_SOURCE_DIR}/assets/models/LZ-ArcFace.rknn
-            ${OUTPUT_PATH}/models/LZ-ArcFace.rknn
+            ${PROJECT_SOURCE_DIR}/assets/models/mosquito_yolov8_rv1106.rknn
+            ${OUTPUT_PATH}/assets/models/mosquito_yolov8_rv1106.rknn
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${PROJECT_SOURCE_DIR}/assets/models/w600k_mbf.rknn
-            ${OUTPUT_PATH}/models/w600k_mbf.rknn
+            ${OUTPUT_PATH}/assets/models/w600k_mbf.rknn
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${PROJECT_SOURCE_DIR}/assets/models/silero_vad.onnx
-            ${OUTPUT_PATH}/models/silero_vad.onnx
-    COMMENT "Copying model files to bin/models directory"
+            ${OUTPUT_PATH}/assets/models/silero_vad.onnx
+    COMMENT "Copy models to bin/assets/models"
 )
 
 # 复制 ONNX Runtime 必要库到输出目录（bin/lib/onnxruntime）

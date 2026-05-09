@@ -31,8 +31,14 @@ namespace app
                 WifiManager(const WifiManager&)            = delete;
                 WifiManager& operator=(const WifiManager&) = delete;
 
-                WifiService&       service() { return *svc_; }
-                const WifiService& service() const { return *svc_; }
+                WifiService& service()
+                {
+                    return *svc_;
+                }
+                const WifiService& service() const
+                {
+                    return *svc_;
+                }
 
                 WifiError init();
                 void      deinit();

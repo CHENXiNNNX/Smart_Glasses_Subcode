@@ -18,8 +18,8 @@ namespace app
             std::string trim(const std::string& str);
             bool        wpaOutputIsOk(const std::string& output);
 
-            int signalDbmToPercent(int dbm);
-            int frequencyToChannel(int freq);
+            int          signalDbmToPercent(int dbm);
+            int          frequencyToChannel(int freq);
             WifiSecurity parseSecurityType(const std::string& flags);
 
             void parseScanResults(const std::string& raw, std::vector<WifiInfo>& out);
@@ -35,7 +35,7 @@ namespace app
 
             bool parseAddNetworkId(const std::string& wpa_output, int& out_id);
 
-            void mergeSavedNetworkPriorities(const std::string& wpa_conf_path,
+            void mergeSavedNetworkPriorities(const std::string&             wpa_conf_path,
                                              std::vector<SavedNetworkInfo>& networks);
 
         } // namespace wifi

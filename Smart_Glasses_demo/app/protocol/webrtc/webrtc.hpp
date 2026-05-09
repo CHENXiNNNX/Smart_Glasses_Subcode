@@ -86,11 +86,11 @@ namespace app
                     bool                     use_relay_only = false;
                 } ice;
 
-                bool   enable_video_pacing      = true;
-                double video_pacing_bps         = 0;
-                int    video_pacing_interval_ms = 10;
-                unsigned int video_remb_min_bps = 200000;
-                unsigned int video_remb_max_bps = 12000000;
+                bool         enable_video_pacing      = true;
+                double       video_pacing_bps         = 0;
+                int          video_pacing_interval_ms = 10;
+                unsigned int video_remb_min_bps       = 200000;
+                unsigned int video_remb_max_bps       = 12000000;
             };
 
             // 回调函数类型定义
@@ -153,7 +153,7 @@ namespace app
 
                 void setVideoNetworkCallbacks(
                     std::function<void(unsigned int bitrate_bps)> on_receiver_remb,
-                    std::function<void()> on_receiver_keyframe_request);
+                    std::function<void()>                         on_receiver_keyframe_request);
 
                 struct Stats
                 {
@@ -195,9 +195,9 @@ namespace app
                 std::shared_ptr<rtc::RembHandler>            video_remb_handler_;
                 std::shared_ptr<rtc::PacingHandler>          video_pacing_handler_;
 
-                std::mutex                         video_net_cb_mutex_;
-                std::function<void(unsigned int)>  video_on_remb_bps_;
-                std::function<void()>              video_on_keyframe_req_;
+                std::mutex                        video_net_cb_mutex_;
+                std::function<void(unsigned int)> video_on_remb_bps_;
+                std::function<void()>             video_on_keyframe_req_;
 
                 std::chrono::steady_clock::time_point last_audio_send_time_;
                 static constexpr int AUDIO_SEND_INTERVAL_MS = AUDIO_FRAME_DURATION_MS;

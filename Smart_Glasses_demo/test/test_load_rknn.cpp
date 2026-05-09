@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
     // 初始化日志系统
     Logger::inst().init(LogConfig());
 
-    std::string model_dir = "./models/";
+    std::string model_dir = "/root/bin/assets/models/";
 
     for (int i = 1; i < argc; ++i)
     {
@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
         else if (arg == "-h" || arg == "--help")
         {
             std::cout << "用法: " << argv[0] << " [-p 模型目录]\n";
-            std::cout << "示例: " << argv[0] << " -p ./models\n";
+            std::cout << "示例: " << argv[0] << " -p /root/bin/assets/models\n";
             return 0;
         }
         else

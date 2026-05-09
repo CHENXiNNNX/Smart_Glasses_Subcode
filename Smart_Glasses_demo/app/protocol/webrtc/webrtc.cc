@@ -337,7 +337,7 @@ namespace app
 
             void WebRTCSystem::setVideoNetworkCallbacks(
                 std::function<void(unsigned int bitrate_bps)> on_receiver_remb,
-                std::function<void()> on_receiver_keyframe_request)
+                std::function<void()>                         on_receiver_keyframe_request)
             {
                 std::lock_guard<std::mutex> lock(video_net_cb_mutex_);
                 video_on_remb_bps_     = std::move(on_receiver_remb);
@@ -608,23 +608,25 @@ namespace app
                         video_sr_reporter_ =
                             std::make_shared<rtc::RtcpSrReporter>(video_rtp_config_);
                         video_rtcp_session_ = std::make_shared<rtc::RtcpReceivingSession>();
-                        video_pli_handler_ = std::make_shared<rtc::PliHandler>([this]() {
-                            std::function<void()> cb;
+                        video_pli_handler_  = std::make_shared<rtc::PliHandler>(
+                            [this]()
                             {
-                                std::lock_guard<std::mutex> lock(video_net_cb_mutex_);
-                                cb = video_on_keyframe_req_;
-                            }
-                            if (!cb)
-                                return;
-                            try
-                            {
-                                cb();
-                            }
-                            catch (const std::exception& e)
-                            {
-                                LOG_ERROR(LOG_TAG, "PLI异常 %s", e.what());
-                            }
-                        });
+                                std::function<void()> cb;
+                                {
+                                    std::lock_guard<std::mutex> lock(video_net_cb_mutex_);
+                                    cb = video_on_keyframe_req_;
+                                }
+                                if (!cb)
+                                    return;
+                                try
+                                {
+                                    cb();
+                                }
+                                catch (const std::exception& e)
+                                {
+                                    LOG_ERROR(LOG_TAG, "PLI异常 %s", e.what());
+                                }
+                            });
                         video_remb_handler_ = std::make_shared<rtc::RembHandler>(
                             [this](unsigned int bps)
                             {
@@ -657,11 +659,11 @@ namespace app
                         {
                             double pacing_bps = config_.video_pacing_bps;
                             if (pacing_bps <= 0.)
-                                pacing_bps = static_cast<double>(H264_Default_Bitrate) * 1000.0 * 1.35;
+                                pacing_bps =
+                                    static_cast<double>(H264_Default_Bitrate) * 1000.0 * 1.35;
                             video_pacing_handler_ = std::make_shared<rtc::PacingHandler>(
-                                pacing_bps,
-                                std::chrono::milliseconds(
-                                    std::max(5, config_.video_pacing_interval_ms)));
+                                pacing_bps, std::chrono::milliseconds(
+                                                std::max(5, config_.video_pacing_interval_ms)));
                             video_packetizer_->addToChain(video_pacing_handler_);
                             LOG_DEBUG(LOG_TAG, "pacing %.0fbps %dms", pacing_bps,
                                       std::max(5, config_.video_pacing_interval_ms));

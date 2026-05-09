@@ -255,7 +255,7 @@ int main(int /*argc*/, char* /*argv*/[])
 
     /* 4. 初始化人脸检测 */
     FaceDetectionConfig face_config = FaceDetectionConfig::getDefault();
-    face_config.model.model_path    = "./model/retinaface.rknn";
+    face_config.model.model_path    = "/root/bin/assets/models/retinaface.rknn";
 
     DetectionConfig detect_config;
     detect_config.confidence_threshold = face_config.detection.confidence_threshold;
@@ -277,7 +277,7 @@ int main(int /*argc*/, char* /*argv*/[])
 
     /* 5. 初始化人脸识别 */
     FaceRecognitionConfig recog_config;
-    recog_config.model.model_path                 = "./model/LZ-ArcFace.rknn";
+    recog_config.model.model_path                 = "/root/bin/assets/models/LZ-ArcFace.rknn";
     recog_config.recognition.similarity_threshold = 0.6f;
     recog_config.recognition.feature_dim          = 128;
 

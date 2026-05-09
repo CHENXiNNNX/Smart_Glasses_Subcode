@@ -9,93 +9,93 @@
 
 namespace
 {
-std::vector<std::string> scanModelFiles(const std::string& dir_path)
-{
-    std::vector<std::string> model_files;
-    try
+    std::vector<std::string> scanModelFiles(const std::string& dir_path)
     {
-        if (!std::filesystem::exists(dir_path))
+        std::vector<std::string> model_files;
+        try
         {
-            std::cerr << "模型目录不存在: " << dir_path << std::endl;
-            return model_files;
-        }
-
-        for (const auto& entry : std::filesystem::directory_iterator(dir_path))
-        {
-            if (entry.is_regular_file() && entry.path().extension() == ".onnx")
+            if (!std::filesystem::exists(dir_path))
             {
-                model_files.push_back(entry.path().string());
+                std::cerr << "模型目录不存在: " << dir_path << std::endl;
+                return model_files;
+            }
+
+            for (const auto& entry : std::filesystem::directory_iterator(dir_path))
+            {
+                if (entry.is_regular_file() && entry.path().extension() == ".onnx")
+                {
+                    model_files.push_back(entry.path().string());
+                }
             }
         }
-    }
-    catch (const std::exception& e)
-    {
-        std::cerr << "扫描目录失败: " << e.what() << std::endl;
-    }
-    return model_files;
-}
-
-std::string shapeToString(const std::vector<int64_t>& dims)
-{
-    std::string out = "[";
-    for (size_t i = 0; i < dims.size(); ++i)
-    {
-        if (i > 0)
+        catch (const std::exception& e)
         {
-            out += ", ";
+            std::cerr << "扫描目录失败: " << e.what() << std::endl;
         }
-        out += std::to_string(dims[i]);
+        return model_files;
     }
-    out += "]";
-    return out;
-}
 
-bool printOneModelInfo(const std::string& model_path)
-{
-    try
+    std::string shapeToString(const std::vector<int64_t>& dims)
     {
-        Ort::Env            env(ORT_LOGGING_LEVEL_WARNING, "test-load-onnx");
-        Ort::SessionOptions session_options;
-        session_options.SetIntraOpNumThreads(1);
-        session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED);
-
-        Ort::Session                     session(env, model_path.c_str(), session_options);
-        Ort::AllocatorWithDefaultOptions allocator;
-
-        std::cout << "模型加载成功: " << model_path << std::endl;
-        std::cout << "输入数量: " << session.GetInputCount() << ", 输出数量: " << session.GetOutputCount()
-                  << std::endl;
-
-        for (size_t i = 0; i < session.GetInputCount(); ++i)
+        std::string out = "[";
+        for (size_t i = 0; i < dims.size(); ++i)
         {
-            Ort::AllocatedStringPtr name      = session.GetInputNameAllocated(i, allocator);
-            auto                    type_info = session.GetInputTypeInfo(i).GetTensorTypeAndShapeInfo();
-            std::cout << "输入[" << i << "]: " << name.get()
-                      << ", shape=" << shapeToString(type_info.GetShape()) << std::endl;
+            if (i > 0)
+            {
+                out += ", ";
+            }
+            out += std::to_string(dims[i]);
         }
-
-        for (size_t i = 0; i < session.GetOutputCount(); ++i)
-        {
-            Ort::AllocatedStringPtr name      = session.GetOutputNameAllocated(i, allocator);
-            auto                    type_info = session.GetOutputTypeInfo(i).GetTensorTypeAndShapeInfo();
-            std::cout << "输出[" << i << "]: " << name.get()
-                      << ", shape=" << shapeToString(type_info.GetShape()) << std::endl;
-        }
-
-        std::cout << std::endl;
-        return true;
+        out += "]";
+        return out;
     }
-    catch (const Ort::Exception& e)
+
+    bool printOneModelInfo(const std::string& model_path)
     {
-        std::cerr << "ONNX Runtime 错误: " << e.what() << std::endl;
-        return false;
+        try
+        {
+            Ort::Env            env(ORT_LOGGING_LEVEL_WARNING, "test-load-onnx");
+            Ort::SessionOptions session_options;
+            session_options.SetIntraOpNumThreads(1);
+            session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED);
+
+            Ort::Session                     session(env, model_path.c_str(), session_options);
+            Ort::AllocatorWithDefaultOptions allocator;
+
+            std::cout << "模型加载成功: " << model_path << std::endl;
+            std::cout << "输入数量: " << session.GetInputCount()
+                      << ", 输出数量: " << session.GetOutputCount() << std::endl;
+
+            for (size_t i = 0; i < session.GetInputCount(); ++i)
+            {
+                Ort::AllocatedStringPtr name = session.GetInputNameAllocated(i, allocator);
+                auto type_info = session.GetInputTypeInfo(i).GetTensorTypeAndShapeInfo();
+                std::cout << "输入[" << i << "]: " << name.get()
+                          << ", shape=" << shapeToString(type_info.GetShape()) << std::endl;
+            }
+
+            for (size_t i = 0; i < session.GetOutputCount(); ++i)
+            {
+                Ort::AllocatedStringPtr name = session.GetOutputNameAllocated(i, allocator);
+                auto type_info = session.GetOutputTypeInfo(i).GetTensorTypeAndShapeInfo();
+                std::cout << "输出[" << i << "]: " << name.get()
+                          << ", shape=" << shapeToString(type_info.GetShape()) << std::endl;
+            }
+
+            std::cout << std::endl;
+            return true;
+        }
+        catch (const Ort::Exception& e)
+        {
+            std::cerr << "ONNX Runtime 错误: " << e.what() << std::endl;
+            return false;
+        }
     }
-}
 } // namespace
 
 int main(int argc, char* argv[])
 {
-    std::string model_dir = "./models/";
+    std::string model_dir = "/root/bin/assets/models/";
 
     for (int i = 1; i < argc; ++i)
     {
@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
         else if (arg == "-h" || arg == "--help")
         {
             std::cout << "用法: " << argv[0] << " [-p 模型目录]\n";
-            std::cout << "示例: " << argv[0] << " -p ./models\n";
+            std::cout << "示例: " << argv[0] << " -p /root/bin/assets/models\n";
             return 0;
         }
         else
@@ -140,6 +140,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    std::cout << "成功加载 " << success << "/" << model_files.size() << " 个 ONNX 模型" << std::endl;
+    std::cout << "成功加载 " << success << "/" << model_files.size() << " 个 ONNX 模型"
+              << std::endl;
     return success > 0 ? 0 : 1;
 }

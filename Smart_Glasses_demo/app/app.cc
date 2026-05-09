@@ -210,9 +210,9 @@ namespace app
         if (audio_drv_ && audio_drv_->is_init())
         {
             handles.set_volume = [this](int v)
-            { audio_drv_->playback().set_volume(static_cast<uint8_t>(v)); };
+            { audio_drv_->setVolume(static_cast<uint8_t>(v)); };
             handles.get_volume = [this]()
-            { return static_cast<int>(audio_drv_->playback().volume()); };
+            { return static_cast<int>(audio_drv_->volume()); };
         }
 
         if (camera_drv_ && camera_drv_->is_init())

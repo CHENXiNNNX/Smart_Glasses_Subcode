@@ -57,7 +57,7 @@ namespace app
              */
             struct ModelConfig
             {
-                std::string model_path = "./model/retinaface.rknn";
+                std::string model_path = "/root/bin/assets/models/retinaface.rknn";
             } model;
 
             /**
@@ -121,7 +121,7 @@ namespace app
              */
             struct ModelConfig
             {
-                std::string model_path = "./model/LZ-ArcFace.rknn";
+                std::string model_path = "/root/bin/assets/models/LZ-ArcFace.rknn";
             } model;
 
             /**

@@ -9,19 +9,23 @@ set(TEST_APPS
     test_audio.cpp:test_audio
     test_camera.cpp:test_camera
     test_face.cpp:test_face
+    test_mosquito.cpp:test_mosquito
+    test_uvc_mosquito.cpp:test_uvc_mosquito
     test_load_rknn.cpp:test_load_rknn
     test_load_onnx.cpp:test_load_onnx
     test_silero_vad_onnx.cpp:test_silero_vad_onnx
     test_mac.cpp:test_mac
     test_memery.cpp:test_memery
     test_opencv.cpp:test_opencv
+    test_uvc.cpp:test_uvc
     test_v4l2.cpp:test_v4l2
     test_webrtc.cpp:test_webrtc
     test_wifi.cpp:test_wifi
+    test_vl53l7.cpp:test_vl53l7
 )
 
 # 需要完整依赖的测试
-set(FULL_DEPS_TESTS test_main basic test_audio test_camera test_face test_load_rknn test_mac
+set(FULL_DEPS_TESTS test_main basic test_audio test_camera test_face test_mosquito test_uvc_mosquito test_mosquito_live test_load_rknn test_mac
     test_memery test_webrtc test_wifi)
 
 # 仅需 OpenCV 的测试
@@ -34,7 +38,10 @@ set(ONNX_ONLY_TESTS test_load_onnx)
 set(FULL_DEPS_ONNX_TESTS test_silero_vad_onnx)
 
 # 独立测试 (无 app 依赖)
-set(STANDALONE_TESTS test_v4l2)
+set(STANDALONE_TESTS test_v4l2 test_uvc)
+
+# 仅依赖 vl53l7 驱动的测试
+set(VL53L7_ONLY_TESTS test_vl53l7)
 
 foreach(entry ${TEST_APPS})
     string(REPLACE ":" ";" pair ${entry})
@@ -46,6 +53,10 @@ foreach(entry ${TEST_APPS})
 
     if(${name} IN_LIST STANDALONE_TESTS)
         target_link_libraries(${name} pthread)
+    elseif(${name} IN_LIST ALSA_LOOPBACK_TESTS)
+        target_link_libraries(${name} asound pthread)
+    elseif(${name} IN_LIST VL53L7_ONLY_TESTS)
+        target_link_libraries(${name} vl53l7 pthread)
     elseif(${name} IN_LIST OPENCV_ONLY_TESTS)
         target_include_directories(${name} PRIVATE ${OpenCV_INCLUDE_DIRS})
         target_link_libraries(${name} ${OpenCV_LIBS})
@@ -198,3 +209,9 @@ foreach(entry ${TEST_APPS})
         )
     endif()
 endforeach()
+
+# test 默认使用 /root/bin 下资源
+if(TARGET test_audio)
+    target_compile_definitions(test_audio PRIVATE
+        "AUDIO_RK_VQE_CONFIG_PATH=\"/root/bin/assets/conf/config_aivqe.json\"")
+endif()

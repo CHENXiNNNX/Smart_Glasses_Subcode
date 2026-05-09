@@ -83,18 +83,21 @@ namespace app
 
             struct SavedNetworkInfo
             {
-                int         network_id      = -1;
+                int         network_id = -1;
                 std::string ssid;
                 bool        is_enabled_auto = true;
                 bool        is_current      = false;
                 int         priority        = 0;
             };
 
-            using WifiStateCallback    = std::function<void(WifiState old_state, WifiState new_state)>;
-            using WifiErrorCallback    = std::function<void(WifiError error, const std::string& message)>;
-            using WifiScanCallback     = std::function<void(const std::vector<WifiInfo>& networks)>;
-            using WifiConnectCallback  = std::function<void(bool success, const std::string& message)>;
-            using WifiReconnectCallback = std::function<void(bool success, const std::string& ssid)>;
+            using WifiStateCallback = std::function<void(WifiState old_state, WifiState new_state)>;
+            using WifiErrorCallback =
+                std::function<void(WifiError error, const std::string& message)>;
+            using WifiScanCallback = std::function<void(const std::vector<WifiInfo>& networks)>;
+            using WifiConnectCallback =
+                std::function<void(bool success, const std::string& message)>;
+            using WifiReconnectCallback =
+                std::function<void(bool success, const std::string& ssid)>;
 
             struct WifiConfig
             {

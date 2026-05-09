@@ -2,6 +2,7 @@
 #include "signaling.hpp"
 #include "webrtc.hpp"
 #include "../../media/audio/audio.hpp"
+#include "../../media/audio/codec/opus_codec.hpp"
 #include "../../media/camera/camera.hpp"
 #include "../../media/media_config.hpp"
 #include "../../media/sync.hpp"
@@ -27,12 +28,9 @@ namespace app::protocol::webrtc
         if (opt.ice_stun.empty())
         {
             opt.ice_stun = {
-                "stun:stun.l.google.com:19302",
-                "stun:stun.miwifi.com:3478",
-                "stun:stun.chat.bilibili.com:3478",
-                "stun:stun.12voip.com:3478",
-                "stun:stun.aa.net.uk:3478",
-                "stun:stun.actionvoip.com:3478",
+                "stun:stun.l.google.com:19302",     "stun:stun.miwifi.com:3478",
+                "stun:stun.chat.bilibili.com:3478", "stun:stun.12voip.com:3478",
+                "stun:stun.aa.net.uk:3478",         "stun:stun.actionvoip.com:3478",
             };
         }
         if (opt.ice_turn.empty())
@@ -50,8 +48,7 @@ namespace app::protocol::webrtc
     namespace
     {
         void attach_camera_weak_net(const std::shared_ptr<WebRTCSystem>& webrtc,
-                                    app::media::camera::CameraDrv*      cam,
-                                    const char*                         tag)
+                                    app::media::camera::CameraDrv* cam, const char* tag)
         {
             if (!webrtc || !cam)
                 return;
@@ -60,15 +57,16 @@ namespace app::protocol::webrtc
                 {
                     if (!cam)
                         return;
-                    unsigned kbps = std::max(200u, std::min(bps / 1000u, 50000u));
-                    static unsigned                     s_last_kbps = 0;
-                    static bool                         s_have      = false;
+                    unsigned        kbps        = std::max(200u, std::min(bps / 1000u, 50000u));
+                    static unsigned s_last_kbps = 0;
+                    static bool     s_have      = false;
                     static std::chrono::steady_clock::time_point s_last_small_chg{};
                     if (s_have && kbps == s_last_kbps)
                         return;
-                    auto now = std::chrono::steady_clock::now();
+                    auto               now          = std::chrono::steady_clock::now();
                     constexpr unsigned kMinStepKbps = 48;
-                    if (s_have && std::abs(static_cast<int>(kbps) - static_cast<int>(s_last_kbps)) <
+                    if (s_have &&
+                        std::abs(static_cast<int>(kbps) - static_cast<int>(s_last_kbps)) <
                             static_cast<int>(kMinStepKbps) &&
                         now - s_last_small_chg < std::chrono::seconds(4))
                         return;
@@ -94,12 +92,13 @@ namespace app::protocol::webrtc
         apply_default_webrtc_device_options(opt);
         const char* tag = opt.log_tag ? opt.log_tag : "MAIN";
 
-        int                                              rc = 0;
-        std::shared_ptr<sync_context_t>                  sync_ctx;
-        std::unique_ptr<app::media::audio::AudioDrv>     audio_drv;
-        std::unique_ptr<app::media::camera::CameraDrv>   camera_drv;
-        std::shared_ptr<Signaling>                       signaling;
-        std::shared_ptr<WebRTCSystem>                    webrtc;
+        int                                            rc = 0;
+        std::shared_ptr<sync_context_t>                sync_ctx;
+        std::unique_ptr<app::media::audio::AudioDrv>   audio_drv;
+        app::media::audio::SubHandle                   mic_sub = 0;
+        std::unique_ptr<app::media::camera::CameraDrv> camera_drv;
+        std::shared_ptr<Signaling>                     signaling;
+        std::shared_ptr<WebRTCSystem>                  webrtc;
 
         if (!opt.boot_log_line.empty())
             LOG_INFO(tag, "%s", opt.boot_log_line.c_str());
@@ -114,11 +113,11 @@ namespace app::protocol::webrtc
             sig.server_url = opt.server_url;
 
             WebRTCConfig wc;
-            wc.ice.stun_servers                 = std::move(opt.ice_stun);
-            wc.ice.turn_servers                 = std::move(opt.ice_turn);
-            wc.enable_video_pacing              = true;
-            wc.video_pacing_bps                 = 0;
-            wc.video_pacing_interval_ms         = 10;
+            wc.ice.stun_servers         = std::move(opt.ice_stun);
+            wc.ice.turn_servers         = std::move(opt.ice_turn);
+            wc.enable_video_pacing      = true;
+            wc.video_pacing_bps         = 0;
+            wc.video_pacing_interval_ms = 10;
 
             signaling = std::make_shared<Signaling>(sig);
             webrtc    = std::make_shared<WebRTCSystem>(wc);
@@ -141,6 +140,15 @@ namespace app::protocol::webrtc
         audio_cfg.enable_opus       = true;
         audio_cfg.enable_proc       = true;
 
+        audio_cfg.capture.rk.enable_vqe = (AUDIO_RK_VQE_ENABLED != 0);
+        if (AUDIO_RK_VQE_ENABLED)
+        {
+            audio_cfg.capture.rk.vqe_config_file   = AUDIO_RK_VQE_CONFIG_PATH;
+            audio_cfg.capture.rk.ao_dev_id_for_vqe = AUDIO_RK_VQE_AO_DEV_ID;
+            audio_cfg.capture.rk.ao_chn_for_vqe    = AUDIO_RK_VQE_AO_CHN_ID;
+            audio_cfg.capture.rk.vqe_gap_ms        = AUDIO_RK_VQE_GAP_MS;
+        }
+
         audio_drv = std::make_unique<app::media::audio::AudioDrv>();
         if (audio_drv->init(audio_cfg) != app::media::audio::Error::OK)
         {
@@ -149,14 +157,16 @@ namespace app::protocol::webrtc
             goto cleanup;
         }
 
-        audio_drv->set_capture_cb(
+        mic_sub = audio_drv->subscribe(
+            app::media::audio::StreamId::MicProcessed,
             [webrtc, raw = audio_drv.get()](const app::media::audio::FramePtr& pcm)
             {
                 if (!pcm || pcm->size == 0 || !webrtc->isConnected())
                     return;
                 auto opus_frame = raw->opus().encode(pcm);
                 if (opus_frame && opus_frame->size > 0)
-                    webrtc->sendAudioData(opus_frame->data, opus_frame->size, opus_frame->timestamp);
+                    webrtc->sendAudioData(opus_frame->data, opus_frame->size,
+                                          opus_frame->timestamp);
             });
 
         if (audio_drv->start() != app::media::audio::Error::OK)
@@ -180,7 +190,8 @@ namespace app::protocol::webrtc
                 camera_drv->start() == app::media::camera::Error::OK)
             {
                 camera_drv->set_webrtc_sink(
-                    [webrtc, sync_ctx](const uint8_t* data, size_t size, uint64_t pts, bool keyframe)
+                    [webrtc, sync_ctx](const uint8_t* data, size_t size, uint64_t pts,
+                                       bool keyframe)
                     {
                         if (!data || size == 0 || !webrtc->isConnected())
                             return;
@@ -197,16 +208,16 @@ namespace app::protocol::webrtc
             }
         }
 
-        webrtc->onStateChanged([tag](WebRTCState state)
-                               { LOG_INFO(tag, "WebRTC 状态: %s", WebRTCSystem::stateToString(state)); });
-        webrtc->onAudioData([raw = audio_drv.get()](const uint8_t* data, size_t size)
-                            {
-                                if (!data || size == 0 || !raw)
-                                    return;
-                                auto pcm = raw->opus().decode(data, size);
-                                if (pcm)
-                                    raw->playback().push(pcm);
-                            });
+        webrtc->onStateChanged(
+            [tag](WebRTCState state)
+            { LOG_INFO(tag, "WebRTC 状态: %s", WebRTCSystem::stateToString(state)); });
+        webrtc->onAudioData(
+            [raw = audio_drv.get()](const uint8_t* data, size_t size)
+            {
+                if (!data || size == 0 || !raw)
+                    return;
+                raw->pushPlaybackOpus(data, size);
+            });
 
         signaling->onStatusChanged(
             [tag](SignalingStatus status)
@@ -290,6 +301,8 @@ namespace app::protocol::webrtc
             signaling->disconnect();
         if (audio_drv)
         {
+            if (mic_sub)
+                audio_drv->unsubscribe(mic_sub);
             audio_drv->stop();
             audio_drv->deinit();
         }

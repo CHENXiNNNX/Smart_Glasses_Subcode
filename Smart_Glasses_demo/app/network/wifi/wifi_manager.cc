@@ -12,7 +12,7 @@ namespace app
             WifiManager::WifiManager(WifiConfig config)
             {
                 WifiPorts ports = makeLinuxWifiPorts(config);
-                svc_            = std::make_unique<WifiService>(std::move(config), std::move(ports));
+                svc_ = std::make_unique<WifiService>(std::move(config), std::move(ports));
             }
 
             WifiManager::WifiManager(WifiConfig config, WifiPorts ports)
@@ -33,7 +33,7 @@ namespace app
             }
 
             WifiError WifiManager::scanNetworks(const WifiScanCallback& callback,
-                                                std::vector<WifiInfo>* networks)
+                                                std::vector<WifiInfo>*  networks)
             {
                 return svc_->scanNetworks(callback, networks);
             }
@@ -140,7 +140,7 @@ namespace app
             }
 
             void WifiManager::setAutoReconnect(bool enabled, const std::string& ssid,
-                                                 const std::string& password)
+                                               const std::string& password)
             {
                 svc_->setAutoReconnect(enabled, ssid, password);
             }

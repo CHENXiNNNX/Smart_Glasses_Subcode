@@ -30,17 +30,17 @@ namespace app::media::camera
         static constexpr int VPSS_GRP = 0;
         static constexpr int VPSS_CHN = 0;
 
-        H264Cfg               cfg_;
-        FramePool*            pool_    = nullptr;
-        bool                  init_    = false;
-        bool                  running_ = false;
-        bool                  bound_   = false;
-        H264Cb                cb_;
-        std::mutex            cb_mtx_;
-        std::thread           thread_;
-        std::atomic<bool>     stop_{false};
-        std::atomic<uint32_t> frames_{0};
-        std::atomic<uint32_t> drops_{0};
+        H264Cfg                               cfg_;
+        FramePool*                            pool_    = nullptr;
+        bool                                  init_    = false;
+        bool                                  running_ = false;
+        bool                                  bound_   = false;
+        H264Cb                                cb_;
+        std::mutex                            cb_mtx_;
+        std::thread                           thread_;
+        std::atomic<bool>                     stop_{false};
+        std::atomic<uint32_t>                 frames_{0};
+        std::atomic<uint32_t>                 drops_{0};
         std::chrono::steady_clock::time_point last_idr_request_{};
 
         Error init(const H264Cfg& cfg, FramePool* pool)
@@ -283,8 +283,8 @@ namespace app::media::camera
     }
     Error H264Encoder::set_bitrate(uint16_t kbps)
     {
-        const uint16_t clamped = static_cast<uint16_t>(
-            std::max(2u, std::min(static_cast<unsigned>(kbps), 200000u)));
+        const uint16_t clamped =
+            static_cast<uint16_t>(std::max(2u, std::min(static_cast<unsigned>(kbps), 200000u)));
         impl_->cfg_.bitrate = clamped;
 
 #if CAM_HAS_SDK
@@ -316,7 +316,7 @@ namespace app::media::camera
                 return Error::OK;
             }
             attr.stRcAttr.stH265Cbr.u32BitRate = clamped;
-            attr.stVencAttr.u32BufSize = impl_->cfg_.width * impl_->cfg_.height * 3u / 2u;
+            attr.stVencAttr.u32BufSize         = impl_->cfg_.width * impl_->cfg_.height * 3u / 2u;
         }
 
         if (RK_MPI_VENC_SetChnAttr(Impl::CHN_ID, &attr) != RK_SUCCESS)
@@ -339,7 +339,7 @@ namespace app::media::camera
             return Error::NOT_INIT;
 #if CAM_HAS_SDK
         using clock = std::chrono::steady_clock;
-        auto now = clock::now();
+        auto now    = clock::now();
         if (now - impl_->last_idr_request_ < std::chrono::milliseconds(450))
             return Error::OK;
         impl_->last_idr_request_ = now;

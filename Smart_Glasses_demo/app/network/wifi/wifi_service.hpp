@@ -73,7 +73,10 @@ namespace app
                 void getStats(WifiStats& stats) const;
                 void resetStats();
 
-                const WifiConfig& config() const { return config_; }
+                const WifiConfig& config() const
+                {
+                    return config_;
+                }
 
             private:
                 WifiError checkPrerequisites();
